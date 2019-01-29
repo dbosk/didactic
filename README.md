@@ -1,2 +1,3 @@
-# beamer-ped
-Pedagogical extensions for Beamer
+# beamer-didactic
+
+This is a LaTeX package with a didactic extension to Beamer.
