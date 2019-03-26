@@ -99,6 +99,7 @@
 % \begin{environment}{question}
 % \begin{environment}{exercis}
 % \begin{environment}{remark}
+% \begin{environment}{summary}
 % These environments wraps Beamer's |block| environment: it sets a default 
 % title and colour with an optional name.
 %    \begin{macrocode}
@@ -167,7 +168,18 @@
 }{%
   \end{block}
 }
+
+\ProvideDocumentEnvironment{summary}{o}{%
+  \IfValueTF{#1}{%
+    \begin{block}{Summary: #1}
+  }{%
+    \begin{block}{Summary}
+  }
+}{%
+  \end{block}
+}
 %    \end{macrocode}
+% \end{environment}
 % \end{environment}
 % \end{environment}
 % \end{environment}
