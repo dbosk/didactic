@@ -90,6 +90,28 @@
 % Each of them provides a block with an appropriate title and optional subtitle 
 % and is of a suitable colour.
 %
+% \DescribeEnv{lightblock}
+% \DescribeEnv{darkblock}
+% We provide two shades of boxes, light coloured and dark coloured boxes.
+% These can be used to create boxes of various colours easily.
+% These two environments take two mandatory arguments: the first one is a 
+% colour, the second is the title.
+%
+% \DescribeEnv{blackblock}
+% \DescribeEnv{whiteblock}
+% \DescribeEnv{bwblock}
+% For instance, we provide a black block, white block and a black-white block.
+% These take only one mandatory argument: a title.
+%
+% \DescribeEnv{redblock}
+% \DescribeEnv{blueblock}
+% \DescribeEnv{purpleblock}
+% \DescribeEnv{greenblock}
+% \DescribeEnv{yellowblock}
+% \DescribeEnv{orangeblock}
+% We also provide a few predefined blocks in various common colours.
+% They all take a title as mandatory argument.
+%
 % \StopEventually{}
 %
 % \section{Implementation}
@@ -186,6 +208,87 @@
 % \end{environment}
 % \end{environment}
 %
+% \begin{environment}{lightblock}
+% \begin{environment}{darkblock}
+% \begin{environment}{blackblock}
+% \begin{environment}{whiteblock}
+% \begin{environment}{bwblock}
+% \begin{environment}{redblock}
+% \begin{environment}{blueblock}
+% \begin{environment}{purpleblock}
+% \begin{environment}{greenblock}
+% \begin{environment}{yellowblock}
+% \begin{environment}{orangeblock}
+% Now we have the coloured blocks.
+%    \begin{macrocode}
+\ProvideDocumentEnvironment{lightblock}{mm}{%
+  \setbeamercolor{block body}{bg=#1!10,fg=black}
+  \setbeamercolor{block title}{bg=#1,fg=black}
+  \setbeamercolor{local structure}{fg=#1}
+  \begin{block}{#2}
+}{%
+  \end{block}
+}
+\ProvideDocumentEnvironment{darkblock}{mm}{%
+  \setbeamercolor{block body}{bg=#1!10,fg=black}
+  \setbeamercolor{block title}{bg=#1,fg=white}
+  \setbeamercolor{local structure}{fg=#1}
+  \begin{block}{#2}
+}{%
+  \end{block}
+}
+
+\ProvideDocumentEnvironment{blackblock}{m}
+{\begin{darkblock}{black}{#1}}
+{\end{darkblock}}
+\ProvideDocumentEnvironment{whiteblock}{m}{%
+  \setbeamercolor{block body}{bg=white!10,fg=black}
+  \setbeamercolor{block title}{bg=white,fg=black}
+  \setbeamercolor{local structure}{fg=black}
+  \begin{block}{#1}
+}{%
+  \end{block}
+}
+\ProvideDocumentEnvironment{bwblock}{m}{%
+  \setbeamercolor{block body}{bg=white!10,fg=black}
+  \setbeamercolor{block title}{bg=black,fg=white}
+  \setbeamercolor{local structure}{fg=black}
+  \begin{block}{#1}
+}{%
+  \end{block}
+}
+
+\ProvideDocumentEnvironment{redblock}{m}
+{\begin{darkblock}{red}{#1}}
+{\end{darkblock}}
+\ProvideDocumentEnvironment{blueblock}{m}
+{\begin{darkblock}{blue}{#1}}
+{\end{darkblock}}
+\ProvideDocumentEnvironment{purpleblock}{m}
+{\begin{darkblock}{purple}{#1}}
+{\end{darkblock}}
+
+\ProvideDocumentEnvironment{greenblock}{m}
+{\begin{lightblock}{green}{#1}}
+{\end{lightblock}}
+\ProvideDocumentEnvironment{yellowblock}{m}
+{\begin{lightblock}{yellow}{#1}}
+{\end{lightblock}}
+\ProvideDocumentEnvironment{orangeblock}{m}
+{\begin{lightblock}{orange}{#1}}
+{\end{lightblock}}
+%    \end{macrocode}
+% \end{environment}
+% \end{environment}
+% \end{environment}
+% \end{environment}
+% \end{environment}
+% \end{environment}
+% \end{environment}
+% \end{environment}
+% \end{environment}
+% \end{environment}
+% \end{environment}
 %
 % \Finale
 \endinput
