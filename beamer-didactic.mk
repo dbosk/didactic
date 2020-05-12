@@ -16,4 +16,5 @@ clean-beamer-didactic:
 .PHONY: distclean distclean-beamer-didactic
 distclean: distclean-beamer-didactic
 distclean-beamer-didactic:
+	${RM} beamer-didactic.sty
 	${MAKE} -C ${INCLUDE_BEAMERDIDACTIC} clean distclean
