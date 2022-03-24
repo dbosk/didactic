@@ -26,12 +26,15 @@
 %</package>
 %<package>\RequirePackage{xparse}
 %<*package>
-%%%%     \makeatletter
-%%%%     \@ifclassloaded{beamer}
-%%%%       {\relax}
-%%%%       {\RequirePackage{beamerarticle}}
-%%%%     \makeatother
-%    \RequirePackage{beamerarticle}
+     \makeatletter
+     \@ifclassloaded{beamer}
+       {\relax}
+       {%
+         \@ifpackageloaded{beamerarticle}
+          {\relax}
+          {\PackageWarning{didactic}{Load beamer or beamerarticle}}%
+       }
+     \makeatother
 %</package>
 %<package>\RequirePackage{pythontex}
 %<package>\RequirePackage{minted}
