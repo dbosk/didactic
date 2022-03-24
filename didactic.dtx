@@ -1,6 +1,6 @@
 % \iffalse meta-comment
 %
-% Copyright (C) 2019 by Daniel Bosk <dbosk@kth.se>
+% Copyright (C) 2019--2020, 2022 by Daniel Bosk <daniel@bosk.se>
 % -------------------------------------------------------
 % 
 % This file may be distributed and/or modified under the
@@ -22,14 +22,27 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{didactic}
 %<*package>
-    [2019/01/29 v1.0 beamer-didactic]
+    [2022/03/24 v1.3 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
+%<*package>
+%%%%     \makeatletter
+%%%%     \@ifclassloaded{beamer}
+%%%%       {\relax}
+%%%%       {\RequirePackage{beamerarticle}}
+%%%%     \makeatother
+%    \RequirePackage{beamerarticle}
+%</package>
+%<package>\RequirePackage{pythontex}
+%<package>\RequirePackage{minted}
 %
 %<*driver>
 \documentclass{ltxdoc}
 \usepackage[utf8]{inputenc}
 \usepackage[british]{babel}
+\usepackage{pythontex}
+\setpythontexoutputdir{.}
+\setpythontexworkingdir{..}
 \usepackage{didactic}
 \EnableCrossrefs         
 \CodelineIndex
@@ -62,6 +75,9 @@
 %
 %
 % \changes{v1.0}{2019/01/29}{Initial version}
+% \changes{v1.1}{2019/03/26}{Adds summary environment}
+% \changes{v1.2}{2019/10/26}{Adds lightblock, darkblock and coloured blocks}
+% \changes{v1.3}{2019/01/29}{Renames to didactic; adds tools for code examples}
 %
 % \GetFileInfo{didactic.dtx}
 %
@@ -80,6 +96,8 @@
 % teaching material.
 %
 % \section{Usage}
+%
+% \subsection{Beamer blocks}
 %
 % \DescribeEnv{assumption}
 % \DescribeEnv{idea}
@@ -112,9 +130,33 @@
 % We also provide a few predefined blocks in various common colours.
 % They all take a title as mandatory argument.
 %
+% \subsection{Tools for code examples}
+%
+% We also provide two commands for working with code examples: |lstexample| and 
+% |runexample|.
+%
+% \DescribeMacro{\lstexample}
+% The |\lstexample| command allows us to typeset the source code of the 
+% example.
+% For instance, |\lstexample{hello.py}| produces the following:
+% \lstexample{hello.py}
+%
+% We can also pass optional arguments directly to |minted| that is used to 
+% typeset the code: |\lstexample[linenos,highlightlines=4]{hello.py}| produces 
+% the following.
+% \lstexample[linenos,highlightlines=4]{hello.py}
+%
+% \DescribeMacro{\runexample}
+% We can also run the example code and include its output using the 
+% |\runexample| macro.
+% For instance, |\runexample{hello.py}| produces the following.
+% \runexample{hello.py}
+%
 % \StopEventually{}
 %
 % \section{Implementation}
+%
+% \subsection{Beamer blocks}
 %
 % \begin{environment}{assumption}
 % \begin{environment}{idea}
@@ -289,6 +331,62 @@
 % \end{environment}
 % \end{environment}
 % \end{environment}
+%
+% \subsection{Tools for code examples}
+%
+% Let's turn our focus to |\lstexample| and |\runexample|.
+% We want to make it easy to typeset and print the output of example Python 
+% programs in slides and texts.
+% We want to use PythonTeX to automatically run the code and typeset the source 
+% code using |minted|.
+%
+% \begin{macro}{\lstexample}
+% The first part is easy.
+% To typeset the source file we simply need to use the minted package.
+% We provide an optional argument to pass options to minted.
+%    \begin{macrocode}
+\NewDocumentCommand{\lstexample}{om}{%
+  \IfValueTF{#1}{%
+    \inputminted[escapeinside=||,#1]{python}{#2}%
+  }{%
+    \inputminted[escapeinside=||]{python}{#2}%
+  }%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\runexample}
+% Now, for the second part, printing the output, we do this in two steps.
+% First, we create a function using PythonTeX that runs a Python program and 
+% prints it output.
+%
+% Let's create that function in PythonTeX to run the example program file.
+% We simply execute it with Python 3 and capture its output.
+% Then we print the output to stdout, which is then captured by PythonTeX.
+% We use |pytex.add_dependencies| to add the file as a dependency to rerun the 
+% code when necessary.
+%    \begin{macrocode}
+\begin{pycode}
+import subprocess
+
+def run_module(m):
+    result = subprocess.run(["python3", m], capture_output=True)
+    print(result.stdout.decode("utf8").strip())
+    pytex.add_dependencies(m)
+\end{pycode}
+%    \end{macrocode}
+%
+% Then we simply create a command that run that function with the file as 
+% argument.
+% Then print the output in verbatim mode.
+%    \begin{macrocode}
+\newcommand{\runexample}[1]{%
+  \setpythontexautoprint{false}%
+  \pyc{run_module('#1')}%
+  \printpythontex[verbatim]%
+}
+%    \end{macrocode}
+% \end{macro}
 %
 % \Finale
 \endinput

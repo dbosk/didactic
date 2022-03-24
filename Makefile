@@ -1,4 +1,5 @@
 LATEX?=latex
+LATEXFLAGS=-shell-escape
 
 .PHONY: all
 all: didactic.sty didactic.pdf
