@@ -25,17 +25,6 @@
     [2022/03/24 v1.3 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
-%<*package>
-     \makeatletter
-     \@ifclassloaded{beamer}
-       {\relax}
-       {%
-         \@ifpackageloaded{beamerarticle}
-          {\relax}
-          {\PackageWarning{didactic}{Load beamer or beamerarticle}}%
-       }
-     \makeatother
-%</package>
 %<package>\RequirePackage{pythontex}
 %<package>\RequirePackage{minted}
 %
@@ -145,19 +134,40 @@
 % \lstexample{hello.py}
 %
 % We can also pass optional arguments directly to |minted| that is used to 
-% typeset the code: |\lstexample[linenos,highlightlines=4]{hello.py}| produces 
-% the following.
+% typeset the code.
+% \begin{example}
+% |\lstexample[linenos,highlightlines=4]{hello.py}| produces the following.
 % \lstexample[linenos,highlightlines=4]{hello.py}
+% \end{example}
 %
 % \DescribeMacro{\runexample}
 % We can also run the example code and include its output using the 
 % |\runexample| macro.
+% \begin{example}
 % For instance, |\runexample{hello.py}| produces the following.
 % \runexample{hello.py}
+% \end{example}
 %
 % \StopEventually{}
 %
 % \section{Implementation}
+%
+% We require either |beamer| or |beamerarticle| since the code blocks are based 
+% on |beamer| code.
+% If neither is loaded, we load |beamerarticle|.
+%    \begin{macrocode}
+\makeatletter
+\@ifclassloaded{beamer}{
+  \relax
+}{%
+  \@ifpackageloaded{beamerarticle}{%
+    \relax
+  }{
+    \RequirePackage{beamerarticle}
+  }
+}
+\makeatother
+%    \end{macrocode}
 %
 % \subsection{Beamer blocks}
 %
