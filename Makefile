@@ -1,15 +1,15 @@
 LATEX?=latex
 
 .PHONY: all
-all: beamer-didactic.sty beamer-didactic.pdf
+all: didactic.sty didactic.pdf
 
-beamer-didactic.pdf: beamer-didactic.dtx
-beamer-didactic.sty: beamer-didactic.ins
+didactic.pdf: didactic.dtx
+didactic.sty: didactic.ins
 
 .PHONY: clean
 clean:
-	${RM} beamer-didactic.sty beamer-didactic.pdf
-	${RM} beamer-didactic.log
+	${RM} didactic.sty didactic.pdf
+	${RM} didactic.log
 
 
 INCLUDE_MAKEFILES=makefiles

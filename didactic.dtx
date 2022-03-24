@@ -17,10 +17,10 @@
 %
 % \iffalse
 %<*driver>
-\ProvidesFile{beamer-didactic.dtx}
+\ProvidesFile{didactic.dtx}
 %</driver>
 %<package>\NeedsTeXFormat{LaTeX2e}
-%<package>\ProvidesPackage{beamer-didactic}
+%<package>\ProvidesPackage{didactic}
 %<*package>
     [2019/01/29 v1.0 beamer-didactic]
 %</package>
@@ -30,12 +30,12 @@
 \documentclass{ltxdoc}
 \usepackage[utf8]{inputenc}
 \usepackage[british]{babel}
-\usepackage{beamer-didactic}
+\usepackage{didactic}
 \EnableCrossrefs         
 \CodelineIndex
 \RecordChanges
 \begin{document}
-  \DocInput{beamer-didactic.dtx}
+  \DocInput{didactic.dtx}
   \PrintChanges
   %\PrintIndex
 \end{document}
@@ -63,28 +63,28 @@
 %
 % \changes{v1.0}{2019/01/29}{Initial version}
 %
-% \GetFileInfo{beamer-didactic.dtx}
+% \GetFileInfo{didactic.dtx}
 %
 % \DoNotIndex{\newcommand,\newenvironment}
 % 
 %
-% \title{The \textsf{beamer-didactic} package\thanks{This document
-%   corresponds to \textsf{beamer-didactic}~\fileversion, dated \filedate.}}
-% \author{Daniel Bosk\\\texttt{dbosk@kth.se}}
+% \title{The \textsf{didactic} package\thanks{This document
+%   corresponds to \textsf{didactic}~\fileversion, dated \filedate.}}
+% \author{Daniel Bosk\\\texttt{daniel@bosk.se}}
 %
 % \maketitle
 %
 % \section{Introduction}
 %
-% This package introduces some environments that are useful for writing slides 
-% used for teaching.
+% This package introduces some environments that are useful for writing 
+% teaching material.
 %
 % \section{Usage}
 %
 % \DescribeEnv{assumption}
 % \DescribeEnv{idea}
 % \DescribeEnv{question}
-% \DescribeEnv{exercis}
+% \DescribeEnv{exercise}
 % \DescribeEnv{remark}
 % These environments provides wrappers around Beamer's |block| environment.
 % Each of them provides a block with an appropriate title and optional subtitle 
@@ -119,7 +119,7 @@
 % \begin{environment}{assumption}
 % \begin{environment}{idea}
 % \begin{environment}{question}
-% \begin{environment}{exercis}
+% \begin{environment}{exercise}
 % \begin{environment}{remark}
 % \begin{environment}{summary}
 % These environments wraps Beamer's |block| environment: it sets a default 
