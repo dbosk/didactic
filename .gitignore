@@ -1,6 +1,9 @@
 didactic.pdf
 didactic.sty
 ltxobj
+test.pdf
+test.unq
+
 
 ## Core latex/pdflatex auxiliary files:
 *.aux

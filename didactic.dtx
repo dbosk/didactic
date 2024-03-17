@@ -1,6 +1,6 @@
 % \iffalse meta-comment
 %
-% Copyright (C) 2019--2020, 2022 by Daniel Bosk <daniel@bosk.se>
+% Copyright (C) 2019--2020, 2022, 2024 by Daniel Bosk <daniel@bosk.se>
 % -------------------------------------------------------
 % 
 % This file may be distributed and/or modified under the
@@ -22,11 +22,12 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{didactic}
 %<*package>
-    [2022/03/24 v1.3 didactic]
+    [2024/03/17 v1.4 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{pythontex}
 %<package>\RequirePackage{minted}
+%<package>\RequirePackage{translator}
 %
 %<*driver>
 \documentclass{ltxdoc}
@@ -35,6 +36,7 @@
 \usepackage{pythontex}
 \setpythontexoutputdir{.}
 \setpythontexworkingdir{..}
+\usepackage{beamerarticle}
 \usepackage{didactic}
 \EnableCrossrefs         
 \CodelineIndex
@@ -97,8 +99,14 @@
 % \DescribeEnv{exercise}
 % \DescribeEnv{remark}
 % These environments provides wrappers around Beamer's |block| environment.
+% The idea is to complement the blocks provided by Beamer, such as |theorem|, 
+% |definition| and |example|, with some more useful blocks.
 % Each of them provides a block with an appropriate title and optional subtitle 
 % and is of a suitable colour.
+% For instance, consider the following.
+% \input{idea.tex}
+% That can be produced by the following code.
+% \inputminted[linenos]{latex}{idea.tex}
 %
 % \DescribeEnv{lightblock}
 % \DescribeEnv{darkblock}
@@ -106,6 +114,12 @@
 % These can be used to create boxes of various colours easily.
 % These two environments take two mandatory arguments: the first one is a 
 % colour, the second is the title.
+%
+% In the text (not slides) the blocks are not coloured.
+% For instance, consider the following.
+% \input{lightblock.tex}
+% That can be produced by the following code.
+% \inputminted[linenos]{latex}{lightblock.tex}
 %
 % \DescribeEnv{blackblock}
 % \DescribeEnv{whiteblock}
@@ -152,24 +166,34 @@
 %
 % \section{Implementation}
 %
-% We require either |beamer| or |beamerarticle| since the code blocks are based 
-% on |beamer| code.
-% If neither is loaded, we load |beamerarticle|.
+% We want to provide a set of environments (blocks) for |beamer|.
+% We want the names of the blocks to be translated.
+% We'll use the |translator| package for this.
 %    \begin{macrocode}
-\makeatletter
-\@ifclassloaded{beamer}{
-  \relax
-}{%
-  \@ifpackageloaded{beamerarticle}{%
-    \relax
-  }{
-    \RequirePackage{beamerarticle}
-  }
-}
-\makeatother
+\RequirePackage{translator}
+\usedictionary{didactic}
 %    \end{macrocode}
 %
-% \subsection{Beamer blocks}
+% We also want to have the same environments for the article mode, but in a 
+% nicer format that the default of |beamerarticle|.
+% For instance, instead of
+% \begin{block}{Example}
+% This is an example.
+% \end{block}
+% we want something like
+% \begin{example}
+% This is an example.
+% \end{example}
+%
+% This means that we'll need to do one thing if |beamer| is loaded and another 
+% if |beamerarticle| is loaded---or rather, when |beamer| is not loaded, we 
+% should be able to use this without |beamer| and |beamerarticle|.
+%    \begin{macrocode}
+\makeatletter
+\@ifclassloaded{beamer}{% beamer loaded
+%    \end{macrocode}
+%
+% \subsection{More semantic environments}
 %
 % \begin{environment}{assumption}
 % \begin{environment}{idea}
@@ -181,77 +205,43 @@
 % title and colour with an optional name.
 %    \begin{macrocode}
 \ProvideDocumentEnvironment{assumption}{o}{%
-  \IfValueTF{#1}{%
-    \begin{block}{Assumption: #1}
-  }{%
-    \begin{block}{Assumption}
-  }
+  \begin{block}{\translate{Assumption}\IfValueT{#1}{: #1}}
 }{%
   \end{block}
 }
-
 \ProvideDocumentEnvironment{protocol}{o}{%
-  \IfValueTF{#1}{%
-    \begin{block}{Protocol: #1}
-  }{%
-    \begin{block}{Protocol}
-  }
+  \begin{block}{\translate{Protocol}\IfValueT{#1}{: #1}}
 }{%
   \end{block}
 }
-
 \ProvideDocumentEnvironment{remark}{o}{%
-  \IfValueTF{#1}{%
-    \begin{alertblock}{Note: #1}
-  }{%
-    \begin{alertblock}{Note}
-  }
+  \begin{block}{\translate{Remark}\IfValueT{#1}{: #1}}
 }{%
   \end{alertblock}
 }
-
 \ProvideDocumentEnvironment{idea}{o}{%
-  \IfValueTF{#1}{%
-    \begin{block}{Idea: #1}
-  }{%
-    \begin{block}{Idea}
-  }
+  \begin{block}{Idea\IfValueT{#1}{: #1}}
 }{%
   \end{block}
 }
-
 \ProvideDocumentEnvironment{question}{o}{%
   \setbeamercolor{block body}{bg=orange!15,fg=black}
   \setbeamercolor{block title}{bg=orange,fg=white}
   \setbeamercolor{local structure}{fg=orange}
-  \IfValueTF{#1}{%
-    \begin{block}{Question: #1}
-  }{%
-    \begin{block}{Question}
-  }
+  \begin{block}{\translate{Question}\IfValueT{#1}{: #1}}
 }{%
   \end{block}
 }
-
 \ProvideDocumentEnvironment{exercise}{o}{%
   \setbeamercolor{block body}{bg=yellow!10,fg=black}
   \setbeamercolor{block title}{bg=yellow,fg=black}
   \setbeamercolor{local structure}{fg=yellow}
-  \IfValueTF{#1}{%
-    \begin{block}{Exercise: #1}
-  }{%
-    \begin{block}{Exercise}
-  }
+  \begin{block}{Exercise\IfValueT{#1}{: #1}}
 }{%
   \end{block}
 }
-
 \ProvideDocumentEnvironment{summary}{o}{%
-  \IfValueTF{#1}{%
-    \begin{block}{Summary: #1}
-  }{%
-    \begin{block}{Summary}
-  }
+  \begin{block}{\translate{Summary}\IfValueT{#1}{: #1}}
 }{%
   \end{block}
 }
@@ -262,6 +252,89 @@
 % \end{environment}
 % \end{environment}
 % \end{environment}
+%
+% And that's the end of the |beamer| part.
+%    \begin{macrocode}
+}% end beamer loaded
+%    \end{macrocode}
+% 
+% \subsection{Article version of semantic blocks}
+%
+% Let's turn our focus to the article mode.
+% We want the |beamerarticle| package.
+%    \begin{macrocode}
+{% beamer not loaded
+\@ifclassloaded{beamerarticle}{% beamerarticle loaded
+  \relax
+}{% beamerarticle not loaded
+  \RequirePackage{beamerarticle}
+}
+%    \end{macrocode}
+%
+% \begin{environment}{assumption}
+% \begin{environment}{idea}
+% \begin{environment}{question}
+% \begin{environment}{exercise}
+% \begin{environment}{remark}
+% \begin{environment}{summary}
+% We want to provide the same environments as for |beamer|, but in a nicer
+% format.
+% We'll use the |thmtools| package to define the environments.
+%    \begin{macrocode}
+\RequirePackage{thmtools}
+\declaretheorem[
+  numbered=unless unique,style=definition,
+  name=\translate{Assumption},
+  refname={\translate{assumption},\translate{assumptions}},
+  Refname={\translate{Assumption},\translate{Assumptions}}
+]{assumption}
+\declaretheorem[
+  numbered=unless unique,style=definition,
+  name=\translate{Idea},
+  refname={\translate{idea},\translate{ideas}},
+  Refname={\translate{Idea},\translate{Ideas}}
+]{idea}
+\declaretheorem[
+  numbered=unless unique,style=remark,
+  name=\translate{Question},
+  refname={\translate{question},\translate{questions}},
+  Refname={\translate{Question},\translate{Questions}}
+]{question}
+\declaretheorem[
+  numbered=unless unique,style=definition,
+  name=\translate{Exercise},
+  refname={\translate{exercise},\translate{exercises}},
+  Refname={\translate{Exercise},\translate{Exercises}}
+]{exercise}
+\declaretheorem[
+  numbered=unless unique,style=remark,
+  name=\translate{Remark},
+  refname={\translate{remark},\translate{remarks}},
+  Refname={\translate{Remark},\translate{Remarks}}
+]{remark}
+\declaretheorem[
+  numbered=unless unique,style=definition,
+  name=Sammanfattning,
+  refname={\translate{summary},\translate{summaries}},
+  Refname={\translate{Summary},\translate{Summaries}}
+]{summary}
+%    \end{macrocode}
+% \end{environment}
+% \end{environment}
+% \end{environment}
+% \end{environment}
+% \end{environment}
+% \end{environment}
+%
+% And that concludes the article part.
+% And the end of the |beamer| and non-|beamer| specific parts.
+%    \begin{macrocode}
+}% end beamer not loaded
+\makeatother
+%    \end{macrocode}
+%
+%
+% \subsection{Coloured blocks}
 %
 % \begin{environment}{lightblock}
 % \begin{environment}{darkblock}
@@ -275,6 +348,8 @@
 % \begin{environment}{yellowblock}
 % \begin{environment}{orangeblock}
 % Now we have the coloured blocks.
+% These we want to define even if |beamer| is not loaded, but for this we need 
+% |beamerarticle| instead.
 %    \begin{macrocode}
 \ProvideDocumentEnvironment{lightblock}{mm}{%
   \setbeamercolor{block body}{bg=#1!10,fg=black}
@@ -292,7 +367,6 @@
 }{%
   \end{block}
 }
-
 \ProvideDocumentEnvironment{blackblock}{m}
 {\begin{darkblock}{black}{#1}}
 {\end{darkblock}}
@@ -312,7 +386,6 @@
 }{%
   \end{block}
 }
-
 \ProvideDocumentEnvironment{redblock}{m}
 {\begin{darkblock}{red}{#1}}
 {\end{darkblock}}
@@ -322,7 +395,6 @@
 \ProvideDocumentEnvironment{purpleblock}{m}
 {\begin{darkblock}{purple}{#1}}
 {\end{darkblock}}
-
 \ProvideDocumentEnvironment{greenblock}{m}
 {\begin{lightblock}{green}{#1}}
 {\end{lightblock}}
@@ -345,6 +417,7 @@
 % \end{environment}
 % \end{environment}
 %
+%
 % \subsection{Tools for code examples}
 %
 % Let's turn our focus to |\lstexample| and |\runexample|.
@@ -352,6 +425,8 @@
 % programs in slides and texts.
 % We want to use PythonTeX to automatically run the code and typeset the source 
 % code using |minted|.
+%
+% These are the same for both |beamer| and article mode.
 %
 % \begin{macro}{\lstexample}
 % The first part is easy.
