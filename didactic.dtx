@@ -114,6 +114,7 @@
 % \DescribeEnv{idea}
 % \DescribeEnv{question}
 % \DescribeEnv{exercise}
+% \DescribeEnv{activity}
 % \DescribeEnv{remark}
 % These environments provides wrappers around Beamer's |block| environment.
 % The idea is to complement the blocks provided by Beamer, such as |theorem|, 
@@ -422,6 +423,7 @@
 % \begin{environment}{idea}
 % \begin{environment}{question}
 % \begin{environment}{exercise}
+% \begin{environment}{activity}
 % \begin{environment}{remark}
 % \begin{environment}{summary}
 % These environments wraps Beamer's |block| environment: it sets a default 
@@ -463,12 +465,21 @@
 }{%
   \end{block}
 }
+\ProvideDocumentEnvironment{activity}{o}{%
+  \setbeamercolor{block body}{bg=yellow!10,fg=black}
+  \setbeamercolor{block title}{bg=yellow,fg=black}
+  \setbeamercolor{local structure}{fg=yellow}
+  \begin{block}{Activity\IfValueT{#1}{: #1}}
+}{%
+  \end{block}
+}
 \ProvideDocumentEnvironment{summary}{o}{%
   \begin{block}{\translate{Summary}\IfValueT{#1}{: #1}}
 }{%
   \end{block}
 }
 %    \end{macrocode}
+% \end{environment}
 % \end{environment}
 % \end{environment}
 % \end{environment}
@@ -498,6 +509,7 @@
 % \begin{environment}{idea}
 % \begin{environment}{question}
 % \begin{environment}{exercise}
+% \begin{environment}{activity}
 % \begin{environment}{remark}
 % \begin{environment}{summary}
 % We want to provide the same environments as for |beamer|, but in a nicer
@@ -530,6 +542,12 @@
   Refname={\translate{Exercise},\translate{Exercises}}
 ]{exercise}
 \declaretheorem[
+  numbered=unless unique,style=definition,
+  name=\translate{Activity},
+  refname={\translate{activity},\translate{activities}},
+  Refname={\translate{Activity},\translate{Activities}}
+]{activity}
+\declaretheorem[
   numbered=unless unique,style=remark,
   name=\translate{Remark},
   refname={\translate{remark},\translate{remarks}},
@@ -542,6 +560,7 @@
   Refname={\translate{Summary},\translate{Summaries}}
 ]{summary}
 %    \end{macrocode}
+% \end{environment}
 % \end{environment}
 % \end{environment}
 % \end{environment}

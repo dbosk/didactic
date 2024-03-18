@@ -27,6 +27,10 @@
 \providetranslation{Exercises}{Övningarna}
 \providetranslation{exercise}{övning}
 \providetranslation{exercises}{övningarna}
+\providetranslation{Activity}{Aktivitet}
+\providetranslation{Activities}{Aktiviteter}
+\providetranslation{activity}{aktivitet}
+\providetranslation{activities}{aktiviteter}
 \providetranslation{theorem}{sats}
 \providetranslation{theorems}{satserna}
 \providetranslation{Theorem}{Sats}
