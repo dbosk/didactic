@@ -25,6 +25,7 @@
     [2024/03/17 v1.4 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
+%<package>\RequirePackage{xkeyval}
 %<package>\RequirePackage{pythontex}
 %<package>\RequirePackage{minted}
 %<package>\RequirePackage{translator}
@@ -88,8 +89,24 @@
 %
 % This package introduces some environments that are useful for writing 
 % teaching material.
+% It also provides a few settings for |beamer| and |memoir| to make the 
+% resulting document more readable.
 %
 % \section{Usage}
+%
+% The package automatically detects if |beamer| or |memoir| is loaded and 
+% customizes the document accordingly.
+% \DescribeEnv{nobeamer}
+% \DescribeEnv{nomemoir}
+% That can be prevented, however, by using the |nobeamer| and |nomemoir| 
+% options.
+%
+% \DescribeEnv{inner}
+% \DescribeEnv{outer}
+% When the package customizes |memoir| it sets the inner and outer margins to 
+% fit margin notes better.
+% The |inner| and |outer| options can be used to set the inner and outer 
+% margins to be used.
 %
 % \subsection{Beamer blocks}
 %
@@ -166,6 +183,214 @@
 %
 % \section{Implementation}
 %
+% Let's start with the options.
+%
+% \subsection{Options}
+%
+% We have a few negative options, that is, if specified we don't want to do 
+% them.
+% This means that we'll need to use conditionals.
+% So each option definition consists first of a |\newif| then setting it to 
+% true, and finnally, a |\DeclareOption|.
+% The body of the |\DeclareOption| then sets the |\if| to false.
+% After all the options are declared we'll use |\ProcessOptions|.
+% After that we can have all code actually doing the work, all wrapped in |\if| 
+% statements.
+%
+% \begin{environment}{nobeamer}
+% This option is used to disable the |beamer| specific parts of the package.
+% Meaning that we don't customize |beamer| even when we find that it is loaded.
+%    \begin{macrocode}
+\newif\if@didactic@nobeamer
+\@didactic@nobeamertrue
+\DeclareOption{nobeamer}{\@didactic@nobeamerfalse}
+%    \end{macrocode}
+% \end{environment}
+%
+% \begin{environment}{nomemoir}
+% This option is used to disable the |memoir| specific parts of the package.
+% Meaning that we don't customize |memoir| even when we find that it is loaded.
+%    \begin{macrocode}
+\newif\if@didactic@nomemoir
+\@didactic@nomemoirtrue
+\DeclareOption{nomemoir}{\@didactic@nomemoirfalse}
+%    \end{macrocode}
+% \end{environment}
+%
+% \begin{environment}{inner}
+% \begin{environment}{outer}
+% We also have some key--value options to control the margins.
+%    \begin{macrocode}
+\newlength\@didactic@margin@inner
+\setlength\@didactic@margin@inner{2.5cm}
+\newlength\@didactic@margin@outer
+\setlength\@didactic@margin@outer{4.5cm}
+\DeclareOptionX{inner}[2.5cm]{\setlength\@didactic@margin@inner{#1}}
+\DeclareOptionX{outer}[4.5cm]{\setlength\@didactic@margin@outer{#1}}
+%    \end{macrocode}
+% \end{environment}
+% \end{environment}
+%
+% Now that we've declared the options we can process them.
+%    \begin{macrocode}
+\ProcessOptionsX\relax
+%    \end{macrocode}
+%
+% \subsection{Customizing \texttt{beamer}}
+%
+% If |beamer| is loaded we want to customize it.
+% However, only if the user hasn't disabled this with the |nobeamer| option.
+%    \begin{macrocode}
+\if@didactic@nobeamer\else
+\@ifclassloaded{beamer}{% beamer loaded
+%    \end{macrocode}
+
+% If we use |beamer| we want to use the Berlin theme.
+% This theme guides the viewer very nicely, how must is left and where we are
+% in the presentation.
+% (The same is true for the presenter.)
+%    \begin{macrocode}
+\usetheme{Berlin}
+%    \end{macrocode}
+% However, we want to customize the footline.
+% We want to add two lines in the footline.
+% We want to add the author (left) and institute (right) to the first line.
+% Then we add the title (left) and page number (right) to the bottom line.
+%    \begin{macrocode}
+\setbeamertemplate{footline}%{miniframes theme}
+{%
+  \begin{beamercolorbox}[colsep=1.5pt]{upper separation line foot}
+  \end{beamercolorbox}
+  \begin{beamercolorbox}[ht=2.5ex,dp=1.125ex,%
+    leftskip=.3cm,rightskip=.3cm plus1fil]{author in head/foot}%
+    \leavevmode{\usebeamerfont{author in head/foot}\insertshortauthor}%
+    \hfill%
+    {\usebeamerfont{institute in head/foot}\usebeamercolor[fg]{institute in head/foot}\insertshortinstitute}%
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[ht=2.5ex,dp=1.125ex,%
+    leftskip=.3cm,rightskip=.3cm plus1fil]{title in head/foot}%
+    {\usebeamerfont{title in head/foot}\insertshorttitle} \hfill     \insertframenumber%
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[colsep=1.5pt]{lower separation line foot}
+  \end{beamercolorbox}
+}
+%    \end{macrocode}
+%
+% We also want to set the transparency of the covered items.
+% We also want to set the bibliography item to text, we need this to get proper 
+% references (not icons) in the bibliography.
+% (We need that for certain bibliography styles.)
+%    \begin{macrocode}
+\setbeamercovered{transparent}
+\setbeamertemplate{bibliography item}[text]
+%    \end{macrocode}
+%
+% Finally, we want to add a table of contents at the beginning of each section 
+% and subsection.
+% We want these to be shaded, so that the current section is highlighted.
+% We also want to hide the subsections of the other sections.
+%    \begin{macrocode}
+\AtBeginSection[]{%
+  \begin{frame}<beamer>
+    \tableofcontents[currentsection,
+                     subsectionstyle=show/show/hide]
+  \end{frame}
+}
+\AtBeginSubsection[]{%
+  \begin{frame}<beamer>
+    \tableofcontents[currentsection,
+                     subsectionstyle=show/shaded/hide]
+  \end{frame}
+}
+}% end beamer loaded
+\fi% end nobeamer \if
+%    \end{macrocode}
+%
+% \subsection{Customizing \texttt{memoir}}
+%
+% If |memoir| is loaded we want to customize it.
+% However, only if the user hasn't disabled this with the |nomemoir| option.
+%    \begin{macrocode}
+\if@didactic@nomemoir\else
+\@ifclassloaded{memoir}{% memoir loaded
+%    \end{macrocode}
+%
+% We want to set up |memoir| to use the Tufte style.
+% This means that we want to put a lot of text in the margin.
+% We'll use margin notes and put all the footnotes in the margin.
+% We also want to use footnotes for references so that they also appear in the
+% margin.
+%
+% We want to use the |marginfix| package to fix the margin notes.
+%    \begin{macrocode}
+%%% Tufte %%%
+\RequirePackage{marginfix}
+\marginparmargin{outer}
+\setlrmarginsandblock{\@didactic@margin@inner}{*}{\@didactic@margin@outer}
+
+\footnotesinmargin
+
+\RequirePackage{ragged2e}
+\renewcommand{\sidefootform}{\RaggedRight}
+\renewcommand{\foottextfont}{\footnotesize\RaggedRight}
+
+\setmpjustification{\RaggedRight}{\RaggedRight}
+
+% margin figure and caption typeset ragged against text block
+\setfloatadjustment{marginfigure}{\mpjustification}
+\setmarginfloatcaptionadjustment{figure}{\captionstyle{\mpjustification}}
+
+% From https://tex.stackexchange.com/a/324757/17418
+% Palatino for main text and math
+\RequirePackage[osf,sc]{mathpazo}
+% Helvetica for sans serif
+% (scaled to match size of Palatino)
+\RequirePackage[scaled=0.90]{helvet}
+% Bera Mono for monospaced
+% (scaled to match size of Palatino)
+\RequirePackage[scaled=0.85]{beramono}
+\setlxvchars\setxlvchars
+\checkandfixthelayout
+\nouppercaseheads
+%%% end tufte %%%
+%    \end{macrocode}
+%
+% We also want to adapt the citation commands of a few packages to use 
+% footnotes.
+% For these, we check if the package is loaded, if it is, we do the changes.
+% We don't load the packages ourselves, we assume the user has done that.
+% This also means that the |didactic| package should be loaded last.
+%    \begin{macrocode}
+\IfPackageLoaded{biblatex}{%
+  \ExecuteBibliographyOptions{%
+    autocite=footnote,
+    citestyle=verbose,singletitle=false,style=verbose,
+    maxbibnames=99,
+    isbn=false,doi=false,url=false
+  }
+  % from https://tex.stackexchange.com/a/374059/17418
+  \DeclareCiteCommand{\fullauthorcite}
+    {\usebibmacro{prenote}}
+    {\usedriver
+      {\setcounter{maxnames}{99}% use up to 99 authors
+        \DeclareNameAlias{sortname}{default}}
+      {\thefield{entrytype}}}
+    {\multicitedelim}
+    {\usebibmacro{postnote}}
+}{}
+\IfPackageLoaded{csquotes}{%
+  \SetCiteCommand{\footcite}
+}{}
+%    \end{macrocode}
+%
+% And that concludes the |memoir| part.
+%    \begin{macrocode}
+}% end memoir loaded
+\fi% end nomemoir \if
+%    \end{macrocode}
+%
+% \subsection{More semantic environments for \texttt{beamer}}
+%
 % We want to provide a set of environments (blocks) for |beamer|.
 % We want the names of the blocks to be translated.
 % We'll use the |translator| package for this.
@@ -192,8 +417,6 @@
 \makeatletter
 \@ifclassloaded{beamer}{% beamer loaded
 %    \end{macrocode}
-%
-% \subsection{More semantic environments}
 %
 % \begin{environment}{assumption}
 % \begin{environment}{idea}
