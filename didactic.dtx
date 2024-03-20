@@ -458,55 +458,55 @@
 % These environments wraps Beamer's |block| environment: it sets a default 
 % title and colour with an optional name.
 %    \begin{macrocode}
-\ProvideDocumentEnvironment{assumption}{o}{%
-  \begin{block}{\GetTranslationWarn{Assumption}\IfValueT{#1}{: #1}}
-}{%
-  \end{block}
-}
-\ProvideDocumentEnvironment{protocol}{o}{%
-  \begin{block}{\GetTranslationWarn{Protocol}\IfValueT{#1}{: #1}}
-}{%
-  \end{block}
-}
-\ProvideDocumentEnvironment{remark}{o}{%
-  \begin{block}{\GetTranslationWarn{Remark}\IfValueT{#1}{: #1}}
-}{%
-  \end{alertblock}
-}
-\ProvideDocumentEnvironment{idea}{o}{%
-  \begin{block}{\GetTranslationWarn{Idea}\IfValueT{#1}{: #1}}
-}{%
-  \end{block}
-}
-\ProvideDocumentEnvironment{question}{o}{%
-  \setbeamercolor{block body}{bg=orange!15,fg=black}
-  \setbeamercolor{block title}{bg=orange,fg=white}
-  \setbeamercolor{local structure}{fg=orange}
-  \begin{block}{\GetTranslationWarn{Question}\IfValueT{#1}{: #1}}
-}{%
-  \end{block}
-}
-\ProvideDocumentEnvironment{exercise}{o}{%
-  \setbeamercolor{block body}{bg=yellow!10,fg=black}
-  \setbeamercolor{block title}{bg=yellow,fg=black}
-  \setbeamercolor{local structure}{fg=yellow}
-  \begin{block}{\GetTranslationWarn{Exercise}\IfValueT{#1}{: #1}}
-}{%
-  \end{block}
-}
-\ProvideDocumentEnvironment{activity}{o}{%
-  \setbeamercolor{block body}{bg=yellow!10,fg=black}
-  \setbeamercolor{block title}{bg=yellow,fg=black}
-  \setbeamercolor{local structure}{fg=yellow}
-  \begin{block}{\GetTranslationWarn{Activity}\IfValueT{#1}{: #1}}
-}{%
-  \end{block}
-}
-\ProvideDocumentEnvironment{summary}{o}{%
-  \begin{block}{\GetTranslationWarn{Summary}\IfValueT{#1}{: #1}}
-}{%
-  \end{block}
-}
+  \ProvideDocumentEnvironment{assumption}{o}{%
+    \begin{block}{\GetTranslationWarn{Assumption}\IfValueT{#1}{: #1}}
+  }{%
+    \end{block}
+  }
+  \ProvideDocumentEnvironment{protocol}{o}{%
+    \begin{block}{\GetTranslationWarn{Protocol}\IfValueT{#1}{: #1}}
+  }{%
+    \end{block}
+  }
+  \ProvideDocumentEnvironment{remark}{o}{%
+    \begin{block}{\GetTranslationWarn{Remark}\IfValueT{#1}{: #1}}
+  }{%
+    \end{alertblock}
+  }
+  \ProvideDocumentEnvironment{idea}{o}{%
+    \begin{block}{\GetTranslationWarn{Idea}\IfValueT{#1}{: #1}}
+  }{%
+    \end{block}
+  }
+  \ProvideDocumentEnvironment{question}{o}{%
+    \setbeamercolor{block body}{bg=orange!15,fg=black}
+    \setbeamercolor{block title}{bg=orange,fg=white}
+    \setbeamercolor{local structure}{fg=orange}
+    \begin{block}{\GetTranslationWarn{Question}\IfValueT{#1}{: #1}}
+  }{%
+    \end{block}
+  }
+  \ProvideDocumentEnvironment{exercise}{o}{%
+    \setbeamercolor{block body}{bg=yellow!10,fg=black}
+    \setbeamercolor{block title}{bg=yellow,fg=black}
+    \setbeamercolor{local structure}{fg=yellow}
+    \begin{block}{\GetTranslationWarn{Exercise}\IfValueT{#1}{: #1}}
+  }{%
+    \end{block}
+  }
+  \ProvideDocumentEnvironment{activity}{o}{%
+    \setbeamercolor{block body}{bg=yellow!10,fg=black}
+    \setbeamercolor{block title}{bg=yellow,fg=black}
+    \setbeamercolor{local structure}{fg=yellow}
+    \begin{block}{\GetTranslationWarn{Activity}\IfValueT{#1}{: #1}}
+  }{%
+    \end{block}
+  }
+  \ProvideDocumentEnvironment{summary}{o}{%
+    \begin{block}{\GetTranslationWarn{Summary}\IfValueT{#1}{: #1}}
+  }{%
+    \end{block}
+  }
 %    \end{macrocode}
 % \end{environment}
 % \end{environment}
@@ -585,94 +585,108 @@
 % package, hence we can't use the |\crefname| command until at the beginning of
 % the document.
 %    \begin{macrocode}
-\RequirePackage{amsthm}
-\RequirePackage{thmtools}
-\PassOptionsToPackage{unq}{unique}
-\RequirePackage{unique}
-\declaretheorem[
-  numbered=unless unique,style=definition,
-  name=\GetTranslationWarn{Assumption},
-  refname={{\GetTranslationWarn{assumption}},{\GetTranslationWarn{assumptions}}},
-  Refname={{\GetTranslationWarn{Assumption}},{\GetTranslationWarn{Assumptions}}}
-]{assumption}
-\AtBeginDocument{%
-  \@ifpackageloaded{cleveref}{%
-    \crefname{assumption}{\GetTranslationWarn{assumption}}{\GetTranslationWarn{assumptions}}
-    \Crefname{assumption}{\GetTranslationWarn{Assumption}}{\GetTranslationWarn{Assumptions}}
-  }{}
-}
-\declaretheorem[
-  numbered=unless unique,style=remark,
-  name=\GetTranslationWarn{Idea},
-  refname={{\GetTranslationWarn{idea}},{\GetTranslationWarn{ideas}}},
-  Refname={{\GetTranslationWarn{Idea}},{\GetTranslationWarn{Ideas}}}
-]{idea}
-\AtBeginDocument{%
-  \@ifpackageloaded{cleveref}{%
-    \crefname{idea}{\GetTranslationWarn{idea}}{\GetTranslationWarn{ideas}}
-    \Crefname{idea}{\GetTranslationWarn{Idea}}{\GetTranslationWarn{Ideas}}
-  }{}
-}
-\declaretheorem[
-  numbered=unless unique,style=remark,
-  name=\GetTranslationWarn{Question},
-  refname={{\GetTranslationWarn{question}},{\GetTranslationWarn{questions}}},
-  Refname={{\GetTranslationWarn{Question}},{\GetTranslationWarn{Questions}}}
-]{question}
-\AtBeginDocument{%
-  \@ifpackageloaded{cleveref}{%
-    \crefname{question}{\GetTranslationWarn{question}}{\GetTranslationWarn{questions}}
-    \Crefname{question}{\GetTranslationWarn{Question}}{\GetTranslationWarn{Questions}}
-  }{}
-}
-\declaretheorem[
-  numbered=unless unique,style=example,
-  name={\GetTranslationWarn{Exercise}},
-  refname={{\GetTranslationWarn{exercise}},{\GetTranslationWarn{exercises}}},
-  Refname={{\GetTranslationWarn{Exercise}},{\GetTranslationWarn{Exercises}}}
-]{exercise}
-\AtBeginDocument{%
-  \@ifpackageloaded{cleveref}{%
-    \crefname{exercise}{\GetTranslationWarn{exercise}}{\GetTranslationWarn{exercises}}
-    \Crefname{exercise}{\GetTranslationWarn{Exercise}}{\GetTranslationWarn{Exercises}}
-  }{}
-}
-\declaretheorem[
-  numbered=unless unique,style=example,
-  name=\GetTranslationWarn{Activity},
-  refname={{\GetTranslationWarn{activity}},{\GetTranslationWarn{activities}}},
-  Refname={{\GetTranslationWarn{Activity}},{\GetTranslationWarn{Activities}}}
-]{activity}
-\AtBeginDocument{%
-  \@ifpackageloaded{cleveref}{%
-    \crefname{activity}{\GetTranslationWarn{activity}}{\GetTranslationWarn{activities}}
-    \Crefname{activity}{\GetTranslationWarn{Activity}}{\GetTranslationWarn{Activities}}
-  }{}
-}
-\declaretheorem[
-  numbered=unless unique,style=remark,
-  name=\GetTranslationWarn{Remark},
-  refname={{\GetTranslationWarn{remark}},{\GetTranslationWarn{remarks}}},
-  Refname={{\GetTranslationWarn{Remark}},{\GetTranslationWarn{Remarks}}}
-]{remark}
-\AtBeginDocument{%
-  \@ifpackageloaded{cleveref}{%
-    \crefname{remark}{\GetTranslationWarn{remark}}{\GetTranslationWarn{remarks}}
-    \Crefname{remark}{\GetTranslationWarn{Remark}}{\GetTranslationWarn{Remarks}}
-  }{}
-}
-\declaretheorem[
-  numbered=unless unique,style=definition,
-  name=Sammanfattning,
-  refname={{\GetTranslationWarn{summary}},{\GetTranslationWarn{summaries}}},
-  Refname={{\GetTranslationWarn{Summary}},{\GetTranslationWarn{Summaries}}}
-]{summary}
-\AtBeginDocument{%
-  \@ifpackageloaded{cleveref}{%
-    \crefname{summary}{\GetTranslationWarn{summary}}{\GetTranslationWarn{summaries}}
-    \Crefname{summary}{\GetTranslationWarn{Summary}}{\GetTranslationWarn{Summaries}}
-  }{}
-}
+  \RequirePackage{amsthm}
+  \RequirePackage{thmtools}
+  \PassOptionsToPackage{unq}{unique}
+  \RequirePackage{unique}
+  \declaretheorem[
+    numbered=unless unique,style=definition,
+    name=\GetTranslationWarn{Assumption},
+    refname={{\GetTranslationWarn{assumption}},{\GetTranslationWarn{assumptions}}},
+    Refname={{\GetTranslationWarn{Assumption}},{\GetTranslationWarn{Assumptions}}}
+  ]{assumption}
+  \AtBeginDocument{%
+    \@ifpackageloaded{cleveref}{%
+      \crefname{assumption}
+        {\GetTranslationWarn{assumption}}
+        {\GetTranslationWarn{assumptions}}
+      \Crefname{assumption}
+        {\GetTranslationWarn{Assumption}}
+        {\GetTranslationWarn{Assumptions}}
+    }{}
+  }
+  \declaretheorem[
+    numbered=unless unique,style=remark,
+    name=\GetTranslationWarn{Idea},
+    refname={{\GetTranslationWarn{idea}},{\GetTranslationWarn{ideas}}},
+    Refname={{\GetTranslationWarn{Idea}},{\GetTranslationWarn{Ideas}}}
+  ]{idea}
+  \AtBeginDocument{%
+    \@ifpackageloaded{cleveref}{%
+      \crefname{idea}{\GetTranslationWarn{idea}}{\GetTranslationWarn{ideas}}
+      \Crefname{idea}{\GetTranslationWarn{Idea}}{\GetTranslationWarn{Ideas}}
+    }{}
+  }
+  \declaretheorem[
+    numbered=unless unique,style=remark,
+    name=\GetTranslationWarn{Question},
+    refname={{\GetTranslationWarn{question}},{\GetTranslationWarn{questions}}},
+    Refname={{\GetTranslationWarn{Question}},{\GetTranslationWarn{Questions}}}
+  ]{question}
+  \AtBeginDocument{%
+    \@ifpackageloaded{cleveref}{%
+      \crefname{question}
+        {\GetTranslationWarn{question}}{\GetTranslationWarn{questions}}
+      \Crefname{question}
+        {\GetTranslationWarn{Question}}{\GetTranslationWarn{Questions}}
+    }{}
+  }
+  \declaretheorem[
+    numbered=unless unique,style=example,
+    name={\GetTranslationWarn{Exercise}},
+    refname={{\GetTranslationWarn{exercise}},{\GetTranslationWarn{exercises}}},
+    Refname={{\GetTranslationWarn{Exercise}},{\GetTranslationWarn{Exercises}}}
+  ]{exercise}
+  \AtBeginDocument{%
+    \@ifpackageloaded{cleveref}{%
+      \crefname{exercise}
+        {\GetTranslationWarn{exercise}}{\GetTranslationWarn{exercises}}
+      \Crefname{exercise}
+        {\GetTranslationWarn{Exercise}}{\GetTranslationWarn{Exercises}}
+    }{}
+  }
+  \declaretheorem[
+    numbered=unless unique,style=example,
+    name=\GetTranslationWarn{Activity},
+    refname={{\GetTranslationWarn{activity}},{\GetTranslationWarn{activities}}},
+    Refname={{\GetTranslationWarn{Activity}},{\GetTranslationWarn{Activities}}}
+  ]{activity}
+  \AtBeginDocument{%
+    \@ifpackageloaded{cleveref}{%
+      \crefname{activity}
+        {\GetTranslationWarn{activity}}{\GetTranslationWarn{activities}}
+      \Crefname{activity}
+        {\GetTranslationWarn{Activity}}{\GetTranslationWarn{Activities}}
+    }{}
+  }
+  \declaretheorem[
+    numbered=unless unique,style=remark,
+    name=\GetTranslationWarn{Remark},
+    refname={{\GetTranslationWarn{remark}},{\GetTranslationWarn{remarks}}},
+    Refname={{\GetTranslationWarn{Remark}},{\GetTranslationWarn{Remarks}}}
+  ]{remark}
+  \AtBeginDocument{%
+    \@ifpackageloaded{cleveref}{%
+      \crefname{remark}
+        {\GetTranslationWarn{remark}}{\GetTranslationWarn{remarks}}
+      \Crefname{remark}
+        {\GetTranslationWarn{Remark}}{\GetTranslationWarn{Remarks}}
+    }{}
+  }
+  \declaretheorem[
+    numbered=unless unique,style=definition,
+    name=Sammanfattning,
+    refname={{\GetTranslationWarn{summary}},{\GetTranslationWarn{summaries}}},
+    Refname={{\GetTranslationWarn{Summary}},{\GetTranslationWarn{Summaries}}}
+  ]{summary}
+  \AtBeginDocument{%
+    \@ifpackageloaded{cleveref}{%
+      \crefname{summary}
+        {\GetTranslationWarn{summary}}{\GetTranslationWarn{summaries}}
+      \Crefname{summary}
+        {\GetTranslationWarn{Summary}}{\GetTranslationWarn{Summaries}}
+    }{}
+  }
 %    \end{macrocode}
 % \end{environment}
 % \end{environment}
@@ -685,106 +699,120 @@
 % We also want to provide the normal environments for theorems and definitions 
 % and such.
 %    \begin{macrocode}
-\if@didactic@theorems
-  \@ifundefined{definition}{%
-    \declaretheorem[
-      numbered=unless unique,style=definition,
-      name=\GetTranslationWarn{Definition},
-      refname={{\GetTranslationWarn{definition}},{\GetTranslationWarn{definitions}}},
-      Refname={{\GetTranslationWarn{Definition}},{\GetTranslationWarn{Definitions}}}
-    ]{definition}
-    \AtBeginDocument{%
-      \@ifpackageloaded{cleveref}{%
-        \crefname{definition}{\GetTranslationWarn{definition}}{\GetTranslationWarn{definitions}}
-        \Crefname{definition}{\GetTranslationWarn{Definition}}{\GetTranslationWarn{Definitions}}
-      }{}
-    }
-  }{}%
-  \@ifundefined{theorem}{%
-    \declaretheorem[
-      numbered=unless unique,style=theorem,
-      name=\GetTranslationWarn{Theorem},
-      refname={{\GetTranslationWarn{theorem}},{\GetTranslationWarn{theorems}}},
-      Refname={{\GetTranslationWarn{Theorem}},{\GetTranslationWarn{Theorems}}}
-    ]{theorem}
-    \AtBeginDocument{%
-      \@ifpackageloaded{cleveref}{%
-        \crefname{theorem}{\GetTranslationWarn{theorem}}{\GetTranslationWarn{theorems}}
-        \Crefname{theorem}{\GetTranslationWarn{Theorem}}{\GetTranslationWarn{Theorems}}
-      }{}
-    }
-  }{}%
-  \@ifundefined{corollary}{%
-    \declaretheorem[
-      numbered=unless unique,style=theorem,
-      name=\GetTranslationWarn{Corollary},
-      refname={{\GetTranslationWarn{corollary}},{\GetTranslationWarn{corollaries}}},
-      Refname={{\GetTranslationWarn{Corollary}},{\GetTranslationWarn{Corollaries}}}
-    ]{corollary}
-    \AtBeginDocument{%
-      \@ifpackageloaded{cleveref}{%
-        \crefname{corollary}{\GetTranslationWarn{corollary}}{\GetTranslationWarn{corollaries}}
-        \Crefname{corollary}{\GetTranslationWarn{Corollary}}{\GetTranslationWarn{Corollaries}}
-      }{}
-    }
-  }{}%
-  \@ifundefined{lemma}{%
-    \declaretheorem[
-      numbered=unless unique,style=theorem,
-      name=\GetTranslationWarn{Lemma},
-      refname={{\GetTranslationWarn{lemma}},{\GetTranslationWarn{lemmas}}},
-      Refname={{\GetTranslationWarn{Lemma}},{\GetTranslationWarn{Lemmas}}}
-    ]{lemma}
-    \AtBeginDocument{%
-      \@ifpackageloaded{cleveref}{%
-        \crefname{lemma}{\GetTranslationWarn{lemma}}{\GetTranslationWarn{lemmas}}
-        \Crefname{lemma}{\GetTranslationWarn{Lemma}}{\GetTranslationWarn{Lemmas}}
-      }{}
-    }
-  }{}%
-  \@ifundefined{proof}{%
-    \declaretheorem[
-      numbered=no,style=proof,
-      name=\GetTranslationWarn{Proof},
-      refname={{\GetTranslationWarn{proof}},{\GetTranslationWarn{proofs}}},
-      Refname={{\GetTranslationWarn{Proof}},{\GetTranslationWarn{Proofs}}}
-    ]{proof}
-    \AtBeginDocument{%
-      \@ifpackageloaded{cleveref}{%
-        \crefname{proof}{\GetTranslationWarn{proof}}{\GetTranslationWarn{proofs}}
-        \Crefname{proof}{\GetTranslationWarn{Proof}}{\GetTranslationWarn{Proofs}}
-      }{}
-    }
-  }{}%
-  \@ifundefined{solution}{%
-    \declaretheorem[
-      numbered=no,style=proof,
-      name=\GetTranslationWarn{Solution},
-      refname={{\GetTranslationWarn{solution}},{\GetTranslationWarn{solutions}}},
-      Refname={{\GetTranslationWarn{Solution}},{\GetTranslationWarn{Solutions}}}
-    ]{solution}
-    \AtBeginDocument{%
-      \@ifpackageloaded{cleveref}{%
-        \crefname{solution}{\GetTranslationWarn{solution}}{\GetTranslationWarn{solutions}}
-        \Crefname{solution}{\GetTranslationWarn{Solution}}{\GetTranslationWarn{Solutions}}
-      }{}
-    }
-  }{}%
-  \@ifundefined{example}{%
-    \declaretheorem[
-      numbered=unless unique,style=example,
-      name=\GetTranslationWarn{Example},
-      refname={{\GetTranslationWarn{example}},{\GetTranslationWarn{examples}}},
-      Refname={{\GetTranslationWarn{Example}},{\GetTranslationWarn{Examples}}}
-    ]{example}
-    \AtBeginDocument{%
-      \@ifpackageloaded{cleveref}{%
-        \crefname{example}{\GetTranslationWarn{example}}{\GetTranslationWarn{examples}}
-        \Crefname{example}{\GetTranslationWarn{Example}}{\GetTranslationWarn{Examples}}
-      }{}
-    }
-  }{}%
-\fi
+  \if@didactic@theorems
+    \@ifundefined{definition}{%
+      \declaretheorem[
+        numbered=unless unique,style=definition,
+        name=\GetTranslationWarn{Definition},
+        refname={{\GetTranslationWarn{definition}},{\GetTranslationWarn{definitions}}},
+        Refname={{\GetTranslationWarn{Definition}},{\GetTranslationWarn{Definitions}}}
+      ]{definition}
+      \AtBeginDocument{%
+        \@ifpackageloaded{cleveref}{%
+          \crefname{definition}
+            {\GetTranslationWarn{definition}}{\GetTranslationWarn{definitions}}
+          \Crefname{definition}
+            {\GetTranslationWarn{Definition}}{\GetTranslationWarn{Definitions}}
+        }{}
+      }
+    }{}%
+    \@ifundefined{theorem}{%
+      \declaretheorem[
+        numbered=unless unique,style=theorem,
+        name=\GetTranslationWarn{Theorem},
+        refname={{\GetTranslationWarn{theorem}},{\GetTranslationWarn{theorems}}},
+        Refname={{\GetTranslationWarn{Theorem}},{\GetTranslationWarn{Theorems}}}
+      ]{theorem}
+      \AtBeginDocument{%
+        \@ifpackageloaded{cleveref}{%
+          \crefname{theorem}
+            {\GetTranslationWarn{theorem}}{\GetTranslationWarn{theorems}}
+          \Crefname{theorem}
+            {\GetTranslationWarn{Theorem}}{\GetTranslationWarn{Theorems}}
+        }{}
+      }
+    }{}%
+    \@ifundefined{corollary}{%
+      \declaretheorem[
+        numbered=unless unique,style=theorem,
+        name=\GetTranslationWarn{Corollary},
+        refname={{\GetTranslationWarn{corollary}},{\GetTranslationWarn{corollaries}}},
+        Refname={{\GetTranslationWarn{Corollary}},{\GetTranslationWarn{Corollaries}}}
+      ]{corollary}
+      \AtBeginDocument{%
+        \@ifpackageloaded{cleveref}{%
+          \crefname{corollary}
+            {\GetTranslationWarn{corollary}}{\GetTranslationWarn{corollaries}}
+          \Crefname{corollary}
+            {\GetTranslationWarn{Corollary}}{\GetTranslationWarn{Corollaries}}
+        }{}
+      }
+    }{}%
+    \@ifundefined{lemma}{%
+      \declaretheorem[
+        numbered=unless unique,style=theorem,
+        name=\GetTranslationWarn{Lemma},
+        refname={{\GetTranslationWarn{lemma}},{\GetTranslationWarn{lemmas}}},
+        Refname={{\GetTranslationWarn{Lemma}},{\GetTranslationWarn{Lemmas}}}
+      ]{lemma}
+      \AtBeginDocument{%
+        \@ifpackageloaded{cleveref}{%
+          \crefname{lemma}
+            {\GetTranslationWarn{lemma}}{\GetTranslationWarn{lemmas}}
+          \Crefname{lemma}
+            {\GetTranslationWarn{Lemma}}{\GetTranslationWarn{Lemmas}}
+        }{}
+      }
+    }{}%
+    \@ifundefined{proof}{%
+      \declaretheorem[
+        numbered=no,style=proof,
+        name=\GetTranslationWarn{Proof},
+        refname={{\GetTranslationWarn{proof}},{\GetTranslationWarn{proofs}}},
+        Refname={{\GetTranslationWarn{Proof}},{\GetTranslationWarn{Proofs}}}
+      ]{proof}
+      \AtBeginDocument{%
+        \@ifpackageloaded{cleveref}{%
+          \crefname{proof}
+            {\GetTranslationWarn{proof}}{\GetTranslationWarn{proofs}}
+          \Crefname{proof}
+            {\GetTranslationWarn{Proof}}{\GetTranslationWarn{Proofs}}
+        }{}
+      }
+    }{}%
+    \@ifundefined{solution}{%
+      \declaretheorem[
+        numbered=no,style=proof,
+        name=\GetTranslationWarn{Solution},
+        refname={{\GetTranslationWarn{solution}},{\GetTranslationWarn{solutions}}},
+        Refname={{\GetTranslationWarn{Solution}},{\GetTranslationWarn{Solutions}}}
+      ]{solution}
+      \AtBeginDocument{%
+        \@ifpackageloaded{cleveref}{%
+          \crefname{solution}
+            {\GetTranslationWarn{solution}}{\GetTranslationWarn{solutions}}
+          \Crefname{solution}
+            {\GetTranslationWarn{Solution}}{\GetTranslationWarn{Solutions}}
+        }{}
+      }
+    }{}%
+    \@ifundefined{example}{%
+      \declaretheorem[
+        numbered=unless unique,style=example,
+        name=\GetTranslationWarn{Example},
+        refname={{\GetTranslationWarn{example}},{\GetTranslationWarn{examples}}},
+        Refname={{\GetTranslationWarn{Example}},{\GetTranslationWarn{Examples}}}
+      ]{example}
+      \AtBeginDocument{%
+        \@ifpackageloaded{cleveref}{%
+          \crefname{example}
+            {\GetTranslationWarn{example}}{\GetTranslationWarn{examples}}
+          \Crefname{example}
+            {\GetTranslationWarn{Example}}{\GetTranslationWarn{Examples}}
+        }{}
+      }
+    }{}%
+  \fi
 %    \end{macrocode}
 %
 % And that concludes the article part.
