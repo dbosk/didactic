@@ -971,6 +971,47 @@
 % \end{environment}
 % \end{environment}
 %
+% \subsection{Adding margin notes of different kinds}
+%
+% We want to add titled margin notes.
+% These margin notes should use indentation since they might contains several 
+% paragraphs.
+%
+% \begin{macro}{\indentedmarginpar}
+% We start with the indented margin notes.
+% They simply take a text as argument and typeset it in the margin: 
+% |\indentedmarginpar{this is the text}|.
+% \indentedmarginpar{this is the text}
+%    \begin{macrocode}
+% Gives us indentation in the margin notes.
+% Adapted from https://tex.stackexchange.com/a/257171
+\NewDocumentCommand{\indentedmarginpar}{+m}{%
+  \@ifclassloaded{memoir}{\strictpagecheck}{\relax}%
+  \marginpar{%
+    \setlength{\parindent}{1.0em}\footnotesize
+    \@afterindentfalse\@afterheading #1
+  }%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\newnotetype}
+% Now, let's add a command to add margin notes with a title.
+% The |\newnotetype{\titlenote}{Title]| command creates a new command 
+% |\titlenote| that takes a text as argument and typesets it in the margin with 
+% the title |Title|: |\titlenote{this is the text}|.
+% \newnotetype{\titlenote}{Title}
+% \titlenote{this is the text}
+%    \begin{macrocode}
+\NewDocumentCommand{\newnotetype}{mm}{%
+  \NewDocumentCommand{#1}{+m}{%
+    \indentedmarginpar{\emph{#2:} ##1}%
+  }%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%
 %
 % \subsection{Listing and running code examples}
 %
