@@ -28,17 +28,19 @@
 %<package>\RequirePackage{xkeyval}
 %<package>\RequirePackage{pythontex}
 %<package>\RequirePackage{minted}
-%<package>\RequirePackage{translator}
+%<package>\RequirePackage{babel}
+%<package>\RequirePackage{translations}
 %
 %<*driver>
 \documentclass{ltxdoc}
 \usepackage[utf8]{inputenc}
-\usepackage[british]{babel}
+\usepackage[swedish,british]{babel}
 \usepackage{pythontex}
 \setpythontexoutputdir{.}
 \setpythontexworkingdir{..}
-\usepackage{beamerarticle}
+\usepackage[notheorems]{beamerarticle}
 \usepackage{didactic}
+\usepackage{cleveref}
 \EnableCrossrefs         
 \CodelineIndex
 \RecordChanges
@@ -85,6 +87,8 @@
 %
 % \maketitle
 %
+% \tableofcontents
+%
 % \section{Introduction}
 %
 % This package introduces some environments that are useful for writing 
@@ -100,6 +104,12 @@
 % \DescribeEnv{nomemoir}
 % That can be prevented, however, by using the |nobeamer| and |nomemoir| 
 % options.
+%
+% \DescribeEnv{notheorems}
+% The package also provides a few environments for |beamer| and |article| mode.
+% Particularly, it can define theorems and definitions, which might be defined 
+% also by other packages.
+% To prevent this, use the |notheorems| option.
 %
 % \DescribeEnv{inner}
 % \DescribeEnv{outer}
@@ -202,9 +212,9 @@
 % This option is used to disable the |beamer| specific parts of the package.
 % Meaning that we don't customize |beamer| even when we find that it is loaded.
 %    \begin{macrocode}
-\newif\if@didactic@nobeamer
-\@didactic@nobeamertrue
-\DeclareOption{nobeamer}{\@didactic@nobeamerfalse}
+\newif\if@didactic@beamer
+\@didactic@beamertrue
+\DeclareOptionX{nobeamer}{\@didactic@beamerfalse}
 %    \end{macrocode}
 % \end{environment}
 %
@@ -212,9 +222,19 @@
 % This option is used to disable the |memoir| specific parts of the package.
 % Meaning that we don't customize |memoir| even when we find that it is loaded.
 %    \begin{macrocode}
-\newif\if@didactic@nomemoir
-\@didactic@nomemoirtrue
-\DeclareOption{nomemoir}{\@didactic@nomemoirfalse}
+\newif\if@didactic@memoir
+\@didactic@memoirtrue
+\DeclareOptionX{nomemoir}{\@didactic@memoirfalse}
+%    \end{macrocode}
+% \end{environment}
+%
+% \begin{environment}{notheorems}
+% This option is used to disable defining the usual environments provided by 
+% |amsmath|: definition, theorem, etc.
+%    \begin{macrocode}
+\newif\if@didactic@theorems
+\@didactic@theoremstrue
+\DeclareOptionX{notheorems}{\@didactic@theoremsfalse}
 %    \end{macrocode}
 % \end{environment}
 %
@@ -222,12 +242,14 @@
 % \begin{environment}{outer}
 % We also have some key--value options to control the margins.
 %    \begin{macrocode}
-\newlength\@didactic@margin@inner
-\setlength\@didactic@margin@inner{2.5cm}
-\newlength\@didactic@margin@outer
-\setlength\@didactic@margin@outer{4.5cm}
-\DeclareOptionX{inner}[2.5cm]{\setlength\@didactic@margin@inner{#1}}
-\DeclareOptionX{outer}[4.5cm]{\setlength\@didactic@margin@outer{#1}}
+\newcommand\@didactic@margin@inner{20mm}
+\newcommand\@didactic@margin@outer{70mm}
+\newcommand\@didactic@margin@top{25mm}
+\newcommand\@didactic@margin@bottom{40mm}
+\DeclareOptionX{inner}[25mm]{\renewcommand\@didactic@margin@inner{#1}}
+\DeclareOptionX{outer}[65mm]{\renewcommand\@didactic@margin@outer{#1}}
+\DeclareOptionX{top}[25mm]{\renewcommand\@didactic@margin@top{#1}}
+\DeclareOptionX{bottom}[40mm]{\renewcommand\@didactic@margin@bottom{#1}}
 %    \end{macrocode}
 % \end{environment}
 % \end{environment}
@@ -242,7 +264,7 @@
 % If |beamer| is loaded we want to customize it.
 % However, only if the user hasn't disabled this with the |nobeamer| option.
 %    \begin{macrocode}
-\if@didactic@nobeamer\else
+\if@didactic@beamer
 \@ifclassloaded{beamer}{% beamer loaded
 %    \end{macrocode}
 
@@ -312,7 +334,7 @@
 % If |memoir| is loaded we want to customize it.
 % However, only if the user hasn't disabled this with the |nomemoir| option.
 %    \begin{macrocode}
-\if@didactic@nomemoir\else
+\if@didactic@memoir
 \@ifclassloaded{memoir}{% memoir loaded
 %    \end{macrocode}
 %
@@ -327,7 +349,12 @@
 %%% Tufte %%%
 \RequirePackage{marginfix}
 \marginparmargin{outer}
-\setlrmarginsandblock{\@didactic@margin@inner}{*}{\@didactic@margin@outer}
+\setlrmarginsandblock{\@didactic@margin@inner}
+                     {\@didactic@margin@outer}
+                     {*}
+\setulmarginsandblock{\@didactic@margin@top}
+                     {\@didactic@margin@bottom}
+                     {*}
 
 \footnotesinmargin
 
@@ -362,10 +389,12 @@
 % We don't load the packages ourselves, we assume the user has done that.
 % This also means that the |didactic| package should be loaded last.
 %    \begin{macrocode}
-\IfPackageLoaded{biblatex}{%
+\@ifpackageloaded{biblatex}{%
   \ExecuteBibliographyOptions{%
     autocite=footnote,
-    citestyle=verbose,singletitle=false,style=verbose,
+    singletitle=false,
+    %style=verbose,
+    %citestyle=verbose,
     maxbibnames=99,
     isbn=false,doi=false,url=false
   }
@@ -379,7 +408,7 @@
     {\multicitedelim}
     {\usebibmacro{postnote}}
 }{}
-\IfPackageLoaded{csquotes}{%
+\@ifpackageloaded{csquotes}{%
   \SetCiteCommand{\footcite}
 }{}
 %    \end{macrocode}
@@ -430,22 +459,22 @@
 % title and colour with an optional name.
 %    \begin{macrocode}
 \ProvideDocumentEnvironment{assumption}{o}{%
-  \begin{block}{\translate{Assumption}\IfValueT{#1}{: #1}}
+  \begin{block}{\GetTranslationWarn{Assumption}\IfValueT{#1}{: #1}}
 }{%
   \end{block}
 }
 \ProvideDocumentEnvironment{protocol}{o}{%
-  \begin{block}{\translate{Protocol}\IfValueT{#1}{: #1}}
+  \begin{block}{\GetTranslationWarn{Protocol}\IfValueT{#1}{: #1}}
 }{%
   \end{block}
 }
 \ProvideDocumentEnvironment{remark}{o}{%
-  \begin{block}{\translate{Remark}\IfValueT{#1}{: #1}}
+  \begin{block}{\GetTranslationWarn{Remark}\IfValueT{#1}{: #1}}
 }{%
   \end{alertblock}
 }
 \ProvideDocumentEnvironment{idea}{o}{%
-  \begin{block}{Idea\IfValueT{#1}{: #1}}
+  \begin{block}{\GetTranslationWarn{Idea}\IfValueT{#1}{: #1}}
 }{%
   \end{block}
 }
@@ -453,7 +482,7 @@
   \setbeamercolor{block body}{bg=orange!15,fg=black}
   \setbeamercolor{block title}{bg=orange,fg=white}
   \setbeamercolor{local structure}{fg=orange}
-  \begin{block}{\translate{Question}\IfValueT{#1}{: #1}}
+  \begin{block}{\GetTranslationWarn{Question}\IfValueT{#1}{: #1}}
 }{%
   \end{block}
 }
@@ -461,7 +490,7 @@
   \setbeamercolor{block body}{bg=yellow!10,fg=black}
   \setbeamercolor{block title}{bg=yellow,fg=black}
   \setbeamercolor{local structure}{fg=yellow}
-  \begin{block}{Exercise\IfValueT{#1}{: #1}}
+  \begin{block}{\GetTranslationWarn{Exercise}\IfValueT{#1}{: #1}}
 }{%
   \end{block}
 }
@@ -469,12 +498,12 @@
   \setbeamercolor{block body}{bg=yellow!10,fg=black}
   \setbeamercolor{block title}{bg=yellow,fg=black}
   \setbeamercolor{local structure}{fg=yellow}
-  \begin{block}{Activity\IfValueT{#1}{: #1}}
+  \begin{block}{\GetTranslationWarn{Activity}\IfValueT{#1}{: #1}}
 }{%
   \end{block}
 }
 \ProvideDocumentEnvironment{summary}{o}{%
-  \begin{block}{\translate{Summary}\IfValueT{#1}{: #1}}
+  \begin{block}{\GetTranslationWarn{Summary}\IfValueT{#1}{: #1}}
 }{%
   \end{block}
 }
@@ -495,15 +524,47 @@
 % \subsection{Article version of semantic blocks}
 %
 % Let's turn our focus to the article mode.
-% We want the |beamerarticle| package.
 %    \begin{macrocode}
 {% beamer not loaded
-\@ifclassloaded{beamerarticle}{% beamerarticle loaded
-  \relax
-}{% beamerarticle not loaded
-  \RequirePackage{beamerarticle}
-}
 %    \end{macrocode}
+% We want to provide environments like this one:
+% \begin{exercise}\label{exercise}
+%   This is an exercise.
+% \end{exercise}
+% \begin{exercise}\label{anotherexercise}
+%   This is another exercise.
+% \end{exercise}
+% We can use |\cref| to refer to them, getting something like \cref{exercise} or 
+% \cref{exercise,anotherexercise}.
+%
+% We also want it to work with different languages, provided there is a
+% translation.
+% We do Swedish here.
+%
+% \selectlanguage{swedish}
+% Vi kan också skapa exempel på svenska.
+% \begin{exercise}\label{exempel}
+%   Detta är ett exempel.
+% \end{exercise}
+% \begin{exercise}\label{ytterligareexempel}
+%   Detta är ytterligare ett exempel.
+% \end{exercise}
+% Vi kan referera till dem med |\cref|, vilket ger något som \cref{exempel}
+% eller \cref{exempel,ytterligareexempel}.
+% \selectlanguage{british}
+%
+% Let's also add another idea, but in Swedish.
+%
+% \selectlanguage{swedish}
+% \begin{idea}\label{ide}
+%   Detta är en idé.
+% \end{idea}
+% Då har vi \cref{ide}, men vi hade även tidigare \cref{theidea}.
+% Tillsammans är de \cref{ide,theidea}.
+% \selectlanguage{british}
+%
+% We can also refer to them in English, \cref{ide} and \cref{theidea}
+% separately and together as \cref{ide,theidea}.
 %
 % \begin{environment}{assumption}
 % \begin{environment}{idea}
@@ -515,50 +576,103 @@
 % We want to provide the same environments as for |beamer|, but in a nicer
 % format.
 % We'll use the |thmtools| package to define the environments.
+%
+% For some reason, the |refname| and |Refname| options of |thmtools| doesn't
+% work with the |translator| package.
+% We'll have to set them manually for use with |cleveref| using
+% |\AtBeginDocument| and |\crefname|.
+% We need |\AtBeginDocument| since |cleveref| needs to be loaded after our
+% package, hence we can't use the |\crefname| command until at the beginning of
+% the document.
 %    \begin{macrocode}
+\RequirePackage{amsthm}
 \RequirePackage{thmtools}
+\PassOptionsToPackage{unq}{unique}
+\RequirePackage{unique}
 \declaretheorem[
   numbered=unless unique,style=definition,
-  name=\translate{Assumption},
-  refname={\translate{assumption},\translate{assumptions}},
-  Refname={\translate{Assumption},\translate{Assumptions}}
+  name=\GetTranslationWarn{Assumption},
+  refname={{\GetTranslationWarn{assumption}},{\GetTranslationWarn{assumptions}}},
+  Refname={{\GetTranslationWarn{Assumption}},{\GetTranslationWarn{Assumptions}}}
 ]{assumption}
+\AtBeginDocument{%
+  \@ifpackageloaded{cleveref}{%
+    \crefname{assumption}{\GetTranslationWarn{assumption}}{\GetTranslationWarn{assumptions}}
+    \Crefname{assumption}{\GetTranslationWarn{Assumption}}{\GetTranslationWarn{Assumptions}}
+  }{}
+}
 \declaretheorem[
-  numbered=unless unique,style=definition,
-  name=\translate{Idea},
-  refname={\translate{idea},\translate{ideas}},
-  Refname={\translate{Idea},\translate{Ideas}}
+  numbered=unless unique,style=remark,
+  name=\GetTranslationWarn{Idea},
+  refname={{\GetTranslationWarn{idea}},{\GetTranslationWarn{ideas}}},
+  Refname={{\GetTranslationWarn{Idea}},{\GetTranslationWarn{Ideas}}}
 ]{idea}
+\AtBeginDocument{%
+  \@ifpackageloaded{cleveref}{%
+    \crefname{idea}{\GetTranslationWarn{idea}}{\GetTranslationWarn{ideas}}
+    \Crefname{idea}{\GetTranslationWarn{Idea}}{\GetTranslationWarn{Ideas}}
+  }{}
+}
 \declaretheorem[
   numbered=unless unique,style=remark,
-  name=\translate{Question},
-  refname={\translate{question},\translate{questions}},
-  Refname={\translate{Question},\translate{Questions}}
+  name=\GetTranslationWarn{Question},
+  refname={{\GetTranslationWarn{question}},{\GetTranslationWarn{questions}}},
+  Refname={{\GetTranslationWarn{Question}},{\GetTranslationWarn{Questions}}}
 ]{question}
+\AtBeginDocument{%
+  \@ifpackageloaded{cleveref}{%
+    \crefname{question}{\GetTranslationWarn{question}}{\GetTranslationWarn{questions}}
+    \Crefname{question}{\GetTranslationWarn{Question}}{\GetTranslationWarn{Questions}}
+  }{}
+}
 \declaretheorem[
-  numbered=unless unique,style=definition,
-  name=\translate{Exercise},
-  refname={\translate{exercise},\translate{exercises}},
-  Refname={\translate{Exercise},\translate{Exercises}}
+  numbered=unless unique,style=example,
+  name={\GetTranslationWarn{Exercise}},
+  refname={{\GetTranslationWarn{exercise}},{\GetTranslationWarn{exercises}}},
+  Refname={{\GetTranslationWarn{Exercise}},{\GetTranslationWarn{Exercises}}}
 ]{exercise}
+\AtBeginDocument{%
+  \@ifpackageloaded{cleveref}{%
+    \crefname{exercise}{\GetTranslationWarn{exercise}}{\GetTranslationWarn{exercises}}
+    \Crefname{exercise}{\GetTranslationWarn{Exercise}}{\GetTranslationWarn{Exercises}}
+  }{}
+}
 \declaretheorem[
-  numbered=unless unique,style=definition,
-  name=\translate{Activity},
-  refname={\translate{activity},\translate{activities}},
-  Refname={\translate{Activity},\translate{Activities}}
+  numbered=unless unique,style=example,
+  name=\GetTranslationWarn{Activity},
+  refname={{\GetTranslationWarn{activity}},{\GetTranslationWarn{activities}}},
+  Refname={{\GetTranslationWarn{Activity}},{\GetTranslationWarn{Activities}}}
 ]{activity}
+\AtBeginDocument{%
+  \@ifpackageloaded{cleveref}{%
+    \crefname{activity}{\GetTranslationWarn{activity}}{\GetTranslationWarn{activities}}
+    \Crefname{activity}{\GetTranslationWarn{Activity}}{\GetTranslationWarn{Activities}}
+  }{}
+}
 \declaretheorem[
   numbered=unless unique,style=remark,
-  name=\translate{Remark},
-  refname={\translate{remark},\translate{remarks}},
-  Refname={\translate{Remark},\translate{Remarks}}
+  name=\GetTranslationWarn{Remark},
+  refname={{\GetTranslationWarn{remark}},{\GetTranslationWarn{remarks}}},
+  Refname={{\GetTranslationWarn{Remark}},{\GetTranslationWarn{Remarks}}}
 ]{remark}
+\AtBeginDocument{%
+  \@ifpackageloaded{cleveref}{%
+    \crefname{remark}{\GetTranslationWarn{remark}}{\GetTranslationWarn{remarks}}
+    \Crefname{remark}{\GetTranslationWarn{Remark}}{\GetTranslationWarn{Remarks}}
+  }{}
+}
 \declaretheorem[
   numbered=unless unique,style=definition,
   name=Sammanfattning,
-  refname={\translate{summary},\translate{summaries}},
-  Refname={\translate{Summary},\translate{Summaries}}
+  refname={{\GetTranslationWarn{summary}},{\GetTranslationWarn{summaries}}},
+  Refname={{\GetTranslationWarn{Summary}},{\GetTranslationWarn{Summaries}}}
 ]{summary}
+\AtBeginDocument{%
+  \@ifpackageloaded{cleveref}{%
+    \crefname{summary}{\GetTranslationWarn{summary}}{\GetTranslationWarn{summaries}}
+    \Crefname{summary}{\GetTranslationWarn{Summary}}{\GetTranslationWarn{Summaries}}
+  }{}
+}
 %    \end{macrocode}
 % \end{environment}
 % \end{environment}
@@ -568,11 +682,183 @@
 % \end{environment}
 % \end{environment}
 %
+% We also want to provide the normal environments for theorems and definitions 
+% and such.
+%    \begin{macrocode}
+\if@didactic@theorems
+  \@ifundefined{definition}{%
+    \declaretheorem[
+      numbered=unless unique,style=definition,
+      name=\GetTranslationWarn{Definition},
+      refname={{\GetTranslationWarn{definition}},{\GetTranslationWarn{definitions}}},
+      Refname={{\GetTranslationWarn{Definition}},{\GetTranslationWarn{Definitions}}}
+    ]{definition}
+    \AtBeginDocument{%
+      \@ifpackageloaded{cleveref}{%
+        \crefname{definition}{\GetTranslationWarn{definition}}{\GetTranslationWarn{definitions}}
+        \Crefname{definition}{\GetTranslationWarn{Definition}}{\GetTranslationWarn{Definitions}}
+      }{}
+    }
+  }{}%
+  \@ifundefined{theorem}{%
+    \declaretheorem[
+      numbered=unless unique,style=theorem,
+      name=\GetTranslationWarn{Theorem},
+      refname={{\GetTranslationWarn{theorem}},{\GetTranslationWarn{theorems}}},
+      Refname={{\GetTranslationWarn{Theorem}},{\GetTranslationWarn{Theorems}}}
+    ]{theorem}
+    \AtBeginDocument{%
+      \@ifpackageloaded{cleveref}{%
+        \crefname{theorem}{\GetTranslationWarn{theorem}}{\GetTranslationWarn{theorems}}
+        \Crefname{theorem}{\GetTranslationWarn{Theorem}}{\GetTranslationWarn{Theorems}}
+      }{}
+    }
+  }{}%
+  \@ifundefined{corollary}{%
+    \declaretheorem[
+      numbered=unless unique,style=theorem,
+      name=\GetTranslationWarn{Corollary},
+      refname={{\GetTranslationWarn{corollary}},{\GetTranslationWarn{corollaries}}},
+      Refname={{\GetTranslationWarn{Corollary}},{\GetTranslationWarn{Corollaries}}}
+    ]{corollary}
+    \AtBeginDocument{%
+      \@ifpackageloaded{cleveref}{%
+        \crefname{corollary}{\GetTranslationWarn{corollary}}{\GetTranslationWarn{corollaries}}
+        \Crefname{corollary}{\GetTranslationWarn{Corollary}}{\GetTranslationWarn{Corollaries}}
+      }{}
+    }
+  }{}%
+  \@ifundefined{lemma}{%
+    \declaretheorem[
+      numbered=unless unique,style=theorem,
+      name=\GetTranslationWarn{Lemma},
+      refname={{\GetTranslationWarn{lemma}},{\GetTranslationWarn{lemmas}}},
+      Refname={{\GetTranslationWarn{Lemma}},{\GetTranslationWarn{Lemmas}}}
+    ]{lemma}
+    \AtBeginDocument{%
+      \@ifpackageloaded{cleveref}{%
+        \crefname{lemma}{\GetTranslationWarn{lemma}}{\GetTranslationWarn{lemmas}}
+        \Crefname{lemma}{\GetTranslationWarn{Lemma}}{\GetTranslationWarn{Lemmas}}
+      }{}
+    }
+  }{}%
+  \@ifundefined{proof}{%
+    \declaretheorem[
+      numbered=no,style=proof,
+      name=\GetTranslationWarn{Proof},
+      refname={{\GetTranslationWarn{proof}},{\GetTranslationWarn{proofs}}},
+      Refname={{\GetTranslationWarn{Proof}},{\GetTranslationWarn{Proofs}}}
+    ]{proof}
+    \AtBeginDocument{%
+      \@ifpackageloaded{cleveref}{%
+        \crefname{proof}{\GetTranslationWarn{proof}}{\GetTranslationWarn{proofs}}
+        \Crefname{proof}{\GetTranslationWarn{Proof}}{\GetTranslationWarn{Proofs}}
+      }{}
+    }
+  }{}%
+  \@ifundefined{solution}{%
+    \declaretheorem[
+      numbered=no,style=proof,
+      name=\GetTranslationWarn{Solution},
+      refname={{\GetTranslationWarn{solution}},{\GetTranslationWarn{solutions}}},
+      Refname={{\GetTranslationWarn{Solution}},{\GetTranslationWarn{Solutions}}}
+    ]{solution}
+    \AtBeginDocument{%
+      \@ifpackageloaded{cleveref}{%
+        \crefname{solution}{\GetTranslationWarn{solution}}{\GetTranslationWarn{solutions}}
+        \Crefname{solution}{\GetTranslationWarn{Solution}}{\GetTranslationWarn{Solutions}}
+      }{}
+    }
+  }{}%
+  \@ifundefined{example}{%
+    \declaretheorem[
+      numbered=unless unique,style=example,
+      name=\GetTranslationWarn{Example},
+      refname={{\GetTranslationWarn{example}},{\GetTranslationWarn{examples}}},
+      Refname={{\GetTranslationWarn{Example}},{\GetTranslationWarn{Examples}}}
+    ]{example}
+    \AtBeginDocument{%
+      \@ifpackageloaded{cleveref}{%
+        \crefname{example}{\GetTranslationWarn{example}}{\GetTranslationWarn{examples}}
+        \Crefname{example}{\GetTranslationWarn{Example}}{\GetTranslationWarn{Examples}}
+      }{}
+    }
+  }{}%
+\fi
+%    \end{macrocode}
+%
 % And that concludes the article part.
 % And the end of the |beamer| and non-|beamer| specific parts.
 %    \begin{macrocode}
 }% end beamer not loaded
 \makeatother
+%    \end{macrocode}
+%
+% \subsection{Translations}
+%
+% We also want to provide translations for the environments.
+% We want to provide those even if none of the packages above are loaded.
+%    \begin{macrocode}
+\ProvideTranslation{swedish}{Assumption}{Antagande}
+\ProvideTranslation{swedish}{Assumptions}{Antagandena}
+\ProvideTranslation{swedish}{assumption}{antagande}
+\ProvideTranslation{swedish}{assumptions}{antagandena}
+\ProvideTranslation{swedish}{Idea}{Idé}
+\ProvideTranslation{swedish}{Ideas}{Idéerna}
+\ProvideTranslation{swedish}{idea}{idé}
+\ProvideTranslation{swedish}{ideas}{idéerna}
+\ProvideTranslation{swedish}{Question}{Fråga}
+\ProvideTranslation{swedish}{Questions}{Frågor}
+\ProvideTranslation{swedish}{question}{fråga}
+\ProvideTranslation{swedish}{questions}{frågor}
+\ProvideTranslation{swedish}{Exercise}{Övningsuppgift}
+\ProvideTranslation{swedish}{Exercises}{Övningsuppgifterna}
+\ProvideTranslation{swedish}{exercise}{övningsuppgift}
+\ProvideTranslation{swedish}{exercises}{övningsuppgifterna}
+\ProvideTranslation{swedish}{Activity}{Aktivitet}
+\ProvideTranslation{swedish}{Activities}{Aktiviteter}
+\ProvideTranslation{swedish}{activity}{aktivitet}
+\ProvideTranslation{swedish}{activities}{aktiviteter}
+\ProvideTranslation{swedish}{Note}{Anmärkning}
+\ProvideTranslation{swedish}{Notes}{Anmärkningar}
+\ProvideTranslation{swedish}{note}{anmärkning}
+\ProvideTranslation{swedish}{notes}{anmärkningar}
+\ProvideTranslation{swedish}{Remark}{Anmärkning}
+\ProvideTranslation{swedish}{Remarks}{Anmärkningar}
+\ProvideTranslation{swedish}{remark}{anmärkning}
+\ProvideTranslation{swedish}{remarks}{anmärkningar}
+\ProvideTranslation{swedish}{Summary}{Sammanfattning}
+\ProvideTranslation{swedish}{Summaries}{Sammanfattningar}
+\ProvideTranslation{swedish}{summary}{sammanfattning}
+\ProvideTranslation{swedish}{summaries}{sammanfattningar}
+\ProvideTranslation{swedish}{definition}{definition}
+\ProvideTranslation{swedish}{definitions}{definitionerna}
+\ProvideTranslation{swedish}{Definition}{Definition}
+\ProvideTranslation{swedish}{Definitions}{Definitionerna}
+\ProvideTranslation{swedish}{theorem}{sats}
+\ProvideTranslation{swedish}{theorems}{satserna}
+\ProvideTranslation{swedish}{Theorem}{Sats}
+\ProvideTranslation{swedish}{Theorems}{Satserna}
+\ProvideTranslation{swedish}{corollary}{följdsats}
+\ProvideTranslation{swedish}{Corollary}{Följdsats}
+\ProvideTranslation{swedish}{corollaries}{följdsatser}
+\ProvideTranslation{swedish}{Corollaries}{Följdsatser}
+\ProvideTranslation{swedish}{lemma}{hjälpsats}
+\ProvideTranslation{swedish}{lemmas}{hjälpsatserna}
+\ProvideTranslation{swedish}{Lemma}{Hjälpsats}
+\ProvideTranslation{swedish}{Lemmas}{Hjälpsatserna}
+\ProvideTranslation{swedish}{proof}{bevis}
+\ProvideTranslation{swedish}{Proof}{Bevis}
+\ProvideTranslation{swedish}{proofs}{bevisen}
+\ProvideTranslation{swedish}{Proofs}{Bevisen}
+\ProvideTranslation{swedish}{Solution}{Lösningsförslag}
+\ProvideTranslation{swedish}{Solutions}{Lösningsförslagen}
+\ProvideTranslation{swedish}{solution}{lösningsförslag}
+\ProvideTranslation{swedish}{solutions}{lösningsförslagen}
+\ProvideTranslation{swedish}{Example}{Exempel}
+\ProvideTranslation{swedish}{Examples}{Exempelen}
+\ProvideTranslation{swedish}{example}{exempel}
+\ProvideTranslation{swedish}{examples}{exempelen}
 %    \end{macrocode}
 %
 %
@@ -660,7 +946,7 @@
 % \end{environment}
 %
 %
-% \subsection{Tools for code examples}
+% \subsection{Listing and running code examples}
 %
 % Let's turn our focus to |\lstexample| and |\runexample|.
 % We want to make it easy to typeset and print the output of example Python 
@@ -717,6 +1003,8 @@ def run_module(m):
 }
 %    \end{macrocode}
 % \end{macro}
+% 
+% \subsection{Contrasting code examples}
 %
 % \Finale
 \endinput
