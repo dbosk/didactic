@@ -40,6 +40,7 @@
 \setpythontexworkingdir{..}
 \usepackage[notheorems]{beamerarticle}
 \usepackage{didactic}
+\usepackage{lipsum}
 \usepackage{hyperref}
 \usepackage{cleveref}
 \EnableCrossrefs         
@@ -102,9 +103,12 @@
 % The package automatically detects if |beamer| or |memoir| is loaded and 
 % customizes the document accordingly.
 % \DescribeEnv{nobeamer}
+% \DescribeEnv{noarticle}
 % \DescribeEnv{nomemoir}
-% That can be prevented, however, by using the |nobeamer| and |nomemoir| 
+% That can be prevented, however, by using the |nobeamer| or |nomemoir| 
 % options.
+% The |noarticle| is to prevent the article versions of the (|beamer|) 
+% environments to be defined.
 %
 % \DescribeEnv{notheorems}
 % The package also provides a few environments for |beamer| and |article| mode.
@@ -168,28 +172,41 @@
 % \subsection{Tools for code examples}
 %
 % We also provide two commands for working with code examples: |lstexample| and 
-% |runexample|.
+% |runpython|.
 %
 % \DescribeMacro{\lstexample}
 % The |\lstexample| command allows us to typeset the source code of the 
 % example.
-% For instance, |\lstexample{hello.py}| produces the following:
-% \lstexample{hello.py}
+% For instance, |\lstexample{python}{hello.py}| produces the following:
+% \lstexample{python}{hello.py}
 %
 % We can also pass optional arguments directly to |minted| that is used to 
 % typeset the code.
 % \begin{example}
-% |\lstexample[linenos,highlightlines=4]{hello.py}| produces the following.
-% \lstexample[linenos,highlightlines=4]{hello.py}
+% |\lstexample[linenos,highlightlines=4]{python}{hello.py}| produces the 
+% following.
+% \lstexample[linenos,highlightlines=4]{python}{hello.py}
 % \end{example}
 %
-% \DescribeMacro{\runexample}
+% \DescribeMacro{\runpython}
 % We can also run the example code and include its output using the 
-% |\runexample| macro.
+% |\runpython| macro.
 % \begin{example}
-% For instance, |\runexample{hello.py}| produces the following.
-% \runexample{hello.py}
+% For instance, |\runpython{hello.py}| produces the following.
+% \runpython{hello.py}
 % \end{example}
+%
+% \DescribeMacro{\codebycode}
+% The |\codebycode| command is simply two |\lstexample| commands side by side:
+% |\codebycode[opt1]{lang1}{file1}[opt2]{lang2}{file2}|.
+% \codebycode
+%   [breaklines,linenos]{python}{hello.py}
+%   [breaklines,linenos,highlightlines=4]{python}{hello.py}
+%
+% \DescribeMacro{\runbyrun}
+% We can also put the output side by side using 
+% |\runbyrun{hello.py}{hello.py}|.
+% \runbyrun{hello.py}{hello.py}
 %
 % \StopEventually{}
 %
@@ -210,13 +227,18 @@
 % statements.
 %
 % \begin{environment}{nobeamer}
+% \begin{environment}{noarticle}
 % This option is used to disable the |beamer| specific parts of the package.
 % Meaning that we don't customize |beamer| even when we find that it is loaded.
 %    \begin{macrocode}
 \newif\if@didactic@beamer
-\@didactic@beamertrue
+\@ifclassloaded{beamer}{\@didactic@beamertrue}{\@didactic@beamerfalse}
 \DeclareOptionX{nobeamer}{\@didactic@beamerfalse}
+\newif\if@didactic@article
+\@ifclassloaded{beamer}{\@didactic@articlefalse}{\@didactic@articletrue}
+\DeclareOptionX{noarticle}{\@didactic@articlefalse}
 %    \end{macrocode}
+% \end{environment}
 % \end{environment}
 %
 % \begin{environment}{nomemoir}
@@ -224,7 +246,7 @@
 % Meaning that we don't customize |memoir| even when we find that it is loaded.
 %    \begin{macrocode}
 \newif\if@didactic@memoir
-\@didactic@memoirtrue
+\@ifclassloaded{memoir}{\@didactic@memoirtrue}{\@didactic@memoirfalse}
 \DeclareOptionX{nomemoir}{\@didactic@memoirfalse}
 %    \end{macrocode}
 % \end{environment}
@@ -266,7 +288,6 @@
 % However, only if the user hasn't disabled this with the |nobeamer| option.
 %    \begin{macrocode}
 \if@didactic@beamer
-\@ifclassloaded{beamer}{% beamer loaded
 %    \end{macrocode}
 
 % If we use |beamer| we want to use the Berlin theme.
@@ -326,8 +347,7 @@
                      subsectionstyle=show/shaded/hide]
   \end{frame}
 }
-}% end beamer loaded
-\fi% end nobeamer \if
+\fi% end \if@didactic@beamer
 %    \end{macrocode}
 %
 % \subsection{Customizing \texttt{memoir}}
@@ -336,7 +356,6 @@
 % However, only if the user hasn't disabled this with the |nomemoir| option.
 %    \begin{macrocode}
 \if@didactic@memoir
-\@ifclassloaded{memoir}{% memoir loaded
 %    \end{macrocode}
 %
 % We want to set up |memoir| to use the Tufte style.
@@ -416,8 +435,7 @@
 %
 % And that concludes the |memoir| part.
 %    \begin{macrocode}
-}% end memoir loaded
-\fi% end nomemoir \if
+\fi% end \if@didactic@memoir
 %    \end{macrocode}
 %
 % \subsection{More semantic environments for \texttt{beamer}}
@@ -445,7 +463,7 @@
 % if |beamerarticle| is loaded---or rather, when |beamer| is not loaded, we 
 % should be able to use this without |beamer| and |beamerarticle|.
 %    \begin{macrocode}
-\@ifclassloaded{beamer}{% beamer loaded
+\if@didactic@beamer
 %    \end{macrocode}
 %
 % \begin{environment}{assumption}
@@ -518,14 +536,14 @@
 %
 % And that's the end of the |beamer| part.
 %    \begin{macrocode}
-}% end beamer loaded
+\else % \if@didactic@beamer
 %    \end{macrocode}
 % 
 % \subsection{Article version of semantic blocks}
 %
 % Let's turn our focus to the article mode.
 %    \begin{macrocode}
-{% beamer not loaded
+\if@didactic@article
 %    \end{macrocode}
 % We want to provide environments like this one:
 % \begin{exercise}\label{exercise}
@@ -818,7 +836,8 @@
 % And that concludes the article part.
 % And the end of the |beamer| and non-|beamer| specific parts.
 %    \begin{macrocode}
-}% end beamer not loaded
+\fi % \if@didactic@article
+\fi % \if@didactic@beamer
 %    \end{macrocode}
 %
 % \subsection{Translations}
@@ -1016,7 +1035,7 @@
 %
 % \subsection{Listing and running code examples}
 %
-% Let's turn our focus to |\lstexample| and |\runexample|.
+% Let's turn our focus to |\lstexample| and |\runpython|.
 % We want to make it easy to typeset and print the output of example Python 
 % programs in slides and texts.
 % We want to use PythonTeX to automatically run the code and typeset the source 
@@ -1029,20 +1048,22 @@
 % To typeset the source file we simply need to use the minted package.
 % We provide an optional argument to pass options to minted.
 %    \begin{macrocode}
-\NewDocumentCommand{\lstexample}{om}{%
-  \IfValueTF{#1}{%
-    \inputminted[escapeinside=||,#1]{python}{#2}%
-  }{%
-    \inputminted[escapeinside=||]{python}{#2}%
-  }%
+\NewDocumentCommand{\lstexample}{omm}{%
+  \IfValueTF{#1}
+    {\inputminted[escapeinside=||,#1]{#2}{#3}}
+    {\inputminted[escapeinside=||]{#2}{#3}}
 }
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\runexample}
+% \begin{macro}{\runpython}
 % Now, for the second part, printing the output, we do this in two steps.
 % First, we create a function using PythonTeX that runs a Python program and 
 % prints it output.
+% We can use it like |\runpython{hello.py}| to run the program in |hello.py|.
+% The output is printed in verbatim mode.
+% Alternatively we could use |\runpython[opt]{hello.py}| to pass |opt| to the 
+% underlying |fancyvrb| environment.
 %
 % Let's create that function in PythonTeX to run the example program file.
 % We simply execute it with Python 3 and capture its output.
@@ -1054,9 +1075,17 @@
 import subprocess
 
 def run_module(m):
-    result = subprocess.run(["python3", m], capture_output=True)
-    print(result.stdout.decode("utf8").strip())
-    pytex.add_dependencies(m)
+  result = subprocess.run(["python3", m], capture_output=True)
+  print(result.stdout.decode("utf8").strip())
+  pytex.add_dependencies(m)
+
+def mintedoutput(m, opt):
+  if opt:
+      print(r'\begin{minted}[{}]{{text}}'.format(opt))
+  else:
+      print(r'\begin{minted}{text}')
+  run_module(m)
+  print(r'\end{minted}')
 \end{pycode}
 %    \end{macrocode}
 %
@@ -1064,15 +1093,87 @@ def run_module(m):
 % argument.
 % Then print the output in verbatim mode.
 %    \begin{macrocode}
-\newcommand{\runexample}[1]{%
+\NewDocumentCommand{\runpython}{om}{%
   \setpythontexautoprint{false}%
-  \pyc{run_module('#1')}%
+  \pyc{run_module("#2")}%
   \printpythontex[verbatim]%
 }
 %    \end{macrocode}
 % \end{macro}
 % 
 % \subsection{Contrasting code examples}
+%
+% Sometimes we want to contrast two code examples side by side.
+% \begin{macro}{\textbytext}
+% For example |\textbytext{\lipsum[1]}{\lipsum[1]}| should typeset the two 
+% examples side by side.
+% \textbytext{\lipsum[1]}{\lipsum[1]}
+% If we use the |memoir| class and our settings (|\if@didactic@memoir|), we 
+% want to use the |adjustwidth| environment to expand the text block to better 
+% fit them.
+% Otherwise we use the standard text block.
+%    \begin{macrocode}
+\NewDocumentCommand{\textbytext}{+m+m}{%
+  \if@didactic@memoir
+    \begin{adjustwidth*}
+      {-2em}{-\@didactic@margin@outer+\@didactic@margin@inner-2em}
+      \newlength{\oldcolumnwidth}
+      \setlength{\oldcolumnwidth}{\columnwidth}
+      \setlength{\columnwidth}{\textwidth+2em+\@didactic@margin@outer-\@didactic@margin@inner}
+  \else
+    \newline
+  \fi
+  \begin{tabularx}{\columnwidth}{XX}
+    #1 & #2
+  \end{tabularx}
+  \if@didactic@memoir
+      \setlength{\columnwidth}{\oldcolumnwidth}
+    \end{adjustwidth*}
+  \else
+    \newline
+  \fi
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\codebycode}
+% When we deal with code, we deal with verbatim data.
+% The easiest way to deal with this is to simply keep the code in files and 
+% supply the file names to |\inputminted|.
+% The |\codebycode| command is simply two |\inputminted| commands side by side:
+% |\codebycode[opt1]{lang1}{file1}[opt2]{lang2}{file2}|.
+% \codebycode
+%   [breaklines,linenos]{python}{hello.py}
+%   [breaklines,linenos]{python}{hello.py}
+%
+% This gives us the following implementation.
+% We can reuse |\textbytext| to typeset the two examples side by side.
+%    \begin{macrocode}
+\RequirePackage{tabularx}
+\RequirePackage{minted}
+\NewDocumentCommand{\codebycode}{ommomm}{%
+  \textbytext{%
+    \IfValueTF{#1}
+      {\lstexample[#1]{#2}{#3}}
+      {\lstexample{#2}{#3}}%
+  }{%
+    \IfValueTF{#4}
+      {\lstexample[#4]{#5}{#6}}
+      {\lstexample{#5}{#6}}%
+  }%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\runbyrun}
+% We also want to typeset the runs (|\runpython|).
+% We can use |\textbytext| to typeset the two outputs side by side.
+%    \begin{macrocode}
+\NewDocumentCommand{\runbyrun}{mm}{%
+  \textbytext{\runpython{#1}}{\runpython{#2}}%
+}
+%    \end{macrocode}
+% \end{macro}
 %
 % \Finale
 \endinput
