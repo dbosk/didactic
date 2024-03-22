@@ -118,10 +118,13 @@
 %
 % \DescribeEnv{inner}
 % \DescribeEnv{outer}
+% \DescribeEnv{top}
+% \DescribeEnv{bottom}
 % When the package customizes |memoir| it sets the inner and outer margins to 
 % fit margin notes better.
 % The |inner| and |outer| options can be used to set the inner and outer 
 % margins to be used.
+% The |top| and |bottom| options can be used to set the top and bottom margins.
 %
 % \subsection{Beamer blocks}
 %
@@ -263,6 +266,8 @@
 %
 % \begin{environment}{inner}
 % \begin{environment}{outer}
+% \begin{environment}{top}
+% \begin{environment}{bottom}
 % We also have some key--value options to control the margins.
 %    \begin{macrocode}
 \newcommand\@didactic@margin@inner{20mm}
@@ -274,6 +279,8 @@
 \DeclareOptionX{top}[25mm]{\renewcommand\@didactic@margin@top{#1}}
 \DeclareOptionX{bottom}[40mm]{\renewcommand\@didactic@margin@bottom{#1}}
 %    \end{macrocode}
+% \end{environment}
+% \end{environment}
 % \end{environment}
 % \end{environment}
 %
