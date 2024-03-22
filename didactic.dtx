@@ -1113,12 +1113,12 @@ def mintedoutput(m, opt):
 % fit them.
 % Otherwise we use the standard text block.
 %    \begin{macrocode}
+\newlength{\@didactic@textbytext@oldcolumnwidth}
 \NewDocumentCommand{\textbytext}{+m+m}{%
   \if@didactic@memoir
     \begin{adjustwidth*}
       {-2em}{-\@didactic@margin@outer+\@didactic@margin@inner-2em}
-      \newlength{\oldcolumnwidth}
-      \setlength{\oldcolumnwidth}{\columnwidth}
+      \setlength{\@didactic@textbytext@oldcolumnwidth}{\columnwidth}
       \setlength{\columnwidth}{\textwidth+2em+\@didactic@margin@outer-\@didactic@margin@inner}
   \else
     \newline
@@ -1127,7 +1127,7 @@ def mintedoutput(m, opt):
     #1 & #2
   \end{tabularx}
   \if@didactic@memoir
-      \setlength{\columnwidth}{\oldcolumnwidth}
+      \setlength{\columnwidth}{\@didactic@textbytext@oldcolumnwidth}
     \end{adjustwidth*}
   \else
     \newline
