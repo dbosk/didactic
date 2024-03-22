@@ -211,6 +211,37 @@
 % |\runbyrun{hello.py}{hello.py}|.
 % \runbyrun{hello.py}{hello.py}
 %
+% \subsection{Adding margin notes of different kinds}
+%
+% \DescribeMacro{\indentedmarginpar}
+% We want to be able to put quite some content in the margins.
+% For this reason we want to have indented paragraphs in the margin notes.
+% We can use the |\indentedmarginpar{text}| command to do this.
+% For instance, consider the output in the margin.
+% \indentedmarginpar{%
+%   This is an example of an indented margin paragraph.
+%
+%   It can contain multiple paragraphs.
+% }
+%
+% \DescribeMacro{\newnotetype}
+% \DescribeMacro{\ltnote}
+% We also want to be able to use titled notes of different kinds.
+% We can use the |\newnotetype[fmtcmd]{type}{title}| command to define a new 
+% type of note.
+% For instance |\ltnote| is defined as
+% \begin{center}
+% |\newnotetype{\ltnote}{\GetTranslationWarn{Learning theory}}|.
+% \end{center}
+% \ltnote{This is an example of a learning theory note.}
+%
+% We can also change the formatting of the title.
+% |\newnotetype[\textbf]{\bfnote}{Bold note}| and
+% |\bfnote{This is a bold note.}| gives us the note in the margin.
+% \newnotetype[\textbf]{\bfnote}{Bold note}
+% \bfnote{This is a bold note.}
+% \ltnote{Another example of a learning theory note.}
+%
 % \StopEventually{}
 %
 % \section{Implementation}
@@ -1030,11 +1061,24 @@
 % \newnotetype{\titlenote}{Title}
 % \titlenote{this is the text}
 %    \begin{macrocode}
-\NewDocumentCommand{\newnotetype}{mm}{%
-  \NewDocumentCommand{#1}{+m}{%
-    \indentedmarginpar{\emph{#2:} ##1}%
-  }%
+\NewDocumentCommand{\newnotetype}{omm}{%
+  \IfValueTF{#1}
+    {\NewDocumentCommand{#2}{+m}{%
+      \indentedmarginpar{#1{#3:} ##1}%
+    }}
+    {\NewDocumentCommand{#2}{+m}{%
+      \indentedmarginpar{\emph{#3:} ##1}%
+    }}%
 }
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\ltnote}
+% We provide a few different types of margin notes.
+% That way we can also include translations for them.
+%    \begin{macrocode}
+\ProvideTranslation{swedish}{Learning theory}{Lärandeteori}
+\newnotetype{\ltnote}{\GetTranslationWarn{Learning theory}}
 %    \end{macrocode}
 % \end{macro}
 %
