@@ -193,7 +193,7 @@
 % |\runpython| macro.
 % \begin{example}
 % For instance, |\runpython{hello.py}| produces the following.
-% \runpython{hello.py}
+% \runpython[highlightlines=1]{hello.py}
 % \end{example}
 %
 % \DescribeMacro{\codebycode}
@@ -1072,20 +1072,30 @@
 % code when necessary.
 %    \begin{macrocode}
 \begin{pycode}
-import subprocess
+import sys
+try:
+  from subprocess import run
+except Exception as err:
+  raise Exception(sys.version + ": " + str(err))
+import tempfile
 
 def run_module(m):
-  result = subprocess.run(["python3", m], capture_output=True)
-  print(result.stdout.decode("utf8").strip())
+  result = run(["python3", m], capture_output=True)
+
+  with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
+    f.write(result.stdout.decode("utf8").strip())
+    f.flush()
+    print(f.name, end="")
+
   pytex.add_dependencies(m)
 
 def mintedoutput(m, opt):
+  print(r'\inputminted', end="")
   if opt:
-      print(r'\begin{minted}[{}]{{text}}'.format(opt))
-  else:
-      print(r'\begin{minted}{text}')
+    print(f"[{opt}]", end="")
+  print("{", end="")
   run_module(m)
-  print(r'\end{minted}')
+  print("}")
 \end{pycode}
 %    \end{macrocode}
 %
@@ -1095,8 +1105,10 @@ def mintedoutput(m, opt):
 %    \begin{macrocode}
 \NewDocumentCommand{\runpython}{om}{%
   \setpythontexautoprint{false}%
-  \pyc{run_module("#2")}%
-  \printpythontex[verbatim]%
+  \IfValueTF{#1}
+    {\pyc{mintedoutput('#2', '#1')}}
+    {\pyc{mintedoutput('#2', None)}}
+  \printpythontex%
 }
 %    \end{macrocode}
 % \end{macro}
