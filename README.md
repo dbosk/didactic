@@ -14,6 +14,26 @@ Finally, it modifies the appearance of `beamer` (Berlin based theme) and
 `beamer` to produce slides and `beamerarticle` with `memoir` to produce notes, 
 and handouts from the same source.
 
+## Installation
+
+To use the package, you only need to install `didactic.sty` in a place where 
+your LaTeX distribution can find it. For a local installation, you can put it
+in the same directory as your document, or in `~/texmf/tex/latex/didactic/`.
+
+Actually, for the latter, you can simply do the following:
+
+```bash
+mkdir -p ~/texmf/tex/latex
+cd ~/texmf/tex/latex
+git clone https://github.com/dbosk/didactic.git
+cd didactic
+make all
+```
+
+That will build both `didactic.sty` and `didactic.pdf`. The documentation is 
+located in `didactic.pdf`.
+
+
 ## Maintainer
 
 The was authored by Daniel Bosk <daniel+ctan@bosk.se>, who is also the 
