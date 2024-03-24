@@ -15,7 +15,7 @@ didactic.sty: didactic.ins
 	${LATEX} ${LATEXFLAGS} $<
 
 didactic.tar.gz: didactic.dtx didactic.ins hello.py idea.tex
-didactic.tar.gz: LICENSE lightblock.tex Makefile makefiles README.md
+didactic.tar.gz: LICENSE lightblock.tex Makefile README.md
 	tar -czf $@ --transform "s|^|didactic/|" $^
 
 .PHONY: clean
@@ -29,3 +29,4 @@ clean:
 	${RM} pythontex_data.pkl
 	${RM} -R _minted-didactic
 	${RM} $(wildcard py_default_default_*.stdout)
+	${RM} -R pythontex-files-didactic
