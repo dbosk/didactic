@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{didactic}
 %<*package>
-    [2024/03/22 v1.4 didactic]
+    [2024/03/25 v1.5 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -30,6 +30,10 @@
 %<package>\RequirePackage{minted}
 %<package>\RequirePackage{babel}
 %<package>\RequirePackage{translations}
+%<package>\RequirePackage{amsthm}
+%<package>\RequirePackage{thmtools}
+%<package>\PassOptionsToPackage{unq}{unique}
+%<package>\RequirePackage{unique}
 %
 %<*driver>
 \documentclass{ltxdoc}
@@ -142,6 +146,23 @@
 % \input{idea.tex}
 % That can be produced by the following code.
 % \inputminted[linenos]{latex}{idea.tex}
+%
+% \DescribeMacro{\ProvideSemanticEnv}
+% We can create new such block environments, that work both with |beamer| and
+% without, by using the |\ProvideSemanticEnv| command.
+% This command takes five arguments:
+% \begin{enumerate}
+% \item the name of the environment,
+% \item the name of the block environment to use (optional),
+% \item the title of the block,
+% \item options to pass to |thmtools| (optional),
+% \item the key of the translation of the refname of the block,
+% \item the key of the translation of the refnames of the block.
+% \item the key of the translation of the Refname of the block,
+% \item the key of the translation of the Refnames of the block.
+% \end{enumerate}
+% For example, the |idea| block above was created by the following code:
+% \inputminted{latex}{ProvideSemanticEnv.tex}
 %
 % \DescribeEnv{lightblock}
 % \DescribeEnv{darkblock}
@@ -483,15 +504,12 @@
 \fi% end \if@didactic@memoir
 %    \end{macrocode}
 %
-% \subsection{More semantic environments for \texttt{beamer}}
+% \subsection{More semantic environments}
 %
 % We want to provide a set of environments (blocks) for |beamer|.
 % We want the names of the blocks to be translated.
-% We'll use the |translator| package for this.
-%    \begin{macrocode}
-\RequirePackage{translator}
-\usedictionary{didactic}
-%    \end{macrocode}
+% We'll use the |translations| package for this.
+% That way we get the language used through the normal use of |babel|.
 %
 % We also want to have the same environments for the article mode, but in a 
 % nicer format that the default of |beamerarticle|.
@@ -507,89 +525,7 @@
 % This means that we'll need to do one thing if |beamer| is loaded and another 
 % if |beamerarticle| is loaded---or rather, when |beamer| is not loaded, we 
 % should be able to use this without |beamer| and |beamerarticle|.
-%    \begin{macrocode}
-\if@didactic@beamer
-%    \end{macrocode}
 %
-% \begin{environment}{assumption}
-% \begin{environment}{idea}
-% \begin{environment}{question}
-% \begin{environment}{exercise}
-% \begin{environment}{activity}
-% \begin{environment}{remark}
-% \begin{environment}{summary}
-% These environments wraps Beamer's |block| environment: it sets a default 
-% title and colour with an optional name.
-%    \begin{macrocode}
-  \ProvideDocumentEnvironment{assumption}{o}{%
-    \begin{block}{\GetTranslationWarn{Assumption}\IfValueT{#1}{: #1}}
-  }{%
-    \end{block}
-  }
-  \ProvideDocumentEnvironment{protocol}{o}{%
-    \begin{block}{\GetTranslationWarn{Protocol}\IfValueT{#1}{: #1}}
-  }{%
-    \end{block}
-  }
-  \ProvideDocumentEnvironment{remark}{o}{%
-    \begin{block}{\GetTranslationWarn{Remark}\IfValueT{#1}{: #1}}
-  }{%
-    \end{alertblock}
-  }
-  \ProvideDocumentEnvironment{idea}{o}{%
-    \begin{block}{\GetTranslationWarn{Idea}\IfValueT{#1}{: #1}}
-  }{%
-    \end{block}
-  }
-  \ProvideDocumentEnvironment{question}{o}{%
-    \setbeamercolor{block body}{bg=orange!15,fg=black}
-    \setbeamercolor{block title}{bg=orange,fg=white}
-    \setbeamercolor{local structure}{fg=orange}
-    \begin{block}{\GetTranslationWarn{Question}\IfValueT{#1}{: #1}}
-  }{%
-    \end{block}
-  }
-  \ProvideDocumentEnvironment{exercise}{o}{%
-    \setbeamercolor{block body}{bg=yellow!10,fg=black}
-    \setbeamercolor{block title}{bg=yellow,fg=black}
-    \setbeamercolor{local structure}{fg=yellow}
-    \begin{block}{\GetTranslationWarn{Exercise}\IfValueT{#1}{: #1}}
-  }{%
-    \end{block}
-  }
-  \ProvideDocumentEnvironment{activity}{o}{%
-    \setbeamercolor{block body}{bg=yellow!10,fg=black}
-    \setbeamercolor{block title}{bg=yellow,fg=black}
-    \setbeamercolor{local structure}{fg=yellow}
-    \begin{block}{\GetTranslationWarn{Activity}\IfValueT{#1}{: #1}}
-  }{%
-    \end{block}
-  }
-  \ProvideDocumentEnvironment{summary}{o}{%
-    \begin{block}{\GetTranslationWarn{Summary}\IfValueT{#1}{: #1}}
-  }{%
-    \end{block}
-  }
-%    \end{macrocode}
-% \end{environment}
-% \end{environment}
-% \end{environment}
-% \end{environment}
-% \end{environment}
-% \end{environment}
-% \end{environment}
-%
-% And that's the end of the |beamer| part.
-%    \begin{macrocode}
-\else % \if@didactic@beamer
-%    \end{macrocode}
-% 
-% \subsection{Article version of semantic blocks}
-%
-% Let's turn our focus to the article mode.
-%    \begin{macrocode}
-\if@didactic@article
-%    \end{macrocode}
 % We want to provide environments like this one:
 % \begin{exercise}\label{exercise}
 %   This is an exercise.
@@ -629,6 +565,94 @@
 % We can also refer to them in English, \cref{ide} and \cref{theidea}
 % separately and together as \cref{ide,theidea}.
 %
+% \begin{macro}{\ProvideSemanticEnv}
+% We provide a command to create such environments.
+% This way we just run this command in the preamble, if |beamer| is loaded it 
+% creates the block environments for |beamer|, otherwise it creates the 
+% environments for the article.
+%
+% It can be used like this:
+% \begin{center}
+% |\ProvideSemanticEnv{test}[alertblock]{Test}[style=definition]|\\
+% \qquad|{test}{tests}{Test}{Tests}|
+% \end{center}
+%    \begin{macrocode}
+\ProvideDocumentCommand{\ProvideSemanticEnv}{m o m o mmmm}{%
+  \@ifundefined{#1}{%
+    \@ifclassloaded{beamer}{% beamer
+%    \end{macrocode}
+% For |beamer| we want to use the |block| environment, or one of the coloured
+% blocks that we provide below.
+% We let the second argument (optional) be the name of the block environment to
+% use.
+% This will be the easiest way to set the colour of the block.
+%
+% Lastly, we let the third argument be the title of the block.
+% This is the English title and also the key used to translate the title of the
+% block.
+%    \begin{macrocode}
+      \IfValueTF{#2}{%
+        \ProvideDocumentEnvironment{#1}{o}{%
+          \begin{#2}{\GetTranslationWarn{#3}\IfValueT{##1}{: ##1}}
+        }{%
+          \end{#2}
+        }
+      }{%
+        \ProvideDocumentEnvironment{#1}{o}{%
+          \begin{block}{\GetTranslationWarn{#3}\IfValueT{##1}{: ##1}}
+        }{%
+          \end{block}
+        }
+      }
+%    \end{macrocode}
+%
+% If we don't use |beamer|, we want to use the |thmtools| package to define the
+% environments.
+% The fourth argument (optional), will be passed as options to
+% |\declaretheorem|.
+% The fifth to eighth arguments are the keys of (meaning English) translations
+% of the refnames of the block.
+%    \begin{macrocode}
+    }{% not beamer
+      \IfValueTF{#4}{%
+        \declaretheorem[
+          name=\GetTranslationWarn{#3},
+          refname={{\GetTranslationWarn{#5}},{\GetTranslationWarn{#6}}},
+          Refname={{\GetTranslationWarn{#7}},{\GetTranslationWarn{#8}}},
+          #4
+        ]{#1}
+      }{%
+        \declaretheorem[
+          numbered=unless unique,style=definition,
+          name=\GetTranslationWarn{#3},
+          refname={{\GetTranslationWarn{#5}},{\GetTranslationWarn{#6}}},
+          Refname={{\GetTranslationWarn{#7}},{\GetTranslationWarn{#8}}}
+        ]{#1}
+      }
+    }
+%    \end{macrocode}
+%
+% Since the |refname| and |Refname| options of |thmtools| doesn't seem to work
+% we will add the necessary |\crefname| and |\Crefname| commands at the
+% beginning of the document, for both |beamer| and non-|beamer| case.
+%    \begin{macrocode}
+    \AtBeginDocument{%
+      \@ifpackageloaded{cleveref}{%
+        \crefname{#1}
+          {\GetTranslationWarn{#5}}
+          {\GetTranslationWarn{#6}}
+        \Crefname{#1}
+          {\GetTranslationWarn{#7}}
+          {\GetTranslationWarn{#8}}
+      }{%
+        \relax
+      }
+    }
+  }{\relax} % \@ifundefined{#1}
+} % \ProvideSemanticEnv
+%    \end{macrocode}
+% \end{macro}
+%
 % \begin{environment}{assumption}
 % \begin{environment}{idea}
 % \begin{environment}{question}
@@ -636,120 +660,24 @@
 % \begin{environment}{activity}
 % \begin{environment}{remark}
 % \begin{environment}{summary}
-% We want to provide the same environments as for |beamer|, but in a nicer
-% format.
-% We'll use the |thmtools| package to define the environments.
-%
-% For some reason, the |refname| and |Refname| options of |thmtools| doesn't
-% work with the |translator| package.
-% We'll have to set them manually for use with |cleveref| using
-% |\AtBeginDocument| and |\crefname|.
-% We need |\AtBeginDocument| since |cleveref| needs to be loaded after our
-% package, hence we can't use the |\crefname| command until at the beginning of
-% the document.
+% Then let's define some useful environments.
 %    \begin{macrocode}
-  \RequirePackage{amsthm}
-  \RequirePackage{thmtools}
-  \PassOptionsToPackage{unq}{unique}
-  \RequirePackage{unique}
-  \declaretheorem[
-    numbered=unless unique,style=definition,
-    name=\GetTranslationWarn{Assumption},
-    refname={{\GetTranslationWarn{assumption}},{\GetTranslationWarn{assumptions}}},
-    Refname={{\GetTranslationWarn{Assumption}},{\GetTranslationWarn{Assumptions}}}
-  ]{assumption}
-  \AtBeginDocument{%
-    \@ifpackageloaded{cleveref}{%
-      \crefname{assumption}
-        {\GetTranslationWarn{assumption}}
-        {\GetTranslationWarn{assumptions}}
-      \Crefname{assumption}
-        {\GetTranslationWarn{Assumption}}
-        {\GetTranslationWarn{Assumptions}}
-    }{}
-  }
-  \declaretheorem[
-    numbered=unless unique,style=remark,
-    name=\GetTranslationWarn{Idea},
-    refname={{\GetTranslationWarn{idea}},{\GetTranslationWarn{ideas}}},
-    Refname={{\GetTranslationWarn{Idea}},{\GetTranslationWarn{Ideas}}}
-  ]{idea}
-  \AtBeginDocument{%
-    \@ifpackageloaded{cleveref}{%
-      \crefname{idea}{\GetTranslationWarn{idea}}{\GetTranslationWarn{ideas}}
-      \Crefname{idea}{\GetTranslationWarn{Idea}}{\GetTranslationWarn{Ideas}}
-    }{}
-  }
-  \declaretheorem[
-    numbered=unless unique,style=remark,
-    name=\GetTranslationWarn{Question},
-    refname={{\GetTranslationWarn{question}},{\GetTranslationWarn{questions}}},
-    Refname={{\GetTranslationWarn{Question}},{\GetTranslationWarn{Questions}}}
-  ]{question}
-  \AtBeginDocument{%
-    \@ifpackageloaded{cleveref}{%
-      \crefname{question}
-        {\GetTranslationWarn{question}}{\GetTranslationWarn{questions}}
-      \Crefname{question}
-        {\GetTranslationWarn{Question}}{\GetTranslationWarn{Questions}}
-    }{}
-  }
-  \declaretheorem[
-    numbered=unless unique,style=example,
-    name={\GetTranslationWarn{Exercise}},
-    refname={{\GetTranslationWarn{exercise}},{\GetTranslationWarn{exercises}}},
-    Refname={{\GetTranslationWarn{Exercise}},{\GetTranslationWarn{Exercises}}}
-  ]{exercise}
-  \AtBeginDocument{%
-    \@ifpackageloaded{cleveref}{%
-      \crefname{exercise}
-        {\GetTranslationWarn{exercise}}{\GetTranslationWarn{exercises}}
-      \Crefname{exercise}
-        {\GetTranslationWarn{Exercise}}{\GetTranslationWarn{Exercises}}
-    }{}
-  }
-  \declaretheorem[
-    numbered=unless unique,style=example,
-    name=\GetTranslationWarn{Activity},
-    refname={{\GetTranslationWarn{activity}},{\GetTranslationWarn{activities}}},
-    Refname={{\GetTranslationWarn{Activity}},{\GetTranslationWarn{Activities}}}
-  ]{activity}
-  \AtBeginDocument{%
-    \@ifpackageloaded{cleveref}{%
-      \crefname{activity}
-        {\GetTranslationWarn{activity}}{\GetTranslationWarn{activities}}
-      \Crefname{activity}
-        {\GetTranslationWarn{Activity}}{\GetTranslationWarn{Activities}}
-    }{}
-  }
-  \declaretheorem[
-    numbered=unless unique,style=remark,
-    name=\GetTranslationWarn{Remark},
-    refname={{\GetTranslationWarn{remark}},{\GetTranslationWarn{remarks}}},
-    Refname={{\GetTranslationWarn{Remark}},{\GetTranslationWarn{Remarks}}}
-  ]{remark}
-  \AtBeginDocument{%
-    \@ifpackageloaded{cleveref}{%
-      \crefname{remark}
-        {\GetTranslationWarn{remark}}{\GetTranslationWarn{remarks}}
-      \Crefname{remark}
-        {\GetTranslationWarn{Remark}}{\GetTranslationWarn{Remarks}}
-    }{}
-  }
-  \declaretheorem[
-    numbered=unless unique,style=definition,
-    name=Sammanfattning,
-    refname={{\GetTranslationWarn{summary}},{\GetTranslationWarn{summaries}}},
-    Refname={{\GetTranslationWarn{Summary}},{\GetTranslationWarn{Summaries}}}
-  ]{summary}
-  \AtBeginDocument{%
-    \@ifpackageloaded{cleveref}{%
-      \crefname{summary}
-        {\GetTranslationWarn{summary}}{\GetTranslationWarn{summaries}}
-      \Crefname{summary}
-        {\GetTranslationWarn{Summary}}{\GetTranslationWarn{Summaries}}
-    }{}
-  }
+\ProvideSemanticEnv{assumption}[alertblock]{Assumption}
+  {assumption}{assumptions}{Assumption}{Assumptions}
+\ProvideSemanticEnv{idea}[greenblock]{Idea}
+  {idea}{ideas}{Idea}{Ideas}
+\ProvideSemanticEnv{question}[orangeblock]{Question}
+  {question}{questions}{Question}{Questions}
+\ProvideSemanticEnv{exercise}[yellowblock]{Exercise}
+  {exercise}{exercises}{Exercise}{Exercises}
+\ProvideSemanticEnv{activity}[yellowblock]{Activity}
+  {activity}{activities}{Activity}{Activities}
+\ProvideSemanticEnv{remark}[alertblock]{Remark}[%
+    numbered=no,style=remark
+  ]{remark}{remarks}{Remark}{Remarks}
+\ProvideSemanticEnv{summary}[block]{Summary}[%
+    numbered=no,style=remark
+  ]{summary}{summaries}{Summary}{Summaries}
 %    \end{macrocode}
 % \end{environment}
 % \end{environment}
@@ -759,131 +687,32 @@
 % \end{environment}
 % \end{environment}
 %
-% We also want to provide the normal environments for theorems and definitions 
+% We also want to provide the normal environments for theorems and definitions
 % and such.
 %    \begin{macrocode}
-  \if@didactic@theorems
-    \@ifundefined{definition}{%
-      \declaretheorem[
-        numbered=unless unique,style=definition,
-        name=\GetTranslationWarn{Definition},
-        refname={{\GetTranslationWarn{definition}},{\GetTranslationWarn{definitions}}},
-        Refname={{\GetTranslationWarn{Definition}},{\GetTranslationWarn{Definitions}}}
-      ]{definition}
-      \AtBeginDocument{%
-        \@ifpackageloaded{cleveref}{%
-          \crefname{definition}
-            {\GetTranslationWarn{definition}}{\GetTranslationWarn{definitions}}
-          \Crefname{definition}
-            {\GetTranslationWarn{Definition}}{\GetTranslationWarn{Definitions}}
-        }{}
-      }
-    }{}%
-    \@ifundefined{theorem}{%
-      \declaretheorem[
-        numbered=unless unique,style=theorem,
-        name=\GetTranslationWarn{Theorem},
-        refname={{\GetTranslationWarn{theorem}},{\GetTranslationWarn{theorems}}},
-        Refname={{\GetTranslationWarn{Theorem}},{\GetTranslationWarn{Theorems}}}
-      ]{theorem}
-      \AtBeginDocument{%
-        \@ifpackageloaded{cleveref}{%
-          \crefname{theorem}
-            {\GetTranslationWarn{theorem}}{\GetTranslationWarn{theorems}}
-          \Crefname{theorem}
-            {\GetTranslationWarn{Theorem}}{\GetTranslationWarn{Theorems}}
-        }{}
-      }
-    }{}%
-    \@ifundefined{corollary}{%
-      \declaretheorem[
-        numbered=unless unique,style=theorem,
-        name=\GetTranslationWarn{Corollary},
-        refname={{\GetTranslationWarn{corollary}},{\GetTranslationWarn{corollaries}}},
-        Refname={{\GetTranslationWarn{Corollary}},{\GetTranslationWarn{Corollaries}}}
-      ]{corollary}
-      \AtBeginDocument{%
-        \@ifpackageloaded{cleveref}{%
-          \crefname{corollary}
-            {\GetTranslationWarn{corollary}}{\GetTranslationWarn{corollaries}}
-          \Crefname{corollary}
-            {\GetTranslationWarn{Corollary}}{\GetTranslationWarn{Corollaries}}
-        }{}
-      }
-    }{}%
-    \@ifundefined{lemma}{%
-      \declaretheorem[
-        numbered=unless unique,style=theorem,
-        name=\GetTranslationWarn{Lemma},
-        refname={{\GetTranslationWarn{lemma}},{\GetTranslationWarn{lemmas}}},
-        Refname={{\GetTranslationWarn{Lemma}},{\GetTranslationWarn{Lemmas}}}
-      ]{lemma}
-      \AtBeginDocument{%
-        \@ifpackageloaded{cleveref}{%
-          \crefname{lemma}
-            {\GetTranslationWarn{lemma}}{\GetTranslationWarn{lemmas}}
-          \Crefname{lemma}
-            {\GetTranslationWarn{Lemma}}{\GetTranslationWarn{Lemmas}}
-        }{}
-      }
-    }{}%
-    \@ifundefined{proof}{%
-      \declaretheorem[
-        numbered=no,style=proof,
-        name=\GetTranslationWarn{Proof},
-        refname={{\GetTranslationWarn{proof}},{\GetTranslationWarn{proofs}}},
-        Refname={{\GetTranslationWarn{Proof}},{\GetTranslationWarn{Proofs}}}
-      ]{proof}
-      \AtBeginDocument{%
-        \@ifpackageloaded{cleveref}{%
-          \crefname{proof}
-            {\GetTranslationWarn{proof}}{\GetTranslationWarn{proofs}}
-          \Crefname{proof}
-            {\GetTranslationWarn{Proof}}{\GetTranslationWarn{Proofs}}
-        }{}
-      }
-    }{}%
-    \@ifundefined{solution}{%
-      \declaretheorem[
-        numbered=no,style=proof,
-        name=\GetTranslationWarn{Solution},
-        refname={{\GetTranslationWarn{solution}},{\GetTranslationWarn{solutions}}},
-        Refname={{\GetTranslationWarn{Solution}},{\GetTranslationWarn{Solutions}}}
-      ]{solution}
-      \AtBeginDocument{%
-        \@ifpackageloaded{cleveref}{%
-          \crefname{solution}
-            {\GetTranslationWarn{solution}}{\GetTranslationWarn{solutions}}
-          \Crefname{solution}
-            {\GetTranslationWarn{Solution}}{\GetTranslationWarn{Solutions}}
-        }{}
-      }
-    }{}%
-    \@ifundefined{example}{%
-      \declaretheorem[
-        numbered=unless unique,style=example,
-        name=\GetTranslationWarn{Example},
-        refname={{\GetTranslationWarn{example}},{\GetTranslationWarn{examples}}},
-        Refname={{\GetTranslationWarn{Example}},{\GetTranslationWarn{Examples}}}
-      ]{example}
-      \AtBeginDocument{%
-        \@ifpackageloaded{cleveref}{%
-          \crefname{example}
-            {\GetTranslationWarn{example}}{\GetTranslationWarn{examples}}
-          \Crefname{example}
-            {\GetTranslationWarn{Example}}{\GetTranslationWarn{Examples}}
-        }{}
-      }
-    }{}%
-  \fi
+\if@didactic@theorems
+  \ProvideSemanticEnv{definition}[block]{Definition}
+    {definition}{definitions}{Definition}{Definitions}
+  \ProvideSemanticEnv{theorem}[block]{Theorem}[%
+      numbered=unless unique,style=theorem
+    ]{theorem}{theorems}{Theorem}{Theorems}
+  \ProvideSemanticEnv{corollary}[block]{Corollary}[%
+      numbered=unless unique,style=theorem
+    ]{corollary}{corollaries}{Corollary}{Corollaries}
+  \ProvideSemanticEnv{lemma}[block]{Lemma}[%
+      numbered=unless unique,style=theorem
+    ]{lemma}{lemmas}{Lemma}{Lemmas}
+  \ProvideSemanticEnv{proof}[block]{Proof}[%
+      numbered=no,style=proof
+    ]{proof}{proofs}{Proof}{Proofs}
+  \ProvideSemanticEnv{solution}[block]{Solution}[%
+      numbered=no,style=proof
+    ]{solution}{solutions}{Solution}{Solutions}
+  \ProvideSemanticEnv{example}[exampleblock]{Example}
+    {example}{examples}{Example}{Examples}
+\fi
 %    \end{macrocode}
 %
-% And that concludes the article part.
-% And the end of the |beamer| and non-|beamer| specific parts.
-%    \begin{macrocode}
-\fi % \if@didactic@article
-\fi % \if@didactic@beamer
-%    \end{macrocode}
 %
 % \subsection{Translations}
 %
