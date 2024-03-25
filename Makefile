@@ -6,7 +6,9 @@ PYTHONTEX=python3 $(shell which pythontex) --interpreter python:python3
 .PHONY: all
 all: didactic.sty didactic.pdf didactic.tar.gz
 
-didactic.pdf: didactic.dtx didactic.sty hello.py idea.tex lightblock.tex
+SRC+=	didactic.dtx hello.py idea.tex lightblock.tex ProvideSemanticEnv.tex
+
+didactic.pdf: ${SRC} didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PYTHONTEX} didactic
 	${PDFLATEX} ${LATEXFLAGS} $<
@@ -15,8 +17,7 @@ didactic.pdf: didactic.dtx didactic.sty hello.py idea.tex lightblock.tex
 didactic.sty: didactic.ins
 	${LATEX} ${LATEXFLAGS} $<
 
-didactic.tar.gz: didactic.dtx didactic.ins hello.py idea.tex
-didactic.tar.gz: LICENSE lightblock.tex Makefile README.md
+didactic.tar.gz: ${SRC} didactic.ins LICENSE Makefile README.md
 	tar -czf $@ --transform "s|^|didactic/|" $^
 
 .PHONY: clean
