@@ -260,6 +260,7 @@
 % statements.
 %
 % \begin{environment}{nobeamer}
+% \begin{environment}{nobeamertheme}
 % \begin{environment}{noarticle}
 % This option is used to disable the |beamer| specific parts of the package.
 % Meaning that we don't customize |beamer| even when we find that it is loaded.
@@ -269,8 +270,12 @@
 \DeclareOptionX{nobeamer}{\@didactic@beamerfalse}
 \newif\if@didactic@article
 \@ifclassloaded{beamer}{\@didactic@articlefalse}{\@didactic@articletrue}
+\newif\if@didactic@beamertheme
+\@didactic@beamerthemetrue
+\DeclareOptionX{nobeamertheme}{\@didactic@beamerthemefalse}
 \DeclareOptionX{noarticle}{\@didactic@articlefalse}
 %    \end{macrocode}
+% \end{environment}
 % \end{environment}
 % \end{environment}
 %
@@ -332,33 +337,34 @@
 % in the presentation.
 % (The same is true for the presenter.)
 %    \begin{macrocode}
-\usetheme{Berlin}
+\if@didactic@beamertheme
+  \usetheme{Berlin}
 %    \end{macrocode}
 % However, we want to customize the footline.
 % We want to add two lines in the footline.
 % We want to add the author (left) and institute (right) to the first line.
 % Then we add the title (left) and page number (right) to the bottom line.
 %    \begin{macrocode}
-\setbeamertemplate{footline}%{miniframes theme}
-{%
-  \begin{beamercolorbox}[colsep=1.5pt]{upper separation line foot}
-  \end{beamercolorbox}
-  \begin{beamercolorbox}[ht=2.5ex,dp=1.125ex,%
-    leftskip=.3cm,rightskip=.3cm plus1fil]{author in head/foot}%
-    \leavevmode{\usebeamerfont{author in head/foot}\insertshortauthor}%
-    \hfill%
-    {\usebeamerfont{institute in head/foot}%
-      \usebeamercolor[fg]{institute in head/foot}\insertshortinstitute}%
-  \end{beamercolorbox}%
-  \begin{beamercolorbox}[ht=2.5ex,dp=1.125ex,%
-    leftskip=.3cm,rightskip=.3cm plus1fil]{title in head/foot}%
-    {\usebeamerfont{title in head/foot}\insertshorttitle}%
-    \hfill%
-    \insertframenumber%
-  \end{beamercolorbox}%
-  \begin{beamercolorbox}[colsep=1.5pt]{lower separation line foot}
-  \end{beamercolorbox}
-}
+  \setbeamertemplate{footline}%{miniframes theme}
+  {%
+    \begin{beamercolorbox}[colsep=1.5pt]{upper separation line foot}
+    \end{beamercolorbox}
+    \begin{beamercolorbox}[ht=2.5ex,dp=1.125ex,%
+      leftskip=.3cm,rightskip=.3cm plus1fil]{author in head/foot}%
+      \leavevmode{\usebeamerfont{author in head/foot}\insertshortauthor}%
+      \hfill%
+      {\usebeamerfont{institute in head/foot}%
+        \usebeamercolor[fg]{institute in head/foot}\insertshortinstitute}%
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[ht=2.5ex,dp=1.125ex,%
+      leftskip=.3cm,rightskip=.3cm plus1fil]{title in head/foot}%
+      {\usebeamerfont{title in head/foot}\insertshorttitle}%
+      \hfill%
+      \insertframenumber%
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[colsep=1.5pt]{lower separation line foot}
+    \end{beamercolorbox}
+  }
 %    \end{macrocode}
 %
 % We also want to set the transparency of the covered items.
@@ -366,8 +372,9 @@
 % references (not icons) in the bibliography.
 % (We need that for certain bibliography styles.)
 %    \begin{macrocode}
-\setbeamercovered{transparent}
-\setbeamertemplate{bibliography item}[text]
+  \setbeamercovered{transparent}
+  \setbeamertemplate{bibliography item}[text]
+\fi
 %    \end{macrocode}
 %
 % Finally, we want to add a table of contents at the beginning of each section 

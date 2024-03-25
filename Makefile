@@ -10,6 +10,7 @@ didactic.pdf: didactic.dtx didactic.sty hello.py idea.tex lightblock.tex
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PYTHONTEX} didactic
 	${PDFLATEX} ${LATEXFLAGS} $<
+	${PDFLATEX} ${LATEXFLAGS} $<
 
 didactic.sty: didactic.ins
 	${LATEX} ${LATEXFLAGS} $<
