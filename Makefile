@@ -17,7 +17,7 @@ didactic.pdf: ${SRC} didactic.sty
 didactic.sty: didactic.ins
 	${LATEX} ${LATEXFLAGS} $<
 
-didactic.tar.gz: ${SRC} didactic.ins LICENSE Makefile README.md
+didactic.tar.gz: ${SRC} didactic.ins LICENSE Makefile README.md didactic.pdf
 	tar -czf $@ --transform "s|^|didactic/|" $^
 
 .PHONY: clean
