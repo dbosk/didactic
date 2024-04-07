@@ -26,6 +26,7 @@
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
+%<package>\RequirePackage{xstring}
 %<package>\RequirePackage{pythontex}
 %<package>\RequirePackage{minted}
 %<package>\RequirePackage{babel}
@@ -41,7 +42,7 @@
 \usepackage[swedish,british]{babel}
 \usepackage{pythontex}
 \usepackage[notheorems]{beamerarticle}
-\usepackage{didactic}
+\usepackage[marginparmargin=left]{didactic}
 \usepackage{lipsum}
 \usepackage{hyperref}
 \usepackage{cleveref}
@@ -84,7 +85,10 @@
 %   translations.
 % }
 % \changes{v1.5}{2023/03/25}{Adds |\ProvideSemanticEnv|}
-% \changes{v1.6}{2024/04/07}{Sets beamer bibliography item correctly}
+% \changes{v1.6}{2024/04/07}{%
+%   Sets beamer bibliography item correctly.
+%   Adds |fullwidth| environment, handles margins better.
+% }
 %
 % \GetFileInfo{didactic.dtx}
 %
@@ -346,6 +350,23 @@
 % \end{environment}
 % \end{environment}
 %
+% \begin{environment}{marginparmargin}
+% We also have an option to set the marginpar margin.
+% We simply pass this on to |memoir| and keep a record ourselves too.
+% We know that the default in |memoir| is |outer|.
+%    \begin{macrocode}
+\newcommand\@didactic@marginparmargin{outer}
+\DeclareOptionX{marginparmargin}{%
+  \renewcommand\@didactic@marginparmargin{#1}
+  \@ifclassloaded{memoir}{%
+    \marginparmargin{#1}
+    \strictpagechecktrue
+    \checkandfixthelayout
+  }{}
+}
+%    \end{macrocode}
+% \end{environment}
+%
 % Now that we've declared the options we can process them.
 %    \begin{macrocode}
 \ProcessOptionsX\relax
@@ -441,7 +462,6 @@
 % We want to use the |marginfix| package to fix the margin notes.
 %    \begin{macrocode}
 \RequirePackage{marginfix}
-\marginparmargin{outer}
 \setlrmarginsandblock{\@didactic@margin@inner}
                      {\@didactic@margin@outer}
                      {*}
@@ -1009,25 +1029,35 @@ def mintedoutput(m, opt):
 % To do this we first add a |fullwidth| environment\footnote{%
 %   Similarly to \url{https://tex.stackexchange.com/a/350944/17418}.
 % }.
+% We can get the |adjustwidth| environment from the |changepage| package 
+% whenever |memoir| isn't used.
 %    \begin{macrocode}
+\RequirePackage{changepage}
 \newlength{\@didactic@textbytext@oldcolumnwidth}
 \NewDocumentEnvironment{fullwidth}{+b}{%
-  \if@didactic@memoir
-    \begin{adjustwidth*}
-      {-2em}{-\@didactic@margin@outer+\@didactic@margin@inner-2em}
-      \setlength{\@didactic@textbytext@oldcolumnwidth}{\columnwidth}
-      \setlength{\columnwidth}{\textwidth+2em+\@didactic@margin@outer-\@didactic@margin@inner}
-  \else
-    \newline
-  \fi
-  #1
-  \if@didactic@memoir
-      \setlength{\columnwidth}{\@didactic@textbytext@oldcolumnwidth}
-    \end{adjustwidth*}
-  \else
-    \newline
-  \fi
-}
+  \setlength{\@didactic@textbytext@oldcolumnwidth}{\columnwidth}
+  \setlength{\columnwidth}{\textwidth+2em+\marginparwidth+\marginparsep}
+  \IfStrEqCase{\@didactic@marginparmargin}{%
+    {inner}{\begin{adjustwidth*}{-\marginparwidth-\marginparsep}{-2em}}
+    {left}{\begin{adjustwidth}{-\marginparwidth-\marginparsep}{-2em}}
+    {outer}{\begin{adjustwidth*}{-2em}{-\marginparwidth-\marginparsep}}
+    {right}{\begin{adjustwidth}{-2em}{-\marginparwidth-\marginparsep}}
+  }[\relax]
+    #1
+  \IfStrEqCase{\@didactic@marginparmargin}{%
+    {inner}{\end{adjustwidth*}}
+    {left}{\end{adjustwidth}}
+    {outer}{\end{adjustwidth*}}
+    {right}{\end{adjustwidth}}
+  }[\relax]
+  \setlength{\columnwidth}{\@didactic@textbytext@oldcolumnwidth}
+}{\relax}
+%    \end{macrocode}
+%
+% Now to the |\textbytext| command.
+% We simply set up a |tabularx| environment with two columns and use it inside 
+% a |fullwidth| environment.
+%    \begin{macrocode}
 \NewDocumentCommand{\textbytext}{+m+m}{%
   \begin{fullwidth}
     \begin{tabularx}{\columnwidth}{XX}
