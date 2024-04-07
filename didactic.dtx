@@ -1005,9 +1005,13 @@ def mintedoutput(m, opt):
 % want to use the |adjustwidth| environment to expand the text block to better 
 % fit them.
 % Otherwise we use the standard text block.
+%
+% To do this we first add a |fullwidth| environment\footnote{%
+%   Similarly to \url{https://tex.stackexchange.com/a/350944/17418}.
+% }.
 %    \begin{macrocode}
 \newlength{\@didactic@textbytext@oldcolumnwidth}
-\NewDocumentCommand{\textbytext}{+m+m}{%
+\NewDocumentEnvironment{fullwidth}{+b}{%
   \if@didactic@memoir
     \begin{adjustwidth*}
       {-2em}{-\@didactic@margin@outer+\@didactic@margin@inner-2em}
@@ -1016,15 +1020,20 @@ def mintedoutput(m, opt):
   \else
     \newline
   \fi
-  \begin{tabularx}{\columnwidth}{XX}
-    #1 & #2
-  \end{tabularx}
+  #1
   \if@didactic@memoir
       \setlength{\columnwidth}{\@didactic@textbytext@oldcolumnwidth}
     \end{adjustwidth*}
   \else
     \newline
   \fi
+}
+\NewDocumentCommand{\textbytext}{+m+m}{%
+  \begin{fullwidth}
+    \begin{tabularx}{\columnwidth}{XX}
+      #1 & #2
+    \end{tabularx}
+  \end{fullwidth}
 }
 %    \end{macrocode}
 % \end{macro}
