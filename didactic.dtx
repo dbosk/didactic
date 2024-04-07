@@ -88,6 +88,7 @@
 % \changes{v1.6}{2024/04/07}{%
 %   Sets beamer bibliography item correctly.
 %   Adds |fullwidth| environment, handles margins better.
+%   Adds |sidecaption| environment and |\flushscap| command.
 % }
 %
 % \GetFileInfo{didactic.dtx}
@@ -481,6 +482,16 @@
 \setfloatadjustment{marginfigure}{\mpjustification}
 \setmarginfloatcaptionadjustment{figure}{\captionstyle{\mpjustification}}
 
+% side captions
+% https://tex.stackexchange.com/a/275626/17418
+\sidecapmargin{outer}
+\setsidecappos{t}
+\checkandfixthelayout
+\setsidecaps{\marginparsep}{\marginparwidth}
+\renewcommand{\sidecapstyle}{%
+  \captionstyle{\RaggedRight}
+}
+
 % From https://tex.stackexchange.com/a/324757/17418
 % Palatino for main text and math
 \RequirePackage[osf,sc]{mathpazo}
@@ -529,6 +540,41 @@
 %    \begin{macrocode}
 \fi% end \if@didactic@memoir
 %    \end{macrocode}
+%
+% \subsection{A side-caption environment for \texttt{beamer}}
+%
+% \begin{environment}{sidecaption}
+% When using |memoir|, we can use the |sidecaption| environment to put the 
+% caption in the margin.
+% However, when using |beamer| we don't have this environment, so we need to 
+% provide it with a suitable behaviour.
+% It's suitable to just translate it to a normal caption, as usually used in 
+% |beamer|.
+%    \begin{macrocode}
+\ProvideDocumentEnvironment{sidecaption}{omo+b}{%
+  #4
+  \caption{#2\IfValueT{#3}{\label{#3}}}
+}{\relax}
+%    \end{macrocode}
+% \end{environment}
+%
+% \begin{macro}{\flushscap}
+% We also want to provide a command to flush a figure towards the caption.
+%    \begin{macrocode}
+\NewDocumentCommand{\flushscap}{O{\centering}}{%
+  \@ifclassloaded{memoir}{%
+    \ifscapmargleft%
+      \flushleft%
+    \else%
+      \flushright%
+    \fi%
+  }{%
+    #1%
+  }%
+}
+%    \end{macrocode}
+% \end{macro}
+%
 %
 % \subsection{More semantic environments}
 %
@@ -678,7 +724,6 @@
 } % \ProvideSemanticEnv
 %    \end{macrocode}
 % \end{macro}
-%
 % \begin{environment}{assumption}
 % \begin{environment}{idea}
 % \begin{environment}{question}
