@@ -27,6 +27,7 @@
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
 %<package>\RequirePackage{xstring}
+%<package>\RequirePackage{etoolbox}
 %<package>\RequirePackage{pythontex}
 %<package>\RequirePackage{minted}
 %<package>\RequirePackage{babel}
@@ -89,6 +90,9 @@
 %   Sets beamer bibliography item correctly.
 %   Adds |fullwidth| environment, handles margins better.
 %   Adds |sidecaption| environment and |\flushscap| command.
+% }
+% \changes{v1.7}{2024/04/08}{%
+%   Adds |\NewNoteType| that improves |\newnotetype| with toggles.
 % }
 %
 % \GetFileInfo{didactic.dtx}
@@ -272,6 +276,16 @@
 % \newnotetype[\textbf]{\bfnote}{Bold note}
 % \bfnote{This is a bold note.}
 % \ltnote{Another example of a learning theory note.}
+%
+% \DescribeMacro{\NewNoteType}
+% We also have |\NewNoteType| which is almost synonymous to |\newnotetype|.
+% The difference is that |\NewNoteType| doesn't take a command as argument, but 
+% just a name:
+% |\NewNoteType{ltnote}{Learning theory}| instead.
+% Then we also get |\ltnoteoff| to turn off the note and |\ltnoteon| to turn it 
+% back on.
+%
+% Notes are off by default in |beamer|, but on by default otherwise.
 %
 % \StopEventually{}
 %
@@ -969,13 +983,84 @@
 % \titlenote{this is the text}
 %    \begin{macrocode}
 \NewDocumentCommand{\newnotetype}{omm}{%
-  \IfValueTF{#1}
-    {\NewDocumentCommand{#2}{+m}{%
-      \indentedmarginpar{#1{#3:} ##1}%
-    }}
-    {\NewDocumentCommand{#2}{+m}{%
-      \indentedmarginpar{\emph{#3:} ##1}%
-    }}%
+  \@ifclassloaded{beamer}{%
+    \NewDocumentCommand{#2}{+m}{\relax}
+  }{%
+    \IfValueTF{#1}
+      {\NewDocumentCommand{#2}{+m}{%
+        \indentedmarginpar{#1{#3:} ##1}%
+      }}
+      {\NewDocumentCommand{#2}{+m}{%
+        \indentedmarginpar{\emph{#3:} ##1}%
+      }}%
+  }
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\NewNoteType}
+% It can also be useful to be able to turn the notes off.
+% For instance, we might want notes to appear in one version, but not in 
+% others.
+% Then we'd like a switch to simply turn them off.
+% Also, we don't want these notes to appear in |beamer|, so we define them to 
+% be off by default in that case.
+%
+% However, to achieve this, we must change the behaviour when creating new 
+% notes: we need the name, not the |\command| as an argument.
+% This is why we have the |\NewNoteType| command.
+%
+% \ltnote{This is a note with a title, using the note defined by the package.}
+% We can use it like this:
+% |\NewNoteType{lt}{Learning theory}|
+% \NewNoteType{lt}{Learning theory}
+% This creates a new note type |\lt|.
+% |\lt{This is a note}| yields the note on the side.
+% \lt{This is a note}
+%
+% We can also turn the notes off and on with |\ltoff| and |\lton|.
+% \ltoff
+% \lt{This is another note while off.}
+% \lton
+% \lt{This is another note while on, we didn't see the one we used while off.}
+% \ltnote{This is a note with a title, using the note defined by the package.}
+%
+% Let's look at the implementation.
+% We first create a new boolean for the note type.
+% This will keep track of whether the note type is on or off, should be typeset 
+% in the margin or if it does nothing.
+% As mentioned above, we want to turn the notes off by default in |beamer|.
+%    \begin{macrocode}
+\NewDocumentCommand{\NewNoteType}{omm}{%
+  \newbool{#2}
+  \@ifclassloaded{beamer}
+    {\boolfalse{#2}}
+    {\booltrue{#2}}
+%    \end{macrocode}
+% Then we create the commands to turn the notes off and on.
+% These must be created with |\expandafter\newcommand| to get the name of the
+% note type.
+% (|\NewDocumentCommand| can't accept names constructed with |\csname|.)
+%    \begin{macrocode}
+  \expandafter\newcommand\csname #2off\endcsname{\boolfalse{#2}}
+  \expandafter\newcommand\csname #2on\endcsname{\booltrue{#2}}
+%    \end{macrocode}
+% We define the command differently depending on whether we want a custom
+% formatting for the title of not.
+% Same as before, we must use |\expandafter\newcommand| to construct these
+% commands.
+%    \begin{macrocode}
+  \IfValueTF{#1}{%
+    \expandafter\newcommand\csname #2\endcsname[1]{%
+      \ifbool{#2}{%
+        \indentedmarginpar{#1{#3:} ##1}%
+      }{\relax}%
+  }}{%
+    \expandafter\newcommand\csname #2\endcsname[1]{%
+      \ifbool{#2}{%
+        \indentedmarginpar{\emph{#3:} ##1}%
+      }{\relax}%
+  }}%
 }
 %    \end{macrocode}
 % \end{macro}
@@ -985,7 +1070,7 @@
 % That way we can also include translations for them.
 %    \begin{macrocode}
 \ProvideTranslation{swedish}{Learning theory}{Lärandeteori}
-\newnotetype{\ltnote}{\GetTranslationWarn{Learning theory}}
+\NewNoteType{ltnote}{\GetTranslationWarn{Learning theory}}
 %    \end{macrocode}
 % \end{macro}
 %
