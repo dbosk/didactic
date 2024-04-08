@@ -36,7 +36,7 @@ located in `didactic.pdf`.
 
 ## Maintainer
 
-The was authored by Daniel Bosk <daniel+ctan@bosk.se>, who is also the 
+The package was authored by Daniel Bosk <daniel+ctan@bosk.se>, who is also the 
 maintainer.
 
 ## License
