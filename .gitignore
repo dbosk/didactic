@@ -5,7 +5,7 @@ test.pdf
 test.unq
 didactic.tar.gz
 didactic.unq
-
+tmp*
 
 ## Core latex/pdflatex auxiliary files:
 *.aux
