@@ -513,15 +513,23 @@
 \chapterstyle{hangnum}
 \hangsecnum
 
-% From https://tex.stackexchange.com/a/324757/17418
-% Palatino for main text and math
-\RequirePackage[osf,sc]{mathpazo}
-% Helvetica for sans serif
-% (scaled to match size of Palatino)
-\RequirePackage[scaled=0.90]{helvet}
-% Bera Mono for monospaced
-% (scaled to match size of Palatino)
-\RequirePackage[scaled=0.85]{beramono}
+% https://tex.stackexchange.com/a/23041/17418
+\RequirePackage{ifxetex}
+\ifxetex
+  \RequirePackage{fontspec}
+  % https://tex.stackexchange.com/a/506776/17418
+  \usepackage{newpxtext,newpxmath}
+\else
+  % https://tex.stackexchange.com/a/324757/17418
+  % Palatino for main text and math
+  \RequirePackage[osf,sc]{mathpazo}
+  % Helvetica for sans serif
+  % (scaled to match size of Palatino)
+  \RequirePackage[scaled=0.90]{helvet}
+  % Bera Mono for monospaced
+  % (scaled to match size of Palatino)
+  \RequirePackage[scaled=0.85]{beramono}
+\fi
 \setlxvchars\setxlvchars
 \checkandfixthelayout
 \nouppercaseheads
