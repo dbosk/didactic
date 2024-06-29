@@ -513,7 +513,18 @@
   \captionstyle{\RaggedRight}
 }
 
-\chapterstyle{hangnum}
+\makechapterstyle{arthangnum}{%
+  \chapterstyle{article}
+  \settowidth{\chapindent}{\chapnumfont 999}
+  \renewcommand*{\printchaptername}{}
+  \renewcommand*{\chapternamenum}{}
+  \renewcommand*{\printchapternum}{%
+    \noindent\llap{\makebox[\chapindent][l]{\chapnumfont \thechapter}}}
+  \renewcommand*{\afterchapternum}{}
+  \setsecheadstyle{\normalfont\large\bfseries}
+  %\setsubsecheadstyle{\normalfont\normalsize\bfseries}
+}
+\chapterstyle{arthangnum}
 \hangsecnum
 % https://tex.stackexchange.com/a/33458/17418
 \setsecnumdepth{subsection}
