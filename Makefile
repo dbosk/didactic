@@ -28,6 +28,7 @@ clean:
 	${RM} didactic.out didactic.pdf
 	${RM} didactic.pytxcode didactic.pytxmcr didactic.pytxpyg
 	${RM} didactic.tar.gz didactic.toc didactic.unq
+	${RM} didactic.hd
 	${RM} pythontex_data.pkl
 	${RM} -R _minted-didactic
 	${RM} $(wildcard py_default_default_*.stdout)

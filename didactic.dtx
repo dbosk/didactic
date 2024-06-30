@@ -38,16 +38,20 @@
 %<package>\RequirePackage{unique}
 %
 %<*driver>
-\documentclass{ltxdoc}
+\documentclass{article}
+\usepackage{doc}
+\NewDocElement[printtype={opt.}]{Opt}{option}
 \usepackage[utf8]{inputenc}
 \usepackage[swedish,british]{babel}
 \usepackage{pythontex}
 \usepackage[notheorems]{beamerarticle}
-\usepackage[marginparmargin=left]{didactic}
+\usepackage[marginparmargin=right]{didactic}
+\usepackage{shortvrb}
+\MakeShortVerb{\|}
 \usepackage{lipsum}
 \usepackage{hyperref}
 \usepackage{cleveref}
-\EnableCrossrefs         
+\EnableCrossrefs
 \CodelineIndex
 \RecordChanges
 \begin{document}
@@ -123,25 +127,25 @@
 %
 % The package automatically detects if |beamer| or |memoir| is loaded and 
 % customizes the document accordingly.
-% \DescribeEnv{nobeamer}
-% \DescribeEnv{noarticle}
-% \DescribeEnv{nomemoir}
+% \DescribeOpt{nobeamer}
+% \DescribeOpt{noarticle}
+% \DescribeOpt{nomemoir}
 % That can be prevented, however, by using the |nobeamer| or |nomemoir| 
 % options.
 % The |noarticle| is to prevent the article versions of the (|beamer|) 
 % environments to be defined.
 %
-% \DescribeEnv{notheorems}
+% \DescribeOpt{notheorems}
 % The package also provides a few environments for |beamer| and |article| mode.
 % Particularly, it can define theorems and definitions, which might be defined 
 % also by other packages.
 % To prevent this, use the |notheorems| option.
 %
-% \DescribeEnv{inner}
-% \DescribeEnv{outer}
-% \DescribeEnv{top}
-% \DescribeEnv{bottom}
-% \DescribeEnv{marginparmargin}
+% \DescribeOpt{inner}
+% \DescribeOpt{outer}
+% \DescribeOpt{top}
+% \DescribeOpt{bottom}
+% \DescribeOpt{marginparmargin}
 % When the package customizes |memoir| it sets the inner and outer margins to 
 % fit margin notes better.
 % The |inner| and |outer| options can be used to set the inner and outer 
@@ -312,9 +316,9 @@
 % After that we can have all code actually doing the work, all wrapped in |\if| 
 % statements.
 %
-% \begin{environment}{nobeamer}
-% \begin{environment}{nobeamertheme}
-% \begin{environment}{noarticle}
+% \begin{option}{nobeamer}
+% \begin{option}{nobeamertheme}
+% \begin{option}{noarticle}
 % This option is used to disable the |beamer| specific parts of the package.
 % Meaning that we don't customize |beamer| even when we find that it is loaded.
 %    \begin{macrocode}
@@ -328,11 +332,11 @@
 \DeclareOptionX{nobeamertheme}{\@didactic@beamerthemefalse}
 \DeclareOptionX{noarticle}{\@didactic@articlefalse}
 %    \end{macrocode}
-% \end{environment}
-% \end{environment}
-% \end{environment}
+% \end{option}
+% \end{option}
+% \end{option}
 %
-% \begin{environment}{nomemoir}
+% \begin{option}{nomemoir}
 % This option is used to disable the |memoir| specific parts of the package.
 % Meaning that we don't customize |memoir| even when we find that it is loaded.
 %    \begin{macrocode}
@@ -340,9 +344,9 @@
 \@ifclassloaded{memoir}{\@didactic@memoirtrue}{\@didactic@memoirfalse}
 \DeclareOptionX{nomemoir}{\@didactic@memoirfalse}
 %    \end{macrocode}
-% \end{environment}
+% \end{option}
 %
-% \begin{environment}{notheorems}
+% \begin{option}{notheorems}
 % This option is used to disable defining the usual environments provided by 
 % |amsmath|: definition, theorem, etc.
 %    \begin{macrocode}
@@ -350,29 +354,29 @@
 \@didactic@theoremstrue
 \DeclareOptionX{notheorems}{\@didactic@theoremsfalse}
 %    \end{macrocode}
-% \end{environment}
+% \end{option}
 %
-% \begin{environment}{inner}
-% \begin{environment}{outer}
-% \begin{environment}{top}
-% \begin{environment}{bottom}
+% \begin{option}{inner}
+% \begin{option}{outer}
+% \begin{option}{top}
+% \begin{option}{bottom}
 % We also have some key--value options to control the margins.
 %    \begin{macrocode}
 \newcommand\@didactic@margin@inner{20mm}
-\newcommand\@didactic@margin@outer{70mm}
-\newcommand\@didactic@margin@top{25mm}
-\newcommand\@didactic@margin@bottom{40mm}
-\DeclareOptionX{inner}[25mm]{\renewcommand\@didactic@margin@inner{#1}}
-\DeclareOptionX{outer}[65mm]{\renewcommand\@didactic@margin@outer{#1}}
+\newcommand\@didactic@margin@outer{60mm}
+\newcommand\@didactic@margin@top{30mm}
+\newcommand\@didactic@margin@bottom{60mm}
+\DeclareOptionX{inner}[20mm]{\renewcommand\@didactic@margin@inner{#1}}
+\DeclareOptionX{outer}[60mm]{\renewcommand\@didactic@margin@outer{#1}}
 \DeclareOptionX{top}[25mm]{\renewcommand\@didactic@margin@top{#1}}
-\DeclareOptionX{bottom}[40mm]{\renewcommand\@didactic@margin@bottom{#1}}
+\DeclareOptionX{bottom}[60mm]{\renewcommand\@didactic@margin@bottom{#1}}
 %    \end{macrocode}
-% \end{environment}
-% \end{environment}
-% \end{environment}
-% \end{environment}
+% \end{option}
+% \end{option}
+% \end{option}
+% \end{option}
 %
-% \begin{environment}{marginparmargin}
+% \begin{option}{marginparmargin}
 % We also have an option to set the marginpar margin.
 % We simply pass this on to |memoir| and keep a record ourselves too.
 % We know that the default in |memoir| is |outer|.
@@ -387,7 +391,7 @@
   }{}
 }
 %    \end{macrocode}
-% \end{environment}
+% \end{option}
 %
 % Now that we've declared the options we can process them.
 %    \begin{macrocode}
@@ -513,8 +517,23 @@
   \captionstyle{\RaggedRight}
 }
 
-\chapterstyle{hangnum}
+\makechapterstyle{arthangnum}{%
+  \chapterstyle{article}
+  \settowidth{\chapindent}{\chapnumfont 999}
+  \renewcommand*{\printchaptername}{}
+  \renewcommand*{\chapternamenum}{}
+  \renewcommand*{\printchapternum}{%
+    \noindent\llap{\makebox[\chapindent][l]{\chapnumfont \thechapter}}}
+  \renewcommand*{\afterchapternum}{}
+  \setsecheadstyle{\normalfont\large\bfseries}
+  %\setsubsecheadstyle{\normalfont\normalsize\bfseries}
+}
+\chapterstyle{arthangnum}
 \hangsecnum
+% https://tex.stackexchange.com/a/33458/17418
+\setsecnumdepth{subsection}
+% https://tex.stackexchange.com/a/14354/17418
+\maxtocdepth{subsection}
 
 % https://tex.stackexchange.com/a/23041/17418
 \RequirePackage{ifxetex}
