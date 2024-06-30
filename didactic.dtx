@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{didactic}
 %<*package>
-    [2024/04/08 v1.7 didactic]
+    [2024/05/21 v1.8 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -38,16 +38,20 @@
 %<package>\RequirePackage{unique}
 %
 %<*driver>
-\documentclass{ltxdoc}
+\documentclass{article}
+\usepackage{doc}
+\NewDocElement[printtype={opt.}]{Opt}{option}
 \usepackage[utf8]{inputenc}
 \usepackage[swedish,british]{babel}
 \usepackage{pythontex}
 \usepackage[notheorems]{beamerarticle}
-\usepackage[marginparmargin=left]{didactic}
+\usepackage[marginparmargin=right]{didactic}
+\usepackage{shortvrb}
+\MakeShortVerb{\|}
 \usepackage{lipsum}
 \usepackage{hyperref}
 \usepackage{cleveref}
-\EnableCrossrefs         
+\EnableCrossrefs
 \CodelineIndex
 \RecordChanges
 \begin{document}
@@ -94,6 +98,9 @@
 % \changes{v1.7}{2024/04/08}{%
 %   Adds |\NewNoteType| that improves |\newnotetype| with toggles.
 % }
+% \changes{v1.8}{2024/05/21}{%
+%   Adds support for XeLaTeX.
+% }
 %
 % \GetFileInfo{didactic.dtx}
 %
@@ -120,29 +127,33 @@
 %
 % The package automatically detects if |beamer| or |memoir| is loaded and 
 % customizes the document accordingly.
-% \DescribeEnv{nobeamer}
-% \DescribeEnv{noarticle}
-% \DescribeEnv{nomemoir}
+% \DescribeOpt{nobeamer}
+% \DescribeOpt{noarticle}
+% \DescribeOpt{nomemoir}
 % That can be prevented, however, by using the |nobeamer| or |nomemoir| 
 % options.
 % The |noarticle| is to prevent the article versions of the (|beamer|) 
 % environments to be defined.
 %
-% \DescribeEnv{notheorems}
+% \DescribeOpt{notheorems}
 % The package also provides a few environments for |beamer| and |article| mode.
 % Particularly, it can define theorems and definitions, which might be defined 
 % also by other packages.
 % To prevent this, use the |notheorems| option.
 %
-% \DescribeEnv{inner}
-% \DescribeEnv{outer}
-% \DescribeEnv{top}
-% \DescribeEnv{bottom}
+% \DescribeOpt{inner}
+% \DescribeOpt{outer}
+% \DescribeOpt{top}
+% \DescribeOpt{bottom}
+% \DescribeOpt{marginparmargin}
 % When the package customizes |memoir| it sets the inner and outer margins to 
 % fit margin notes better.
 % The |inner| and |outer| options can be used to set the inner and outer 
 % margins to be used.
 % The |top| and |bottom| options can be used to set the top and bottom margins.
+%
+% The |marginparmargin| is passed on to the |memoir| class and sets which 
+% margin to use for the margin notes.
 %
 % \subsection{Beamer blocks and semantic environments for papers}
 %
@@ -305,9 +316,9 @@
 % After that we can have all code actually doing the work, all wrapped in |\if| 
 % statements.
 %
-% \begin{environment}{nobeamer}
-% \begin{environment}{nobeamertheme}
-% \begin{environment}{noarticle}
+% \begin{option}{nobeamer}
+% \begin{option}{nobeamertheme}
+% \begin{option}{noarticle}
 % This option is used to disable the |beamer| specific parts of the package.
 % Meaning that we don't customize |beamer| even when we find that it is loaded.
 %    \begin{macrocode}
@@ -321,11 +332,11 @@
 \DeclareOptionX{nobeamertheme}{\@didactic@beamerthemefalse}
 \DeclareOptionX{noarticle}{\@didactic@articlefalse}
 %    \end{macrocode}
-% \end{environment}
-% \end{environment}
-% \end{environment}
+% \end{option}
+% \end{option}
+% \end{option}
 %
-% \begin{environment}{nomemoir}
+% \begin{option}{nomemoir}
 % This option is used to disable the |memoir| specific parts of the package.
 % Meaning that we don't customize |memoir| even when we find that it is loaded.
 %    \begin{macrocode}
@@ -333,9 +344,9 @@
 \@ifclassloaded{memoir}{\@didactic@memoirtrue}{\@didactic@memoirfalse}
 \DeclareOptionX{nomemoir}{\@didactic@memoirfalse}
 %    \end{macrocode}
-% \end{environment}
+% \end{option}
 %
-% \begin{environment}{notheorems}
+% \begin{option}{notheorems}
 % This option is used to disable defining the usual environments provided by 
 % |amsmath|: definition, theorem, etc.
 %    \begin{macrocode}
@@ -343,29 +354,29 @@
 \@didactic@theoremstrue
 \DeclareOptionX{notheorems}{\@didactic@theoremsfalse}
 %    \end{macrocode}
-% \end{environment}
+% \end{option}
 %
-% \begin{environment}{inner}
-% \begin{environment}{outer}
-% \begin{environment}{top}
-% \begin{environment}{bottom}
+% \begin{option}{inner}
+% \begin{option}{outer}
+% \begin{option}{top}
+% \begin{option}{bottom}
 % We also have some key--value options to control the margins.
 %    \begin{macrocode}
 \newcommand\@didactic@margin@inner{20mm}
-\newcommand\@didactic@margin@outer{70mm}
-\newcommand\@didactic@margin@top{25mm}
-\newcommand\@didactic@margin@bottom{40mm}
-\DeclareOptionX{inner}[25mm]{\renewcommand\@didactic@margin@inner{#1}}
-\DeclareOptionX{outer}[65mm]{\renewcommand\@didactic@margin@outer{#1}}
+\newcommand\@didactic@margin@outer{60mm}
+\newcommand\@didactic@margin@top{30mm}
+\newcommand\@didactic@margin@bottom{60mm}
+\DeclareOptionX{inner}[20mm]{\renewcommand\@didactic@margin@inner{#1}}
+\DeclareOptionX{outer}[60mm]{\renewcommand\@didactic@margin@outer{#1}}
 \DeclareOptionX{top}[25mm]{\renewcommand\@didactic@margin@top{#1}}
-\DeclareOptionX{bottom}[40mm]{\renewcommand\@didactic@margin@bottom{#1}}
+\DeclareOptionX{bottom}[60mm]{\renewcommand\@didactic@margin@bottom{#1}}
 %    \end{macrocode}
-% \end{environment}
-% \end{environment}
-% \end{environment}
-% \end{environment}
+% \end{option}
+% \end{option}
+% \end{option}
+% \end{option}
 %
-% \begin{environment}{marginparmargin}
+% \begin{option}{marginparmargin}
 % We also have an option to set the marginpar margin.
 % We simply pass this on to |memoir| and keep a record ourselves too.
 % We know that the default in |memoir| is |outer|.
@@ -380,7 +391,7 @@
   }{}
 }
 %    \end{macrocode}
-% \end{environment}
+% \end{option}
 %
 % Now that we've declared the options we can process them.
 %    \begin{macrocode}
@@ -506,15 +517,41 @@
   \captionstyle{\RaggedRight}
 }
 
-% From https://tex.stackexchange.com/a/324757/17418
-% Palatino for main text and math
-\RequirePackage[osf,sc]{mathpazo}
-% Helvetica for sans serif
-% (scaled to match size of Palatino)
-\RequirePackage[scaled=0.90]{helvet}
-% Bera Mono for monospaced
-% (scaled to match size of Palatino)
-\RequirePackage[scaled=0.85]{beramono}
+\makechapterstyle{arthangnum}{%
+  \chapterstyle{article}
+  \settowidth{\chapindent}{\chapnumfont 999}
+  \renewcommand*{\printchaptername}{}
+  \renewcommand*{\chapternamenum}{}
+  \renewcommand*{\printchapternum}{%
+    \noindent\llap{\makebox[\chapindent][l]{\chapnumfont \thechapter}}}
+  \renewcommand*{\afterchapternum}{}
+  \setsecheadstyle{\normalfont\large\bfseries}
+  %\setsubsecheadstyle{\normalfont\normalsize\bfseries}
+}
+\chapterstyle{arthangnum}
+\hangsecnum
+% https://tex.stackexchange.com/a/33458/17418
+\setsecnumdepth{subsection}
+% https://tex.stackexchange.com/a/14354/17418
+\maxtocdepth{subsection}
+
+% https://tex.stackexchange.com/a/23041/17418
+\RequirePackage{ifxetex}
+\ifxetex
+  \RequirePackage{fontspec}
+  % https://tex.stackexchange.com/a/506776/17418
+  \usepackage{newpxtext,newpxmath}
+\else
+  % https://tex.stackexchange.com/a/324757/17418
+  % Palatino for main text and math
+  \RequirePackage[osf,sc]{mathpazo}
+  % Helvetica for sans serif
+  % (scaled to match size of Palatino)
+  \RequirePackage[scaled=0.90]{helvet}
+  % Bera Mono for monospaced
+  % (scaled to match size of Palatino)
+  \RequirePackage[scaled=0.85]{beramono}
+\fi
 \setlxvchars\setxlvchars
 \checkandfixthelayout
 \nouppercaseheads
@@ -1215,7 +1252,7 @@ def mintedoutput(m, opt):
 % |\codebycode[opt1]{lang1}{file1}[opt2]{lang2}{file2}|.
 % \codebycode
 %   [breaklines,linenos]{python}{hello.py}
-%   [breaklines,linenos]{python}{hello.py}
+%   [breaklines,highlightlines=4]{python}{hello.py}
 %
 % This gives us the following implementation.
 % We can reuse |\textbytext| to typeset the two examples side by side.
