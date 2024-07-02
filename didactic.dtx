@@ -1223,25 +1223,32 @@ def mintedoutput(m, opt):
 % whenever |memoir| isn't used.
 %    \begin{macrocode}
 \RequirePackage{changepage}
+\RequirePackage{calc}
 \newlength{\@didactic@textbytext@oldcolumnwidth}
-\NewDocumentEnvironment{fullwidth}{+b}{%
-  \setlength{\@didactic@textbytext@oldcolumnwidth}{\columnwidth}
+\NewDocumentEnvironment{fullwidth}{}{%
   \setlength{\columnwidth}{\textwidth+2em+\marginparwidth+\marginparsep}
-  \IfStrEqCase{\@didactic@marginparmargin}{%
-    {inner}{\begin{adjustwidth*}{-\marginparwidth-\marginparsep}{-2em}}
-    {left}{\begin{adjustwidth}{-\marginparwidth-\marginparsep}{-2em}}
-    {outer}{\begin{adjustwidth*}{-2em}{-\marginparwidth-\marginparsep}}
-    {right}{\begin{adjustwidth}{-2em}{-\marginparwidth-\marginparsep}}
-  }[\relax]
-    #1
-  \IfStrEqCase{\@didactic@marginparmargin}{%
-    {inner}{\end{adjustwidth*}}
-    {left}{\end{adjustwidth}}
-    {outer}{\end{adjustwidth*}}
-    {right}{\end{adjustwidth}}
-  }[\relax]
-  \setlength{\columnwidth}{\@didactic@textbytext@oldcolumnwidth}
-}{\relax}
+  \if@twoside
+    \IfStrEqCase{\@didactic@marginparmargin}{%
+        {inner}{\begin{adjustwidth*}{-\marginparwidth-\marginparsep}{-2em}}
+        {left}{\begin{adjustwidth}{-\marginparwidth-\marginparsep}{-2em}}
+        {outer}{\begin{adjustwidth*}{-2em}{-\marginparwidth-\marginparsep}}
+        {right}{\begin{adjustwidth}{-2em}{-\marginparwidth-\marginparsep}}
+      }[\relax]
+  \else
+    \IfStrEqCase{\@didactic@marginparmargin}{%
+        {inner}{\begin{adjustwidth}{-\marginparwidth-\marginparsep}{-2em}}
+        {left}{\begin{adjustwidth}{-\marginparwidth-\marginparsep}{-2em}}
+        {outer}{\begin{adjustwidth}{-2em}{-\marginparwidth-\marginparsep}}
+        {right}{\begin{adjustwidth}{-2em}{-\marginparwidth-\marginparsep}}
+      }[\relax]
+  \fi
+}{
+  \if@twoside
+    \end{adjustwidth*}
+  \else
+    \end{adjustwidth}
+  \fi
+}
 %    \end{macrocode}
 %
 % Now to the |\textbytext| command.
