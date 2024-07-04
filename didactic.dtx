@@ -1178,29 +1178,64 @@
 %    \begin{macrocode}
 \begin{pycode}
 import sys
-try:
-  from subprocess import run
-except Exception as err:
-  raise Exception(sys.version + ": " + str(err))
+import subprocess
 import tempfile
 
-def run_module(m):
-  result = run(["python3", m], capture_output=True)
+def mint(output, /, lang="text", fullwidth=True,
+         minted_opts="escapeinside=||", hlgrep=None):
+  if fullwidth:
+    print(r"\begin{fullwidth}")
 
-  with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
-    f.write(result.stdout.decode("utf8").strip())
-    f.flush()
-    print(f.name, end="")
+  if not minted_opts:
+    minted_opts = ""
+  if hlgrep:
+    highlightlines = []
+    for i, line in enumerate(output.splitlines()):
+      for pattern in hlgrep:
+        if re.search(pattern, line):
+          highlightlines.append(i+1)
+          break
+    hl_opt = f",highlightlines={{{','.join(str(i) for i in highlightlines)}}}"
+    if minted_opts:
+      minted_opts += f",{hl_opt}"
+    else:
+      minted_opts = hl_opt
 
-  pytex.add_dependencies(m)
+  filename = "tmp_didactic_minted_output.txt"
+  with open(filename, "w") as f:
+    f.write(output.strip())
 
-def mintedoutput(m, opt):
-  print(r'\inputminted', end="")
-  if opt:
-    print(f"[{opt}]", end="")
-  print("{", end="")
-  run_module(m)
-  print("}")
+  if minted_opts:
+    print(r"\inputminted[%s]{%s}{%s}" % (minted_opts, lang, filename))
+  else:
+    print(r"\inputminted{%s}{%s}" % (lang, filename))
+
+  if fullwidth:
+    print(r"\end{fullwidth}")
+
+def minted_pydoc(module, builtin=False):
+  output = subprocess.run(["python3", "-m", "pydoc", module],
+                          capture_output=True)
+  lines = output.stdout.decode().splitlines()
+  if not builtin:
+    lines = lines[:-4]
+  mint("\n".join(lines).strip(), lang="text")
+
+def minted_source(function):
+  mint(inspect.getsource(function).strip(), lang="python")
+
+def minted_output(module, /, interpreter="python3", **kwargs):
+  pytex.add_dependencies(module)
+  output = subprocess.run([interpreter, module],
+                          stdout=subprocess.PIPE,
+                          stderr=subprocess.STDOUT)
+
+  mint(output.stdout.decode().strip(), **kwargs)
+
+def run_code(code, /, **kwargs):
+  with open("tmp_didactic_minted_output.py", "w") as f:
+    f.write(code)
+  minted_output("tmp_didactic_minted_output.py", **kwargs)
 \end{pycode}
 %    \end{macrocode}
 %
@@ -1208,12 +1243,18 @@ def mintedoutput(m, opt):
 % argument.
 % Then print the output in verbatim mode.
 %    \begin{macrocode}
-\NewDocumentCommand{\runpython}{om}{%
-  \setpythontexautoprint{false}%
-  \IfValueTF{#1}
-    {\pyc{mintedoutput('#2', '#1')}}
-    {\pyc{mintedoutput('#2', None)}}
-  \printpythontex%
+\NewDocumentCommand{\runpython}{som}{%
+  \IfBooleanTF{#1}{%
+    \pyc{fullwidth = True}
+  }{
+    \pyc{fullwidth = False}
+  }
+  \IfValueTF{#2}{%
+    \pyc{minted_opts = '#2'}
+  }{
+    \pyc{minted_opts = None}
+  }
+  \pyc{minted_output('#3', minted_opts=minted_opts, fullwidth=fullwidth)}
 }
 %    \end{macrocode}
 % \end{macro}
@@ -1307,11 +1348,25 @@ def mintedoutput(m, opt):
 % \end{macro}
 %
 % \begin{macro}{\runbyrun}
-% We also want to typeset the runs (|\runpython|).
+% We also want to typeset the runs (|\runpython|):
+% |\runbyrun[highlightlines=1]{hello.py}{hello.py}| yields
+% \runbyrun[highlightlines=1]{hello.py}{hello.py}
+% |\runbyrun{hello.py}[highlightlines=1]{hello.py}| yields
+% \runbyrun{hello.py}[highlightlines=1]{hello.py}
+% And, finally, |\runbyrun{hello.py}{hello.py}| yields
+% \runbyrun{hello.py}{hello.py}
 % We can use |\textbytext| to typeset the two outputs side by side.
 %    \begin{macrocode}
-\NewDocumentCommand{\runbyrun}{mm}{%
-  \textbytext{\runpython{#1}}{\runpython{#2}}%
+\NewDocumentCommand{\runbyrun}{omom}{%
+  \textbytext{%
+    \IfValueTF{#1}
+      {\runpython[#1]{#2}}
+      {\runpython{#2}}%
+  }{%
+    \IfValueTF{#3}
+      {\runpython[#3]{#4}}
+      {\runpython{#4}}%
+  }%
 }
 %    \end{macrocode}
 % \end{macro}
