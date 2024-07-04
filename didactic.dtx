@@ -1151,10 +1151,12 @@
 % To typeset the source file we simply need to use the minted package.
 % We provide an optional argument to pass options to minted.
 %    \begin{macrocode}
-\NewDocumentCommand{\lstexample}{omm}{%
-  \IfValueTF{#1}
-    {\inputminted[escapeinside=||,#1]{#2}{#3}}
-    {\inputminted[escapeinside=||]{#2}{#3}}
+\NewDocumentCommand{\lstexample}{somm}{%
+  \IfBooleanTF{#1}{\begin{fullwidth}}{\relax}
+  \IfValueTF{#2}
+    {\inputminted[escapeinside=||,#2]{#3}{#4}}
+    {\inputminted[escapeinside=||]{#3}{#4}}
+  \IfBooleanTF{#1}{\end{fullwidth}}{\relax}
 }
 %    \end{macrocode}
 % \end{macro}
