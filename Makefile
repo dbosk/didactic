@@ -1,6 +1,6 @@
 LATEX?=latex
 PDFLATEX?=pdflatex
-LATEXFLAGS=-shell-escape
+LATEXFLAGS=-shell-escape -halt-on-error
 PYTHONTEX=python3 $(shell which pythontex) --interpreter python:python3
 
 .PHONY: all
