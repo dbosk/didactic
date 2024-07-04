@@ -241,21 +241,31 @@
 % We can also run the example code and include its output using the 
 % |\runpython| macro.
 % \begin{example}
-% For instance, |\runpython{hello.py}| produces the following.
+% For instance, |\runpython[highlightlines=1]{hello.py}| produces the 
+% following.
 % \runpython[highlightlines=1]{hello.py}
 % \end{example}
 %
 % \DescribeMacro{\codebycode}
 % The |\codebycode| command is simply two |\lstexample| commands side by side:
 % |\codebycode[opt1]{lang1}{file1}[opt2]{lang2}{file2}|.
+%
+% \begin{example}
+% For instance,
+% |\codebycode[breaklines,linenos]{python}{hello.py}|
+%            |[breaklines,linenos,highlightlines=4]{python}{hello.py}|
+% yields the following.
 % \codebycode
 %   [breaklines,linenos]{python}{hello.py}
 %   [breaklines,linenos,highlightlines=4]{python}{hello.py}
+% \end{example}
 %
 % \DescribeMacro{\runbyrun}
+% \begin{example}
 % We can also put the output side by side using 
 % |\runbyrun{hello.py}{hello.py}|.
 % \runbyrun{hello.py}{hello.py}
+% \end{example}
 %
 % \subsection{Adding margin notes of different kinds}
 %
@@ -1131,7 +1141,9 @@
 %
 % \begin{example}
 %   Here's another code example, set side by side with its output:
-%   \textbytext{\lstexample{python}{hello.py}}{\runpython{hello.py}}
+%   \textbytext
+%     {Code \hrulefill\par\lstexample{python}{hello.py}}
+%     {Output \hrulefill\par\runpython{hello.py}}
 % \end{example}
 %
 % \begin{macro}{\lstexample}
@@ -1211,16 +1223,14 @@ def mintedoutput(m, opt):
 % For example |\textbytext{\lipsum[1]}{\lipsum[1]}| should typeset the two 
 % examples side by side.
 % \textbytext{\lipsum[1]}{\lipsum[1]}
-% If we use the |memoir| class and our settings (|\if@didactic@memoir|), we 
-% want to use the |adjustwidth| environment to expand the text block to better 
-% fit them.
-% Otherwise we use the standard text block.
 %
 % To do this we first add a |fullwidth| environment\footnote{%
 %   Similarly to \url{https://tex.stackexchange.com/a/350944/17418}.
 % }.
 % We can get the |adjustwidth| environment from the |changepage| package 
-% whenever |memoir| isn't used.
+% whenever |memoir| isn't used\footnote{%
+%   The |memoir| class uses |changepage|, that's the origin of the package.
+% }.
 %    \begin{macrocode}
 \RequirePackage{changepage}
 \RequirePackage{calc}
