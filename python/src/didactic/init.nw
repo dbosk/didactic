@@ -1,0 +1,81 @@
+Now we want to have a look at the [[didactic]] Python package.
+We'll write a few functions that generate \LaTeX{} code to display Python code 
+and its output in a didactic way.
+<<didactic.py>>=
+<<imports>>
+<<functions>>
+@
+
+<<functions>>=
+def mint(output, /, lang="text", fullwidth=True,
+         minted_opts="escapeinside=||", hlgrep=None):
+  if fullwidth:
+    print(r"\begin{fullwidth}")
+
+  if not minted_opts:
+    minted_opts = ""
+  if hlgrep:
+    highlightlines = []
+    for i, line in enumerate(output.splitlines()):
+      for pattern in hlgrep:
+        if re.search(pattern, line):
+          highlightlines.append(i+1)
+          break
+    hl_opt = f",highlightlines={{{','.join(str(i) for i in highlightlines)}}}"
+    if minted_opts:
+      minted_opts += f",{hl_opt}"
+    else:
+      minted_opts = hl_opt
+
+  filename = "tmp_didactic_minted_output.txt"
+  with open(filename, "w") as f:
+    f.write(output.strip())
+
+  if minted_opts:
+    print(r"\inputminted[%s]{%s}{%s}" % (minted_opts, lang, filename))
+  else:
+    print(r"\inputminted{%s}{%s}" % (lang, filename))
+
+  if fullwidth:
+    print(r"\end{fullwidth}")
+<<imports>>=
+import re
+@
+
+<<functions>>=
+def minted_pydoc(module, builtin=False):
+  output = subprocess.run(["python3", "-m", "pydoc", module],
+                          capture_output=True)
+  lines = output.stdout.decode().splitlines()
+  if not builtin:
+    lines = lines[:-4]
+  mint("\n".join(lines).strip(), lang="text")
+<<imports>>=
+import subprocess
+@
+
+<<functions>>=
+def minted_source(function):
+  mint(inspect.getsource(function).strip(), lang="python")
+<<imports>>=
+import inspect
+@
+
+<<functions>>=
+def minted_output(module, /, interpreter="python3", **kwargs):
+  pytex.add_dependencies(module)
+  output = subprocess.run([interpreter, module],
+                          stdout=subprocess.PIPE,
+                          stderr=subprocess.STDOUT)
+
+  mint(output.stdout.decode().strip(), **kwargs)
+@
+
+<<functions>>=
+def run_code(code, /, **kwargs):
+  with open("tmp_didactic_minted_output.py", "w") as f:
+    f.write(code)
+  minted_output("tmp_didactic_minted_output.py", **kwargs)
+<<imports>>=
+import os
+

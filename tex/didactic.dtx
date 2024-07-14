@@ -119,9 +119,9 @@
 % \section{Introduction}
 %
 % This package introduces some environments that are useful for writing 
-% teaching material.
-% It also provides a few settings for |beamer| and |memoir| to make the 
-% resulting document more readable.
+% teaching material and literate programs.
+% It provides a few settings for |beamer| and |memoir| to make the resulting 
+% document more readable.
 %
 % \section{Usage}
 %
@@ -218,6 +218,47 @@
 % We also provide a few predefined blocks in various common colours.
 % They all take a title as mandatory argument.
 %
+% \subsection{Adding margin notes of different kinds}
+%
+% \DescribeMacro{\indentedmarginpar}
+% We want to be able to put quite some content in the margins.
+% For this reason we want to have indented paragraphs in the margin notes.
+% We can use the |\indentedmarginpar{text}| command to do this.
+% For instance, consider the output in the margin.
+% \indentedmarginpar{%
+%   This is an example of an indented margin paragraph.
+%
+%   It can contain multiple paragraphs.
+% }
+%
+% \DescribeMacro{\newnotetype}
+% \DescribeMacro{\ltnote}
+% We also want to be able to use titled notes of different kinds.
+% We can use the |\newnotetype[fmtcmd]{type}{title}| command to define a new 
+% type of note.
+% For instance |\ltnote| is defined as
+% \begin{center}
+% |\newnotetype{\ltnote}{\GetTranslationWarn{Learning theory}}|.
+% \end{center}
+% \ltnote{This is an example of a learning theory note.}
+%
+% We can also change the formatting of the title.
+% |\newnotetype[\textbf]{\bfnote}{Bold note}| and
+% |\bfnote{This is a bold note.}| gives us the note in the margin.
+% \newnotetype[\textbf]{\bfnote}{Bold note}
+% \bfnote{This is a bold note.}
+% \ltnote{Another example of a learning theory note.}
+%
+% \DescribeMacro{\NewNoteType}
+% We also have |\NewNoteType| which is almost synonymous to |\newnotetype|.
+% The difference is that |\NewNoteType| doesn't take a command as argument, but 
+% just a name:
+% |\NewNoteType{ltnote}{Learning theory}| instead.
+% Then we also get |\ltnoteoff| to turn off the note and |\ltnoteon| to turn it 
+% back on.
+%
+% Notes are off by default in |beamer|, but on by default otherwise.
+%
 % \subsection{Tools for code examples}
 %
 % We also provide two commands for working with code examples: |lstexample| and 
@@ -266,47 +307,6 @@
 % |\runbyrun{hello.py}{hello.py}|.
 % \runbyrun{hello.py}{hello.py}
 % \end{example}
-%
-% \subsection{Adding margin notes of different kinds}
-%
-% \DescribeMacro{\indentedmarginpar}
-% We want to be able to put quite some content in the margins.
-% For this reason we want to have indented paragraphs in the margin notes.
-% We can use the |\indentedmarginpar{text}| command to do this.
-% For instance, consider the output in the margin.
-% \indentedmarginpar{%
-%   This is an example of an indented margin paragraph.
-%
-%   It can contain multiple paragraphs.
-% }
-%
-% \DescribeMacro{\newnotetype}
-% \DescribeMacro{\ltnote}
-% We also want to be able to use titled notes of different kinds.
-% We can use the |\newnotetype[fmtcmd]{type}{title}| command to define a new 
-% type of note.
-% For instance |\ltnote| is defined as
-% \begin{center}
-% |\newnotetype{\ltnote}{\GetTranslationWarn{Learning theory}}|.
-% \end{center}
-% \ltnote{This is an example of a learning theory note.}
-%
-% We can also change the formatting of the title.
-% |\newnotetype[\textbf]{\bfnote}{Bold note}| and
-% |\bfnote{This is a bold note.}| gives us the note in the margin.
-% \newnotetype[\textbf]{\bfnote}{Bold note}
-% \bfnote{This is a bold note.}
-% \ltnote{Another example of a learning theory note.}
-%
-% \DescribeMacro{\NewNoteType}
-% We also have |\NewNoteType| which is almost synonymous to |\newnotetype|.
-% The difference is that |\NewNoteType| doesn't take a command as argument, but 
-% just a name:
-% |\NewNoteType{ltnote}{Learning theory}| instead.
-% Then we also get |\ltnoteoff| to turn off the note and |\ltnoteon| to turn it 
-% back on.
-%
-% Notes are off by default in |beamer|, but on by default otherwise.
 %
 % \StopEventually{}
 %
@@ -1123,7 +1123,7 @@
 %
 %
 %
-% \subsection{Listing and running code examples}
+% \subsection{Listing code examples}
 %
 % Let's turn our focus to |\lstexample| and |\runpython|.
 % We want to make it easy to typeset and print the output of example Python 
@@ -1161,83 +1161,33 @@
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\runpython}
-% Now, for the second part, printing the output, we do this in two steps.
-% First, we create a function using PythonTeX that runs a Python program and 
-% prints it output.
-% We can use it like |\runpython{hello.py}| to run the program in |hello.py|.
-% The output is printed in verbatim mode.
-% Alternatively we could use |\runpython[opt]{hello.py}| to pass |opt| to the 
-% underlying |fancyvrb| environment.
+% \subsection{A Python library for code and output listings}
 %
-% Let's create that function in PythonTeX to run the example program file.
-% We simply execute it with Python 3 and capture its output.
-% Then we print the output to stdout, which is then captured by PythonTeX.
-% We use |pytex.add_dependencies| to add the file as a dependency to rerun the 
-% code when necessary.
+% Here we provide a Python module with a few functions that will be useful to 
+% generate listings of code and output.
+% We want it accessible from LaTeX, so we'll later write some commands that use 
+% these functions.
+% But we also want it accessible through PythonTeX to have more freedom.
+%
+% \begin{macro}{\pyImportDidactic}
+% We'll use a command |\pyImportDidactic[PythonTeX session]| to inject this 
+% Python code into the named PythonTeX session.
+% If not session is named, we use the default session---same as PythonTeX does.
 %    \begin{macrocode}
-\begin{pycode}
-import sys
-import subprocess
-import tempfile
-
-def mint(output, /, lang="text", fullwidth=True,
-         minted_opts="escapeinside=||", hlgrep=None):
-  if fullwidth:
-    print(r"\begin{fullwidth}")
-
-  if not minted_opts:
-    minted_opts = ""
-  if hlgrep:
-    highlightlines = []
-    for i, line in enumerate(output.splitlines()):
-      for pattern in hlgrep:
-        if re.search(pattern, line):
-          highlightlines.append(i+1)
-          break
-    hl_opt = f",highlightlines={{{','.join(str(i) for i in highlightlines)}}}"
-    if minted_opts:
-      minted_opts += f",{hl_opt}"
-    else:
-      minted_opts = hl_opt
-
-  filename = "tmp_didactic_minted_output.txt"
-  with open(filename, "w") as f:
-    f.write(output.strip())
-
-  if minted_opts:
-    print(r"\inputminted[%s]{%s}{%s}" % (minted_opts, lang, filename))
-  else:
-    print(r"\inputminted{%s}{%s}" % (lang, filename))
-
-  if fullwidth:
-    print(r"\end{fullwidth}")
-
-def minted_pydoc(module, builtin=False):
-  output = subprocess.run(["python3", "-m", "pydoc", module],
-                          capture_output=True)
-  lines = output.stdout.decode().splitlines()
-  if not builtin:
-    lines = lines[:-4]
-  mint("\n".join(lines).strip(), lang="text")
-
-def minted_source(function):
-  mint(inspect.getsource(function).strip(), lang="python")
-
-def minted_output(module, /, interpreter="python3", **kwargs):
-  pytex.add_dependencies(module)
-  output = subprocess.run([interpreter, module],
-                          stdout=subprocess.PIPE,
-                          stderr=subprocess.STDOUT)
-
-  mint(output.stdout.decode().strip(), **kwargs)
-
-def run_code(code, /, **kwargs):
-  with open("tmp_didactic_minted_output.py", "w") as f:
-    f.write(code)
-  minted_output("tmp_didactic_minted_output.py", **kwargs)
-\end{pycode}
+\NewDocumentCommand{\pyImportDidactic}{o}{%
+  \IfValueTF{#1}
+    {\begin{pycode}[#1]}
+    {\begin{pycode}}
 %    \end{macrocode}
+%
+% To not clutter the namespace, we want to add the functions in a module named 
+% |didactic|.
+%    \begin{macrocode}
+import didactic
+\end{pycode}
+}
+%    \end{macrocode}
+% \end{macro}
 %
 % Then we simply create a command that run that function with the file as 
 % argument.
@@ -1259,7 +1209,7 @@ def run_code(code, /, **kwargs):
 %    \end{macrocode}
 % \end{macro}
 % 
-% \subsection{Contrasting code examples}
+% \subsection{Contrasting code examples and outputs}
 %
 % Sometimes we want to contrast two code examples side by side.
 % \begin{macro}{\textbytext}

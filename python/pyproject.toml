@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "didactic"
+version = "1.9"
+description = "Package complementing the didactic TeX package on CTAN"
+authors = ["Daniel Bosk <daniel@bosk.se>"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/dbosk/didactic"
+include = ["*/**/*.py"]
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/dbosk/didactic/issues"
+"Releases" = "https://github.com/dbosk/didactic/releases"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
