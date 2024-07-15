@@ -1178,6 +1178,8 @@
 % The design here is to work around that.
 %    \begin{macrocode}
 \begin{pycode}
+import inspect
+import re
 import sys
 import subprocess
 import tempfile
@@ -1267,7 +1269,6 @@ def didactic_output(module, /, interpreter="python3", **kwargs):
   - `kwargs` are passed to `didactic_mint`, see that function for more 
   information.
   """
-  pytex.add_dependencies(module)
   output = subprocess.run([interpreter, module],
                           stdout=subprocess.PIPE,
                           stderr=subprocess.STDOUT)
@@ -1346,8 +1347,6 @@ def didactic_run_code(code, /, **kwargs):
 % Let's create that function in PythonTeX to run the example program file.
 % We simply execute it with Python 3 and capture its output.
 % Then we print the output to stdout, which is then captured by PythonTeX.
-% We use |pytex.add_dependencies| to add the file as a dependency to rerun the 
-% code when necessary.
 %
 % Then we simply create a command that run that function with the file as 
 % argument.
