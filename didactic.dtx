@@ -104,7 +104,10 @@
 % \changes{v1.9}{2024/07/15}{%
 %   Adds PythonTeX functions.
 %   Typesets outputs using |minted| to get highlighted lines there too.
-%   Only use arthangnum chapterstyle if memoir article mode.
+%   Only use |arthangnum| chapterstyle if |memoir| article mode.
+% }
+% \changes{v1.10}{2024/07/15}{%
+%   Makes |csquotes| use |autocite| for citations.
 % }
 %
 % \GetFileInfo{didactic.dtx}
@@ -576,6 +579,11 @@
 \nouppercaseheads
 %    \end{macrocode}
 %
+% And that concludes the |memoir| part.
+%    \begin{macrocode}
+\fi% end \if@didactic@memoir
+%    \end{macrocode}
+%
 % We also want to adapt the citation commands of a few packages to use 
 % footnotes.
 % For these, we check if the package is loaded, if it is, we do the changes.
@@ -586,8 +594,6 @@
   \ExecuteBibliographyOptions{%
     autocite=footnote,
     singletitle=false,
-    %style=verbose,
-    %citestyle=verbose,
     maxbibnames=99,
     isbn=false,doi=false,url=false
   }
@@ -602,13 +608,8 @@
     {\usebibmacro{postnote}}
 }{}
 \@ifpackageloaded{csquotes}{%
-  \SetCiteCommand{\footcite}
+  \SetCiteCommand{\autocite}
 }{}
-%    \end{macrocode}
-%
-% And that concludes the |memoir| part.
-%    \begin{macrocode}
-\fi% end \if@didactic@memoir
 %    \end{macrocode}
 %
 % \subsection{A side-caption environment for \texttt{beamer}}
