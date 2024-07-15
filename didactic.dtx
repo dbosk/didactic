@@ -112,6 +112,7 @@
 % \changes{v1.11}{2024/07/15}{%
 %   Adds use of |blockmargin| and |unblockmargin| (from |marginfix|) for 
 %   full-width elements.
+%   Fixes |sidecaption|.
 % }
 %
 % \GetFileInfo{didactic.dtx}
@@ -626,10 +627,13 @@
 % It's suitable to just translate it to a normal caption, as usually used in 
 % |beamer|.
 %    \begin{macrocode}
-\ProvideDocumentEnvironment{sidecaption}{omo+b}{%
-  #4
-  \caption{#2\IfValueT{#3}{\label{#3}}}
-}{\relax}
+\ProvideDocumentEnvironment{sidecaption}{omo}{%
+  \relax
+}{
+  \IfValueTF{#1}
+    {\caption[#1]{#2\IfValueT{#3}{\label{#3}}}}
+    {\caption{#2\IfValueT{#3}{\label{#3}}}}
+}
 %    \end{macrocode}
 % \end{environment}
 %
@@ -1300,11 +1304,11 @@ def didactic_run_code(code, /, **kwargs):
 % We provide an optional argument to pass options to minted.
 %    \begin{macrocode}
 \NewDocumentCommand{\lstexample}{somm}{%
-  \IfBooleanTF{#1}{\begin{fullwidth}}{\relax}
+  \IfBooleanTF{#1}{\blockmargin\begin{fullwidth}}{\relax}
   \IfValueTF{#2}
     {\inputminted[escapeinside=||,#2]{#3}{#4}}
     {\inputminted[escapeinside=||]{#3}{#4}}
-  \IfBooleanTF{#1}{\end{fullwidth}}{\relax}
+  \IfBooleanTF{#1}{\end{fullwidth}\unblockmargin}{\relax}
 }
 %    \end{macrocode}
 % \end{macro}
@@ -1330,6 +1334,7 @@ def didactic_run_code(code, /, **kwargs):
 %    \begin{macrocode}
 \NewDocumentCommand{\runpython}{som}{%
   \IfBooleanTF{#1}{%
+    \blockmargin
     \pyc{fullwidth = True}
   }{
     \pyc{fullwidth = False}
@@ -1340,6 +1345,9 @@ def didactic_run_code(code, /, **kwargs):
     \pyc{minted_opts = None}
   }
   \pyc{didactic_output('#3', minted_opts=minted_opts, fullwidth=fullwidth)}
+  \IfBooleanTF{#1}{%
+    \unblockmargin
+  }{\relax}
 }
 %    \end{macrocode}
 % \end{macro}
