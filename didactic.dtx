@@ -1181,8 +1181,7 @@ import tempfile
 
 def didactic_mint(output, /, lang="text",
                   minted_opts="escapeinside=||",
-                  fullwidth=True, blockmargin=False,
-                  hlgrep=None):
+                  fullwidth=False, hlgrep=None):
   """
   Typeset the output using minted.
 
@@ -1190,15 +1189,12 @@ def didactic_mint(output, /, lang="text",
   - `minted_opts` are options to pass to minted. The default is to escape 
   inside the code using |...|.
   - `fullwidth` is a boolean to wrap the minted environment in a fullwidth 
-  environment. True by default.
-  - `blockmargin` is a boolean to wrap the minted environment in a blockmargin 
-  and unblockmargin pair. True by default.
+  environment and blocks the margin. False by default.
   - `hlgrep` is a list of patterns to highlight in the output. Every line that 
   matches one of the patterns will be highlighted.
   """
-  if blockmargin:
-    print(r"\blockmargin")
   if fullwidth:
+    print(r"\blockmargin")
     print(r"\begin{fullwidth}")
 
   if not minted_opts:
@@ -1227,7 +1223,6 @@ def didactic_mint(output, /, lang="text",
 
   if fullwidth:
     print(r"\end{fullwidth}")
-  if blockmargin:
     print(r"\unblockmargin")
 
 def didactic_pydoc(module, /, builtin=False, **kwargs):
@@ -1357,7 +1352,6 @@ def didactic_run_code(code, /, **kwargs):
 %    \begin{macrocode}
 \NewDocumentCommand{\runpython}{som}{%
   \IfBooleanTF{#1}{%
-    \blockmargin
     \pyc{fullwidth = True}
   }{
     \pyc{fullwidth = False}
@@ -1368,9 +1362,6 @@ def didactic_run_code(code, /, **kwargs):
     \pyc{minted_opts = None}
   }
   \pyc{didactic_output('#3', minted_opts=minted_opts, fullwidth=fullwidth)}
-  \IfBooleanTF{#1}{%
-    \unblockmargin
-  }{\relax}
 }
 %    \end{macrocode}
 % \end{macro}
