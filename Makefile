@@ -20,6 +20,12 @@ didactic.sty: didactic.ins
 didactic.tar.gz: ${SRC} didactic.ins LICENSE Makefile README.md didactic.pdf
 	tar -czf $@ --transform "s|^|didactic/|" $^
 
+VERSION=$(shell sed -En "s/^.*v([0-9]+\.[0-9]+) didactic.*$$/\1/p" didactic.dtx)
+.PHONY: release
+release: didactic.tar.gz didactic.pdf didactic.sty
+	git push
+	gh release create v$(VERSION) -t "v$(VERSION)" $^
+
 .PHONY: clean
 clean:
 	${RM} didactic.sty didactic.pdf
