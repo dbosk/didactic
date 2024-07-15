@@ -1,6 +1,6 @@
 LATEX?=latex
 PDFLATEX?=pdflatex
-LATEXFLAGS=-shell-escape
+LATEXFLAGS=-shell-escape -halt-on-error
 PYTHONTEX=python3 $(shell which pythontex) --interpreter python:python3
 
 .PHONY: all
@@ -30,6 +30,8 @@ clean:
 	${RM} didactic.tar.gz didactic.toc didactic.unq
 	${RM} didactic.hd
 	${RM} pythontex_data.pkl
-	${RM} -R _minted-didactic
+	${RM} -R _minted-didactic _minted-test pythontex_data.pkl
 	${RM} $(wildcard py_default_default_*.stdout)
 	${RM} -R pythontex-files-didactic
+	${RM} test.pdf
+	${RM} test.aux test.log test.unq
