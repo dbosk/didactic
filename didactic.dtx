@@ -109,6 +109,9 @@
 % \changes{v1.10}{2024/07/15}{%
 %   Makes |csquotes| use |autocite| for citations.
 % }
+% \changes{v1.11}{2024/07/15}{%
+%   Adds use of |\blockmargin| and |\unblockmargin| for full-width elements.
+% }
 %
 % \GetFileInfo{didactic.dtx}
 %
@@ -1154,19 +1157,25 @@ import sys
 import subprocess
 import tempfile
 
-def didactic_mint(output, /, lang="text", fullwidth=True,
-         minted_opts="escapeinside=||", hlgrep=None):
+def didactic_mint(output, /, lang="text",
+                  minted_opts="escapeinside=||",
+                  fullwidth=True, blockmargin=False,
+                  hlgrep=None):
   """
   Typeset the output using minted.
 
   - `lang` is the language of the output.
-  - `fullwidth` is a boolean to wrap the minted environment in a fullwidth 
-  environment.
   - `minted_opts` are options to pass to minted. The default is to escape 
   inside the code using |...|.
+  - `fullwidth` is a boolean to wrap the minted environment in a fullwidth 
+  environment. True by default.
+  - `blockmargin` is a boolean to wrap the minted environment in a blockmargin 
+  and unblockmargin pair. True by default.
   - `hlgrep` is a list of patterns to highlight in the output. Every line that 
   matches one of the patterns will be highlighted.
   """
+  if blockmargin:
+    print(r"\blockmargin")
   if fullwidth:
     print(r"\begin{fullwidth}")
 
@@ -1196,8 +1205,10 @@ def didactic_mint(output, /, lang="text", fullwidth=True,
 
   if fullwidth:
     print(r"\end{fullwidth}")
+  if blockmargin:
+    print(r"\unblockmargin")
 
-def didactic_pydoc(module, builtin=False):
+def didactic_pydoc(module, /, builtin=False, **kwargs):
   """
   Print the pydoc for a module.
 
@@ -1205,20 +1216,26 @@ def didactic_pydoc(module, builtin=False):
   modules, pydoc adds a few lines of paths to the module. We don't want that, 
   so we cut those lines. For built-ins, however, it doesn't print those lines, 
   so we shouldn't cut any lines in that case.
+
+  The `kwargs` are passed to `didactic_mint`, see that function for more 
+  information.
   """
   output = subprocess.run(["python3", "-m", "pydoc", module],
                           capture_output=True)
   lines = output.stdout.decode().splitlines()
   if not builtin:
     lines = lines[:-4]
-  didactic_mint("\n".join(lines).strip(), lang="text")
+  didactic_mint("\n".join(lines).strip(), lang="text", **kwargs)
 
-def didactic_source(function):
+def didactic_source(function, /, **kwargs):
   """
   Print the source code of a function. This is a function object and we use 
   inspection to get the source code of the actual Python function object.
+
+  The `kwargs` are passed to `didactic_mint`, see that function for more 
+  information.
   """
-  didactic_mint(inspect.getsource(function).strip(), lang="python")
+  didactic_mint(inspect.getsource(function).strip(), lang="python", **kwargs)
 
 def didactic_output(module, /, interpreter="python3", **kwargs):
   """
@@ -1332,6 +1349,7 @@ def didactic_run_code(code, /, **kwargs):
 % \begin{macro}{\textbytext}
 % For example |\textbytext{\lipsum[1]}{\lipsum[1]}| should typeset the two 
 % examples side by side.
+% \ltnote{This is a note to test if it interferes with the text-by-text.}
 % \textbytext{\lipsum[1]}{\lipsum[1]}
 %
 % To do this we first add a |fullwidth| environment\footnote{%
@@ -1374,13 +1392,18 @@ def didactic_run_code(code, /, **kwargs):
 % Now to the |\textbytext| command.
 % We simply set up a |tabularx| environment with two columns and use it inside 
 % a |fullwidth| environment.
+% We also note that we need the |marginfix| package for the |\blockmargin| and 
+% |\unblockmargin| commands.
 %    \begin{macrocode}
+\RequirePackage{marginfix}
 \NewDocumentCommand{\textbytext}{+m+m}{%
+  \blockmargin
   \begin{fullwidth}
     \begin{tabularx}{\columnwidth}{XX}
       #1 & #2
     \end{tabularx}
   \end{fullwidth}
+  \unblockmargin
 }
 %    \end{macrocode}
 % \end{macro}
