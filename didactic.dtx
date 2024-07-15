@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{didactic}
 %<*package>
-    [2024/05/21 v1.8 didactic]
+    [2024/07/15 v1.9 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -100,6 +100,11 @@
 % }
 % \changes{v1.8}{2024/05/21}{%
 %   Adds support for XeLaTeX.
+% }
+% \changes{v1.9}{2024/07/15}{%
+%   Adds PythonTeX functions.
+%   Typesets outputs using |minted| to get highlighted lines there too.
+%   Only use arthangnum chapterstyle if memoir article mode.
 % }
 %
 % \GetFileInfo{didactic.dtx}
@@ -218,45 +223,6 @@
 % We also provide a few predefined blocks in various common colours.
 % They all take a title as mandatory argument.
 %
-% \subsection{Tools for code examples}
-%
-% We also provide two commands for working with code examples: |lstexample| and 
-% |runpython|.
-%
-% \DescribeMacro{\lstexample}
-% The |\lstexample| command allows us to typeset the source code of the 
-% example.
-% For instance, |\lstexample{python}{hello.py}| produces the following:
-% \lstexample{python}{hello.py}
-%
-% We can also pass optional arguments directly to |minted| that is used to 
-% typeset the code.
-% \begin{example}
-% |\lstexample[linenos,highlightlines=4]{python}{hello.py}| produces the 
-% following.
-% \lstexample[linenos,highlightlines=4]{python}{hello.py}
-% \end{example}
-%
-% \DescribeMacro{\runpython}
-% We can also run the example code and include its output using the 
-% |\runpython| macro.
-% \begin{example}
-% For instance, |\runpython{hello.py}| produces the following.
-% \runpython{hello.py}
-% \end{example}
-%
-% \DescribeMacro{\codebycode}
-% The |\codebycode| command is simply two |\lstexample| commands side by side:
-% |\codebycode[opt1]{lang1}{file1}[opt2]{lang2}{file2}|.
-% \codebycode
-%   [breaklines,linenos]{python}{hello.py}
-%   [breaklines,linenos,highlightlines=4]{python}{hello.py}
-%
-% \DescribeMacro{\runbyrun}
-% We can also put the output side by side using 
-% |\runbyrun{hello.py}{hello.py}|.
-% \runbyrun{hello.py}{hello.py}
-%
 % \subsection{Adding margin notes of different kinds}
 %
 % \DescribeMacro{\indentedmarginpar}
@@ -297,6 +263,59 @@
 % back on.
 %
 % Notes are off by default in |beamer|, but on by default otherwise.
+%
+% \subsection{Tools for code examples}
+%
+% We also provide two commands for working with code examples: |lstexample| and 
+% |runpython|.
+%
+% \DescribeMacro{\lstexample}
+% The |\lstexample| command allows us to typeset the source code of the 
+% example.
+% For instance, |\lstexample{python}{hello.py}| produces the following:
+% \lstexample{python}{hello.py}
+%
+% We can also pass optional arguments directly to |minted| that is used to 
+% typeset the code.
+% \begin{example}
+% |\lstexample[linenos,highlightlines=4]{python}{hello.py}| produces the 
+% following.
+% \lstexample[linenos,highlightlines=4]{python}{hello.py}
+% \end{example}
+%
+% \DescribeMacro{\runpython}
+% We can also run the example code and include its output using the 
+% |\runpython| macro.
+% \begin{example}
+% For instance, |\runpython[highlightlines=1]{hello.py}| produces the 
+% following.
+% \runpython[highlightlines=1]{hello.py}
+% \end{example}
+%
+% \DescribeMacro{\codebycode}
+% The |\codebycode| command is simply two |\lstexample| commands side by side:
+% |\codebycode[opt1]{lang1}{file1}[opt2]{lang2}{file2}|.
+%
+% \begin{example}
+% For instance,
+% |\codebycode[breaklines,linenos]{python}{hello.py}|
+%            |[breaklines,linenos,highlightlines=4]{python}{hello.py}|
+% yields the following.
+% \codebycode
+%   [breaklines,linenos]{python}{hello.py}
+%   [breaklines,linenos,highlightlines=4]{python}{hello.py}
+% \end{example}
+%
+% \DescribeMacro{\runbyrun}
+% \begin{example}
+% We can also put the output side by side using 
+% |\runbyrun{hello.py}{hello.py}|.
+% \runbyrun{hello.py}{hello.py}
+% \end{example}
+%
+% Those commands are implemented using a set of Python functions that can be 
+% accessed through PythonTeX.
+% See \cref{PythonTeXdidactic} for details.
 %
 % \StopEventually{}
 %
@@ -528,7 +547,7 @@
   \setsecheadstyle{\normalfont\large\bfseries}
   %\setsubsecheadstyle{\normalfont\normalsize\bfseries}
 }
-\chapterstyle{arthangnum}
+\ifartopt{\chapterstyle{arthangnum}}{\relax}
 \hangsecnum
 % https://tex.stackexchange.com/a/33458/17418
 \setsecnumdepth{subsection}
@@ -1110,6 +1129,126 @@
 % \end{macro}
 %
 %
+% \subsection{Some useful PythonTeX functions}\label{PythonTeXdidactic}
+%
+% We want to provide some useful functions that can be used from PythonTeX.
+% Particularly, we want it to generate code listings and run Python code and 
+% then typeset them using |minted|.
+% For instance, we want to be able to typeset the source code of a Python 
+% function and then run it and typeset the output.
+% We want to typeset the output from |pydoc| for a particular function or 
+% module.
+%
+% We will create a few functions in PythonTeX, in the default session.
+% These can then be used later.
+% They are all prefixed with |didactic_| to avoid name clashes.
+%
+% The |minted| and |pythontex| environments can't be used in other functions.
+% The design here is to work around that.
+%    \begin{macrocode}
+\begin{pycode}
+import sys
+import subprocess
+import tempfile
+
+def didactic_mint(output, /, lang="text", fullwidth=True,
+         minted_opts="escapeinside=||", hlgrep=None):
+  """
+  Typeset the output using minted.
+
+  - `lang` is the language of the output.
+  - `fullwidth` is a boolean to wrap the minted environment in a fullwidth 
+  environment.
+  - `minted_opts` are options to pass to minted. The default is to escape 
+  inside the code using |...|.
+  - `hlgrep` is a list of patterns to highlight in the output. Every line that 
+  matches one of the patterns will be highlighted.
+  """
+  if fullwidth:
+    print(r"\begin{fullwidth}")
+
+  if not minted_opts:
+    minted_opts = ""
+  if hlgrep:
+    highlightlines = []
+    for i, line in enumerate(output.splitlines()):
+      for pattern in hlgrep:
+        if re.search(pattern, line):
+          highlightlines.append(i+1)
+          break
+    hl_opt = f",highlightlines={{{','.join(str(i) for i in highlightlines)}}}"
+    if minted_opts:
+      minted_opts += f",{hl_opt}"
+    else:
+      minted_opts = hl_opt
+
+  filename = "tmp_didactic_minted_output.txt"
+  with open(filename, "w") as f:
+    f.write(output.strip())
+
+  if minted_opts:
+    print(r"\inputminted[%s]{%s}{%s}" % (minted_opts, lang, filename))
+  else:
+    print(r"\inputminted{%s}{%s}" % (lang, filename))
+
+  if fullwidth:
+    print(r"\end{fullwidth}")
+
+def didactic_pydoc(module, builtin=False):
+  """
+  Print the pydoc for a module.
+
+  If `builtin` is True, print the pydoc for a builtin module. For non-built in 
+  modules, pydoc adds a few lines of paths to the module. We don't want that, 
+  so we cut those lines. For built-ins, however, it doesn't print those lines, 
+  so we shouldn't cut any lines in that case.
+  """
+  output = subprocess.run(["python3", "-m", "pydoc", module],
+                          capture_output=True)
+  lines = output.stdout.decode().splitlines()
+  if not builtin:
+    lines = lines[:-4]
+  didactic_mint("\n".join(lines).strip(), lang="text")
+
+def didactic_source(function):
+  """
+  Print the source code of a function. This is a function object and we use 
+  inspection to get the source code of the actual Python function object.
+  """
+  didactic_mint(inspect.getsource(function).strip(), lang="python")
+
+def didactic_output(module, /, interpreter="python3", **kwargs):
+  """
+  Run a Python program and typeset the output using minted.
+
+  - `module` is anything that can be passed as an argument to the Python 
+  interpreter. Usually a file name or a module name.
+  - `interpreter` is the Python interpreter to use. The default is `python3`.
+  - `kwargs` are passed to `didactic_mint`, see that function for more 
+  information.
+  """
+  pytex.add_dependencies(module)
+  output = subprocess.run([interpreter, module],
+                          stdout=subprocess.PIPE,
+                          stderr=subprocess.STDOUT)
+
+  didactic_mint(output.stdout.decode().strip(), **kwargs)
+
+def didactic_run_code(code, /, **kwargs):
+  """
+  Run a Python program and typeset the output using minted. The `code` is 
+  Python code, not a file name. This function simply writes the code to a file 
+  and then runs it using `didactic_output`.
+
+  - `kwargs` are passed to `didactic_output`, which in turn passes some 
+  arguments on to `didactic_mint`. See those functions for details.
+  """
+  with open("tmp_didactic_minted_output.py", "w") as f:
+    f.write(code)
+  didactic_output("tmp_didactic_minted_output.py", **kwargs)
+\end{pycode}
+%    \end{macrocode}
+%
 %
 % \subsection{Listing and running code examples}
 %
@@ -1129,7 +1268,9 @@
 %
 % \begin{example}
 %   Here's another code example, set side by side with its output:
-%   \textbytext{\lstexample{python}{hello.py}}{\runpython{hello.py}}
+%   \textbytext
+%     {Code \hrulefill\par\lstexample{python}{hello.py}}
+%     {Output \hrulefill\par\runpython{hello.py}}
 % \end{example}
 %
 % \begin{macro}{\lstexample}
@@ -1137,10 +1278,12 @@
 % To typeset the source file we simply need to use the minted package.
 % We provide an optional argument to pass options to minted.
 %    \begin{macrocode}
-\NewDocumentCommand{\lstexample}{omm}{%
-  \IfValueTF{#1}
-    {\inputminted[escapeinside=||,#1]{#2}{#3}}
-    {\inputminted[escapeinside=||]{#2}{#3}}
+\NewDocumentCommand{\lstexample}{somm}{%
+  \IfBooleanTF{#1}{\begin{fullwidth}}{\relax}
+  \IfValueTF{#2}
+    {\inputminted[escapeinside=||,#2]{#3}{#4}}
+    {\inputminted[escapeinside=||]{#3}{#4}}
+  \IfBooleanTF{#1}{\end{fullwidth}}{\relax}
 }
 %    \end{macrocode}
 % \end{macro}
@@ -1150,42 +1293,32 @@
 % First, we create a function using PythonTeX that runs a Python program and 
 % prints it output.
 % We can use it like |\runpython{hello.py}| to run the program in |hello.py|.
-% The output is printed in verbatim mode.
+% The output is printed in a |minted| environment.
 % Alternatively we could use |\runpython[opt]{hello.py}| to pass |opt| to the 
-% underlying |fancyvrb| environment.
+% underlying |minted| environment.
 %
 % Let's create that function in PythonTeX to run the example program file.
 % We simply execute it with Python 3 and capture its output.
 % Then we print the output to stdout, which is then captured by PythonTeX.
 % We use |pytex.add_dependencies| to add the file as a dependency to rerun the 
 % code when necessary.
-%    \begin{macrocode}
-\begin{pycode}
-import subprocess
-
-def run_module(m):
-  result = subprocess.run(["python3", m], capture_output=True)
-  print(result.stdout.decode("utf8").strip())
-  pytex.add_dependencies(m)
-
-def mintedoutput(m, opt):
-  if opt:
-      print(r'\begin{minted}[{}]{{text}}'.format(opt))
-  else:
-      print(r'\begin{minted}{text}')
-  run_module(m)
-  print(r'\end{minted}')
-\end{pycode}
-%    \end{macrocode}
 %
 % Then we simply create a command that run that function with the file as 
 % argument.
 % Then print the output in verbatim mode.
 %    \begin{macrocode}
-\NewDocumentCommand{\runpython}{om}{%
-  \setpythontexautoprint{false}%
-  \pyc{run_module("#2")}%
-  \printpythontex[verbatim]%
+\NewDocumentCommand{\runpython}{som}{%
+  \IfBooleanTF{#1}{%
+    \pyc{fullwidth = True}
+  }{
+    \pyc{fullwidth = False}
+  }
+  \IfValueTF{#2}{%
+    \pyc{minted_opts = '#2'}
+  }{
+    \pyc{minted_opts = None}
+  }
+  \pyc{didactic_output('#3', minted_opts=minted_opts, fullwidth=fullwidth)}
 }
 %    \end{macrocode}
 % \end{macro}
@@ -1197,37 +1330,42 @@ def mintedoutput(m, opt):
 % For example |\textbytext{\lipsum[1]}{\lipsum[1]}| should typeset the two 
 % examples side by side.
 % \textbytext{\lipsum[1]}{\lipsum[1]}
-% If we use the |memoir| class and our settings (|\if@didactic@memoir|), we 
-% want to use the |adjustwidth| environment to expand the text block to better 
-% fit them.
-% Otherwise we use the standard text block.
 %
 % To do this we first add a |fullwidth| environment\footnote{%
 %   Similarly to \url{https://tex.stackexchange.com/a/350944/17418}.
 % }.
 % We can get the |adjustwidth| environment from the |changepage| package 
-% whenever |memoir| isn't used.
+% whenever |memoir| isn't used\footnote{%
+%   The |memoir| class uses |changepage|, that's the origin of the package.
+% }.
 %    \begin{macrocode}
 \RequirePackage{changepage}
+\RequirePackage{calc}
 \newlength{\@didactic@textbytext@oldcolumnwidth}
-\NewDocumentEnvironment{fullwidth}{+b}{%
-  \setlength{\@didactic@textbytext@oldcolumnwidth}{\columnwidth}
+\NewDocumentEnvironment{fullwidth}{}{%
   \setlength{\columnwidth}{\textwidth+2em+\marginparwidth+\marginparsep}
-  \IfStrEqCase{\@didactic@marginparmargin}{%
-    {inner}{\begin{adjustwidth*}{-\marginparwidth-\marginparsep}{-2em}}
-    {left}{\begin{adjustwidth}{-\marginparwidth-\marginparsep}{-2em}}
-    {outer}{\begin{adjustwidth*}{-2em}{-\marginparwidth-\marginparsep}}
-    {right}{\begin{adjustwidth}{-2em}{-\marginparwidth-\marginparsep}}
-  }[\relax]
-    #1
-  \IfStrEqCase{\@didactic@marginparmargin}{%
-    {inner}{\end{adjustwidth*}}
-    {left}{\end{adjustwidth}}
-    {outer}{\end{adjustwidth*}}
-    {right}{\end{adjustwidth}}
-  }[\relax]
-  \setlength{\columnwidth}{\@didactic@textbytext@oldcolumnwidth}
-}{\relax}
+  \if@twoside
+    \IfStrEqCase{\@didactic@marginparmargin}{%
+        {inner}{\begin{adjustwidth*}{-\marginparwidth-\marginparsep}{-2em}}
+        {left}{\begin{adjustwidth}{-\marginparwidth-\marginparsep}{-2em}}
+        {outer}{\begin{adjustwidth*}{-2em}{-\marginparwidth-\marginparsep}}
+        {right}{\begin{adjustwidth}{-2em}{-\marginparwidth-\marginparsep}}
+      }[\relax]
+  \else
+    \IfStrEqCase{\@didactic@marginparmargin}{%
+        {inner}{\begin{adjustwidth}{-\marginparwidth-\marginparsep}{-2em}}
+        {left}{\begin{adjustwidth}{-\marginparwidth-\marginparsep}{-2em}}
+        {outer}{\begin{adjustwidth}{-2em}{-\marginparwidth-\marginparsep}}
+        {right}{\begin{adjustwidth}{-2em}{-\marginparwidth-\marginparsep}}
+      }[\relax]
+  \fi
+}{
+  \if@twoside
+    \end{adjustwidth*}
+  \else
+    \end{adjustwidth}
+  \fi
+}
 %    \end{macrocode}
 %
 % Now to the |\textbytext| command.
@@ -1274,11 +1412,25 @@ def mintedoutput(m, opt):
 % \end{macro}
 %
 % \begin{macro}{\runbyrun}
-% We also want to typeset the runs (|\runpython|).
+% We also want to typeset the runs (|\runpython|):
+% |\runbyrun[highlightlines=1]{hello.py}{hello.py}| yields
+% \runbyrun[highlightlines=1]{hello.py}{hello.py}
+% |\runbyrun{hello.py}[highlightlines=1]{hello.py}| yields
+% \runbyrun{hello.py}[highlightlines=1]{hello.py}
+% And, finally, |\runbyrun{hello.py}{hello.py}| yields
+% \runbyrun{hello.py}{hello.py}
 % We can use |\textbytext| to typeset the two outputs side by side.
 %    \begin{macrocode}
-\NewDocumentCommand{\runbyrun}{mm}{%
-  \textbytext{\runpython{#1}}{\runpython{#2}}%
+\NewDocumentCommand{\runbyrun}{omom}{%
+  \textbytext{%
+    \IfValueTF{#1}
+      {\runpython[#1]{#2}}
+      {\runpython{#2}}%
+  }{%
+    \IfValueTF{#3}
+      {\runpython[#3]{#4}}
+      {\runpython{#4}}%
+  }%
 }
 %    \end{macrocode}
 % \end{macro}
