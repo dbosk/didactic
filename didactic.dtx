@@ -1308,7 +1308,7 @@ def didactic_run_code(code, /, **kwargs):
 %   \runpython{hello.py}
 % \end{example}
 %
-% \begin{example}
+% \begin{example}\label{ExampleSideBySide}
 %   Here's another code example, set side by side with its output:
 %   \textbytext*
 %     {Code \hrulefill\par\lstexample{python}{hello.py}}
@@ -1385,9 +1385,14 @@ def didactic_run_code(code, /, **kwargs):
 % \textbytext{\lipsum[1]}{\lipsum[1]}
 % 
 % We can also use the starred version to use the full width.
+% (This is in fact what we did in \cref{ExampleSideBySide} above.)
 % In this case we use the space from the margin notes to expand into the 
 % margin.
 % \textbytext*{\lipsum[1]}{\lipsum[1]}
+%
+% This means that we can use the unstarred versions in floats.
+% If we want to use the full width in the float, we expect the user to use the 
+% |fullwidth| environment manually to set up the float properly.
 %
 % To do this we first add a |fullwidth| environment\footnote{%
 %   Similarly to \url{https://tex.stackexchange.com/a/350944/17418}.
