@@ -1417,6 +1417,15 @@ def didactic_run_code(code, /, **kwargs):
 %    \end{macrocode}
 % \end{macro}
 %
+% Now, we could ask ourselves: why didn't we put that |\blockmargin| and 
+% |\unblockmargin| inside the |fullwidth| environment?
+% The reason is that we want to be able to use the |fullwidth| environment in 
+% other cases, for instance, in figures.
+% Floats block the margin by default, so we don't need to use it there.
+% And even if we tried, it wouldn't work, since the |\blockmargin| and 
+% |\unblockmargin| don't work in outer par mode (inside floats).
+% (See the |marginfix| documentation for details.)
+%
 % \begin{macro}{\codebycode}
 % When we deal with code, we deal with verbatim data.
 % The easiest way to deal with this is to simply keep the code in files and 
