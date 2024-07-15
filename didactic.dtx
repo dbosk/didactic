@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{didactic}
 %<*package>
-    [2024/07/15 v1.9 didactic]
+    [2024/07/15 v2.0 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -113,6 +113,11 @@
 %   Adds use of |blockmargin| and |unblockmargin| (from |marginfix|) for 
 %   full-width elements.
 %   Fixes |sidecaption|.
+% }
+% \changes{v2.0}{2024/07/15}{%
+%   Makes starred versions of |\textbytext| (and related) that uses full width 
+%   and blocks margin.
+%   The default is to not use the full width (this is a breaking change).
 % }
 %
 % \GetFileInfo{didactic.dtx}
@@ -314,7 +319,19 @@
 %   [breaklines,linenos,highlightlines=4]{python}{hello.py}
 % \end{example}
 %
+% \begin{example}
+% We can also use the full width of the page with the starred version.
+% |\codebycode*[breaklines,linenos]{python}{hello.py}|
+%            |[breaklines,linenos,highlightlines=4]{python}{hello.py}|
+% yields the following.
+% \codebycode*
+%   [breaklines,linenos]{python}{hello.py}
+%   [breaklines,linenos,highlightlines=4]{python}{hello.py}
+% \end{example}
+%
 % \DescribeMacro{\runbyrun}
+% We can do similarly with running code.
+%
 % \begin{example}
 % We can also put the output side by side using 
 % |\runbyrun{hello.py}{hello.py}|.
@@ -1293,7 +1310,7 @@ def didactic_run_code(code, /, **kwargs):
 %
 % \begin{example}
 %   Here's another code example, set side by side with its output:
-%   \textbytext
+%   \textbytext*
 %     {Code \hrulefill\par\lstexample{python}{hello.py}}
 %     {Output \hrulefill\par\runpython{hello.py}}
 % \end{example}
@@ -1302,7 +1319,13 @@ def didactic_run_code(code, /, **kwargs):
 % The first part is easy.
 % To typeset the source file we simply need to use the minted package.
 % We provide an optional argument to pass options to minted.
+% We also note that we need the |marginfix| package for the |\blockmargin| and
+% |\unblockmargin| commands.
+% We use these together with the |fullwidth| environment to typeset the code 
+% using the additional space taken from the margin notes, hence we need to also 
+% block the margin.
 %    \begin{macrocode}
+\RequirePackage{marginfix}
 \NewDocumentCommand{\lstexample}{somm}{%
   \IfBooleanTF{#1}{\blockmargin\begin{fullwidth}}{\relax}
   \IfValueTF{#2}
@@ -1360,6 +1383,11 @@ def didactic_run_code(code, /, **kwargs):
 % examples side by side.
 % \ltnote{This is a note to test if it interferes with the text-by-text.}
 % \textbytext{\lipsum[1]}{\lipsum[1]}
+% 
+% We can also use the starred version to use the full width.
+% In this case we use the space from the margin notes to expand into the 
+% margin.
+% \textbytext*{\lipsum[1]}{\lipsum[1]}
 %
 % To do this we first add a |fullwidth| environment\footnote{%
 %   Similarly to \url{https://tex.stackexchange.com/a/350944/17418}.
@@ -1401,18 +1429,20 @@ def didactic_run_code(code, /, **kwargs):
 % Now to the |\textbytext| command.
 % We simply set up a |tabularx| environment with two columns and use it inside 
 % a |fullwidth| environment.
-% We also note that we need the |marginfix| package for the |\blockmargin| and 
-% |\unblockmargin| commands.
+% We note that if the optional star is used, we also block the margin and use 
+% the full width.
+% This can't be used inside a float.
 %    \begin{macrocode}
-\RequirePackage{marginfix}
-\NewDocumentCommand{\textbytext}{+m+m}{%
-  \blockmargin
-  \begin{fullwidth}
-    \begin{tabularx}{\columnwidth}{XX}
-      #1 & #2
-    \end{tabularx}
-  \end{fullwidth}
-  \unblockmargin
+\NewDocumentCommand{\textbytext}{s+m+m}{%
+  \IfBooleanTF{#1}
+    {\blockmargin\begin{fullwidth}}
+    {\begin{center}}
+  \begin{tabularx}{\columnwidth}{XX}
+    #2 & #3
+  \end{tabularx}
+  \IfBooleanTF{#1}
+    {\end{fullwidth}\unblockmargin}
+    {\end{center}}
 }
 %    \end{macrocode}
 % \end{macro}
@@ -1441,15 +1471,16 @@ def didactic_run_code(code, /, **kwargs):
 %    \begin{macrocode}
 \RequirePackage{tabularx}
 \RequirePackage{minted}
-\NewDocumentCommand{\codebycode}{ommomm}{%
-  \textbytext{%
-    \IfValueTF{#1}
-      {\lstexample[#1]{#2}{#3}}
-      {\lstexample{#2}{#3}}%
+\NewDocumentCommand{\codebycode}{sommomm}{%
+  \IfBooleanTF{#1}{\expandafter\textbytext*}{\expandafter\textbytext}
+  {%
+    \IfValueTF{#2}
+      {\lstexample[#2]{#3}{#4}}
+      {\lstexample{#3}{#4}}%
   }{%
-    \IfValueTF{#4}
-      {\lstexample[#4]{#5}{#6}}
-      {\lstexample{#5}{#6}}%
+    \IfValueTF{#5}
+      {\lstexample[#5]{#6}{#7}}
+      {\lstexample{#6}{#7}}%
   }%
 }
 %    \end{macrocode}
@@ -1465,15 +1496,16 @@ def didactic_run_code(code, /, **kwargs):
 % \runbyrun{hello.py}{hello.py}
 % We can use |\textbytext| to typeset the two outputs side by side.
 %    \begin{macrocode}
-\NewDocumentCommand{\runbyrun}{omom}{%
-  \textbytext{%
-    \IfValueTF{#1}
-      {\runpython[#1]{#2}}
-      {\runpython{#2}}%
+\NewDocumentCommand{\runbyrun}{somom}{%
+  \IfBooleanTF{#1}{\expandafter\textbytext*}{\expandafter\textbytext}
+  {%
+    \IfValueTF{#2}
+      {\runpython[#2]{#3}}
+      {\runpython{#3}}%
   }{%
-    \IfValueTF{#3}
-      {\runpython[#3]{#4}}
-      {\runpython{#4}}%
+    \IfValueTF{#4}
+      {\runpython[#4]{#5}}
+      {\runpython{#5}}%
   }%
 }
 %    \end{macrocode}
