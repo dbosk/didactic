@@ -41,4 +41,5 @@ clean:
 	${RM} -R pythontex-files-didactic
 	${RM} test.pdf
 	${RM} test.aux test.log test.unq
-	${RM} tmp_didactic_minted_output.txt
+	${RM} didactic_output_*
+	${RM} didactic_code_*

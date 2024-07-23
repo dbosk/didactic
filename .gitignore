@@ -7,6 +7,8 @@ didactic.tar.gz
 didactic.unq
 didactic.hd
 tmp*
+didactic_output_*
+didactic_code_*
 
 ## Core latex/pdflatex auxiliary files:
 *.aux
