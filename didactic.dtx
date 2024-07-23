@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{didactic}
 %<*package>
-    [2024/07/15 v2.0 didactic]
+    [2024/07/23 v2.1 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -121,6 +121,9 @@
 %   In line with this, removes the |blockmargin| keyword argument to 
 %   |didactic_minted| PythonTeX function.
 %   This is merged into the |fullwidth| keyword argument.
+% }
+% \changes{v2.1}{2024/07/23}{%
+%   Fixes the |\textbytext| command so that it can handle minted code.
 % }
 %
 % \GetFileInfo{didactic.dtx}
@@ -1178,7 +1181,10 @@
 % The design here is to work around that.
 %    \begin{macrocode}
 \begin{pycode}
+import importlib.util
 import inspect
+import os
+import pathlib
 import re
 import sys
 import subprocess
@@ -1217,9 +1223,12 @@ def didactic_mint(output, /, lang="text",
     else:
       minted_opts = hl_opt
 
-  filename = "tmp_didactic_minted_output.txt"
-  with open(filename, "w") as f:
+  with tempfile.NamedTemporaryFile(mode="w", delete=False,
+                                   dir=".",
+                                   prefix="didactic_output_",
+                                   suffix=".txt") as f:
     f.write(output.strip())
+    filename = f.name
 
   if minted_opts:
     print(r"\inputminted[%s]{%s}{%s}" % (minted_opts, lang, filename))
@@ -1275,6 +1284,20 @@ def didactic_output(module, /, interpreter="python3", **kwargs):
 
   didactic_mint(output.stdout.decode().strip(), **kwargs)
 
+def didactic_import(module_name, module_path):
+  """
+  Import a module named `module_name` from a path `module_path`. This is useful 
+  when we want to import a module that is not in the current directory. This 
+  might be the case with PythonTeX, when it runs in a subdirectory and we want 
+  to import a module that we're writing.
+  """
+  # from https://stackoverflow.com/a/67692/1305099
+  spec = importlib.util.spec_from_file_location(module_name, module_path)
+  the_module = importlib.util.module_from_spec(spec)
+  sys.modules[module_name] = the_module
+  spec.loader.exec_module(the_module)
+  return the_module
+
 def didactic_run_code(code, /, **kwargs):
   """
   Run a Python program and typeset the output using minted. The `code` is 
@@ -1284,9 +1307,13 @@ def didactic_run_code(code, /, **kwargs):
   - `kwargs` are passed to `didactic_output`, which in turn passes some 
   arguments on to `didactic_mint`. See those functions for details.
   """
-  with open("tmp_didactic_minted_output.py", "w") as f:
+  with tempfile.NamedTemporaryFile(mode="w", delete=False,
+                                   dir=".",
+                                   prefix="didactic_code_",
+                                   suffix=".py") as f:
     f.write(code)
-  didactic_output("tmp_didactic_minted_output.py", **kwargs)
+    filename = f.name
+  didactic_output(filename, **kwargs)
 \end{pycode}
 %    \end{macrocode}
 %
@@ -1425,19 +1452,24 @@ def didactic_run_code(code, /, **kwargs):
 %    \end{macrocode}
 %
 % Now to the |\textbytext| command.
-% We simply set up a |tabularx| environment with two columns and use it inside 
-% a |fullwidth| environment.
+% We simply set up a |tabular| environment\footnote{%
+%   This requires the |array| package.
+%   We can't use the |tabularx| package since that one expands the arguments 
+%   several times to find a good width.
+%   That doesn't go too well with |pythontex| and |minted|.
+% } with two columns and use it inside a |fullwidth| environment.
 % We note that if the optional star is used, we also block the margin and use 
 % the full width.
 % This can't be used inside a float.
 %    \begin{macrocode}
+\RequirePackage{array}
 \NewDocumentCommand{\textbytext}{s+m+m}{%
   \IfBooleanTF{#1}
     {\blockmargin\begin{fullwidth}}
     {\begin{center}}
-  \begin{tabularx}{\columnwidth}{XX}
+  \begin{tabular}{p{0.49\columnwidth}p{0.49\columnwidth}}
     #2 & #3
-  \end{tabularx}
+  \end{tabular}
   \IfBooleanTF{#1}
     {\end{fullwidth}\unblockmargin}
     {\end{center}}
@@ -1467,10 +1499,9 @@ def didactic_run_code(code, /, **kwargs):
 % This gives us the following implementation.
 % We can reuse |\textbytext| to typeset the two examples side by side.
 %    \begin{macrocode}
-\RequirePackage{tabularx}
 \RequirePackage{minted}
 \NewDocumentCommand{\codebycode}{sommomm}{%
-  \IfBooleanTF{#1}{\expandafter\textbytext*}{\expandafter\textbytext}
+  \IfBooleanTF{#1}{\textbytext*}{\textbytext}
   {%
     \IfValueTF{#2}
       {\lstexample[#2]{#3}{#4}}
@@ -1495,16 +1526,17 @@ def didactic_run_code(code, /, **kwargs):
 % We can use |\textbytext| to typeset the two outputs side by side.
 %    \begin{macrocode}
 \NewDocumentCommand{\runbyrun}{somom}{%
-  \IfBooleanTF{#1}{\expandafter\textbytext*}{\expandafter\textbytext}
-  {%
-    \IfValueTF{#2}
-      {\runpython[#2]{#3}}
-      {\runpython{#3}}%
-  }{%
-    \IfValueTF{#4}
-      {\runpython[#4]{#5}}
-      {\runpython{#5}}%
-  }%
+  \def\first{%
+    \IfValueTF{#2}{\pyc{minted_opts_1 = '#2'}}{\pyc{minted_opts_1 = None}}
+    \pyc{didactic_output('#3', minted_opts=minted_opts_1)}
+  }
+  \def\second{%
+    \IfValueTF{#4}{\pyc{minted_opts_2 = '#4'}}{\pyc{minted_opts_2 = None}}
+    \pyc{didactic_output('#5', minted_opts=minted_opts_2)}
+  }
+  \IfBooleanTF{#1}
+    {\textbytext*{\first}{\second}}
+    {\textbytext{\first}{\second}}
 }
 %    \end{macrocode}
 % \end{macro}
