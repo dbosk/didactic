@@ -119,11 +119,14 @@
 %   and blocks margin.
 %   The default is to not use the full width (this is a breaking change).
 %   In line with this, removes the |blockmargin| keyword argument to 
-%   |didactic_minted| PythonTeX function.
+%   |didactic_mint| PythonTeX function.
 %   This is merged into the |fullwidth| keyword argument.
 % }
 % \changes{v2.1}{2024/07/23}{%
 %   Fixes the |\textbytext| command so that it can handle minted code.
+% }
+% \changes{v2.2}{2024/08/10}{%
+%   Adds |didactic_shell| and |didactic_help| PythonTeX functions.
 % }
 %
 % \GetFileInfo{didactic.dtx}
@@ -1239,6 +1242,32 @@ def didactic_mint(output, /, lang="text",
     print(r"\end{fullwidth}")
     print(r"\unblockmargin")
 
+def didactic_shell(cmd, /, **kwargs):
+  """
+  Run a Python program and typeset the output using minted.
+
+  - `cmd` is the command to run, it's a list, to be passed to `subprocess.run`.
+  - `kwargs` are passed to `didactic_mint`, see that function for more 
+  information.
+  """
+  output = subprocess.run(cmd,
+                          stdout=subprocess.PIPE,
+                          stderr=subprocess.STDOUT)
+
+  didactic_mint(output.stdout.decode().strip(), **kwargs)
+
+def didactic_output(module, /, interpreter="python3", **kwargs):
+  """
+  Run a Python program and typeset the output using minted.
+
+  - `module` is anything that can be passed as an argument to the Python 
+  interpreter. Usually a file name or a module name.
+  - `interpreter` is the Python interpreter to use. The default is `python3`.
+  - `kwargs` are passed to `didactic_mint`, see that function for more 
+  information.
+  """
+  didactic_shell([interpreter, module], **kwargs)
+
 def didactic_pydoc(module, /, builtin=False, **kwargs):
   """
   Print the pydoc for a module.
@@ -1258,6 +1287,15 @@ def didactic_pydoc(module, /, builtin=False, **kwargs):
     lines = lines[:-4]
   didactic_mint("\n".join(lines).strip(), lang="text", **kwargs)
 
+def didactic_help(module, /, **kwargs):
+  """
+  Print the help for a module.
+
+  The `kwargs` are passed to `didactic_mint`, see that function for more 
+  information.
+  """
+  didactic_mint(help(module), **kwargs)
+
 def didactic_source(function, /, **kwargs):
   """
   Print the source code of a function. This is a function object and we use 
@@ -1267,22 +1305,6 @@ def didactic_source(function, /, **kwargs):
   information.
   """
   didactic_mint(inspect.getsource(function).strip(), lang="python", **kwargs)
-
-def didactic_output(module, /, interpreter="python3", **kwargs):
-  """
-  Run a Python program and typeset the output using minted.
-
-  - `module` is anything that can be passed as an argument to the Python 
-  interpreter. Usually a file name or a module name.
-  - `interpreter` is the Python interpreter to use. The default is `python3`.
-  - `kwargs` are passed to `didactic_mint`, see that function for more 
-  information.
-  """
-  output = subprocess.run([interpreter, module],
-                          stdout=subprocess.PIPE,
-                          stderr=subprocess.STDOUT)
-
-  didactic_mint(output.stdout.decode().strip(), **kwargs)
 
 def didactic_import(module_name, module_path):
   """
