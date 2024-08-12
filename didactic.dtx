@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{didactic}
 %<*package>
-    [2024/07/23 v2.1 didactic]
+    [2024/07/23 v2.3 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -127,6 +127,9 @@
 % }
 % \changes{v2.2}{2024/08/10}{%
 %   Adds |didactic_shell| and |didactic_help| PythonTeX functions.
+% }
+% \changes{v2.3}{2024/08/12}{%
+%   Makes memoir use no uppercase heads.
 % }
 %
 % \GetFileInfo{didactic.dtx}
@@ -587,6 +590,8 @@
 \setsecnumdepth{subsection}
 % https://tex.stackexchange.com/a/14354/17418
 \maxtocdepth{subsection}
+\nouppercaseheads
+
 
 % https://tex.stackexchange.com/a/23041/17418
 \RequirePackage{ifxetex}
