@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2024/08/10 v2.2 didactic]
+  [2024/08/16 v2.3 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -127,6 +127,9 @@
 % }
 % \changes{v2.2}{2024/08/10}{%
 %   Adds |didactic_shell| and |didactic_help| PythonTeX functions.
+% }
+% \changes{v2.3}{2024/08/16}{%
+%   Turns off hangnum by default.
 % }
 %
 % \GetFileInfo{didactic.dtx}
@@ -580,9 +583,8 @@
   \renewcommand*{\afterchapternum}{}
   \setsecheadstyle{\normalfont\large\bfseries}
   %\setsubsecheadstyle{\normalfont\normalsize\bfseries}
+  \hangsecnum
 }
-\ifartopt{\chapterstyle{arthangnum}}{\relax}
-\hangsecnum
 % https://tex.stackexchange.com/a/33458/17418
 \setsecnumdepth{subsection}
 % https://tex.stackexchange.com/a/14354/17418
