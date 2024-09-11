@@ -613,6 +613,91 @@
 \nouppercaseheads
 %    \end{macrocode}
 %
+% Now we want to ensure that we reuse the footnotes for references on the same 
+% page.
+% The idea is that we keep track of the page number for every reference (and 
+% footnote).
+% Then we can check if the page number has changed or not.
+% If it has changed, we do everything new.
+% Otherwise we reuse the same footnote mark.
+%    \begin{macrocode}
+% adapted from https://tex.stackexchange.com/a/408064/17418
+% and https://tex.stackexchange.com/a/315805/17418
+\usepackage{ifoddpage}
+\makeatletter
+\def\@defkeyasused#1{%
+  \typeout{defkeyasused set \thekey{} to page \arabic{page} note \thefootnote}%
+  \expandafter\xdef\csname repeatcite@#1\endcsname{\thefootnote}%
+  \expandafter\xdef\csname citepage@#1\endcsname{\arabic{page}}%
+}%
+\def\@resetkey#1{%
+  \typeout{resetkey reset #1:
+    \arabic{page}
+    and \oddpage@page{}
+    and \csname citepage@#1\endcsname}%
+  \global\expandafter\let\csname repeatcite@#1\endcsname=\relax%
+}
+\def\@resetkeyifnewpage#1{%
+  \@ifundefined{citepage@#1}
+    {\ifciteseen
+      {\@resetkey{#1}}
+      {\relax}}%
+    {\expandafter\ifnum\csname citepage@#1\endcsname<\oddpage@page\relax
+      \@resetkey{#1}%
+     \fi}%
+}
+\def\footnoteormark#1{%
+  \edef\thekey{\thefield{entrykey}}%
+  \typeout{footnoteormark \thekey}%
+  \@resetkeyifnewpage{\thekey}%
+  \@ifundefined{repeatcite@\thekey}%
+    {\mkbibfootnote{#1}\@defkeyasused{\thekey}}%
+    {\footnotemark[\csname repeatcite@\thekey\endcsname]%
+      \typeout{footnoteormark reused \thekey}}%
+}
+\def\ifnonotes#1#2{%
+  \ifboolexpr{test {\iffieldundef{prenote}} and test {\iffieldundef{postnote}}}
+    {#1}
+    {#2}%
+}
+\def\noisymkbibfootnote#1{%
+  \typeout{noisymkbibfootnote}%
+  \mkbibfootnote{#1}%
+}
+\let\@mkbibfootnoteifnotes=\noisymkbibfootnote
+\NewDocumentCommand\mkbibfootnoteifnotes{m}{%
+  \typeout{mkbibfootnoteifnotes \meaning\@mkbibfootnoteifnotes}%
+  \@mkbibfootnoteifnotes{#1}%
+}
+%\DeclareCiteCommand{\footcite}%
+%  [\expandafter\mkbibfootnoteifnotes]
+%  {\ifnonotes
+%    {\global\let\@mkbibfootnoteifnotes=\relax\typeout{set relax}}
+%    {\global\let\@mkbibfootnoteifnotes=\noisymkbibfootnote\typeout{set footnote}}%
+%   \usebibmacro{prenote}}
+%  {\usebibmacro{citeindex}%
+%   \typeout{footcite \thefield{entrykey}}%
+%   \ifnonotes
+%    {\footnoteormark{\usebibmacro{cite}}}
+%    {\usebibmacro{cite}}}
+%  {\ifnonotes
+%    {\textsuperscript{,}}
+%    {\multicitedelim}}
+%  {\usebibmacro{postnote}}
+\DeclareCiteCommand{\footcite}%
+  [\unspace]
+  {\relax}
+  {\usebibmacro{citeindex}%
+    \typeout{footcite \thefield{entrykey}}%
+    \ifnonotes{\footnoteormark}{\mkbibfootnote}
+      {\usebibmacro{prenote}\usebibmacro{cite}\usebibmacro{postnote}}}
+  {\textsuperscript{,}}
+  {\relax}
+\makeatother
+\DeclareMultiCiteCommand{\footcites}{\footcite}{\textsuperscript{,}}
+\DeclareAutoCiteCommand{footnote}[f]{\footcite}{\footcites}
+%    \end{macrocode}
+%
 % And that concludes the |memoir| part.
 %    \begin{macrocode}
 \fi% end \if@didactic@memoir
