@@ -1,6 +1,6 @@
 LATEX?=latex
 PDFLATEX?=pdflatex
-LATEXFLAGS=-shell-escape -halt-on-error
+LATEXFLAGS=-shell-escape
 PYTHONTEX=python3 $(shell which pythontex) --interpreter python:python3
 
 .PHONY: all
@@ -9,7 +9,7 @@ all: didactic.sty didactic.pdf didactic.tar.gz
 SRC+=	didactic.dtx hello.py idea.tex lightblock.tex ProvideSemanticEnv.tex
 
 didactic.pdf: ${SRC} didactic.sty
-	${PDFLATEX} ${LATEXFLAGS} $<
+	-${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	${PYTHONTEX} didactic
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
@@ -43,3 +43,4 @@ clean:
 	${RM} test.aux test.log test.unq
 	${RM} didactic_output_*
 	${RM} didactic_code_*
+	${RM} -R didactic-files
