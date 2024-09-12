@@ -613,7 +613,35 @@
 \nouppercaseheads
 %    \end{macrocode}
 %
-% Now we want to ensure that we reuse the footnotes for references on the same 
+% And that concludes the |memoir| part.
+%    \begin{macrocode}
+\fi% end \if@didactic@memoir
+%    \end{macrocode}
+%
+% We also want to adapt the citation commands of a few packages to use 
+% footnotes.
+% For these, we check if the package is loaded, if it is, we do the changes.
+% We don't load the packages ourselves, we assume the user has done that.
+% This also means that the |didactic| package should be loaded last.
+%    \begin{macrocode}
+\@ifpackageloaded{biblatex}{%
+  \ExecuteBibliographyOptions{%
+    autocite=footnote,
+    singletitle=false,
+    maxbibnames=99,
+    isbn=false,doi=false,url=false
+  }
+  % from https://tex.stackexchange.com/a/374059/17418
+  \DeclareCiteCommand{\fullauthorcite}
+    {\usebibmacro{prenote}}
+    {\usedriver
+      {\setcounter{maxnames}{99}% use up to 99 authors
+        \DeclareNameAlias{sortname}{default}}
+      {\thefield{entrytype}}}
+    {\multicitedelim}
+    {\usebibmacro{postnote}}
+%    \end{macrocode}
+% Now we want to ensure that we reuse the footnotes for references on the same
 % page.
 % The idea is that we keep track of the page number for every reference (and 
 % footnote).
@@ -621,10 +649,7 @@
 % If it has changed, we do everything new.
 % Otherwise we reuse the same footnote mark.
 %    \begin{macrocode}
-% adapted from https://tex.stackexchange.com/a/408064/17418
-% and https://tex.stackexchange.com/a/315805/17418
-\usepackage{ifoddpage}
-\makeatletter
+\RequirePackage{ifoddpage}
 \def\@defkeyasused#1{%
   \typeout{defkeyasused set \thekey{} to page \arabic{page} note \thefootnote}%
   \expandafter\xdef\csname repeatcite@#1\endcsname{\thefootnote}%
@@ -660,30 +685,6 @@
     {#1}
     {#2}%
 }
-\def\noisymkbibfootnote#1{%
-  \typeout{noisymkbibfootnote}%
-  \mkbibfootnote{#1}%
-}
-\let\@mkbibfootnoteifnotes=\noisymkbibfootnote
-\NewDocumentCommand\mkbibfootnoteifnotes{m}{%
-  \typeout{mkbibfootnoteifnotes \meaning\@mkbibfootnoteifnotes}%
-  \@mkbibfootnoteifnotes{#1}%
-}
-%\DeclareCiteCommand{\footcite}%
-%  [\expandafter\mkbibfootnoteifnotes]
-%  {\ifnonotes
-%    {\global\let\@mkbibfootnoteifnotes=\relax\typeout{set relax}}
-%    {\global\let\@mkbibfootnoteifnotes=\noisymkbibfootnote\typeout{set footnote}}%
-%   \usebibmacro{prenote}}
-%  {\usebibmacro{citeindex}%
-%   \typeout{footcite \thefield{entrykey}}%
-%   \ifnonotes
-%    {\footnoteormark{\usebibmacro{cite}}}
-%    {\usebibmacro{cite}}}
-%  {\ifnonotes
-%    {\textsuperscript{,}}
-%    {\multicitedelim}}
-%  {\usebibmacro{postnote}}
 \DeclareCiteCommand{\footcite}%
   [\unspace]
   {\relax}
@@ -693,38 +694,12 @@
       {\usebibmacro{prenote}\usebibmacro{cite}\usebibmacro{postnote}}}
   {\textsuperscript{,}}
   {\relax}
-\makeatother
 \DeclareMultiCiteCommand{\footcites}{\footcite}{\textsuperscript{,}}
 \DeclareAutoCiteCommand{footnote}[f]{\footcite}{\footcites}
 %    \end{macrocode}
+% And that concludes the code for reusing footnotes for references.
 %
-% And that concludes the |memoir| part.
 %    \begin{macrocode}
-\fi% end \if@didactic@memoir
-%    \end{macrocode}
-%
-% We also want to adapt the citation commands of a few packages to use 
-% footnotes.
-% For these, we check if the package is loaded, if it is, we do the changes.
-% We don't load the packages ourselves, we assume the user has done that.
-% This also means that the |didactic| package should be loaded last.
-%    \begin{macrocode}
-\@ifpackageloaded{biblatex}{%
-  \ExecuteBibliographyOptions{%
-    autocite=footnote,
-    singletitle=false,
-    maxbibnames=99,
-    isbn=false,doi=false,url=false
-  }
-  % from https://tex.stackexchange.com/a/374059/17418
-  \DeclareCiteCommand{\fullauthorcite}
-    {\usebibmacro{prenote}}
-    {\usedriver
-      {\setcounter{maxnames}{99}% use up to 99 authors
-        \DeclareNameAlias{sortname}{default}}
-      {\thefield{entrytype}}}
-    {\multicitedelim}
-    {\usebibmacro{postnote}}
 }{}
 \@ifpackageloaded{csquotes}{%
   \SetCiteCommand{\autocite}
