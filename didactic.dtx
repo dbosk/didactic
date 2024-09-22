@@ -1245,7 +1245,7 @@ def didactic_mint(output, /, lang="text",
     print(r"\end{fullwidth}")
     print(r"\unblockmargin")
 
-def didactic_shell(cmd, /, **kwargs):
+def didactic_shell(cmd, /, shell=False, **kwargs):
   """
   Run a Python program and typeset the output using minted.
 
@@ -1254,6 +1254,7 @@ def didactic_shell(cmd, /, **kwargs):
   information.
   """
   output = subprocess.run(cmd,
+                          shell=shell,
                           stdout=subprocess.PIPE,
                           stderr=subprocess.STDOUT)
 
