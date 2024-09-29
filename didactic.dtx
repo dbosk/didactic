@@ -515,13 +515,15 @@
 \AtBeginSection[]{%
   \begin{frame}<beamer>
     \tableofcontents[currentsection,
-                     subsectionstyle=show/show/hide]
+                     subsectionstyle=show/show/hide,
+                     subsubsectionstyle=show/show/hide]
   \end{frame}
 }
 \AtBeginSubsection[]{%
   \begin{frame}<beamer>
     \tableofcontents[currentsection,
-                     subsectionstyle=show/shaded/hide]
+                     subsectionstyle=show/shaded/hide,
+                     subsubsectionstyle=show/show/hide]
   \end{frame}
 }
 \fi% end \if@didactic@beamer
