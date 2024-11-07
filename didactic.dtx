@@ -438,6 +438,7 @@
 % We know that the default in |memoir| is |outer|.
 %    \begin{macrocode}
 \newcommand\@didactic@marginparmargin{outer}
+\@ifclassloaded{memoir}{\marginparmargin{outer}}{}
 \DeclareOptionX{marginparmargin}{%
   \renewcommand\@didactic@marginparmargin{#1}
   \@ifclassloaded{memoir}{%
