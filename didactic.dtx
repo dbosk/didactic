@@ -1445,38 +1445,9 @@ def didactic_run_code(code, /, **kwargs):
 % To do this we first add a |fullwidth| environment\footnote{%
 %   Similarly to \url{https://tex.stackexchange.com/a/350944/17418}.
 % }.
-% We can get the |adjustwidth| environment from the |changepage| package 
-% whenever |memoir| isn't used\footnote{%
-%   The |memoir| class uses |changepage|, that's the origin of the package.
-% }.
+% We'll simply use the |fullwidth| package.
 %    \begin{macrocode}
-\RequirePackage{changepage}
-\RequirePackage{calc}
-\newlength{\@didactic@textbytext@oldcolumnwidth}
-\NewDocumentEnvironment{fullwidth}{}{%
-  \setlength{\columnwidth}{\textwidth+2em+\marginparwidth+\marginparsep}
-  \if@twoside
-    \IfStrEqCase{\@didactic@marginparmargin}{%
-        {inner}{\begin{adjustwidth*}{-\marginparwidth-\marginparsep}{-2em}}
-        {left}{\begin{adjustwidth}{-\marginparwidth-\marginparsep}{-2em}}
-        {outer}{\begin{adjustwidth*}{-2em}{-\marginparwidth-\marginparsep}}
-        {right}{\begin{adjustwidth}{-2em}{-\marginparwidth-\marginparsep}}
-      }[\relax]
-  \else
-    \IfStrEqCase{\@didactic@marginparmargin}{%
-        {inner}{\begin{adjustwidth}{-\marginparwidth-\marginparsep}{-2em}}
-        {left}{\begin{adjustwidth}{-\marginparwidth-\marginparsep}{-2em}}
-        {outer}{\begin{adjustwidth}{-2em}{-\marginparwidth-\marginparsep}}
-        {right}{\begin{adjustwidth}{-2em}{-\marginparwidth-\marginparsep}}
-      }[\relax]
-  \fi
-}{
-  \if@twoside
-    \end{adjustwidth*}
-  \else
-    \end{adjustwidth}
-  \fi
-}
+\RequirePackage{fullwidth}
 %    \end{macrocode}
 %
 % Now to the |\textbytext| command.
