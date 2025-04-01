@@ -438,6 +438,7 @@
 % We know that the default in |memoir| is |outer|.
 %    \begin{macrocode}
 \newcommand\@didactic@marginparmargin{outer}
+\@ifclassloaded{memoir}{\marginparmargin{outer}}{}
 \DeclareOptionX{marginparmargin}{%
   \renewcommand\@didactic@marginparmargin{#1}
   \@ifclassloaded{memoir}{%
@@ -515,13 +516,15 @@
 \AtBeginSection[]{%
   \begin{frame}<beamer>
     \tableofcontents[currentsection,
-                     subsectionstyle=show/show/hide]
+                     subsectionstyle=show/show/hide,
+                     subsubsectionstyle=show/show/hide]
   \end{frame}
 }
 \AtBeginSubsection[]{%
   \begin{frame}<beamer>
     \tableofcontents[currentsection,
-                     subsectionstyle=show/shaded/hide]
+                     subsectionstyle=show/shaded/hide,
+                     subsubsectionstyle=show/show/hide]
   \end{frame}
 }
 \fi% end \if@didactic@beamer
@@ -1305,7 +1308,7 @@ def didactic_mint(output, /, lang="text",
     print(r"\end{fullwidth}")
     print(r"\unblockmargin")
 
-def didactic_shell(cmd, /, **kwargs):
+def didactic_shell(cmd, /, shell=False, **kwargs):
   """
   Run a Python program and typeset the output using minted.
 
@@ -1314,6 +1317,7 @@ def didactic_shell(cmd, /, **kwargs):
   information.
   """
   output = subprocess.run(cmd,
+                          shell=shell,
                           stdout=subprocess.PIPE,
                           stderr=subprocess.STDOUT)
 
