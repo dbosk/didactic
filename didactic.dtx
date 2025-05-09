@@ -1488,7 +1488,12 @@ def didactic_run_code(code, /, **kwargs):
   \fi
 }{
   \if@twoside
-    \end{adjustwidth*}
+    \IfStrEqCase{\@didactic@marginparmargin}{%
+      {inner}{\end{adjustwidth*}}
+      {left}{\end{adjustwidth}}
+      {outer}{\end{adjustwidth*}}
+      {right}{\end{adjustwidth}}
+    }[\relax]
   \else
     \end{adjustwidth}
   \fi
