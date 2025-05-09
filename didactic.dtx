@@ -612,8 +612,17 @@
   \RequirePackage[scaled=0.85]{beramono}
 \fi
 \setlxvchars\setxlvchars
-\checkandfixthelayout
 \nouppercaseheads
+
+\checkandfixthelayout
+% If we specify right or left, we should have the same margins
+% on both recto and verso.
+\IfStrEqCase{\@didactic@marginparmargin}{%
+  {inner}{\relax}
+  {left}{\let\oddsidemargin\evensidemargin}
+  {outer}{\relax}
+  {right}{\let\evensidemargin\oddsidemargin}
+}[\relax]
 %    \end{macrocode}
 %
 % And that concludes the |memoir| part.
