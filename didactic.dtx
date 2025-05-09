@@ -1061,10 +1061,11 @@
 %    \begin{macrocode}
 % Gives us indentation in the margin notes.
 % Adapted from https://tex.stackexchange.com/a/257171
+\RequirePackage{ragged2e}
+\setlength{\RaggedRightParindent}{\parindent}
 \NewDocumentCommand{\indentedmarginpar}{+m}{%
-  \@ifclassloaded{memoir}{\strictpagecheck}{\relax}%
   \marginpar{%
-    \setlength{\parindent}{1.0em}\footnotesize
+    \footnotesize\RaggedRight
     \@afterindentfalse\@afterheading #1
   }%
 }
