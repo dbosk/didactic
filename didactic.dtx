@@ -553,10 +553,17 @@
 \setulmarginsandblock{\@didactic@margin@top}
                      {\@didactic@margin@bottom}
                      {*}
+\IfStrEqCase{\@didactic@marginparmargin}{%
+  {right}{\marginparmargin{right}\sidecapmargin{right}}
+  {left}{\marginparmargin{left}\sidecapmargin{left}}
+  {outer}{\marginparmargin{outer}\sidecapmargin{outer}}
+  {inner}{\marginparmargin{inner}\sidecapmargin{inner}}
+}[\relax]
+\typeout{Set marginparmargin and sidecapmargin to \@didactic@marginparmargin}
+\strictpagechecktrue
 
 \footnotesinmargin
 
-\RequirePackage{ragged2e}
 \renewcommand{\sidefootform}{\RaggedRight}
 \renewcommand{\foottextfont}{\footnotesize\RaggedRight}
 
@@ -568,9 +575,7 @@
 
 % side captions
 % https://tex.stackexchange.com/a/275626/17418
-\sidecapmargin{outer}
 \setsidecappos{t}
-\checkandfixthelayout
 \setsidecaps{\marginparsep}{\marginparwidth}
 \renewcommand{\sidecapstyle}{%
   \captionstyle{\RaggedRight}
