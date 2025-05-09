@@ -560,7 +560,7 @@
                      {*}
 \IfStrEqCase{\@didactic@marginparmargin}{%
   {right}{\marginparmargin{right}\sidecapmargin{right}}
-  {left}{\marginparmargin{left}\sidecapmargin{left}}
+  {left} {\marginparmargin{left} \sidecapmargin{left} }
   {outer}{\marginparmargin{outer}\sidecapmargin{outer}}
   {inner}{\marginparmargin{inner}\sidecapmargin{inner}}
 }[\relax]
@@ -629,7 +629,7 @@
 % on both recto and verso.
 \IfStrEqCase{\@didactic@marginparmargin}{%
   {inner}{\relax}
-  {left}{\let\oddsidemargin\evensidemargin}
+  {left} {\let\oddsidemargin\evensidemargin}
   {outer}{\relax}
   {right}{\let\evensidemargin\oddsidemargin}
 }[\relax]
