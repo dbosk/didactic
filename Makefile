@@ -47,3 +47,4 @@ clean:
 	${RM} didactic_output_*
 	${RM} didactic_code_*
 	${RM} -R didactic-files
+	latexmk -C test.tex
