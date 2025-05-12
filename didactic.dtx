@@ -566,6 +566,7 @@
 }[\relax]
 \typeout{Set marginparmargin and sidecapmargin to \@didactic@marginparmargin}
 \strictpagechecktrue
+\checkandfixthelayout
 
 \footnotesinmargin
 
@@ -576,15 +577,15 @@
 \setmpjustification{\RaggedRight}{\RaggedRight}
 
 % margin figure and caption typeset ragged against text block
-\setfloatadjustment{marginfigure}{\mpjustification}
-\setmarginfloatcaptionadjustment{figure}{\captionstyle{\mpjustification}}
+\setfloatadjustment{marginfigure}{\RaggedRight}
+\setmarginfloatcaptionadjustment{figure}{\mpjustification}
 
 % side captions
 % https://tex.stackexchange.com/a/275626/17418
 \setsidecappos{t}
 \setsidecaps{\marginparsep}{\marginparwidth}
 \renewcommand{\sidecapstyle}{%
-  \captionstyle{\RaggedRight}
+  \mpjustification%
 }
 
 \makechapterstyle{arthangnum}{%
@@ -625,7 +626,6 @@
 \setlxvchars\setxlvchars
 \nouppercaseheads
 
-\checkandfixthelayout
 % If we specify right or left, we should have the same margins
 % on both recto and verso.
 \IfStrEqCase{\@didactic@marginparmargin}{%
