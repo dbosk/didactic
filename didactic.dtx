@@ -417,15 +417,23 @@
 % \begin{option}{top}
 % \begin{option}{bottom}
 % We also have some key--value options to control the margins.
+% The golden ratio is \((1 + \sqrt 5) / 2\), which is approximately 
+% 1.61803398875.
+% The ratio of the inner and outer margins should be 1.61803398875.
+% However, to fit more margin notes, we'll use the golden ratio squared.
 %    \begin{macrocode}
-\newcommand\@didactic@margin@inner{20mm}
-\newcommand\@didactic@margin@outer{60mm}
-\newcommand\@didactic@margin@top{30mm}
-\newcommand\@didactic@margin@bottom{60mm}
-\DeclareOptionX{inner}[20mm]{\renewcommand\@didactic@margin@inner{#1}}
-\DeclareOptionX{outer}[60mm]{\renewcommand\@didactic@margin@outer{#1}}
-\DeclareOptionX{top}[25mm]{\renewcommand\@didactic@margin@top{#1}}
-\DeclareOptionX{bottom}[60mm]{\renewcommand\@didactic@margin@bottom{#1}}
+\newlength\@didactic@margin@inner
+\setlength\@didactic@margin@inner{23mm}
+\newlength\@didactic@margin@outer
+\setlength\@didactic@margin@outer{60.2mm}
+\newlength\@didactic@margin@top
+\setlength\@didactic@margin@top{30mm}
+\newlength\@didactic@margin@bottom
+\setlength\@didactic@margin@bottom{48.5mm}
+\DeclareOptionX{inner}{\setlength\@didactic@margin@inner{#1}}
+\DeclareOptionX{outer}{\setlength\@didactic@margin@outer{#1}}
+\DeclareOptionX{top}{\setlength\@didactic@margin@top{#1}}
+\DeclareOptionX{bottom}{\setlength\@didactic@margin@bottom{#1}}
 %    \end{macrocode}
 % \end{option}
 % \end{option}
@@ -438,14 +446,11 @@
 % We know that the default in |memoir| is |outer|.
 %    \begin{macrocode}
 \newcommand\@didactic@marginparmargin{outer}
-\@ifclassloaded{memoir}{\marginparmargin{outer}}{}
+\@ifclassloaded{memoir}
+  {\marginparmargin{outer}\sidecapmargin{outer}}
+  {\relax}
 \DeclareOptionX{marginparmargin}{%
   \renewcommand\@didactic@marginparmargin{#1}
-  \@ifclassloaded{memoir}{%
-    \marginparmargin{#1}
-    \strictpagechecktrue
-    \checkandfixthelayout
-  }{}
 }
 %    \end{macrocode}
 % \end{option}
@@ -553,6 +558,15 @@
 \setulmarginsandblock{\@didactic@margin@top}
                      {\@didactic@margin@bottom}
                      {*}
+\IfStrEqCase{\@didactic@marginparmargin}{%
+  {right}{\marginparmargin{right}\sidecapmargin{right}}
+  {left} {\marginparmargin{left} \sidecapmargin{left} }
+  {outer}{\marginparmargin{outer}\sidecapmargin{outer}}
+  {inner}{\marginparmargin{inner}\sidecapmargin{inner}}
+}[\relax]
+\typeout{Set marginparmargin and sidecapmargin to \@didactic@marginparmargin}
+\strictpagechecktrue
+\checkandfixthelayout
 
 \footnotesinmargin
 
@@ -575,9 +589,7 @@
 
 % side captions
 % https://tex.stackexchange.com/a/275626/17418
-\sidecapmargin{outer}
 \setsidecappos{t}
-\checkandfixthelayout
 \setsidecaps{\marginparsep}{\marginparwidth}
 \renewcommand{\sidecapstyle}{\mpjustification}
 
@@ -617,8 +629,16 @@
   \RequirePackage[scaled=0.85]{beramono}
 \fi
 \setlxvchars\setxlvchars
-\checkandfixthelayout
 \nouppercaseheads
+
+% If we specify right or left, we should have the same margins
+% on both recto and verso.
+\IfStrEqCase{\@didactic@marginparmargin}{%
+  {inner}{\relax}
+  {left} {\let\oddsidemargin\evensidemargin}
+  {outer}{\relax}
+  {right}{\let\evensidemargin\oddsidemargin}
+}[\relax]
 %    \end{macrocode}
 %
 % And that concludes the |memoir| part.
@@ -1126,8 +1146,9 @@
 %    \begin{macrocode}
 % Gives us indentation in the margin notes.
 % Adapted from https://tex.stackexchange.com/a/257171
+\RequirePackage{ragged2e}
+\setlength{\RaggedRightParindent}{\parindent}
 \NewDocumentCommand{\indentedmarginpar}{+m}{%
-  \@ifclassloaded{memoir}{\strictpagecheck}{\relax}%
   \marginpar{%
     \foottextfont%
     \setlength{\parindent}{2em}%
@@ -1539,7 +1560,12 @@ def didactic_run_code(code, /, **kwargs):
   \fi
 }{
   \if@twoside
-    \end{adjustwidth*}
+    \IfStrEqCase{\@didactic@marginparmargin}{%
+      {inner}{\end{adjustwidth*}}
+      {left}{\end{adjustwidth}}
+      {outer}{\end{adjustwidth*}}
+      {right}{\end{adjustwidth}}
+    }[\relax]
   \else
     \end{adjustwidth}
   \fi
