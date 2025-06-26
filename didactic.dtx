@@ -1257,7 +1257,7 @@ def didactic_mint(output, /, lang="text",
                                    dir=".",
                                    prefix="didactic_output_",
                                    suffix=".txt") as f:
-    f.write(output.strip())
+    f.write(output.strip("\n"))
     filename = f.name
 
   if minted_opts:
@@ -1282,7 +1282,7 @@ def didactic_shell(cmd, /, shell=False, **kwargs):
                           stdout=subprocess.PIPE,
                           stderr=subprocess.STDOUT)
 
-  didactic_mint(output.stdout.decode().strip(), **kwargs)
+  didactic_mint(output.stdout.decode().strip("\n"), **kwargs)
 
 def didactic_output(module, /, interpreter="python3", **kwargs):
   """
@@ -1313,7 +1313,7 @@ def didactic_pydoc(module, /, builtin=False, **kwargs):
   lines = output.stdout.decode().splitlines()
   if not builtin:
     lines = lines[:-4]
-  didactic_mint("\n".join(lines).strip(), lang="text", **kwargs)
+  didactic_mint("\n".join(lines).strip("\n"), lang="text", **kwargs)
 
 def didactic_help(module, /, **kwargs):
   """
@@ -1332,7 +1332,8 @@ def didactic_source(function, /, **kwargs):
   The `kwargs` are passed to `didactic_mint`, see that function for more 
   information.
   """
-  didactic_mint(inspect.getsource(function).strip(), lang="python", **kwargs)
+  didactic_mint(inspect.getsource(function).strip("\n"), lang="python", 
+  **kwargs)
 
 def didactic_import(module_name, module_path):
   """
