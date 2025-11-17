@@ -1471,12 +1471,21 @@ def didactic_run_code(code, /, **kwargs):
 % whenever |memoir| isn't used\footnote{%
 %   The |memoir| class uses |changepage|, that's the origin of the package.
 % }.
+%
+% The idea is this:
+% We expand the |textwidth| to include the margin note area.
+% Then we use |adjustwidth| to move the left and right margins outwards to 
+% cover the margin note area.
+% We also move the inner margin by |2em| to give some space from the edge of 
+% the paper on the outer side.
 %    \begin{macrocode}
 \RequirePackage{changepage}
 \RequirePackage{calc}
 \newlength{\@didactic@textbytext@oldcolumnwidth}
 \NewDocumentEnvironment{fullwidth}{}{%
-  \setlength{\columnwidth}{\textwidth+2em+\marginparwidth+\marginparsep}
+  \setlength{\columnwidth}{\textwidth+\marginparwidth+\marginparsep}
+  \setlength{\linewidth}{\textwidth+\marginparwidth+\marginparsep}
+  \setlength{\textwidth}{\textwidth+\marginparwidth+\marginparsep}
   \if@twoside
     \IfStrEqCase{\@didactic@marginparmargin}{%
         {inner}{\begin{adjustwidth*}{-\marginparwidth-\marginparsep}{-2em}}
