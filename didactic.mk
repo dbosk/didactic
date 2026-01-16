@@ -1,7 +1,7 @@
 didactic.sty: ${INCLUDE_DIDACTIC}/didactic.sty
 	${LN} $< $@
 
-${INCLUDE_DIDACTIC}/didactic.sty::
+${INCLUDE_DIDACTIC}/didactic.sty:
 	${MAKE} -C $(dir $@) $(notdir $@)
 
 
