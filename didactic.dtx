@@ -571,22 +571,27 @@
 \footnotesinmargin
 
 \RequirePackage{ragged2e}
-\renewcommand{\sidefootform}{\RaggedRight}
-\renewcommand{\foottextfont}{\footnotesize\RaggedRight}
-
 \setmpjustification{\RaggedRight}{\RaggedRight}
+% margin figure and caption typeset ragged against text block.
+% from the memman page 175.
+\setfloatadjustment{marginfigure}{\mpjustification}
+\setmarginfloatcaptionadjustment{figure}{\captionstyle{\mpjustification}}
 
-% margin figure and caption typeset ragged against text block
-\setfloatadjustment{marginfigure}{\RaggedRight}
-\setmarginfloatcaptionadjustment{figure}{\mpjustification}
+\renewcommand{\sidefootform}{\mpjustification}
+\fi % we want this to exist even when not using memoir,
+    % then we can reuse it later.
+% to use renewcommand if the command doesn't exist
+\RequirePackage{ragged2e}
+\providecommand{\foottextfont}{\relax}
+\renewcommand{\foottextfont}{\footnotesize\RaggedRight}
+\if@didactic@memoir
+\renewcommand{\foottextfont}{\footnotesize\mpjustification}
 
 % side captions
 % https://tex.stackexchange.com/a/275626/17418
 \setsidecappos{t}
 \setsidecaps{\marginparsep}{\marginparwidth}
-\renewcommand{\sidecapstyle}{%
-  \mpjustification%
-}
+\renewcommand{\sidecapstyle}{\mpjustification}
 
 \makechapterstyle{arthangnum}{%
   \typeout{Using arthangnum chapter style.}
@@ -663,6 +668,98 @@
       {\thefield{entrytype}}}
     {\multicitedelim}
     {\usebibmacro{postnote}}
+%    \end{macrocode}
+% Now we want to reuse footnotes for citations that repeat on the same page: a
+% second \cs{footcite} of the same reference on the same page should reuse the
+% first footnote's number (a bare \cs{footnotemark}) instead of emitting a new
+% footnote, while a citation on a fresh page gets a fresh footnote.
+%
+% The hard part is knowing \emph{which} page we are on. The page counter
+% (\cs{c@page}) is asynchronous --- it is only authoritative inside the output
+% routine --- so testing it at the point of the citation misfires near page
+% breaks. We instead take the absolute page number from the |.aux| file via
+% |zref|'s |abspage| property. That value is written by the previous run, so it
+% is one compilation behind and settles on the second pass; but, unlike
+% \cs{c@page}, it is reliable.
+%
+% For every \cs{footcite} we drop a uniquely named |zref| label at the point of
+% citation. A citation's \emph{reuse identity} is its entry key together with its
+% pre- and postnote, so |\footcite[see][p.~5]{A}| reuses a matching earlier one
+% while |\footcite[cf.][p.~7]{A}| gets its own footnote; with no notes this
+% reduces to the bare key. For each identity we remember the footnote number and
+% the label of the last real footnote, and a later citation of that identity
+% reuses the number iff that footnote lies in the same \emph{reuse group}.
+%
+% The reuse group is normally just the page (|abspage|). Under |twoside|, though,
+% the two pages of an open spread --- a verso (even |abspage|) on the left and
+% the recto (odd |abspage|) on its right --- are read together, so a footnote on
+% the verso may be reused on the recto. We therefore group the pages of a spread,
+% \{2,3\}, \{4,5\}, \dots\ (page~1 sits alone), by mapping an odd |abspage| down
+% to the even page it faces. The recto/verso parity is simply the parity of
+% |abspage| (odd = recto), so we need no |ifoddpage|; we only test \cs{if@twoside}
+% to decide whether to group at all. (We deliberately avoid \cs{numexpr} division
+% for this: it \emph{rounds}, so 3/2 would give~2 and split the \{2,3\} spread.)
+%    \begin{macrocode}
+\RequirePackage{zref-abspage,zref-user}
+\newcount\@didactic@fncount  % serial number for unique reuse labels
+\newcount\@didactic@fnpa     % abspage of the previous footnote
+\newcount\@didactic@fnpb     % abspage of the current citation
+\newcount\@didactic@fnga     % reuse group of the previous footnote
+\newcount\@didactic@fngb     % reuse group of the current citation
+\newif\if@didactic@fnreuse
+% \@didactic@fnabspage{<label>}: the abspage of a zref label, 0 if unresolved
+\newcommand\@didactic@fnabspage[1]{\zref@extractdefault{#1}{abspage}{0}}
+% \@didactic@fntogroup<count>: collapse the page in <count> to its reuse group ---
+% the page itself, or, under twoside, the verso page of its open spread (an odd
+% abspage mapped down to the even page it faces).
+\def\@didactic@fntogroup#1{\if@twoside\ifodd#1 \advance#1\m@ne \fi\fi}
+\def\@didactic@fnnewnote#1{%
+  \mkbibfootnote{#1}%
+  \expandafter\xdef\csname @didactic@fncite@\@didactic@fnkey\endcsname
+    {\the\c@footnote}%
+  \expandafter\xdef\csname @didactic@fnlabel@\@didactic@fnkey\endcsname
+    {\@didactic@fnhere}%
+}
+\def\@didactic@footnoteormark#1{%
+  % reuse identity: entry key + prenote + postnote, detokenized for csname safety
+  \protected@edef\@didactic@fnkey{%
+    \thefield{entrykey}@\thefield{prenote}@\thefield{postnote}}%
+  \edef\@didactic@fnkey{\detokenize\expandafter{\@didactic@fnkey}}%
+  \global\advance\@didactic@fncount\@ne
+  \edef\@didactic@fnhere{didacticfn@\the\@didactic@fncount}%
+  \expandafter\zlabel\expandafter{\@didactic@fnhere}%
+  \ifcsundef{@didactic@fncite@\@didactic@fnkey}%
+    {\@didactic@fnnewnote{#1}}%
+    {\edef\@didactic@fnprev{\csname @didactic@fnlabel@\@didactic@fnkey\endcsname}%
+     \@didactic@fnpa=\@didactic@fnabspage{\@didactic@fnprev}\relax
+     \@didactic@fnpb=\@didactic@fnabspage{\@didactic@fnhere}\relax
+     \@didactic@fnga=\@didactic@fnpa \@didactic@fntogroup\@didactic@fnga
+     \@didactic@fngb=\@didactic@fnpb \@didactic@fntogroup\@didactic@fngb
+     % reuse only when both pages are resolved (>0) and share a group
+     \@didactic@fnreusetrue
+     \ifnum\@didactic@fnpa<\@ne \@didactic@fnreusefalse\fi
+     \ifnum\@didactic@fnpb<\@ne \@didactic@fnreusefalse\fi
+     \ifnum\@didactic@fnga=\@didactic@fngb \else \@didactic@fnreusefalse\fi
+     \if@didactic@fnreuse
+       \footnotemark[\csname @didactic@fncite@\@didactic@fnkey\endcsname]%
+     \else
+       \@didactic@fnnewnote{#1}%
+     \fi}%
+}
+\DeclareCiteCommand{\footcite}%
+  [\unspace]
+  {\relax}
+  {\usebibmacro{citeindex}%
+    \@didactic@footnoteormark
+      {\usebibmacro{prenote}\usebibmacro{cite}\usebibmacro{postnote}}}
+  {\textsuperscript{,}}
+  {\relax}
+\DeclareMultiCiteCommand{\footcites}{\footcite}{\textsuperscript{,}}
+\DeclareAutoCiteCommand{footnote}[f]{\footcite}{\footcites}
+%    \end{macrocode}
+% And that concludes the code for reusing footnotes for references.
+%
+%    \begin{macrocode}
 }{}
 \@ifpackageloaded{csquotes}{%
   \SetCiteCommand{\autocite}
@@ -1085,8 +1182,9 @@
 \setlength{\RaggedRightParindent}{\parindent}
 \NewDocumentCommand{\indentedmarginpar}{+m}{%
   \marginpar{%
-    \footnotesize\RaggedRight
-    \@afterindentfalse\@afterheading #1
+    \foottextfont%
+    \setlength{\parindent}{2em}%
+    \@afterindentfalse\@afterheading #1%
   }%
 }
 %    \end{macrocode}
