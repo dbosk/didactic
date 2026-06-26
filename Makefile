@@ -4,7 +4,8 @@ LATEXFLAGS=-shell-escape
 PYTHONTEX=python3 $(shell which pythontex) --interpreter python:python3
 
 .PHONY: all
-all: didactic.sty didactic.pdf didactic.tar.gz test.pdf
+all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
+	test-footcite-twoside.pdf
 
 SRC+=	didactic.dtx hello.py idea.tex lightblock.tex ProvideSemanticEnv.tex
 
@@ -21,6 +22,21 @@ didactic.tar.gz: ${SRC} didactic.ins LICENSE Makefile README.md didactic.pdf
 	tar -czf $@ --transform "s|^|didactic/|" $^
 
 test.pdf: test.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} $<
+
+# footnote-reuse test: needs biber and two more passes so zref abspage labels
+# resolve from the .aux.
+test-footcite.pdf: test-footcite.tex test-footcite.bib didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} $<
+	biber test-footcite
+	${PDFLATEX} ${LATEXFLAGS} $<
+	${PDFLATEX} ${LATEXFLAGS} $<
+
+# same as above but exercises cross-spread reuse under twoside.
+test-footcite-twoside.pdf: test-footcite-twoside.tex test-footcite.bib didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} $<
+	biber test-footcite-twoside
+	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
 
 VERSION=$(shell sed -En "s/^.*v([0-9]+\.[0-9]+) didactic.*$$/\1/p" didactic.dtx)
