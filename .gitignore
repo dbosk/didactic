@@ -1,8 +1,14 @@
+__pycache__
+
 didactic.pdf
 didactic.sty
 ltxobj
 test.pdf
 test.unq
+test-footcite.pdf
+test-footcite.unq
+test-footcite-twoside.pdf
+test-footcite-twoside.unq
 didactic.tar.gz
 didactic.unq
 didactic.hd

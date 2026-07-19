@@ -1,0 +1,33 @@
+% Test for same-page footnote reuse in \footcite (didactic).
+%
+% Build TWICE so zref abspage labels resolve from the .aux:
+%   xelatex -pdf -shell-escape test-footcite && biber test-footcite \
+%     && xelatex -pdf -shell-escape test-footcite \
+%     && xelatex -pdf -shell-escape test-footcite
+%
+% Expected in the resulting PDF:
+%   Page 1: the two \footcite{A} share ONE footnote number; \footcite{B} a
+%           different one. The annotated \footcite[see][p.~5]{A} pair shares one
+%           (new) number, and \footcite[cf.][p.~7]{A} gets yet another.
+%   Page 2: \footcite{A} produces a FRESH footnote number (new page).
+\documentclass{article}
+
+\usepackage[backend=biber,autocite=footnote,citestyle=verbose,style=verbose]{biblatex}
+\usepackage{csquotes}
+\usepackage{didactic}
+\addbibresource{test-footcite.bib}
+
+\begin{document}
+
+Same page, same key: first \footcite{A} and then again \footcite{A} should share
+one footnote. A different key \footcite{B} gets its own. Now annotated cites:
+\footcite[see][p.~5]{A} and once more \footcite[see][p.~5]{A} should share a
+footnote (identical notes), whereas \footcite[cf.][p.~7]{A} differs and gets a
+separate footnote.
+
+\newpage
+
+New page: \footcite{A} here must be a fresh footnote, not a reuse of the one on
+page~1.
+
+\end{document}
