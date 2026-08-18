@@ -618,6 +618,9 @@
   % https://tex.stackexchange.com/a/506776/17418
   \usepackage{newpxtext,newpxmath}
 \else
+  % Bera Mono (below) exists only in T1 encoding; without it LaTeX
+  % silently substitutes Computer Modern Roman for \ttfamily.
+  \RequirePackage[T1]{fontenc}
   % https://tex.stackexchange.com/a/324757/17418
   % Palatino for main text and math
   \RequirePackage[osf,sc]{mathpazo}
