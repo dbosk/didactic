@@ -7,7 +7,8 @@ PYTHONTEX=python3 $(shell which pythontex) --interpreter python:python3
 all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-footcite-twoside.pdf
 
-SRC+=	didactic.dtx hello.py idea.tex lightblock.tex ProvideSemanticEnv.tex
+SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex
+SRC+=	hello.py ask.py askmany.py greet.py filter.py
 
 didactic.pdf: ${SRC} didactic.sty
 	-${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
