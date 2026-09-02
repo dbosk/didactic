@@ -1,6 +1,6 @@
 % \iffalse meta-comment
 %
-% Copyright (C) 2019--2020, 2022, 2024 by Daniel Bosk <daniel@bosk.se>
+% Copyright (C) 2019--2020, 2022, 2024, 2026 by Daniel Bosk <daniel@bosk.se>
 % -------------------------------------------------------
 % 
 % This file may be distributed and/or modified under the
@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2024/08/16 v2.3 didactic]
+  [2026/09/02 v2.4 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -130,6 +130,15 @@
 % }
 % \changes{v2.3}{2024/08/16}{%
 %   Turns off hangnum by default.
+% }
+% \changes{v2.4}{2026/09/02}{%
+%   Adds key--value options to |\runpython| and |\runbyrun|: input on stdin, 
+%   arguments, terminal transcripts, timeouts and dependency tracking.
+%   Adds |\runshell| and |\runsetup|.
+%   Adds the |didactic_capture| PythonTeX function; |didactic_shell| and 
+%   |didactic_output| get keyword arguments for input and terminal runs.
+%   Names the output files by their content and registers them with PythonTeX 
+%   for cleanup.
 % }
 %
 % \GetFileInfo{didactic.dtx}
@@ -317,6 +326,116 @@
 % \runpython[highlightlines=1]{hello.py}
 % \end{example}
 %
+% The optional argument is a key--value list.
+% Keys that |\runpython| doesn't know, like |highlightlines| above, are passed 
+% on to |minted|.
+% The keys it does know control how the program is run.
+% \begin{description}
+% \item[stdin] One line of input to the program.
+%   Repeat the key for several lines: |stdin=4, stdin=10|.
+% \item[expect] Wait for this text to appear in the output before typing the 
+%   next |stdin| line.
+%   Without it, the line is typed after |idle| seconds of silence.
+% \item[stdinfile] A file whose contents are used as input.
+% \item[args] Command-line arguments to the program, split like a shell 
+%   does.
+% \item[transcript] Show the run as a terminal session: the command line, 
+%   the questions, the typed answers and the output.
+%   Shorthand for |tty|, |showcommand| and |chdir|.
+% \item[tty] Run the program in a pseudo-terminal, so that it behaves as in a 
+%   terminal and the answers we type are echoed.
+% \item[echo] Whether the terminal echoes what we type; |echo=false| hides 
+%   the answers.
+% \item[showcommand] Put the command line first, as |$ python3 hello.py|.
+% \item[chdir] Run in the program's own directory, so that the command line 
+%   reads |python3 hello.py| rather than |python3 examples/hello.py|.
+% \item[commandtext] The text to show as the command line, when it should 
+%   differ from the command actually run.
+% \item[prompt] The shell prompt in front of the command line, |$ | by 
+%   default.
+% \item[cwd] The directory to run in.
+% \item[interpreter] The interpreter, |python3| by default; it may contain 
+%   options, as in |python3 -X utf8|.
+% \item[timeout] Seconds until the program is killed, 10 by default.
+%   The output so far is kept and a note is added.
+% \item[idle] Seconds of silence before the next |stdin| line is typed, 0.5 
+%   by default.
+% \item[deps] Files that the run depends on, so that a change makes PythonTeX 
+%   rerun it.
+%   The program itself is always a dependency.
+% \item[lang] The language |minted| highlights the output as, |text| by 
+%   default.
+% \item[fullwidth] The same as the starred form of the command.
+% \end{description}
+% All file names are relative to the document, or rather to PythonTeX's 
+% working directory, also when |cwd| or |chdir| is used.
+%
+% \begin{example}
+% The program |ask.py| asks a question:
+% \lstexample{python}{ask.py}
+% Then |\runpython[transcript, stdin={4}]{ask.py}| shows what happens in the 
+% terminal when we answer 4:
+% \runpython[transcript, stdin={4}]{ask.py}
+% \end{example}
+%
+% Without |transcript|, the input goes through a pipe: nothing echoes the 
+% answer, and there is no newline after the question.
+% \begin{example}
+% |\runpython[stdin={4}]{ask.py}| gives
+% \runpython[stdin={4}]{ask.py}
+% which is what the program prints when reading from a pipe, but not what a 
+% student sees in the terminal.
+% So use |transcript| for programs that ask questions.
+% The pipe is right for programs that read data, like |filter.py|:
+% \lstexample{python}{filter.py}
+% Here |\runpython[stdin={ett}, stdin={två}]{filter.py}| gives
+% \runpython[stdin={ett}, stdin={två}]{filter.py}
+% \end{example}
+%
+% \begin{example}
+% Several questions need several lines.
+% The program |askmany.py| asks two:
+% \lstexample{python}{askmany.py}
+% |\runpython[transcript, stdin={Kalle}, stdin={7}]{askmany.py}| gives
+% \runpython[transcript, stdin={Kalle}, stdin={7}]{askmany.py}
+% If we answer only the first, the program gets end-of-file at the second 
+% question, and we see the error just as in the terminal:
+% \runpython[transcript, stdin={Kalle}]{askmany.py}
+% \end{example}
+%
+% \begin{example}
+% Some programs take arguments instead, like |greet.py|:
+% \lstexample{python}{greet.py}
+% |\runpython[transcript, args={Kalle}]{greet.py}| gives
+% \runpython[transcript, args={Kalle}]{greet.py}
+% \end{example}
+%
+% A program that imports a slow library before it asks its question is a 
+% trap: after |idle| seconds of silence we type the answer, the terminal 
+% echoes it, and only then does the question appear.
+% Use |expect| to wait for the question instead:
+% |\runpython[transcript, expect={Antal personer:}, stdin={4}]{slow.py}|.
+%
+% The values of the keys can't contain a percent sign or a hash, and a 
+% backslash in them becomes a control sequence.
+% For such input, call the Python function directly, since |\pyc| reads its 
+% argument verbatim:
+% |\pyc{didactic_shell("python3 p.py", stdin=["50%"], transcript=True)}|.
+%
+% \DescribeMacro{\runsetup}
+% Defaults for all runs in a document can be set with |\runsetup{keys}|, for 
+% instance |\runsetup{transcript, timeout=5}|.
+%
+% \DescribeMacro{\runshell}
+% The |\runshell| macro runs any command through the shell, with the same 
+% keys.
+% \begin{example}
+% \verb+\runshell[transcript]{echo ett två tre | wc -w}+ gives
+% \runshell[transcript]{echo ett två tre | wc -w}
+% \end{example}
+% This is also how we run programs in other languages, for instance
+% |\runshell[transcript, cwd=examples, deps={hello.c}]{gcc -o hello hello.c && ./hello}|.
+%
 % \DescribeMacro{\codebycode}
 % The |\codebycode| command is simply two |\lstexample| commands side by side:
 % |\codebycode[opt1]{lang1}{file1}[opt2]{lang2}{file2}|.
@@ -348,6 +467,14 @@
 % We can also put the output side by side using 
 % |\runbyrun{hello.py}{hello.py}|.
 % \runbyrun{hello.py}{hello.py}
+% \end{example}
+%
+% \begin{example}
+% Both sides take the same keys as |\runpython|, which contrasts two runs of 
+% one program with different input:
+% |\runbyrun[transcript, stdin={4}]{ask.py}[transcript, stdin={10}]{ask.py}| 
+% gives
+% \runbyrun[transcript, stdin={4}]{ask.py}[transcript, stdin={10}]{ask.py}
 % \end{example}
 %
 % Those commands are implemented using a set of Python functions that can be 
@@ -618,6 +745,9 @@
   % https://tex.stackexchange.com/a/506776/17418
   \usepackage{newpxtext,newpxmath}
 \else
+  % Bera Mono (below) exists only in T1 encoding; without it LaTeX
+  % silently substitutes Computer Modern Roman for \ttfamily.
+  \RequirePackage[T1]{fontenc}
   % https://tex.stackexchange.com/a/324757/17418
   % Palatino for main text and math
   \RequirePackage[osf,sc]{mathpazo}
@@ -1309,14 +1439,73 @@
 % The design here is to work around that.
 %    \begin{macrocode}
 \begin{pycode}
+import hashlib
 import importlib.util
 import inspect
 import os
 import pathlib
 import re
+import shlex
+import signal
 import sys
 import subprocess
 import tempfile
+import time
+\end{pycode}
+%    \end{macrocode}
+%
+% Running a program in a pseudo-terminal (see below) needs a few modules that 
+% only exist on POSIX systems.
+% Where they are missing, we fall back to running the program through a pipe.
+%    \begin{macrocode}
+\begin{pycode}
+try:
+  import fcntl
+  import pty
+  import select
+  import struct
+  import termios
+  DIDACTIC_HAVE_PTY = True
+except ImportError:
+  DIDACTIC_HAVE_PTY = False
+\end{pycode}
+%    \end{macrocode}
+%
+% The function |didactic_mint| typesets a text using |minted|.
+% Since we can't use the |minted| environments from inside a Python function, 
+% we write the text to a file and print an |\inputminted| command, which 
+% PythonTeX then typesets for us.
+% The file is named by a hash of its contents.
+% This way a rerun overwrites the same file instead of leaving a new one 
+% behind every time.
+% We also register the file with PythonTeX, so that it is removed when the 
+% code is rerun.
+%    \begin{macrocode}
+\begin{pycode}
+def didactic_write_file(content, /, prefix, suffix):
+  """
+  Write `content` to a file named by `prefix`, a hash of the content and 
+  `suffix`, in the working directory. Register the file with PythonTeX as a 
+  created file, so that it is cleaned up. Return the file name.
+  """
+  digest = hashlib.sha256(content.encode("utf-8")).hexdigest()[:16]
+  filename = f"{prefix}{digest}{suffix}"
+  with open(filename, "w", encoding="utf-8") as f:
+    f.write(content)
+  didactic_track("created", filename)
+  return filename
+
+def didactic_track(kind, /, *paths):
+  """
+  Tell PythonTeX about files: `kind` is "created" for files we write, so that 
+  PythonTeX cleans them up, or "dependencies" for files we read, so that 
+  PythonTeX reruns the code when they change. PythonTeX resolves relative 
+  paths from its working directory.
+  """
+  try:
+    getattr(pytex, f"add_{kind}")(*paths)
+  except NameError:
+    pass
 
 def didactic_mint(output, /, lang="text",
                   minted_opts="escapeinside=||",
@@ -1351,12 +1540,8 @@ def didactic_mint(output, /, lang="text",
     else:
       minted_opts = hl_opt
 
-  with tempfile.NamedTemporaryFile(mode="w", delete=False,
-                                   dir=".",
-                                   prefix="didactic_output_",
-                                   suffix=".txt") as f:
-    f.write(output.strip("\n"))
-    filename = f.name
+  filename = didactic_write_file(output.strip("\n"),
+                                 "didactic_output_", ".txt")
 
   if minted_opts:
     print(r"\inputminted[%s]{%s}{%s}" % (minted_opts, lang, filename))
@@ -1366,33 +1551,365 @@ def didactic_mint(output, /, lang="text",
   if fullwidth:
     print(r"\end{fullwidth}")
     print(r"\unblockmargin")
+\end{pycode}
+%    \end{macrocode}
+%
+% Now we turn to running programs.
+% There are two ways to feed a program its input, and they look different on 
+% paper.
+% Through a pipe, the program gets its input without anyone typing it: a 
+% program that asks |Antal personer: | and reads |4| prints the prompt, but 
+% nothing prints the |4| or the newline after it.
+% Both come from the terminal, not from the program.
+% So the output reads |Antal personer: 3.0 ägg|, which is not what a student 
+% sees.
+% To show what a student sees, we must run the program in a pseudo-terminal: 
+% then the program sees a terminal, and the terminal echoes what we type.
+% The pipe is still right for programs that read data rather than answers, 
+% and it is faster, so it remains the default.
+%
+% Programs behave differently in a terminal in other ways too.
+% Python, from version 3.13, colours its tracebacks when it writes to a 
+% terminal, which would put escape codes in our listing.
+% We turn colours off in the environment of the program and, since not every 
+% program obeys, also strip any escape sequences from the text we capture.
+% We also turn off Python's output buffering, so that output to stdout and 
+% stderr are interleaved in the order they were written, and force UTF-8, 
+% since we can't be sure of the locale that the build runs in.
+%    \begin{macrocode}
+\begin{pycode}
+DIDACTIC_ENV = {"TERM": "dumb", "NO_COLOR": "1", "PYTHON_COLORS": "0",
+                "PYTHONUNBUFFERED": "1", "PYTHONUTF8": "1",
+                "PYTHONIOENCODING": "utf-8"}
 
-def didactic_shell(cmd, /, shell=False, **kwargs):
+DIDACTIC_ANSI = re.compile(
+  r"\x1b\[[0-?]*[ -/]*[@-~]"              # CSI sequences (colours, cursor)
+  r"|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)"   # OSC sequences (titles, links)
+  r"|\x1b[@-Z\\-_]")                      # other two-byte escapes
+\end{pycode}
+%    \end{macrocode}
+%
+% A program that never terminates must not hang the build.
+% We run every program in its own process group and, when the deadline 
+% passes, kill the whole group.
+% Killing only the direct child is not enough: with |shell=True| the child is 
+% a shell, and killing it leaves the members of a pipeline running.
+% We keep the output produced so far, since that is what shows where the 
+% program got stuck.
+%    \begin{macrocode}
+\begin{pycode}
+def didactic_killpg(proc):
+  """Kill the whole process group of `proc`, ignoring if already gone."""
+  try:
+    os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+  except (ProcessLookupError, PermissionError):
+    pass
+
+def didactic_pipe_run(cmd, shell, data, cwd, timeout, env):
+  """Run `cmd` with `data` on a pipe; return (bytes, timed_out)."""
+  proc = subprocess.Popen(cmd, shell=shell, cwd=cwd, env=env,
+                          stdin=subprocess.PIPE,
+                          stdout=subprocess.PIPE,
+                          stderr=subprocess.STDOUT,
+                          start_new_session=True)
+  try:
+    out, _ = proc.communicate(input=data, timeout=timeout)
+    return out, False
+  except subprocess.TimeoutExpired:
+    didactic_killpg(proc)
+    out, _ = proc.communicate()
+    return out, True
+\end{pycode}
+%    \end{macrocode}
+%
+% The pseudo-terminal version has to decide \emph{when} to type each line of 
+% input.
+% Waiting for silence is the obvious rule: when the program has printed 
+% nothing for a while, it is probably waiting for us.
+% But a program that imports a slow library before it asks its question is 
+% silent while importing.
+% If we type then, the terminal echoes our answer at once and the prompt 
+% appears after it, so the transcript is wrong and nothing warns us.
+% Hence each input line may come with an |expect| text: we type the line 
+% when that text has appeared in the output since we last typed.
+% This is what the |expect| tool does, and for teaching examples the prompt 
+% is always known.
+%
+% After the last line, we send end-of-file, so that a program reading all of 
+% its input terminates.
+% A program that asks for more than we gave then gets end-of-file, which is 
+% exactly what the student would see after pressing Ctrl-D.
+% The loop ends when the program has exited and its output is drained, or 
+% when the deadline passes.
+%    \begin{macrocode}
+\begin{pycode}
+def didactic_pty_run(cmd, shell, lines, expect, cwd, echo,
+                     timeout, idle, eof, env, size):
+  """Run `cmd` under a pseudo-terminal; return (bytes, timed_out)."""
+  master, slave = pty.openpty()
+  fcntl.ioctl(slave, termios.TIOCSWINSZ,
+              struct.pack("HHHH", size[1], size[0], 0, 0))
+  if not echo:
+    attrs = termios.tcgetattr(slave)
+    attrs[3] &= ~termios.ECHO
+    termios.tcsetattr(slave, termios.TCSANOW, attrs)
+  proc = subprocess.Popen(cmd, shell=shell, cwd=cwd, env=env,
+                          stdin=slave, stdout=slave, stderr=slave,
+                          start_new_session=True, close_fds=True)
+  os.close(slave)
+
+  out = b""
+  pending = list(zip(lines, expect))
+  scan_from = 0
+  deadline = time.monotonic() + timeout
+  last_activity = time.monotonic()
+  eof_sent = False
+  timed_out = False
+  exited_at = None
+
+  def type_line(line):
+    nonlocal scan_from, last_activity
+    os.write(master, line.encode("utf-8") + b"\n")
+    pending.pop(0)
+    scan_from = len(out)
+    last_activity = time.monotonic()
+
+  while True:
+    now = time.monotonic()
+    if now >= deadline:
+      timed_out = True
+      break
+    ready, _, _ = select.select([master], [], [], min(0.05, deadline - now))
+    if master in ready:
+      try:
+        chunk = os.read(master, 65536)
+      except OSError:
+        break
+      if not chunk:
+        break
+      out += chunk
+      last_activity = time.monotonic()
+      continue
+    if proc.poll() is not None:
+      if exited_at is None:
+        exited_at = now
+      elif now - exited_at > 0.5:
+        break
+      continue
+    quiet = now - last_activity
+    if pending:
+      line, pattern = pending[0]
+      if pattern is not None:
+        if pattern.encode("utf-8") in out[scan_from:]:
+          type_line(line)
+      elif quiet >= idle:
+        type_line(line)
+    elif eof and not eof_sent and quiet >= idle:
+      os.write(master, b"\x04")
+      eof_sent = True
+      last_activity = now
+
+  if timed_out:
+    didactic_killpg(proc)
+    try:
+      while True:
+        ready, _, _ = select.select([master], [], [], 0.2)
+        if master not in ready:
+          break
+        chunk = os.read(master, 65536)
+        if not chunk:
+          break
+        out += chunk
+    except OSError:
+      pass
+  proc.wait()
+  os.close(master)
+  return out, timed_out
+\end{pycode}
+%    \end{macrocode}
+%
+% The function |didactic_capture| ties the two together and returns the 
+% output as text.
+% We normalise the line endings that a terminal produces, strip escape 
+% sequences, and remove the absolute path of the directory we ran in, so that 
+% a traceback reads |File "ask.py"| and not the path on the author's machine.
+%    \begin{macrocode}
+\begin{pycode}
+def didactic_capture(cmd, /, *, shell=False, stdin=None, cwd=None,
+                     tty=False, echo=True, expect=None,
+                     timeout=10, idle=0.5, eof=True, env=None,
+                     size=(80, 24)):
   """
-  Run a Python program and typeset the output using minted.
+  Run `cmd` and return its combined stdout and stderr as text.
 
-  - `cmd` is the command to run, it's a list, to be passed to `subprocess.run`.
+  - `cmd` is a list, or a string when `shell` is True.
+  - `stdin` is a list of lines (without newlines) or a string of raw input.
+  - `cwd` is the directory to run in (the default is the working directory).
+  - `tty` runs the command under a pseudo-terminal: the program sees a 
+  terminal, and the terminal echoes what we type. Through a pipe, a prompt 
+  and its answer never appear together.
+  - `echo` turns the terminal's echo of what we type off if False.
+  - `expect` is a list of strings parallel to `stdin`: type that line as soon 
+  as the string has appeared in the output. `None` means to type it after 
+  `idle` seconds of silence instead. Only used with `tty`.
+  - `eof` sends end-of-file after the last line, so a program reading all of 
+  its input terminates.
+  - `timeout` is the deadline in seconds. On expiry the process group is 
+  killed, the output so far is kept and a note is appended.
+  - `env` extends the environment. Colours and buffering are turned off by 
+  default, see `DIDACTIC_ENV`.
+  - `size` is the (columns, rows) of the pseudo-terminal.
+  """
+  full_env = dict(os.environ)
+  full_env.update(DIDACTIC_ENV)
+  if env:
+    full_env.update(env)
+
+  if stdin is None:
+    lines = []
+    data = b""
+  elif isinstance(stdin, str):
+    lines = stdin.splitlines()
+    data = stdin.encode("utf-8")
+  else:
+    lines = [str(line) for line in stdin]
+    data = "".join(line + "\n" for line in lines).encode("utf-8")
+
+  if expect is None:
+    expect = []
+  elif isinstance(expect, str):
+    expect = [expect]
+  expect = list(expect) + [None] * (len(lines) - len(expect))
+
+  if tty and not DIDACTIC_HAVE_PTY:
+    print("didactic: no pseudo-terminal support here, using a pipe",
+          file=sys.stderr)
+    tty = False
+
+  if tty:
+    out, timed_out = didactic_pty_run(cmd, shell, lines, expect, cwd, echo,
+                                      timeout, idle, eof, full_env, size)
+  else:
+    out, timed_out = didactic_pipe_run(cmd, shell, data, cwd, timeout,
+                                       full_env)
+
+  text = out.decode("utf-8", errors="replace")
+  text = text.replace("\r\n", "\n").replace("\r", "\n")
+  text = DIDACTIC_ANSI.sub("", text)
+  text = text.replace(os.path.abspath(cwd or os.curdir) + os.sep, "")
+  if timed_out:
+    print(f"didactic: {cmd!r} timed out after {timeout} s", file=sys.stderr)
+    text = text.rstrip("\n") + f"\n[didactic: timed out after {timeout} s]"
+  return text
+\end{pycode}
+%    \end{macrocode}
+%
+% The function |didactic_shell| runs a command and typesets the output.
+% It is used directly from PythonTeX in documents, so its first arguments 
+% keep their meaning, and everything new is a keyword argument.
+% The |transcript| argument turns on the pseudo-terminal and the command line 
+% at the top, so the whole looks like a terminal session.
+% The command line shown is the command we run, unless |commandtext| says 
+% otherwise; that lets the author run |/usr/bin/python3 -X utf8 ask.py| but 
+% show |python3 ask.py|.
+% When we show the command line, we drop |minted|'s default escape 
+% characters, since a pipe in the command would otherwise start an escape.
+%
+% The run's dependencies are registered with PythonTeX.
+% This matters: PythonTeX reruns code when the \emph{code} changes, and the 
+% call in the document doesn't change when the program does.
+% Note that we pass the directory to run in to |subprocess| and never change 
+% the working directory of PythonTeX itself: |didactic_mint| writes its files 
+% in the working directory, where \LaTeX{} expects to find them.
+%    \begin{macrocode}
+\begin{pycode}
+def didactic_shell(cmd, /, shell=False, *, stdin=None, stdinfile=None,
+                   cwd=None, tty=False, echo=True, expect=None,
+                   timeout=10, idle=0.5, eof=True, env=None,
+                   transcript=False, showcommand=None, commandtext=None,
+                   prompt="$ ", deps=(), chdir=False, **kwargs):
+  """
+  Run a command and typeset the output using minted.
+
+  - `cmd` is the command to run, a list, or a string if `shell` is True.
+  - `stdin` is a list of lines to feed the program, or a string of raw 
+  input. `stdinfile` names a file whose contents are used instead.
+  - `transcript` shows the run as a terminal session: sets `tty` and 
+  `showcommand`. See `didactic_capture` for `tty`, `echo`, `expect`, 
+  `timeout`, `idle`, `eof`, `env` and `cwd`.
+  - `showcommand` prepends the command line; `commandtext` is the text to 
+  show instead of the actual command; `prompt` is put in front of it.
+  - `deps` are files that PythonTeX should rerun this code for when they 
+  change, relative to the working directory.
+  - `chdir` is accepted for symmetry with `didactic_output` but has no 
+  meaning here: use `cwd`.
   - `kwargs` are passed to `didactic_mint`, see that function for more 
   information.
   """
-  output = subprocess.run(cmd,
-                          shell=shell,
-                          stdout=subprocess.PIPE,
-                          stderr=subprocess.STDOUT)
+  if transcript:
+    tty = True
+    if showcommand is None:
+      showcommand = True
 
-  didactic_mint(output.stdout.decode().strip("\n"), **kwargs)
+  if stdinfile:
+    didactic_track("dependencies", stdinfile)
+    with open(stdinfile, encoding="utf-8") as f:
+      stdin = f.read()
+  if deps:
+    didactic_track("dependencies", *deps)
 
-def didactic_output(module, /, interpreter="python3", **kwargs):
+  text = didactic_capture(cmd, shell=shell, stdin=stdin, cwd=cwd, tty=tty,
+                          echo=echo, expect=expect, timeout=timeout,
+                          idle=idle, eof=eof, env=env)
+
+  if showcommand:
+    if commandtext is None:
+      commandtext = cmd if isinstance(cmd, str) else shlex.join(cmd)
+    text = prompt + commandtext + "\n" + text
+    kwargs.setdefault("minted_opts", "")
+
+  didactic_mint(text.strip("\n"), **kwargs)
+\end{pycode}
+%    \end{macrocode}
+%
+% The function |didactic_output| runs a Python program.
+% With |chdir|, we run the program from its own directory and give the 
+% interpreter only the file name, so that the command line reads 
+% |python3 ask.py| and not |python3 examples/ask.py|: this is what the student 
+% types in that directory.
+% The program is always registered as a dependency, so that a changed 
+% program is rerun.
+%    \begin{macrocode}
+\begin{pycode}
+def didactic_output(module, /, interpreter="python3", *, args=None,
+                    chdir=False, cwd=None, deps=(), track=True, **kwargs):
   """
   Run a Python program and typeset the output using minted.
 
   - `module` is anything that can be passed as an argument to the Python 
   interpreter. Usually a file name or a module name.
-  - `interpreter` is the Python interpreter to use. The default is `python3`.
-  - `kwargs` are passed to `didactic_mint`, see that function for more 
+  - `interpreter` is the Python interpreter to use. The default is `python3`. 
+  It may contain options, like `python3 -X utf8`.
+  - `args` are the command-line arguments to the program, a string that is 
+  split like a shell does, or a list.
+  - `chdir` runs the program from its own directory, so that the command 
+  line shown in a transcript is the short one. An explicit `cwd` wins.
+  - `deps` are additional files that the run depends on. The program itself 
+  is always a dependency, unless `track` is False.
+  - `kwargs` are passed to `didactic_shell`, see that function for more 
   information.
   """
-  didactic_shell([interpreter, module], **kwargs)
+  if track and os.path.isfile(module):
+    didactic_track("dependencies", module)
+  argv = shlex.split(args) if isinstance(args, str) else list(args or [])
+  interp = (shlex.split(interpreter) if isinstance(interpreter, str)
+            else list(interpreter))
+  if chdir:
+    directory, name = os.path.split(module)
+    if cwd is None:
+      cwd = directory or None
+    module = name
+  didactic_shell(interp + [module] + argv, cwd=cwd, deps=deps, **kwargs)
 
 def didactic_pydoc(module, /, builtin=False, **kwargs):
   """
@@ -1446,7 +1963,16 @@ def didactic_import(module_name, module_path):
   sys.modules[module_name] = the_module
   spec.loader.exec_module(the_module)
   return the_module
-
+\end{pycode}
+%    \end{macrocode}
+%
+% Finally, |didactic_run_code| runs code given as a string by writing it to a 
+% file.
+% That file is created by us, so we don't register it as a dependency: its 
+% modification time changes whenever the code is rerun, which would make 
+% PythonTeX rerun the code once more.
+%    \begin{macrocode}
+\begin{pycode}
 def didactic_run_code(code, /, **kwargs):
   """
   Run a Python program and typeset the output using minted. The `code` is 
@@ -1456,13 +1982,8 @@ def didactic_run_code(code, /, **kwargs):
   - `kwargs` are passed to `didactic_output`, which in turn passes some 
   arguments on to `didactic_mint`. See those functions for details.
   """
-  with tempfile.NamedTemporaryFile(mode="w", delete=False,
-                                   dir=".",
-                                   prefix="didactic_code_",
-                                   suffix=".py") as f:
-    f.write(code)
-    filename = f.name
-  didactic_output(filename, **kwargs)
+  filename = didactic_write_file(code, "didactic_code_", ".py")
+  didactic_output(filename, track=False, **kwargs)
 \end{pycode}
 %    \end{macrocode}
 %
@@ -1512,36 +2033,275 @@ def didactic_run_code(code, /, **kwargs):
 % \end{macro}
 %
 % \begin{macro}{\runpython}
-% Now, for the second part, printing the output, we do this in two steps.
-% First, we create a function using PythonTeX that runs a Python program and 
-% prints it output.
+% \begin{macro}{\runshell}
+% \begin{macro}{\runsetup}
+% Now, for the second part, printing the output.
 % We can use it like |\runpython{hello.py}| to run the program in |hello.py|.
 % The output is printed in a |minted| environment.
-% Alternatively we could use |\runpython[opt]{hello.py}| to pass |opt| to the 
-% underlying |minted| environment.
+% The optional argument is a key--value list: the keys we know control the 
+% run, and the keys we don't know are passed on to |minted|.
+% So |\runpython[highlightlines=1]{hello.py}| still works as it always did.
 %
-% Let's create that function in PythonTeX to run the example program file.
-% We simply execute it with Python 3 and capture its output.
-% Then we print the output to stdout, which is then captured by PythonTeX.
+% The command builds one call to |didactic_output| (or |didactic_shell| for 
+% |\runshell|) as a string, and hands that string to |\pyc|.
+% Since |\pyc| detokenizes its argument, a string of already-detokenized 
+% characters passes through unchanged.
+% We work in |expl3| syntax, which has two consequences for what follows.
+% Spaces in the code are ignored, so the Python call is built without spaces 
+% (Python doesn't need them), and we write |~| when we mean a space.
+% And |_| and |:| are letters, so they can't appear in a Python identifier 
+% here; we don't need them to.
 %
-% Then we simply create a command that run that function with the file as 
-% argument.
-% Then print the output in verbatim mode.
+% We first declare the variables that hold the values of the keys.
 %    \begin{macrocode}
-\NewDocumentCommand{\runpython}{som}{%
-  \IfBooleanTF{#1}{%
-    \pyc{fullwidth = True}
-  }{
-    \pyc{fullwidth = False}
-  }
-  \IfValueTF{#2}{%
-    \pyc{minted_opts = '#2'}
-  }{
-    \pyc{minted_opts = None}
-  }
-  \pyc{didactic_output('#3', minted_opts=minted_opts, fullwidth=fullwidth)}
-}
+\ExplSyntaxOn
+\seq_new:N \l__didactic_stdin_seq
+\seq_new:N \l__didactic_expect_seq
+\tl_new:N \l__didactic_expect_tl
+\tl_new:N \l__didactic_stdinfile_tl
+\tl_new:N \l__didactic_args_tl
+\tl_new:N \l__didactic_interpreter_tl
+\tl_new:N \l__didactic_cwd_tl
+\bool_new:N \l__didactic_chdir_bool
+\bool_new:N \l__didactic_tty_bool
+\bool_new:N \l__didactic_echo_bool
+\bool_new:N \l__didactic_showcommand_bool
+\tl_new:N \l__didactic_commandtext_tl
+\tl_new:N \l__didactic_prompt_tl
+\tl_new:N \l__didactic_timeout_tl
+\tl_new:N \l__didactic_idle_tl
+\clist_new:N \l__didactic_deps_clist
+\tl_new:N \l__didactic_lang_tl
+\bool_new:N \l__didactic_fullwidth_bool
+\clist_new:N \l__didactic_minted_clist
+\clist_new:N \l__didactic_unknown_clist
+\tl_new:N \g__didactic_run_defaults_tl
+\str_new:N \l__didactic_call_str
+\str_new:N \l__didactic_tmp_str
 %    \end{macrocode}
+%
+% Then the keys.
+% The |stdin| key can be repeated, one line of input per use, so it appends 
+% to a sequence.
+% The |expect| key applies to the next |stdin| line: |expect| stores the 
+% text, and |stdin| moves it to a parallel sequence, with an empty entry when 
+% no |expect| was given.
+% The |transcript| key is a shorthand for the three keys that make a run look 
+% like a terminal session.
+% A value that is left empty means that the default of the Python function 
+% applies, so that the defaults live in one place.
+%    \begin{macrocode}
+\cs_new_protected:Npn \__didactic_stdin:n #1
+  {
+    \seq_put_right:Nn \l__didactic_stdin_seq {#1}
+    \seq_put_right:NV \l__didactic_expect_seq \l__didactic_expect_tl
+    \tl_clear:N \l__didactic_expect_tl
+  }
+\keys_define:nn { didactic / run }
+  {
+    stdin       .code:n      = { \__didactic_stdin:n {#1} } ,
+    expect      .tl_set:N    = \l__didactic_expect_tl ,
+    stdinfile   .tl_set:N    = \l__didactic_stdinfile_tl ,
+    args        .tl_set:N    = \l__didactic_args_tl ,
+    interpreter .tl_set:N    = \l__didactic_interpreter_tl ,
+    cwd         .tl_set:N    = \l__didactic_cwd_tl ,
+    chdir       .bool_set:N  = \l__didactic_chdir_bool ,
+    chdir       .default:n   = { true } ,
+    tty         .bool_set:N  = \l__didactic_tty_bool ,
+    tty         .default:n   = { true } ,
+    echo        .bool_set:N  = \l__didactic_echo_bool ,
+    echo        .default:n   = { true } ,
+    showcommand .bool_set:N  = \l__didactic_showcommand_bool ,
+    showcommand .default:n   = { true } ,
+    commandtext .tl_set:N    = \l__didactic_commandtext_tl ,
+    prompt      .tl_set:N    = \l__didactic_prompt_tl ,
+    timeout     .tl_set:N    = \l__didactic_timeout_tl ,
+    idle        .tl_set:N    = \l__didactic_idle_tl ,
+    deps        .clist_set:N = \l__didactic_deps_clist ,
+    lang        .tl_set:N    = \l__didactic_lang_tl ,
+    fullwidth   .bool_set:N  = \l__didactic_fullwidth_bool ,
+    fullwidth   .default:n   = { true } ,
+    transcript  .meta:n      = { tty , showcommand , chdir } ,
+    transcript  .value_forbidden:n = true ,
+  }
+%    \end{macrocode}
+%
+% Before each run we reset all values, then apply the defaults set by 
+% |\runsetup|, then the keys of the call itself.
+% The keys that aren't ours are collected for |minted|; 
+% |\keys_set_known:nnN| does that for us, keeping braces and control 
+% sequences in the values intact.
+%    \begin{macrocode}
+\cs_generate_variant:Nn \keys_set_known:nnN { nVN }
+\cs_new_protected:Npn \__didactic_run_reset:
+  {
+    \seq_clear:N \l__didactic_stdin_seq
+    \seq_clear:N \l__didactic_expect_seq
+    \tl_clear:N \l__didactic_expect_tl
+    \tl_clear:N \l__didactic_stdinfile_tl
+    \tl_clear:N \l__didactic_args_tl
+    \tl_clear:N \l__didactic_interpreter_tl
+    \tl_clear:N \l__didactic_cwd_tl
+    \bool_set_false:N \l__didactic_chdir_bool
+    \bool_set_false:N \l__didactic_tty_bool
+    \bool_set_true:N \l__didactic_echo_bool
+    \bool_set_false:N \l__didactic_showcommand_bool
+    \tl_clear:N \l__didactic_commandtext_tl
+    \tl_clear:N \l__didactic_prompt_tl
+    \tl_clear:N \l__didactic_timeout_tl
+    \tl_clear:N \l__didactic_idle_tl
+    \clist_clear:N \l__didactic_deps_clist
+    \tl_clear:N \l__didactic_lang_tl
+    \bool_set_false:N \l__didactic_fullwidth_bool
+    \clist_clear:N \l__didactic_minted_clist
+    \__didactic_run_keys:V \g__didactic_run_defaults_tl
+  }
+\cs_new_protected:Npn \__didactic_run_keys:n #1
+  {
+    \keys_set_known:nnN { didactic / run } {#1} \l__didactic_unknown_clist
+    \clist_concat:NNN \l__didactic_minted_clist
+      \l__didactic_minted_clist \l__didactic_unknown_clist
+  }
+\cs_generate_variant:Nn \__didactic_run_keys:n { V }
+\NewDocumentCommand{\runsetup}{m}
+  { \tl_gset:Nn \g__didactic_run_defaults_tl {#1} }
+%    \end{macrocode}
+%
+% Values become Python string literals.
+% A backslash in a value has already become a control sequence when we see 
+% it, and detokenizing gives it back with a trailing space; we escape 
+% backslashes and quotes so that Python at least gets a valid string.
+% Backslashes must be escaped before the quotes, or the quotes' escapes are 
+% escaped again.
+%    \begin{macrocode}
+\str_const:Ne \c__didactic_bsbs_str { \c_backslash_str \c_backslash_str }
+\str_const:Ne \c__didactic_esq_str  { \c_backslash_str ' }
+\cs_generate_variant:Nn \str_replace_all:Nnn { NVV , NnV }
+\cs_new_protected:Npn \__didactic_pyliteral:Nn #1#2
+  {
+    \str_set:Nn #1 {#2}
+    \str_replace_all:NVV #1 \c_backslash_str \c__didactic_bsbs_str
+    \str_replace_all:NnV #1 { ' } \c__didactic_esq_str
+    \str_put_left:Nn #1 { ' }
+    \str_put_right:Nn #1 { ' }
+  }
+\cs_generate_variant:Nn \__didactic_pyliteral:Nn { NV , Ne }
+%    \end{macrocode}
+%
+% Three helpers append a keyword argument to the call, each only when the 
+% value isn't the default: a string, a bare value (numbers) and a boolean.
+%    \begin{macrocode}
+\cs_new_protected:Npn \__didactic_kwarg_str:nN #1#2
+  {
+    \tl_if_empty:NF #2
+      {
+        \__didactic_pyliteral:NV \l__didactic_tmp_str #2
+        \str_put_right:Nn \l__didactic_call_str { , #1 = }
+        \str_put_right:NV \l__didactic_call_str \l__didactic_tmp_str
+      }
+  }
+\cs_new_protected:Npn \__didactic_kwarg_raw:nN #1#2
+  {
+    \tl_if_empty:NF #2
+      {
+        \str_put_right:Nn \l__didactic_call_str { , #1 = }
+        \str_put_right:NV \l__didactic_call_str #2
+      }
+  }
+\cs_new_protected:Npn \__didactic_kwarg_bool:nN #1#2
+  {
+    \bool_if:NT #2
+      { \str_put_right:Nn \l__didactic_call_str { , #1 = True } }
+  }
+\cs_new_protected:Npn \__didactic_kwarg_list:nN #1#2
+  {
+    \str_put_right:Nn \l__didactic_call_str { , #1 = [ }
+    \seq_map_inline:Nn #2
+      {
+        \tl_if_empty:nTF {##1}
+          { \str_put_right:Nn \l__didactic_call_str { None , } }
+          {
+            \__didactic_pyliteral:Nn \l__didactic_tmp_str {##1}
+            \str_put_right:NV \l__didactic_call_str \l__didactic_tmp_str
+            \str_put_right:Nn \l__didactic_call_str { , }
+          }
+      }
+    \str_put_right:Nn \l__didactic_call_str { ] }
+  }
+%    \end{macrocode}
+%
+% Now we can build the call.
+% The first argument is the Python function, the second its first argument 
+% (the program or the command), and the third any extra text to append to 
+% the argument list.
+% The |minted| options are always passed, even when empty, so that a plain 
+% |\runpython{hello.py}| typesets exactly as before.
+%    \begin{macrocode}
+\cs_new_protected:Npn \__didactic_run:nnn #1#2#3
+  {
+    \__didactic_pyliteral:Nn \l__didactic_call_str {#2}
+    \str_put_left:Nn \l__didactic_call_str { #1 ( }
+    \seq_if_empty:NF \l__didactic_stdin_seq
+      {
+        \__didactic_kwarg_list:nN { stdin } \l__didactic_stdin_seq
+        \__didactic_kwarg_list:nN { expect } \l__didactic_expect_seq
+      }
+    \__didactic_kwarg_str:nN { stdinfile } \l__didactic_stdinfile_tl
+    \__didactic_kwarg_str:nN { args } \l__didactic_args_tl
+    \__didactic_kwarg_str:nN { interpreter } \l__didactic_interpreter_tl
+    \__didactic_kwarg_str:nN { cwd } \l__didactic_cwd_tl
+    \__didactic_kwarg_bool:nN { chdir } \l__didactic_chdir_bool
+    \__didactic_kwarg_bool:nN { tty } \l__didactic_tty_bool
+    \bool_if:NF \l__didactic_echo_bool
+      { \str_put_right:Nn \l__didactic_call_str { , echo = False } }
+    \__didactic_kwarg_bool:nN { showcommand } \l__didactic_showcommand_bool
+    \__didactic_kwarg_str:nN { commandtext } \l__didactic_commandtext_tl
+    \__didactic_kwarg_str:nN { prompt } \l__didactic_prompt_tl
+    \__didactic_kwarg_raw:nN { timeout } \l__didactic_timeout_tl
+    \__didactic_kwarg_raw:nN { idle } \l__didactic_idle_tl
+    \clist_if_empty:NF \l__didactic_deps_clist
+      {
+        \seq_set_from_clist:NN \l_tmpa_seq \l__didactic_deps_clist
+        \__didactic_kwarg_list:nN { deps } \l_tmpa_seq
+      }
+    \__didactic_kwarg_str:nN { lang } \l__didactic_lang_tl
+    \__didactic_kwarg_bool:nN { fullwidth } \l__didactic_fullwidth_bool
+    \__didactic_pyliteral:Ne \l__didactic_tmp_str
+      { \clist_use:Nn \l__didactic_minted_clist { , } }
+    \str_put_right:Nn \l__didactic_call_str { , minted_opts = }
+    \str_put_right:NV \l__didactic_call_str \l__didactic_tmp_str
+    \str_put_right:Nn \l__didactic_call_str { #3 ) }
+    \exp_args:NV \pyc \l__didactic_call_str
+  }
+%    \end{macrocode}
+%
+% The user-level commands differ only in the Python function they call.
+% |\runshell| runs its argument through the shell, so pipes and 
+% redirections work.
+% The values are local to a group, so nothing leaks between runs.
+%    \begin{macrocode}
+\NewDocumentCommand{\runpython}{s O{} m}
+  {
+    \group_begin:
+      \__didactic_run_reset:
+      \IfBooleanT{#1}{ \bool_set_true:N \l__didactic_fullwidth_bool }
+      \__didactic_run_keys:n {#2}
+      \__didactic_run:nnn { didactic_output } {#3} { }
+    \group_end:
+  }
+\NewDocumentCommand{\runshell}{s O{} m}
+  {
+    \group_begin:
+      \__didactic_run_reset:
+      \IfBooleanT{#1}{ \bool_set_true:N \l__didactic_fullwidth_bool }
+      \__didactic_run_keys:n {#2}
+      \__didactic_run:nnn { didactic_shell } {#3} { , shell = True }
+    \group_end:
+  }
+\ExplSyntaxOff
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
 % \end{macro}
 % 
 % \subsection{Contrasting code examples}
@@ -1677,20 +2437,19 @@ def didactic_run_code(code, /, **kwargs):
 % \runbyrun{hello.py}[highlightlines=1]{hello.py}
 % And, finally, |\runbyrun{hello.py}{hello.py}| yields
 % \runbyrun{hello.py}{hello.py}
-% We can use |\textbytext| to typeset the two outputs side by side.
+% Each optional argument takes the same keys as |\runpython|, so two runs of 
+% one program with different input can be contrasted:
+% |\runbyrun[transcript,stdin={4}]{ask.py}[transcript,stdin={10}]{ask.py}| 
+% yields
+% \runbyrun[transcript,stdin={4}]{ask.py}[transcript,stdin={10}]{ask.py}
+% We use |\textbytext| to typeset the two outputs side by side, and 
+% |\runpython| for each run.
+% The |tabular| in |\textbytext| typesets its cells once, so the runs are 
+% executed once.
 %    \begin{macrocode}
-\NewDocumentCommand{\runbyrun}{somom}{%
-  \def\first{%
-    \IfValueTF{#2}{\pyc{minted_opts_1 = '#2'}}{\pyc{minted_opts_1 = None}}
-    \pyc{didactic_output('#3', minted_opts=minted_opts_1)}
-  }
-  \def\second{%
-    \IfValueTF{#4}{\pyc{minted_opts_2 = '#4'}}{\pyc{minted_opts_2 = None}}
-    \pyc{didactic_output('#5', minted_opts=minted_opts_2)}
-  }
-  \IfBooleanTF{#1}
-    {\textbytext*{\first}{\second}}
-    {\textbytext{\first}{\second}}
+\NewDocumentCommand{\runbyrun}{s O{} m O{} m}{%
+  \IfBooleanTF{#1}{\textbytext*}{\textbytext}
+    {\runpython[#2]{#3}}{\runpython[#4]{#5}}%
 }
 %    \end{macrocode}
 % \end{macro}

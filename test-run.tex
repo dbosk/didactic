@@ -1,0 +1,75 @@
+% Test for \runpython with stdin, args and terminal transcripts (didactic).
+%
+% Build (needs -shell-escape and pythontex):
+%   xelatex -shell-escape -interaction=nonstopmode test-run \
+%     && pythontex --interpreter python:python3 test-run \
+%     && xelatex -shell-escape test-run
+%
+% Expected in the resulting PDF, per numbered section:
+%   1  hello.py output, as before: "Hello, world!"
+%   2  the same, with line 1 highlighted (old optional argument = minted opts)
+%   3  pipe path: "Antal personer: 3.0 ägg" run together on ONE line (the
+%      pipe neither echoes the answer nor ends the line; documented)
+%   4  transcript: "$ python3 ask.py", "Antal personer: 4", then the recipe
+%      lines with Swedish characters, exactly as in a terminal
+%   5  slowask.py with expect: "Antal personer: 4" then "3.0 ägg" (without
+%      expect the 4 would be echoed BEFORE the question)
+%   6  askmany.py given one answer: second question followed by an EOFError
+%      traceback reading File "askmany.py" (no absolute path); no hang
+%   7  loop.py: "start" then "[didactic: timed out after 2 s]" after ~2 s
+%   8  boom.py: a ValueError traceback with no colour escape codes
+%   9  \runshell: "$ echo ett två tre | wc -w" then "3"
+%   10 \runsetup{prompt={> }}: the command line starts with "> "; then
+%      commandtext: shows "python3 ask.py" although run via "python3 -X utf8"
+%   11 \runbyrun: two transcripts side by side, answers 4 and 10
+%   12 greet.py with args: "Hej, Kalle!"
+%   13 didactic_shell called directly from \pyc, list and string forms: "hi"
+\documentclass[a4paper]{memoir}
+\usepackage[marginparmargin=right]{didactic}
+
+\begin{document}
+
+\section{Plain run, unchanged}
+\runpython{hello.py}
+
+\section{Old optional argument: minted options}
+\runpython[highlightlines=1]{hello.py}
+
+\section{Pipe path with stdin (documented mangling)}
+\runpython[stdin={4}]{ask.py}
+
+\section{Transcript}
+\runpython[transcript, stdin={4}]{ask.py}
+
+\section{Slow start with expect}
+\runpython[transcript, expect={Antal personer:}, stdin={4}]{slowask.py}
+
+\section{Too few answers: EOFError, no hang}
+\runpython[transcript, stdin={Kalle}]{askmany.py}
+
+\section{Timeout keeps partial output}
+\runpython[transcript, timeout=2]{loop.py}
+
+\section{Traceback without colour codes}
+\runpython[transcript]{boom.py}
+
+\section{Shell pipeline}
+\runshell[transcript]{echo ett två tre | wc -w}
+
+\section{runsetup and commandtext}
+\runsetup{prompt={> }}
+\runpython[transcript, stdin={4}]{ask.py}
+\runsetup{}
+\runpython[transcript, stdin={4}, interpreter={python3 -X utf8}, commandtext={python3 ask.py}]{ask.py}
+
+\section{Two runs side by side}
+\runbyrun[transcript, stdin={4}]{ask.py}[transcript, stdin={10}]{ask.py}
+
+\section{Arguments}
+\runpython[transcript, args={Kalle}]{greet.py}
+
+\section{Python API compatibility}
+\pyc{didactic_shell(["echo", "hi"])}
+\pyc{didactic_shell("echo hi", shell=True, minted_opts="numbers=none")}
+
+\end{document}
