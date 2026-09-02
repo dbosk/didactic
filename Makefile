@@ -5,7 +5,7 @@ PYTHONTEX=python3 $(shell which pythontex) --interpreter python:python3
 
 .PHONY: all
 all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
-	test-footcite-twoside.pdf
+	test-footcite-twoside.pdf test-run.pdf
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex
 SRC+=	hello.py ask.py askmany.py greet.py filter.py
@@ -40,6 +40,14 @@ test-footcite-twoside.pdf: test-footcite-twoside.tex test-footcite.bib didactic.
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
 
+# run tests: \runpython with stdin, args and transcripts. Needs pythontex, like
+# didactic.pdf; the first pass fails on the missing pythontex output.
+TEST_RUN_EXAMPLES=	ask.py askmany.py greet.py filter.py slowask.py loop.py boom.py
+test-run.pdf: test-run.tex didactic.sty ${TEST_RUN_EXAMPLES}
+	-${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	${PYTHONTEX} test-run
+	${PDFLATEX} ${LATEXFLAGS} $<
+
 VERSION=$(shell sed -En "s/^.*v([0-9]+\.[0-9]+) didactic.*$$/\1/p" didactic.dtx)
 .PHONY: release
 release: didactic.tar.gz didactic.pdf didactic.sty
@@ -64,4 +72,7 @@ clean:
 	${RM} didactic_output_*
 	${RM} didactic_code_*
 	${RM} -R didactic-files
+	${RM} test-run.pdf test-run.aux test-run.log test-run.unq
+	${RM} test-run.pytxcode test-run.pytxmcr test-run.pytxpyg
+	${RM} -R pythontex-files-test-run _minted-test-run
 	latexmk -C test.tex
