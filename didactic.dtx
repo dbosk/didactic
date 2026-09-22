@@ -143,6 +143,8 @@
 % \changes{v2.5}{2026/09/22}{%
 %   Uses |\indentedmarginpar| for the margin notes of the |corrigenda| package 
 %   when it's loaded.
+%   Only makes |csquotes| use |\autocite| when |biblatex| is loaded, and 
+%   regardless of load order.
 % }
 %
 % \GetFileInfo{didactic.dtx}
@@ -899,9 +901,21 @@
 %
 %    \begin{macrocode}
 }{}
-\@ifpackageloaded{csquotes}{%
-  \SetCiteCommand{\autocite}
-}{}
+% We also want |csquotes| to use |\autocite| for its integrated citation 
+% commands (|\textcquote| and friends).
+% However, |\autocite| only exists if |biblatex| is loaded, and |csquotes| 
+% checks at |\begin{document}| that the command exists.
+% So we set it at the end of the preamble, and only if both packages are 
+% loaded by then.
+% That way the order in which the packages are loaded doesn't matter either.
+%    \begin{macrocode}
+\AtEndPreamble{%
+  \@ifpackageloaded{csquotes}{%
+    \@ifpackageloaded{biblatex}{%
+      \SetCiteCommand{\autocite}%
+    }{}%
+  }{}%
+}
 %    \end{macrocode}
 %
 % \subsection{A side-caption environment for \texttt{beamer}}
