@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/09/02 v2.4 didactic]
+  [2026/09/22 v2.5 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -139,6 +139,10 @@
 %   |didactic_output| get keyword arguments for input and terminal runs.
 %   Names the output files by their content and registers them with PythonTeX 
 %   for cleanup.
+% }
+% \changes{v2.5}{2026/09/22}{%
+%   Uses |\indentedmarginpar| for the margin notes of the |corrigenda| package 
+%   when it's loaded.
 % }
 %
 % \GetFileInfo{didactic.dtx}
@@ -287,6 +291,10 @@
 % \newnotetype[\textbf]{\bfnote}{Bold note}
 % \bfnote{This is a bold note.}
 % \ltnote{Another example of a learning theory note.}
+%
+% If the \textsf{corrigenda} package is loaded, its margin notes (the 
+% reviewers' comments on errata) are also typeset with |\indentedmarginpar|, 
+% so that they look like the other notes.
 %
 % \DescribeMacro{\NewNoteType}
 % We also have |\NewNoteType| which is almost synonymous to |\newnotetype|.
@@ -1316,6 +1324,17 @@
     \setlength{\parindent}{2em}%
     \@afterindentfalse\@afterheading #1%
   }%
+}
+%    \end{macrocode}
+% If the \textsf{corrigenda} package is loaded (before or after us), we let it 
+% use |\indentedmarginpar| for its margin notes.
+% Not in |beamer| though: there \textsf{corrigenda} has already turned its 
+% margin notes off, and |\foottextfont| is only defined by |memoir|.
+%    \begin{macrocode}
+\AtBeginDocument{%
+  \@ifpackageloaded{corrigenda}{%
+    \@ifclassloaded{beamer}{}{\SetErratumMarginNote{\indentedmarginpar}}%
+  }{}%
 }
 %    \end{macrocode}
 % \end{macro}
