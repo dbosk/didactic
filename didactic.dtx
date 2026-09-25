@@ -469,6 +469,12 @@
 % The setting is local to the current group, and |\runbasedir{}| turns it 
 % off again.
 % A single run can also be given the key |basedir|.
+% This assumes that PythonTeX runs in the directory of the main document, 
+% which is the default: a relative base directory is taken from PythonTeX's 
+% working directory, while the paths of \textsf{import} are relative to the 
+% document.
+% If |\setpythontexworkingdir| moves PythonTeX elsewhere, give the base 
+% directory explicitly, relative to that working directory.
 %
 % The base directory applies to the runs only.
 % Code that the document runs in PythonTeX itself, in a |pycode| environment 
