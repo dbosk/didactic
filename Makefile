@@ -42,7 +42,9 @@ test-footcite-twoside.pdf: test-footcite-twoside.tex test-footcite.bib didactic.
 
 # run tests: \runpython with stdin, args and transcripts. Needs pythontex, like
 # didactic.pdf; the first pass fails on the missing pythontex output.
-TEST_RUN_EXAMPLES=	ask.py askmany.py greet.py filter.py slowask.py loop.py boom.py
+TEST_RUN_EXAMPLES=	ask.py askmany.py greet.py filter.py slowask.py loop.py boom.py \
+	test-basedir/contents.tex test-basedir/examples/readdata.py \
+	test-basedir/examples/data.txt
 test-run.pdf: test-run.tex didactic.sty ${TEST_RUN_EXAMPLES}
 	-${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	${PYTHONTEX} test-run

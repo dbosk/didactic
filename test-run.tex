@@ -24,8 +24,17 @@
 %   11 \runbyrun: two transcripts side by side, answers 4 and 10
 %   12 greet.py with args: "Hej, Kalle!"
 %   13 didactic_shell called directly from \pyc, list and string forms: "hi"
+%   14 \runbasedir{auto} and \subimport{test-basedir/}: "$ python3 readdata.py
+%      data.txt", then "data from test-basedir/examples"; then without chdir
+%      "$ python3 examples/readdata.py examples/data.txt" and the same line
+%   15 explicit \runbasedir{test-basedir}: same as the second run in 14
+%   16 the session changes directory with os.chdir: the plain run still
+%      shows the data, and its output file is written next to this file;
+%      the base directory is still taken from here, not from test-basedir,
+%      so the second run shows the data too
 \documentclass[a4paper]{memoir}
 \usepackage[marginparmargin=right]{didactic}
+\usepackage{import}
 
 \begin{document}
 
@@ -71,5 +80,21 @@
 \section{Python API compatibility}
 \pyc{didactic_shell(["echo", "hi"])}
 \pyc{didactic_shell("echo hi", shell=True, minted_opts="numbers=none")}
+
+\section{Base directory following import}
+\runbasedir{auto}
+\subimport{test-basedir/}{contents.tex}
+\runbasedir{}
+
+\section{Explicit base directory}
+{\runbasedir{test-basedir}
+\runpython[tty, showcommand, args={examples/data.txt}]{examples/readdata.py}}
+
+\section{Session changes directory}
+\pyc{os.chdir("test-basedir")}
+\runpython[transcript, chdir, args={data.txt}]{examples/readdata.py}
+{\runbasedir{test-basedir}
+\runpython[tty, showcommand, args={examples/data.txt}]{examples/readdata.py}}
+\pyc{os.chdir(DIDACTIC_WORKDIR)}
 
 \end{document}

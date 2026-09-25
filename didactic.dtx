@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/09/22 v2.5 didactic]
+  [2026/09/25 v2.6 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -145,6 +145,15 @@
 %   when it's loaded.
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
+% }
+% \changes{v2.6}{2026/09/25}{%
+%   Adds |\runbasedir| and the |basedir| key, to run the examples of parts 
+%   included from other directories, following the \textsf{import} package 
+%   with |\runbasedir{auto}|.
+%   Adds the |basedir| keyword argument to |didactic_shell| and 
+%   |didactic_output|, and the |didactic_resolve| PythonTeX function.
+%   The PythonTeX functions no longer depend on the working directory, so 
+%   code in the document may change it.
 % }
 %
 % \GetFileInfo{didactic.dtx}
@@ -364,6 +373,8 @@
 % \item[prompt] The shell prompt in front of the command line, |$ | by 
 %   default.
 % \item[cwd] The directory to run in.
+% \item[basedir] The directory that file names are relative to, see 
+%   |\runbasedir| below.
 % \item[interpreter] The interpreter, |python3| by default; it may contain 
 %   options, as in |python3 -X utf8|.
 % \item[timeout] Seconds until the program is killed, 10 by default.
@@ -378,7 +389,8 @@
 % \item[fullwidth] The same as the starred form of the command.
 % \end{description}
 % All file names are relative to the document, or rather to PythonTeX's 
-% working directory, also when |cwd| or |chdir| is used.
+% working directory, also when |cwd| or |chdir| is used; with a base 
+% directory, they are relative to that instead.
 %
 % \begin{example}
 % The program |ask.py| asks a question:
@@ -435,6 +447,40 @@
 % \DescribeMacro{\runsetup}
 % Defaults for all runs in a document can be set with |\runsetup{keys}|, for 
 % instance |\runsetup{transcript, timeout=5}|.
+%
+% \DescribeMacro{\runbasedir}
+% A book may include parts that were written to be compiled on their own, 
+% each in its own directory, say with 
+% |\subimport{../lectures/loops/}{contents.tex}| from the \textsf{import} 
+% package.
+% The part refers to its programs relative to its own directory, as in 
+% |\runpython[transcript, chdir]{examples/loop.py}|.
+% With |\runbasedir{../lectures/loops/}| the runs that follow resolve their 
+% file names, including |cwd|, |stdinfile| and |deps|, against that 
+% directory and run the program there.
+% The command is left as it is written, so the command line shown is the 
+% same as when the part is compiled on its own.
+% A relative base directory is relative to the main document.
+%
+% With |\runbasedir{auto}|, the base directory follows the \textsf{import} 
+% package: each run uses the directory of the file being imported, as 
+% |\input| and |\includegraphics| do.
+% So one |\runbasedir{auto}| in the preamble of the book is enough.
+% The setting is local to the current group, and |\runbasedir{}| turns it 
+% off again.
+% A single run can also be given the key |basedir|.
+% This assumes that PythonTeX runs in the directory of the main document, 
+% which is the default: a relative base directory is taken from PythonTeX's 
+% working directory, while the paths of \textsf{import} are relative to the 
+% document.
+% If |\setpythontexworkingdir| moves PythonTeX elsewhere, give the base 
+% directory explicitly, relative to that working directory.
+%
+% The base directory applies to the runs only.
+% Code that the document runs in PythonTeX itself, in a |pycode| environment 
+% for instance, still runs in PythonTeX's working directory.
+% Such code may change directory with |os.chdir|; the \textsf{didactic} 
+% functions keep working, since they don't depend on the working directory.
 %
 % \DescribeMacro{\runshell}
 % The |\runshell| macro runs any command through the shell, with the same 
@@ -1506,39 +1552,82 @@ except ImportError:
 %
 % The function |didactic_mint| typesets a text using |minted|.
 % Since we can't use the |minted| environments from inside a Python function, 
-% we write the text to a file and print an |\inputminted| command, which 
+% we write the text to a file and print a command that inputs it, which 
 % PythonTeX then typesets for us.
 % The file is named by a hash of its contents.
-% This way a rerun overwrites the same file instead of leaving a new one 
+% This way a rerun overwrites the same file instead of leaving a new one
 % behind every time.
-% We also register the file with PythonTeX, so that it is removed when the 
+% We also register the file with PythonTeX, so that it is removed when the
 % code is rerun.
+%
+% Code in the document may change the working directory of PythonTeX, for
+% instance to read files relative to an included part of a book.
+% So we don't rely on the working directory staying put.
+% We remember the directory PythonTeX started in, which is where \LaTeX{}
+% looks for the files we write, and always write there.
+% And we give PythonTeX absolute paths, since it resolves relative ones from
+% the directory it started in, not from the current one.
+%
+% \begin{macro}{\didacticinputminted}
+% The file must also be found by |minted| where the output is typeset.
+% With the \textsf{import} package loaded, |minted| (from version~3) reads
+% |\inputminted{text}{file}| as a file relative to the directory being
+% imported, so that |\lstexample| in an imported part finds its programs.
+% But our files are in the directory PythonTeX started in, whatever is being
+% imported.
+% So we print |\didacticinputminted|, which takes the same arguments as
+% |\inputminted| but empties the import path while reading the file.
+%    \begin{macrocode}
+\NewDocumentCommand{\didacticinputminted}{O{} m m}{%
+  \begingroup
+    \let\import@path\@empty
+    \inputminted[#1]{#2}{#3}%
+  \endgroup
+}
+%    \end{macrocode}
+% \end{macro}
+%
 %    \begin{macrocode}
 \begin{pycode}
+DIDACTIC_WORKDIR = os.getcwd()
+
 def didactic_write_file(content, /, prefix, suffix):
   """
-  Write `content` to a file named by `prefix`, a hash of the content and 
-  `suffix`, in the working directory. Register the file with PythonTeX as a 
-  created file, so that it is cleaned up. Return the file name.
+  Write `content` to a file named by `prefix`, a hash of the content and
+  `suffix`, in the directory PythonTeX started in (`DIDACTIC_WORKDIR`).
+  Register the file with PythonTeX as a created file, so that it is cleaned
+  up. Return the file name, relative to that directory.
   """
   digest = hashlib.sha256(content.encode("utf-8")).hexdigest()[:16]
   filename = f"{prefix}{digest}{suffix}"
-  with open(filename, "w", encoding="utf-8") as f:
+  path = os.path.join(DIDACTIC_WORKDIR, filename)
+  with open(path, "w", encoding="utf-8") as f:
     f.write(content)
-  didactic_track("created", filename)
+  didactic_track("created", path)
   return filename
 
 def didactic_track(kind, /, *paths):
   """
-  Tell PythonTeX about files: `kind` is "created" for files we write, so that 
-  PythonTeX cleans them up, or "dependencies" for files we read, so that 
-  PythonTeX reruns the code when they change. PythonTeX resolves relative 
-  paths from its working directory.
+  Tell PythonTeX about files: `kind` is "created" for files we write, so that
+  PythonTeX cleans them up, or "dependencies" for files we read, so that
+  PythonTeX reruns the code when they change. Relative paths are relative to
+  the current working directory.
   """
   try:
-    getattr(pytex, f"add_{kind}")(*paths)
+    getattr(pytex, f"add_{kind}")(*(os.path.abspath(p) for p in paths))
   except NameError:
     pass
+
+def didactic_resolve(basedir, path):
+  """
+  Resolve `path` against `basedir`. A relative `basedir` is relative to the
+  directory PythonTeX started in (`DIDACTIC_WORKDIR`), so it doesn't matter
+  whether the working directory has been changed. Without a `basedir`, or
+  for an absolute `path`, return `path` unchanged.
+  """
+  if basedir is None or path is None or os.path.isabs(path):
+    return path
+  return os.path.join(DIDACTIC_WORKDIR, basedir, path)
 
 def didactic_mint(output, /, lang="text",
                   minted_opts="escapeinside=||",
@@ -1577,9 +1666,9 @@ def didactic_mint(output, /, lang="text",
                                  "didactic_output_", ".txt")
 
   if minted_opts:
-    print(r"\inputminted[%s]{%s}{%s}" % (minted_opts, lang, filename))
+    print(r"\didacticinputminted[%s]{%s}{%s}" % (minted_opts, lang, filename))
   else:
-    print(r"\inputminted{%s}{%s}" % (lang, filename))
+    print(r"\didacticinputminted{%s}{%s}" % (lang, filename))
 
   if fullwidth:
     print(r"\end{fullwidth}")
@@ -1851,16 +1940,27 @@ def didactic_capture(cmd, /, *, shell=False, stdin=None, cwd=None,
 % The run's dependencies are registered with PythonTeX.
 % This matters: PythonTeX reruns code when the \emph{code} changes, and the 
 % call in the document doesn't change when the program does.
-% Note that we pass the directory to run in to |subprocess| and never change 
-% the working directory of PythonTeX itself: |didactic_mint| writes its files 
-% in the working directory, where \LaTeX{} expects to find them.
+% Note that we pass the directory to run in to |subprocess| and never change
+% the working directory of PythonTeX itself.
+%
+% When a document includes parts from other directories, say the chapters
+% of a book, each part refers to its programs relative to its own directory.
+% The |basedir| argument is that directory.
+% Relative paths are resolved against it, and the program is run there, but
+% the command is left as it is.
+% So the command line shown is the one written in the part, the same as when
+% the part is compiled on its own.
+% A relative |basedir| is taken from the directory PythonTeX started in,
+% which is the directory of the main document, the same as the paths of the
+% \textsf{import} package.
 %    \begin{macrocode}
 \begin{pycode}
 def didactic_shell(cmd, /, shell=False, *, stdin=None, stdinfile=None,
                    cwd=None, tty=False, echo=True, expect=None,
                    timeout=10, idle=0.5, eof=True, env=None,
                    transcript=False, showcommand=None, commandtext=None,
-                   prompt="$ ", deps=(), chdir=False, **kwargs):
+                   prompt="$ ", deps=(), chdir=False, basedir=None,
+                   **kwargs):
   """
   Run a command and typeset the output using minted.
 
@@ -1874,6 +1974,10 @@ def didactic_shell(cmd, /, shell=False, *, stdin=None, stdinfile=None,
   show instead of the actual command; `prompt` is put in front of it.
   - `deps` are files that PythonTeX should rerun this code for when they 
   change, relative to the working directory.
+  - `basedir` is the directory that relative paths (`cwd`, `stdinfile`, 
+  `deps`) are relative to, and the directory to run in when `cwd` isn't 
+  given. A relative `basedir` is relative to `DIDACTIC_WORKDIR`. The command 
+  itself is run and shown as it is.
   - `chdir` is accepted for symmetry with `didactic_output` but has no 
   meaning here: use `cwd`.
   - `kwargs` are passed to `didactic_mint`, see that function for more 
@@ -1883,6 +1987,11 @@ def didactic_shell(cmd, /, shell=False, *, stdin=None, stdinfile=None,
     tty = True
     if showcommand is None:
       showcommand = True
+
+  if basedir is not None:
+    cwd = didactic_resolve(basedir, cwd or os.curdir)
+    stdinfile = didactic_resolve(basedir, stdinfile)
+    deps = [didactic_resolve(basedir, dep) for dep in deps]
 
   if stdinfile:
     didactic_track("dependencies", stdinfile)
@@ -1915,7 +2024,8 @@ def didactic_shell(cmd, /, shell=False, *, stdin=None, stdinfile=None,
 %    \begin{macrocode}
 \begin{pycode}
 def didactic_output(module, /, interpreter="python3", *, args=None,
-                    chdir=False, cwd=None, deps=(), track=True, **kwargs):
+                    chdir=False, cwd=None, deps=(), track=True,
+                    basedir=None, **kwargs):
   """
   Run a Python program and typeset the output using minted.
 
@@ -1929,11 +2039,15 @@ def didactic_output(module, /, interpreter="python3", *, args=None,
   line shown in a transcript is the short one. An explicit `cwd` wins.
   - `deps` are additional files that the run depends on. The program itself 
   is always a dependency, unless `track` is False.
+  - `basedir` is the directory that the paths are relative to and that the 
+  program is run from, see `didactic_shell`. The command line shows the 
+  program as given.
   - `kwargs` are passed to `didactic_shell`, see that function for more 
   information.
   """
-  if track and os.path.isfile(module):
-    didactic_track("dependencies", module)
+  path = didactic_resolve(basedir, module)
+  if track and os.path.isfile(path):
+    didactic_track("dependencies", path)
   argv = shlex.split(args) if isinstance(args, str) else list(args or [])
   interp = (shlex.split(interpreter) if isinstance(interpreter, str)
             else list(interpreter))
@@ -1942,7 +2056,8 @@ def didactic_output(module, /, interpreter="python3", *, args=None,
     if cwd is None:
       cwd = directory or None
     module = name
-  didactic_shell(interp + [module] + argv, cwd=cwd, deps=deps, **kwargs)
+  didactic_shell(interp + [module] + argv, cwd=cwd, deps=deps,
+                 basedir=basedir, **kwargs)
 
 def didactic_pydoc(module, /, builtin=False, **kwargs):
   """
@@ -2068,6 +2183,7 @@ def didactic_run_code(code, /, **kwargs):
 % \begin{macro}{\runpython}
 % \begin{macro}{\runshell}
 % \begin{macro}{\runsetup}
+% \begin{macro}{\runbasedir}
 % Now, for the second part, printing the output.
 % We can use it like |\runpython{hello.py}| to run the program in |hello.py|.
 % The output is printed in a |minted| environment.
@@ -2095,6 +2211,7 @@ def didactic_run_code(code, /, **kwargs):
 \tl_new:N \l__didactic_args_tl
 \tl_new:N \l__didactic_interpreter_tl
 \tl_new:N \l__didactic_cwd_tl
+\tl_new:N \l__didactic_basedir_tl
 \bool_new:N \l__didactic_chdir_bool
 \bool_new:N \l__didactic_tty_bool
 \bool_new:N \l__didactic_echo_bool
@@ -2138,6 +2255,7 @@ def didactic_run_code(code, /, **kwargs):
     args        .tl_set:N    = \l__didactic_args_tl ,
     interpreter .tl_set:N    = \l__didactic_interpreter_tl ,
     cwd         .tl_set:N    = \l__didactic_cwd_tl ,
+    basedir     .tl_set:N    = \l__didactic_basedir_tl ,
     chdir       .bool_set:N  = \l__didactic_chdir_bool ,
     chdir       .default:n   = { true } ,
     tty         .bool_set:N  = \l__didactic_tty_bool ,
@@ -2198,6 +2316,32 @@ def didactic_run_code(code, /, **kwargs):
 \cs_generate_variant:Nn \__didactic_run_keys:n { V }
 \NewDocumentCommand{\runsetup}{m}
   { \tl_gset:Nn \g__didactic_run_defaults_tl {#1} }
+%    \end{macrocode}
+%
+% The base directory is not reset before each run, so that it can be set 
+% for a part of the document with |\runbasedir|.
+% That setting is local, so it ends with the group it's made in.
+% We keep it apart from |\runsetup|, which is global and replaces all the 
+% defaults: a part that sets its own defaults must not lose its base 
+% directory.
+% The value |auto| means the directory of the file that the \textsf{import} 
+% package is currently reading, which we look up at each run, since 
+% \textsf{import} changes it as it goes.
+% Outside of an import, or without the package, that is empty, which means 
+% no base directory.
+%    \begin{macrocode}
+\NewDocumentCommand{\runbasedir}{m}
+  { \tl_set:Nn \l__didactic_basedir_tl {#1} }
+\tl_const:Nn \c__didactic_auto_tl { auto }
+\cs_new_protected:Npn \__didactic_basedir_resolve:
+  {
+    \tl_if_eq:NNT \l__didactic_basedir_tl \c__didactic_auto_tl
+      {
+        \cs_if_exist:cTF { import@path }
+          { \tl_set_eq:Nc \l__didactic_basedir_tl { import@path } }
+          { \tl_clear:N \l__didactic_basedir_tl }
+      }
+  }
 %    \end{macrocode}
 %
 % Values become Python string literals.
@@ -2283,6 +2427,8 @@ def didactic_run_code(code, /, **kwargs):
     \__didactic_kwarg_str:nN { args } \l__didactic_args_tl
     \__didactic_kwarg_str:nN { interpreter } \l__didactic_interpreter_tl
     \__didactic_kwarg_str:nN { cwd } \l__didactic_cwd_tl
+    \__didactic_basedir_resolve:
+    \__didactic_kwarg_str:nN { basedir } \l__didactic_basedir_tl
     \__didactic_kwarg_bool:nN { chdir } \l__didactic_chdir_bool
     \__didactic_kwarg_bool:nN { tty } \l__didactic_tty_bool
     \bool_if:NF \l__didactic_echo_bool
@@ -2336,7 +2482,8 @@ def didactic_run_code(code, /, **kwargs):
 % \end{macro}
 % \end{macro}
 % \end{macro}
-% 
+% \end{macro}
+%
 % \subsection{Contrasting code examples}
 %
 % Sometimes we want to contrast two code examples side by side.
