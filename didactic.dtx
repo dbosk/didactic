@@ -148,7 +148,11 @@
 % }
 % \changes{v2.6}{2026/09/26}{%
 %   Makes the reuse of citation footnotes on the same page settle: a 
-%   citation whose decision flips between passes gets its own footnote.
+%   citation whose decision flips between passes reserves the space of its 
+%   own footnote.
+%   Reuses a footnote only when it is printed on the same page, which 
+%   \textsf{marginfix} can change.
+%   Removes the space before a reused footnote mark.
 % }
 % \changes{v2.6}{2026/09/26}{%
 %   Keeps the first paragraph after a heading unindented when a margin note 
@@ -877,12 +881,19 @@
 % \cs{c@page}, it is reliable.
 %
 % For every \cs{footcite} we drop a uniquely named |zref| label at the point of
-% citation. A citation's \emph{reuse identity} is its entry key together with its
-% pre- and postnote, so |\footcite[see][p.~5]{A}| reuses a matching earlier one
-% while |\footcite[cf.][p.~7]{A}| gets its own footnote; with no notes this
-% reduces to the bare key. For each identity we remember the footnote number and
-% the label of the last real footnote, and a later citation of that identity
-% reuses the number iff that footnote lies in the same \emph{reuse group}.
+% citation, and every footnote we make gets a label inside its text. The two
+% can be on different pages: with footnotes in the margin, \textsf{marginfix}
+% moves a note that doesn't fit to the next page, and a mark must not point to
+% a note on another page. A citation's \emph{reuse identity} is its entry key
+% together with its pre- and postnote, so |\footcite[see][p.~5]{A}| reuses a
+% matching earlier one while |\footcite[cf.][p.~7]{A}| gets its own footnote;
+% with no notes this reduces to the bare key. For each identity we remember the
+% footnote number and the label in the text of the last real footnote, and a
+% later citation of that identity reuses the number iff that footnote is
+% printed in the same \emph{reuse group} as the citation. It also reuses it
+% when the two marks are in the same group, even if the earlier footnote was
+% moved on: our own footnote would come after it, so it would be moved at least
+% as far, and it would only repeat the earlier one.
 %
 % The reuse group is normally just the page (|abspage|). Under |twoside|, though,
 % the two pages of an open spread --- a verso (even |abspage|) on the left and
@@ -896,29 +907,47 @@
 %
 % Deciding from the previous pass has a catch: the decision changes the 
 % layout.
-% A citation that gets its own note fills the margin more than one that 
-% reuses a note, which can move the page breaks, which can move the citation 
-% onto another page, which reverses the decision.
+% A citation that gets its own footnote puts a note in the margin and a 
+% different number in the text, which can move the page breaks, which can 
+% move the citation onto another page, which reverses the decision.
 % Then the passes never settle: the decision flips on every other pass.
 % This happens in long documents with many citations, like a book made of 
 % several lectures.
+% Neither decision is right for such a citation: with its own footnote it 
+% lands on the page of the earlier one, so the note is a duplicate; with the 
+% mark it lands on another page, so the mark points to a note elsewhere.
 %
-% So we add some hysteresis.
-% Each citation that could reuse a note writes its decision to the |.aux| 
+% So we take the layout out of the decision.
+% Each citation that could reuse a footnote writes its decision to the |.aux| 
 % file, together with the decision of the pass before.
 % If a citation is about to return to the decision it had two passes ago, it 
-% is flipping, and we hold it at its own note from then on.
-% That's always safe: at worst a reference gets a second footnote on the 
-% same page, never a mark that points to a footnote on another page.
+% is flipping, and from then on it \emph{reserves} the space of its own 
+% footnote, whatever it decides: when it reuses the earlier footnote, it 
+% prints the mark in a box as wide as its own mark would be, and an invisible 
+% note of exactly the size of its own note.
+% Then both decisions give the same layout, and the decision settles on the 
+% right one.
+% The invisible note must have the same structure as the real one, not just 
+% the same size: lines, glue and penalties, since \textsf{marginfix} treats 
+% them differently when the margin is full.
+% The one difference left is the footnote counter, which only the own 
+% footnote steps; with old-style figures even that changes the height of 
+% lines.
+% If a citation still flips while reserving space, we give up and keep its 
+% own footnote; whenever that footnote then repeats one on the same page, we 
+% say so in a warning.
+% So in the last pass, a mark always points to a footnote on its page, and 
+% a repeated footnote is never silent.
 % We recognise a citation across passes by its serial number and an MD5 sum 
 % of its reuse identity; when the text changes so that the serial number 
 % belongs to another citation, its old state is ignored.
-% A held citation stays held until the |.aux| file is removed.
+% A citation keeps reserving space until the |.aux| file is removed.
 %    \begin{macrocode}
 \RequirePackage{zref-abspage,zref-user}
 \RequirePackage{pdftexcmds}
 \newcount\@didactic@fncount  % serial number for unique reuse labels
 \newcount\@didactic@fnpa     % abspage of the previous footnote
+\newcount\@didactic@fnpm     % abspage of the mark of the previous footnote
 \newcount\@didactic@fnpb     % abspage of the current citation
 \newcount\@didactic@fnga     % reuse group of the previous footnote
 \newcount\@didactic@fngb     % reuse group of the current citation
@@ -929,27 +958,32 @@
 % the page itself, or, under twoside, the verso page of its open spread (an odd
 % abspage mapped down to the even page it faces).
 \def\@didactic@fntogroup#1{\if@twoside\ifodd#1 \advance#1\m@ne \fi\fi}
+\newdimen\@didactic@fnmarkwd
 % \@didactic@fnstate{<serial>}{<md5 of identity>}{<decision>}{<decision of the
-% pass before>}{<held>}: the state of a citation, read from the .aux file;
-% decisions are r (reuse), n (new note) or u (new note, since a page was
-% not yet resolved, which doesn't count as a decision); held is 1 or 0.
+% pass before>}{<mode>}: the state of a citation, read from the .aux file.
+% Decisions are r (reuse), n (new note) or u (new note, since a page was not
+% yet resolved, which doesn't count as a decision). The mode is 0 (normal),
+% 1 (reserving space) or 2 (given up).
 \def\@didactic@fnstate#1#2#3#4#5{\csgdef{@didactic@fnst@#1}{{#2}{#3}{#4}{#5}}}
 \AtBeginDocument{%
   \if@filesw
     \immediate\write\@auxout{\string\providecommand\string\@didactic@fnstate[5]{}}%
   \fi}
+\def\@didactic@fnzero{0}
 \def\@didactic@fnone{1}
+\def\@didactic@fntwo{2}
 \def\@didactic@fnu{u}
-% \@didactic@fnread{<md5>}{<decision>}{<before>}{<held>}: take the state if it
+\def\@didactic@fnr{r}
+% \@didactic@fnread{<md5>}{<decision>}{<before>}{<mode>}: take the state if it
 % belongs to the same citation.
 \def\@didactic@fnread#1#2#3#4{%
   \def\@tempa{#1}%
   \ifdefstrequal{\@tempa}{\@didactic@fnid}{%
     \def\@didactic@fnlast{#2}%
     \def\@didactic@fnbefore{#3}%
-    \def\@didactic@fnheld{#4}}{}}
-% \@didactic@fnhold: apply the hysteresis to \if@didactic@fnreuse and record
-% the decision in the .aux file.
+    \def\@didactic@fnmode{#4}}{}}
+% \@didactic@fnhold: detect flipping, set \@didactic@fnmode and record the
+% decision in the .aux file. Entering a new mode starts a new history.
 \def\@didactic@fnhold{%
   \edef\@didactic@fnid{\pdf@mdfivesum{\@didactic@fnkey}}%
   \edef\@didactic@fnnow{%
@@ -957,30 +991,123 @@
       \if@didactic@fnreuse r\else n\fi\fi\fi}%
   \let\@didactic@fnlast\@empty
   \let\@didactic@fnbefore\@empty
-  \def\@didactic@fnheld{0}%
+  \def\@didactic@fnmode{0}%
   \ifcsdef{@didactic@fnst@\the\@didactic@fncount}{%
     \expandafter\expandafter\expandafter\@didactic@fnread
       \csname @didactic@fnst@\the\@didactic@fncount\endcsname}{}%
+  \let\@didactic@fnwas\@didactic@fnlast
   % flipping: back to the decision of two passes ago, both being decisions
   \ifdefequal{\@didactic@fnnow}{\@didactic@fnlast}{}{%
     \ifdefequal{\@didactic@fnnow}{\@didactic@fnbefore}{%
       \ifdefequal{\@didactic@fnnow}{\@didactic@fnu}{}{%
-        \ifdefequal{\@didactic@fnlast}{\@didactic@fnu}{}
-          {\def\@didactic@fnheld{1}}}}{}}%
-  \ifdefequal{\@didactic@fnheld}{\@didactic@fnone}
-    {\@didactic@fnreusefalse\def\@didactic@fnnow{n}}{}%
+        \ifdefequal{\@didactic@fnlast}{\@didactic@fnu}{}{%
+          \ifdefequal{\@didactic@fnmode}{\@didactic@fnzero}
+            {\def\@didactic@fnmode{1}}
+            {\def\@didactic@fnmode{2}}%
+          \def\@didactic@fnwas{u}}}}{}}%
+  \ifdefequal{\@didactic@fnmode}{\@didactic@fntwo}{%
+    \ifdefequal{\@didactic@fnnow}{\@didactic@fnr}{%
+      \PackageWarning{didactic}{The footnote for citation
+        \the\@didactic@fncount\space(\thefield{entrykey})\MessageBreak
+        repeats one on the same page, since\MessageBreak
+        reusing it didn't settle}}{}%
+    \@didactic@fnreusefalse\def\@didactic@fnnow{n}}{}%
   \if@filesw
     \immediate\write\@auxout{\string\@didactic@fnstate
       {\the\@didactic@fncount}{\@didactic@fnid}%
-      {\@didactic@fnnow}{\@didactic@fnlast}%
-      {\@didactic@fnheld}}%
+      {\@didactic@fnnow}{\@didactic@fnwas}{\@didactic@fnmode}}%
   \fi}
+\def\@didactic@fnn{n}
+% \@didactic@fnnewnote{<text>}: a real footnote, with a label inside its text
+% for the page where it is printed.
 \def\@didactic@fnnewnote#1{%
-  \mkbibfootnote{#1}%
+  \edef\@didactic@fnnotelabel{didacticfnnote@\the\@didactic@fncount}%
+  \mkbibfootnote{#1\expandafter\zlabel\expandafter{\@didactic@fnnotelabel}}%
   \expandafter\xdef\csname @didactic@fncite@\@didactic@fnkey\endcsname
     {\the\c@footnote}%
   \expandafter\xdef\csname @didactic@fnlabel@\@didactic@fnkey\endcsname
+    {\@didactic@fnnotelabel}%
+  \expandafter\xdef\csname @didactic@fnmark@\@didactic@fnkey\endcsname
     {\@didactic@fnhere}%
+}
+% \@didactic@fnghost: replace the vertical list in \@tempboxa by an invisible
+% one with the same structure: every line becomes an empty box of the same
+% size, glue, kerns and penalties stay. That way margin notes and page breaks
+% treat it exactly like the note. We take the list apart from the bottom with
+% e-TeX's \lastnodetype. If we meet anything else, like a rule or a whatsit,
+% we can't take it out; then the result is one empty box of the same size.
+% The note must start in a list that isn't empty, as it does in the margin,
+% or TeX leaves out the \parskip glue; so the caller puts a \kern\z@ first,
+% and we drop the kern at the top.
+\newbox\@didactic@ghostbox
+\newbox\@didactic@ghostitem
+\newif\if@didactic@ghostok
+\def\@didactic@ghostput#1{%
+  \global\setbox\@didactic@ghostbox\vbox{#1\unvbox\@didactic@ghostbox}}
+\def\@didactic@ghostloop{%
+  \let\@didactic@next\@didactic@ghostloop
+  \ifcase\numexpr\lastnodetype+1\relax
+    \let\@didactic@next\relax                                    % empty
+  \or \global\@didactic@ghostokfalse \let\@didactic@next\relax  % char
+  \or \@didactic@ghostcopy\hbox                                 % hlist
+  \or \@didactic@ghostcopy\vbox                                 % vlist
+  \or \global\@didactic@ghostokfalse \let\@didactic@next\relax  % rule
+  \or \global\@didactic@ghostokfalse \let\@didactic@next\relax  % ins
+  \or \global\@didactic@ghostokfalse \let\@didactic@next\relax  % mark
+  \or \global\@didactic@ghostokfalse \let\@didactic@next\relax  % adjust
+  \or \global\@didactic@ghostokfalse \let\@didactic@next\relax  % ligature
+  \or \global\@didactic@ghostokfalse \let\@didactic@next\relax  % disc
+  \or \global\@didactic@ghostokfalse \let\@didactic@next\relax  % whatsit
+  \or \global\@didactic@ghostokfalse \let\@didactic@next\relax  % math
+  \or \skip@\lastskip \unskip \@didactic@ghostput{\vskip\skip@}% glue
+  \or \dimen@\lastkern \unkern                                 % kern,
+      \ifnum\lastnodetype<\z@\else\@didactic@ghostput{\kern\dimen@}\fi % not ours
+  \or \count@\lastpenalty \unpenalty
+      \@didactic@ghostput{\penalty\count@}%                    penalty
+  \else \global\@didactic@ghostokfalse \let\@didactic@next\relax
+  \fi
+  \@didactic@next}
+% \@didactic@ghostcopy\hbox or \vbox: an empty box as large as the last box.
+\def\@didactic@ghostcopy#1{%
+  \setbox\@didactic@ghostitem\lastbox
+  \dimen@\ht\@didactic@ghostitem \dimen@ii\dp\@didactic@ghostitem
+  \dimen@i\wd\@didactic@ghostitem
+  \setbox\@didactic@ghostitem#1{}%
+  \ht\@didactic@ghostitem\dimen@ \dp\@didactic@ghostitem\dimen@ii
+  \wd\@didactic@ghostitem\dimen@i
+  \@didactic@ghostput{\box\@didactic@ghostitem}}
+\def\@didactic@fnghost{%
+  \global\setbox\@didactic@ghostbox\vbox{}%
+  \global\@didactic@ghostoktrue
+  \setbox\z@\vbox{\unvcopy\@tempboxa \@didactic@ghostloop}%
+  \if@didactic@ghostok
+    \setbox\@tempboxa\vbox{\unvbox\@didactic@ghostbox}%
+  \else
+    \setbox\z@\hbox{}%
+    \ht\z@\ht\@tempboxa \dp\z@\dp\@tempboxa \wd\z@\wd\@tempboxa
+    \setbox\@tempboxa\vbox{\box\z@}%
+  \fi}
+% \@didactic@fnreserve{<text>}: the mark of the earlier footnote, as wide as
+% our own mark would be, and an invisible footnote with the structure of our
+% own. We typeset our own footnote with the next number, as \footnote would,
+% and keep only its structure.
+\def\@didactic@fnreserve#1{%
+  \begingroup
+    \advance\c@footnote\@ne
+    \protected@edef\@thefnmark{\thefootnote}%
+    \sbox\z@{\@makefnmark}\global\@didactic@fnmarkwd\wd\z@
+  \endgroup
+  \makebox[\@didactic@fnmarkwd][l]{%
+    \footnotemark[\csname @didactic@fncite@\@didactic@fnkey\endcsname]}%
+  \begingroup
+    \advance\c@footnote\@ne
+    \let\@didactic@makefntext\@makefntext
+    \long\def\@makefntext##1{%
+      \setbox\@tempboxa\vbox{\kern\z@\@didactic@makefntext{##1}}%
+      \@didactic@fnghost
+      \unvbox\@tempboxa}%
+    \mkbibfootnotetext{#1}%
+  \endgroup
 }
 \def\@didactic@footnoteormark#1{%
   % reuse identity: entry key + prenote + postnote, detokenized for csname safety
@@ -994,17 +1121,26 @@
     {\@didactic@fnnewnote{#1}}%
     {\edef\@didactic@fnprev{\csname @didactic@fnlabel@\@didactic@fnkey\endcsname}%
      \@didactic@fnpa=\@didactic@fnabspage{\@didactic@fnprev}\relax
+     \@didactic@fnpm=\@didactic@fnabspage
+       {\csname @didactic@fnmark@\@didactic@fnkey\endcsname}\relax
      \@didactic@fnpb=\@didactic@fnabspage{\@didactic@fnhere}\relax
-     \@didactic@fnga=\@didactic@fnpa \@didactic@fntogroup\@didactic@fnga
      \@didactic@fngb=\@didactic@fnpb \@didactic@fntogroup\@didactic@fngb
-     % reuse only when both pages are resolved (>0) and share a group
-     \@didactic@fnreusetrue
+     % reuse only when both pages are resolved (>0) and the citation shares a
+     % group with the earlier footnote or its mark
+     \@didactic@fnreusefalse
+     \@didactic@fnga=\@didactic@fnpa \@didactic@fntogroup\@didactic@fnga
+     \ifnum\@didactic@fnga=\@didactic@fngb \@didactic@fnreusetrue\fi
+     \@didactic@fnga=\@didactic@fnpm \@didactic@fntogroup\@didactic@fnga
+     \ifnum\@didactic@fnga=\@didactic@fngb \@didactic@fnreusetrue\fi
      \ifnum\@didactic@fnpa<\@ne \@didactic@fnreusefalse\fi
      \ifnum\@didactic@fnpb<\@ne \@didactic@fnreusefalse\fi
-     \ifnum\@didactic@fnga=\@didactic@fngb \else \@didactic@fnreusefalse\fi
      \@didactic@fnhold
      \if@didactic@fnreuse
-       \footnotemark[\csname @didactic@fncite@\@didactic@fnkey\endcsname]%
+       % no space before the mark, as \mkbibfootnote does
+       \unspace
+       \ifdefequal{\@didactic@fnmode}{\@didactic@fnone}
+         {\@didactic@fnreserve{#1}}
+         {\footnotemark[\csname @didactic@fncite@\@didactic@fnkey\endcsname]}%
      \else
        \@didactic@fnnewnote{#1}%
      \fi}%
