@@ -5,7 +5,7 @@ PYTHONTEX=python3 $(shell which pythontex) --interpreter python:python3
 
 .PHONY: all
 all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
-	test-footcite-twoside.pdf test-run.pdf
+	test-footcite-twoside.pdf test-run.pdf test-note-heading.pdf
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex
 SRC+=	hello.py ask.py askmany.py greet.py filter.py
@@ -50,6 +50,9 @@ test-run.pdf: test-run.tex didactic.sty ${TEST_RUN_EXAMPLES}
 	${PYTHONTEX} test-run
 	${PDFLATEX} ${LATEXFLAGS} $<
 
+test-note-heading.pdf: test-note-heading.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} $<
+
 VERSION=$(shell sed -En "s/^.*v([0-9]+\.[0-9]+) didactic.*$$/\1/p" didactic.dtx)
 .PHONY: release
 release: didactic.tar.gz didactic.pdf didactic.sty
@@ -77,4 +80,6 @@ clean:
 	${RM} test-run.pdf test-run.aux test-run.log test-run.unq
 	${RM} test-run.pytxcode test-run.pytxmcr test-run.pytxpyg
 	${RM} -R pythontex-files-test-run _minted-test-run
+	${RM} test-note-heading.pdf test-note-heading.aux test-note-heading.log
+	${RM} test-note-heading.unq
 	latexmk -C test.tex
