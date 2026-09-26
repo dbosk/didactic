@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/09/25 v2.6 didactic]
+  [2026/09/26 v2.6 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -145,6 +145,10 @@
 %   when it's loaded.
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
+% }
+% \changes{v2.6}{2026/09/26}{%
+%   Keeps the first paragraph after a heading unindented when a margin note 
+%   (like |\ltnote|) is placed between the heading and the paragraph.
 % }
 % \changes{v2.6}{2026/09/25}{%
 %   Adds |\runbasedir| and the |basedir| key, to run the examples of parts 
@@ -1379,13 +1383,26 @@
 \RequirePackage{ragged2e}
 \setlength{\RaggedRightParindent}{\parindent}
 \NewDocumentCommand{\indentedmarginpar}{+m}{%
+  \edef\@didactic@nobreak{%
+    \if@nobreak\noexpand\@nobreaktrue\else\noexpand\@nobreakfalse\fi}%
   \marginpar{%
     \foottextfont%
     \setlength{\parindent}{2em}%
     \@afterindentfalse\@afterheading #1%
   }%
+  \global\@didactic@nobreak
 }
 %    \end{macrocode}
+% The |\@afterheading| above gives the first paragraph of the note no 
+% indentation.
+% It works through the flag |\if@nobreak|, which is global, and the first 
+% paragraph of the note clears it.
+% But a heading uses the same flag to leave the first paragraph after it 
+% unindented.
+% So a note placed between a heading and its first paragraph would indent 
+% that paragraph.
+% That's why we save the flag before the note and restore it after.
+%    \begin{macrocode}
 % If the \textsf{corrigenda} package is loaded (before or after us), we let it 
 % use |\indentedmarginpar| for its margin notes.
 % Not in |beamer| though: there \textsf{corrigenda} has already turned its 
