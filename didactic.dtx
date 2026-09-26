@@ -147,6 +147,10 @@
 %   regardless of load order.
 % }
 % \changes{v2.6}{2026/09/26}{%
+%   Makes the reuse of citation footnotes on the same page settle: a 
+%   citation whose decision flips between passes gets its own footnote.
+% }
+% \changes{v2.6}{2026/09/26}{%
 %   Keeps the first paragraph after a heading unindented when a margin note 
 %   (like |\ltnote|) is placed between the heading and the paragraph.
 % }
@@ -889,8 +893,30 @@
 % |abspage| (odd = recto), so we need no |ifoddpage|; we only test \cs{if@twoside}
 % to decide whether to group at all. (We deliberately avoid \cs{numexpr} division
 % for this: it \emph{rounds}, so 3/2 would give~2 and split the \{2,3\} spread.)
+%
+% Deciding from the previous pass has a catch: the decision changes the 
+% layout.
+% A citation that gets its own note fills the margin more than one that 
+% reuses a note, which can move the page breaks, which can move the citation 
+% onto another page, which reverses the decision.
+% Then the passes never settle: the decision flips on every other pass.
+% This happens in long documents with many citations, like a book made of 
+% several lectures.
+%
+% So we add some hysteresis.
+% Each citation that could reuse a note writes its decision to the |.aux| 
+% file, together with the decision of the pass before.
+% If a citation is about to return to the decision it had two passes ago, it 
+% is flipping, and we hold it at its own note from then on.
+% That's always safe: at worst a reference gets a second footnote on the 
+% same page, never a mark that points to a footnote on another page.
+% We recognise a citation across passes by its serial number and an MD5 sum 
+% of its reuse identity; when the text changes so that the serial number 
+% belongs to another citation, its old state is ignored.
+% A held citation stays held until the |.aux| file is removed.
 %    \begin{macrocode}
 \RequirePackage{zref-abspage,zref-user}
+\RequirePackage{pdftexcmds}
 \newcount\@didactic@fncount  % serial number for unique reuse labels
 \newcount\@didactic@fnpa     % abspage of the previous footnote
 \newcount\@didactic@fnpb     % abspage of the current citation
@@ -903,6 +929,52 @@
 % the page itself, or, under twoside, the verso page of its open spread (an odd
 % abspage mapped down to the even page it faces).
 \def\@didactic@fntogroup#1{\if@twoside\ifodd#1 \advance#1\m@ne \fi\fi}
+% \@didactic@fnstate{<serial>}{<md5 of identity>}{<decision>}{<decision of the
+% pass before>}{<held>}: the state of a citation, read from the .aux file;
+% decisions are r (reuse), n (new note) or u (new note, since a page was
+% not yet resolved, which doesn't count as a decision); held is 1 or 0.
+\def\@didactic@fnstate#1#2#3#4#5{\csgdef{@didactic@fnst@#1}{{#2}{#3}{#4}{#5}}}
+\AtBeginDocument{%
+  \if@filesw
+    \immediate\write\@auxout{\string\providecommand\string\@didactic@fnstate[5]{}}%
+  \fi}
+\def\@didactic@fnone{1}
+\def\@didactic@fnu{u}
+% \@didactic@fnread{<md5>}{<decision>}{<before>}{<held>}: take the state if it
+% belongs to the same citation.
+\def\@didactic@fnread#1#2#3#4{%
+  \def\@tempa{#1}%
+  \ifdefstrequal{\@tempa}{\@didactic@fnid}{%
+    \def\@didactic@fnlast{#2}%
+    \def\@didactic@fnbefore{#3}%
+    \def\@didactic@fnheld{#4}}{}}
+% \@didactic@fnhold: apply the hysteresis to \if@didactic@fnreuse and record
+% the decision in the .aux file.
+\def\@didactic@fnhold{%
+  \edef\@didactic@fnid{\pdf@mdfivesum{\@didactic@fnkey}}%
+  \edef\@didactic@fnnow{%
+    \ifnum\@didactic@fnpa<\@ne u\else\ifnum\@didactic@fnpb<\@ne u\else
+      \if@didactic@fnreuse r\else n\fi\fi\fi}%
+  \let\@didactic@fnlast\@empty
+  \let\@didactic@fnbefore\@empty
+  \def\@didactic@fnheld{0}%
+  \ifcsdef{@didactic@fnst@\the\@didactic@fncount}{%
+    \expandafter\expandafter\expandafter\@didactic@fnread
+      \csname @didactic@fnst@\the\@didactic@fncount\endcsname}{}%
+  % flipping: back to the decision of two passes ago, both being decisions
+  \ifdefequal{\@didactic@fnnow}{\@didactic@fnlast}{}{%
+    \ifdefequal{\@didactic@fnnow}{\@didactic@fnbefore}{%
+      \ifdefequal{\@didactic@fnnow}{\@didactic@fnu}{}{%
+        \ifdefequal{\@didactic@fnlast}{\@didactic@fnu}{}
+          {\def\@didactic@fnheld{1}}}}{}}%
+  \ifdefequal{\@didactic@fnheld}{\@didactic@fnone}
+    {\@didactic@fnreusefalse\def\@didactic@fnnow{n}}{}%
+  \if@filesw
+    \immediate\write\@auxout{\string\@didactic@fnstate
+      {\the\@didactic@fncount}{\@didactic@fnid}%
+      {\@didactic@fnnow}{\@didactic@fnlast}%
+      {\@didactic@fnheld}}%
+  \fi}
 \def\@didactic@fnnewnote#1{%
   \mkbibfootnote{#1}%
   \expandafter\xdef\csname @didactic@fncite@\@didactic@fnkey\endcsname
@@ -930,6 +1002,7 @@
      \ifnum\@didactic@fnpa<\@ne \@didactic@fnreusefalse\fi
      \ifnum\@didactic@fnpb<\@ne \@didactic@fnreusefalse\fi
      \ifnum\@didactic@fnga=\@didactic@fngb \else \@didactic@fnreusefalse\fi
+     \@didactic@fnhold
      \if@didactic@fnreuse
        \footnotemark[\csname @didactic@fncite@\@didactic@fnkey\endcsname]%
      \else
