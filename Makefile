@@ -16,7 +16,9 @@ didactic.pdf: ${SRC} didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
 
-didactic.sty: didactic.ins
+# docstrip asks before overwriting, so remove the old file first.
+didactic.sty: didactic.ins didactic.dtx
+	${RM} $@
 	${LATEX} ${LATEXFLAGS} $<
 
 didactic.tar.gz: ${SRC} didactic.ins LICENSE Makefile README.md didactic.pdf
