@@ -1087,15 +1087,21 @@
 % abspage mapped down to the even page it faces).
 \def\@didactic@fntogroup#1{\if@twoside\ifodd#1 \advance#1\m@ne \fi\fi}
 \newdimen\@didactic@fnmarkwd
-% \@didactic@footcitestate{<serial>}{<decision>}{<mode>}{<changes>}: the state
-% of a citation, read from the .aux file. The serial is the MD5 sum of the
-% reuse identity and the number of the citation among those of the same
-% identity, so that editing the text only affects later citations of the same
-% source. Decisions are r (reuse), n (new note) or u (new note, since a page
-% was not yet resolved, which doesn't count as a decision). The mode is 0
-% (normal), 1 (reserving space) or 2 (given up); changes counts the changes of
-% decision in the mode. The line only changes when the decision or mode does,
-% so it costs no extra pass once the decisions have settled.
+%    \end{macrocode}
+%
+% Each citation that could reuse a footnote records its state in the |.aux| 
+% file, as
+% |\@didactic@footcitestate{<serial>}{<decision>}{<mode>}{<changes>}|.
+% The serial is the MD5 sum of the reuse identity and the number of the 
+% citation among those of the same identity, so that editing the text only 
+% affects later citations of the same source.
+% The decision is |r| (reuse), |n| (new footnote) or |u| (new footnote, since 
+% a page was not yet resolved, which doesn't count as a decision).
+% The mode is |0| (normal), |1| (reserving space) or |2| (given up), and the 
+% changes are those of the decision in the mode.
+% The line only changes when the decision or the mode does, so it costs no 
+% extra pass once the decisions have settled.
+%    \begin{macrocode}
 \def\@didactic@footcitestate#1#2#3#4{\csgdef{@didactic@fnst@#1}{{#2}{#3}{#4}}}
 \AtBeginDocument{%
   \if@filesw
@@ -1114,17 +1120,23 @@
   \def\@didactic@fnmode{#2}%
   \@didactic@fnchanges=#3\relax}
 \newcount\@didactic@fnchanges
-% \@didactic@fnhold: count the changes of decision in consecutive passes and
-% switch to reserving space after \@didactic@fnthreshold of them (1 for fast,
-% 2 for compact), give up after two more, and record the state in the .aux
-% file. A pass without a change resets the count, so only flipping counts,
-% not changes spread over edits. We record the decision as it comes out of
-% the pages (raw); when we have given up, we print our own footnote instead.
-% When the raw decision is our own footnote anyway, giving up and reserving
-% space print the same, so we go back to reserving space; and when it has
-% been our own footnote for a pass, reserving space and the normal mode print
-% the same, so we go back to normal. That way only citations that reuse a
-% footnote reserve space, and reserving doesn't pile up over edits.
+%    \end{macrocode}
+%
+% The macro |\@didactic@fnhold| counts the changes of decision in 
+% consecutive passes and switches to reserving space after 
+% |\@didactic@fnthreshold| of them (one for |fast|, two for |compact|), gives 
+% up after two more, and records the state in the |.aux| file.
+% A pass without a change resets the count, so only flipping counts, not 
+% changes spread over edits.
+% We record the decision as it comes out of the pages; when we have given up, 
+% we print our own footnote instead.
+% When that decision is our own footnote anyway, giving up and reserving space 
+% print the same, so we go back to reserving space.
+% And when it has been our own footnote for a pass, reserving space and the 
+% normal mode print the same, so we go back to normal.
+% That way only citations that reuse a footnote reserve space, and reserving 
+% doesn't pile up over edits.
+%    \begin{macrocode}
 \def\@didactic@fnhold{%
   \edef\@didactic@fnnow{%
     \ifnum\@didactic@fnpa<\@ne u\else\ifnum\@didactic@fnpb<\@ne u\else
@@ -1179,16 +1191,22 @@
   \expandafter\xdef\csname @didactic@fnmark@\@didactic@fnkey\endcsname
     {\@didactic@fnhere}%
 }
-% \@didactic@fnghost: replace the vertical list in \@tempboxa by an invisible
-% one with the same structure: every line becomes an empty box of the same
-% size, glue, kerns and penalties stay. That way margin notes and page breaks
-% treat it exactly like the note. We take the list apart from the bottom with
-% e-TeX's \lastnodetype. If we meet anything else, like a rule or a whatsit,
-% we can't take it out; then the result is one empty box of the same size.
-% The note must start in a list that isn't empty, as it does in the margin,
-% or TeX leaves out the \parskip glue. That glue is 0pt there, but it is still
-% a place where the list may break, so to keep the list the same the caller
-% puts a \kern\z@ first, and we drop the kern at the top.
+%    \end{macrocode}
+%
+% The invisible footnote is made by |\@didactic@fnghost|.
+% It replaces the vertical list in |\@tempboxa| by an invisible one with the 
+% same structure: every line becomes an empty box of the same size, and glue, 
+% kerns and penalties stay.
+% That way margin notes and page breaks treat it like the footnote.
+% We take the list apart from the bottom with e-\TeX's |\lastnodetype|.
+% If we meet anything else, like a rule or a whatsit, we can't take it out; 
+% then the result is one empty box of the same size.
+% The footnote must start in a list that isn't empty, as it does in the 
+% margin, or \TeX\ leaves out the |\parskip| glue.
+% That glue is 0\,pt there, but it is still a place where the list may break, 
+% so to keep the list the same, the caller puts a |\kern\z@| first, and we 
+% drop the kern at the top.
+%    \begin{macrocode}
 \newbox\@didactic@ghostbox
 \newbox\@didactic@ghostitem
 \newif\if@didactic@ghostok
@@ -1237,11 +1255,17 @@
     \ht\z@\ht\@tempboxa \dp\z@\dp\@tempboxa \wd\z@\wd\@tempboxa
     \setbox\@tempboxa\vbox{\box\z@}%
   \fi}
-% \@didactic@fnreserve{<text>}: the mark of the earlier footnote, padded to
-% the width our own mark would have, and an invisible footnote with the
-% structure of our own. We typeset our own footnote with the next number, as
-% \footnote would, and keep only its structure. The padding is a kern, which
-% leaves the space factor after the mark as \footnotemark sets it.
+%    \end{macrocode}
+%
+% A citation that reserves space and reuses a footnote uses 
+% |\@didactic@fnreserve{<text>}|: the mark of the earlier footnote, padded to 
+% the width its own mark would have, and an invisible footnote with the 
+% structure of its own.
+% We typeset its own footnote with the next number, as |\footnote| would, and 
+% keep only its structure.
+% The padding is a kern, which leaves the space factor after the mark as 
+% |\footnotemark| sets it.
+%    \begin{macrocode}
 \def\@didactic@fnreserve#1{%
   \begingroup
     \advance\c@footnote\@ne
@@ -1263,9 +1287,12 @@
     \mkbibfootnotetext{#1}%
   \endgroup
 }
-% Inside a footnote biblatex prints the citation itself, and inside a
-% minipage footnotes have their own counter; there we leave the citation to
-% \mkbibfootnote.
+%    \end{macrocode}
+%
+% Inside a footnote, \textsf{biblatex} prints the citation itself, and inside 
+% a |minipage|, footnotes have their own counter; there we leave the citation 
+% to |\mkbibfootnote|.
+%    \begin{macrocode}
 \def\@didactic@footnoteormark#1{%
   \if@didactic@fnreuseoff
     \mkbibfootnote{#1}%
@@ -1336,6 +1363,8 @@
 %
 %    \begin{macrocode}
 }{}
+%    \end{macrocode}
+%
 % We also want |csquotes| to use |\autocite| for its integrated citation 
 % commands (|\textcquote| and friends).
 % However, |\autocite| only exists if |biblatex| is loaded, and |csquotes| 
