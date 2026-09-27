@@ -1016,7 +1016,11 @@
 % We recognise a citation across passes by an MD5 sum of its reuse identity 
 % and its number among the citations of that identity, so that an edit only 
 % affects the state of later citations of the same source.
-% A citation keeps reserving space until the |.aux| file is removed.
+% A citation reserves space only while it reuses a footnote: once its own 
+% footnote has been the decision for a pass, it goes back to normal, since 
+% then both print the same. So the reserved space doesn't grow with edits; 
+% in the book above, four edits in a row left the 4 blanks and 4 reserving 
+% citations as they were, where keeping them would have left 41 reserving.
 %    \begin{macrocode}
 \RequirePackage{zref-abspage,zref-user}
 \RequirePackage{pdftexcmds}
@@ -1067,7 +1071,10 @@
 % not changes spread over edits. We record the decision as it comes out of
 % the pages (raw); when we have given up, we print our own footnote instead.
 % When the raw decision is our own footnote anyway, giving up and reserving
-% space print the same, so we go back to reserving space.
+% space print the same, so we go back to reserving space; and when it has
+% been our own footnote for a pass, reserving space and the normal mode print
+% the same, so we go back to normal. That way only citations that reuse a
+% footnote reserve space, and reserving doesn't pile up over edits.
 \def\@didactic@fnhold{%
   \edef\@didactic@fnnow{%
     \ifnum\@didactic@fnpa<\@ne u\else\ifnum\@didactic@fnpb<\@ne u\else
@@ -1084,7 +1091,10 @@
     \ifdefempty{\@didactic@fnlast}{}{%
       \ifdefequal{\@didactic@fnlast}{\@didactic@fnu}{}{%
         \ifdefequal{\@didactic@fnnow}{\@didactic@fnlast}
-          {\@didactic@fnchanges\z@}% held for a pass
+          {\@didactic@fnchanges\z@% held for a pass
+           \ifdefequal{\@didactic@fnnow}{\@didactic@fnn}
+             {\ifdefequal{\@didactic@fnmode}{\@didactic@fnone}
+                {\def\@didactic@fnmode{0}}{}}{}}%
           {\advance\@didactic@fnchanges\@ne
            \ifcase\@didactic@fnmode\relax
              \ifnum\@didactic@fnchanges<\@didactic@fnthreshold\else
