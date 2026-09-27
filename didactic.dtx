@@ -988,18 +988,20 @@
 % As soon as a citation changes its decision (with |footnotereuse=fast|), 
 % or when it changes it back again (with |compact|), it may be flipping, and 
 % from then on it \emph{reserves} the space of its own footnote, whatever it 
-% decides: when it reuses the earlier footnote, it prints the mark in a box as 
-% wide as its own mark would be, and an invisible note of exactly the size of 
-% its own note.
+% decides: when it reuses the earlier footnote, it prints the mark, padded to 
+% the width its own mark would have, and an invisible note of exactly the 
+% size of its own note.
 % Then both decisions give the same layout, and the decision settles on the 
 % right one.
 % By default we don't wait to see it flip, since every pass counts in a long 
-% document, and reserving space costs no more than a blank in the margin: in 
-% a book of 190 pages, |fast| settled in 5 passes with 4 blanks, |compact| 
-% in 14 with 1.
-% The invisible note must have the same structure as the real one, not just 
-% the same size: lines, glue and penalties, since \textsf{marginfix} treats 
-% them differently when the margin is full.
+% document, and reserving space costs no more than a blank in the margin; see 
+% the evaluation below.
+% The invisible note has the same structure as the real one, not just the 
+% same size: the same lines, glue and penalties, so that nothing that looks 
+% at the list, like \textsf{marginfix} or the page builder, can tell them 
+% apart.
+% (In our tests one empty box of the same size gave the same result, but it 
+% offers no places to break.)
 % The one difference left is the footnote counter, which only the own 
 % footnote steps; with old-style figures even that changes the height of 
 % lines.
@@ -1018,9 +1020,57 @@
 % affects the state of later citations of the same source.
 % A citation reserves space only while it reuses a footnote: once its own 
 % footnote has been the decision for a pass, it goes back to normal, since 
-% then both print the same. So the reserved space doesn't grow with edits; 
-% in the book above, four edits in a row left the 4 blanks and 4 reserving 
-% citations as they were, where keeping them would have left 41 reserving.
+% then both print the same. So the reserved space doesn't grow with edits.
+%
+% We evaluated this on a course book made of three lectures with the 
+% \textsf{import} package: |memoir| with footnotes in the margin, placed by 
+% \textsf{marginfix}, 188 pages in the teacher's edition (with the notes of 
+% this package) and 185 in the student's, with 162 citations that could 
+% reuse a footnote.
+% We compiled from no |.aux| file (clean), and then again after inserting a 
+% paragraph with two citations early in the first lecture (edit), counting 
+% the runs of |pdflatex| until the |.aux| file no longer changed, including 
+% the run that shows it.
+% In the last run we counted the marks that point to a footnote printed on 
+% another page (\emph{wrong}), the footnotes printed twice on a page 
+% (\emph{repeated}), the blanks, and the citations that had given up.
+% \begin{center}
+% \begin{tabular}{llcccc}
+%   \hline
+%   & & runs, teacher's/student's & wrong, repeated & blanks & given up \\
+%   \hline
+%   clean & |fast|    & 7/7   & 0, 0 & 4 & 0 \\
+%   clean & |compact| & 14/14 & 0, 0 & 1 & 0 \\
+%   clean & |off|     & 3/3   & ---  & 0 & --- \\
+%   edit  & |fast|    & 5/5   & 0, 0 & 4 & 0 \\
+%   edit  & |compact| & 8/10  & 0, 0 & 2 & 0 \\
+%   \hline
+% \end{tabular}
+% \end{center}
+% With |off|, repeated footnotes are expected; that is what the reuse avoids.
+% A clean build with |fast| thus needs more runs than \textsf{latexmk} allows 
+% by default (5).
+%
+% The same book shaped the design:
+% \begin{itemize}
+% \item Deciding from the previous pass alone never settled: the runs 
+%   alternated between two states.
+% \item Holding a flipping citation at its own footnote settled, but could 
+%   print a footnote twice on a page; reserving space is what avoids that.
+% \item Deciding by the page of the earlier mark instead of where its 
+%   footnote is printed let one mark point to a footnote that 
+%   \textsf{marginfix} had moved to the next page.
+% \item Letting a citation that reserves space and reuses a footnote step the 
+%   footnote counter anyway, to remove the last difference between the two 
+%   decisions, changed none of the results, so we don't skip numbers.
+% \item Counting changes across edits instead of in consecutive passes made 
+%   one edit leave 14 (|fast|) and 43 (|compact|) citations given up, where 
+%   none are needed.
+% \item Keeping citations reserving space after their own footnote was the 
+%   decision didn't change the blanks over four edits in a row, but left 41 
+%   citations reserving space instead of 4, each a blank waiting for an edit 
+%   that makes it reuse a footnote.
+% \end{itemize}
 %    \begin{macrocode}
 \RequirePackage{zref-abspage,zref-user}
 \RequirePackage{pdftexcmds}
