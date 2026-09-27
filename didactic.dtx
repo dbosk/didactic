@@ -146,6 +146,11 @@
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
 % }
+% \changes{v2.6}{2026/09/27}{%
+%   Marks margin notes (|\ltnote| and the other note types) as deferrable for 
+%   \textsf{marginfix} 1.5, so that with |\marginnotepriority| they give 
+%   way to footnotes when the margin is full.
+% }
 % \changes{v2.6}{2026/09/26}{%
 %   Makes the reuse of citation footnotes on the same page settle: a 
 %   citation whose decision changes between passes reserves the space of its 
@@ -356,6 +361,21 @@
 % back on.
 %
 % Notes are off by default in |beamer|, but on by default otherwise.
+%
+% These notes are commentary, so they may give way to footnotes, which must 
+% stay with their marks.
+% When the margin is full, \textsf{marginfix} places the notes in the order of 
+% their anchors, so a footnote after a long note may be moved to the next 
+% page, away from its mark.
+% From version~1.5, \textsf{marginfix} lets notes marked as deferrable give 
+% way, and we mark all the notes above that way.
+% With |\marginnotepriority{split}| in the preamble, a note that crowds out a 
+% footnote is split at the end of the page and continues on the next, and a 
+% note that doesn't fit no longer holds back the footnotes after it; with 
+% |defer| it moves to the next page whole.
+% The default, |warn|, changes nothing but warns, naming the notes that 
+% crowded out a footnote, so that you can shorten or move them.
+% With an older \textsf{marginfix}, the mark does nothing.
 %
 % \subsection{Tools for code examples}
 %
@@ -1796,10 +1816,17 @@
 % Adapted from https://tex.stackexchange.com/a/257171
 \RequirePackage{ragged2e}
 \setlength{\RaggedRightParindent}{\parindent}
+%    \end{macrocode}
+% We mark the note as deferrable for \textsf{marginfix} (version 1.5 and 
+% later), so that it may give way to footnotes when the margin is full, see 
+% |\marginnotepriority|.
+% Older versions don't know the command, and then we skip it.
+%    \begin{macrocode}
 \NewDocumentCommand{\indentedmarginpar}{+m}{%
   \edef\@didactic@nobreak{%
     \if@nobreak\noexpand\@nobreaktrue\else\noexpand\@nobreakfalse\fi}%
   \marginpar{%
+    \ifdefined\mfxdeferrable\mfxdeferrable\fi
     \foottextfont%
     \setlength{\parindent}{2em}%
     \@afterindentfalse\@afterheading #1%
