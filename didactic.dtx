@@ -148,8 +148,10 @@
 % }
 % \changes{v2.6}{2026/09/26}{%
 %   Makes the reuse of citation footnotes on the same page settle: a 
-%   citation whose decision flips between passes reserves the space of its 
+%   citation whose decision changes between passes reserves the space of its 
 %   own footnote.
+%   Adds the |footnotereuse| option (|fast|, |compact| or |off|); |off| is 
+%   the default with |draft|.
 %   Reuses a footnote only when it is printed on the same page, which 
 %   \textsf{marginfix} can change.
 %   Removes the space before a reused footnote mark.
@@ -220,6 +222,32 @@
 %
 % The |marginparmargin| is passed on to the |memoir| class and sets which 
 % margin to use for the margin notes.
+%
+% \DescribeOpt{footnotereuse}
+% With \textsf{biblatex}, citations become footnotes, and a citation of a 
+% source that already has a footnote on the same page (or spread, with 
+% |twoside|) reuses that footnote's number instead of repeating it.
+% Since the page is only known from the previous pass, this needs a few 
+% passes to settle, and a citation whose footnote would move it to another 
+% page reserves the space of its footnote, leaving a blank in the margin.
+% The |footnotereuse| option chooses how:
+% \begin{description}
+% \item[fast] Reserve the space as soon as a citation changes its mind 
+%   between passes. This needs the fewest passes, but may leave a few more 
+%   blanks. This is the default.
+% \item[compact] Reserve the space only when a citation has changed its mind 
+%   back again. This leaves fewer blanks, but needs more passes.
+% \item[off] Give every citation its own footnote. This needs no extra 
+%   passes. It's the default with the |draft| option, of the class or the 
+%   package, to compile faster; |footnotereuse=fast| overrides that.
+% \end{description}
+% Either way, a mark only refers to a footnote on its own page, or to one 
+% that the margin moved on from a mark on the same page (its own footnote 
+% would have moved too). If a citation can't settle, it gets its own footnote, 
+% and a warning tells you where that repeats one.
+% In a long document, the first compilation may need more passes than 
+% |latexmk| allows by default (5); it continues from where it stopped the next 
+% time, or you can raise |$max_repeat|.
 %
 % \subsection{Beamer blocks and semantic environments for papers}
 %
@@ -650,9 +678,46 @@
 %    \end{macrocode}
 % \end{option}
 %
+% \begin{option}{footnotereuse}
+% \begin{option}{draft}
+% The |footnotereuse| option chooses how citation footnotes are reused, see 
+% below.
+% Unless it's given, it depends on |draft|: a draft gives every citation its 
+% own footnote, to save passes.
+% The package options |draft| and |final| win; otherwise we ask the 
+% \textsf{ifdraft} package, which looks at the class options.
+%    \begin{macrocode}
+\newcommand\@didactic@fnreusemode{}
+\newcommand\@didactic@draft{}
+\DeclareOptionX{footnotereuse}{\renewcommand\@didactic@fnreusemode{#1}}
+\DeclareOptionX{draft}{\renewcommand\@didactic@draft{draft}}
+\DeclareOptionX{final}{\renewcommand\@didactic@draft{final}}
+%    \end{macrocode}
+% \end{option}
+% \end{option}
+%
 % Now that we've declared the options we can process them.
 %    \begin{macrocode}
 \ProcessOptionsX\relax
+%    \end{macrocode}
+% Then we can settle the reuse of footnotes: the number of changes of mind 
+% before a citation reserves space, or no reuse at all.
+%    \begin{macrocode}
+\RequirePackage{ifdraft}
+\ifdefempty{\@didactic@draft}
+  {\ifoptiondraft{\renewcommand\@didactic@draft{draft}}{}}{}
+\ifdefempty{\@didactic@fnreusemode}{%
+  \ifdefstring{\@didactic@draft}{draft}
+    {\renewcommand\@didactic@fnreusemode{off}}
+    {\renewcommand\@didactic@fnreusemode{fast}}}{}
+\newif\if@didactic@fnreuseoff
+\newcount\@didactic@fnthreshold
+\IfStrEqCase{\@didactic@fnreusemode}{%
+  {fast}{\@didactic@fnthreshold\@ne}%
+  {compact}{\@didactic@fnthreshold\tw@}%
+  {off}{\@didactic@fnreuseofftrue}%
+}[\PackageError{didactic}{Unknown value `\@didactic@fnreusemode'
+    for footnotereuse}{Use fast, compact or off.}]
 %    \end{macrocode}
 %
 % \subsection{Customizing \texttt{beamer}}
@@ -919,33 +984,42 @@
 %
 % So we take the layout out of the decision.
 % Each citation that could reuse a footnote writes its decision to the |.aux| 
-% file, together with the decision of the pass before.
-% If a citation is about to return to the decision it had two passes ago, it 
-% is flipping, and from then on it \emph{reserves} the space of its own 
-% footnote, whatever it decides: when it reuses the earlier footnote, it 
-% prints the mark in a box as wide as its own mark would be, and an invisible 
-% note of exactly the size of its own note.
+% file.
+% As soon as a citation changes its decision (with |footnotereuse=fast|), 
+% or when it changes it back again (with |compact|), it may be flipping, and 
+% from then on it \emph{reserves} the space of its own footnote, whatever it 
+% decides: when it reuses the earlier footnote, it prints the mark in a box as 
+% wide as its own mark would be, and an invisible note of exactly the size of 
+% its own note.
 % Then both decisions give the same layout, and the decision settles on the 
 % right one.
+% By default we don't wait to see it flip, since every pass counts in a long 
+% document, and reserving space costs no more than a blank in the margin: in 
+% a book of 190 pages, |fast| settled in 5 passes with 4 blanks, |compact| 
+% in 14 with 1.
 % The invisible note must have the same structure as the real one, not just 
 % the same size: lines, glue and penalties, since \textsf{marginfix} treats 
 % them differently when the margin is full.
 % The one difference left is the footnote counter, which only the own 
 % footnote steps; with old-style figures even that changes the height of 
 % lines.
-% If a citation still flips while reserving space, we give up and keep its 
-% own footnote; whenever that footnote then repeats one on the same page, we 
-% say so in a warning.
+% If a citation still flips while reserving space, changing its decision 
+% back again in the next pass, we give up and print its own footnote, and a 
+% warning says that it repeats one on the same page.
+% As soon as its own footnote is the right decision anyway, it goes back to 
+% reserving space, which then prints the same.
+% Only changes in consecutive passes count: a pass without a change resets 
+% the count, so that the changes that editing the text brings about don't add 
+% up.
 % So in the last pass, a mark always points to a footnote on its page, and 
 % a repeated footnote is never silent.
-% We recognise a citation across passes by its serial number and an MD5 sum 
-% of its reuse identity; when the text changes so that the serial number 
-% belongs to another citation, its old state is ignored.
+% We recognise a citation across passes by an MD5 sum of its reuse identity 
+% and its number among the citations of that identity, so that an edit only 
+% affects the state of later citations of the same source.
 % A citation keeps reserving space until the |.aux| file is removed.
 %    \begin{macrocode}
 \RequirePackage{zref-abspage,zref-user}
 \RequirePackage{pdftexcmds}
-\newcount\@didactic@fncount  % serial number for unique reuse labels
 \newcount\@didactic@fnpa     % abspage of the previous footnote
 \newcount\@didactic@fnpm     % abspage of the mark of the previous footnote
 \newcount\@didactic@fnpb     % abspage of the current citation
@@ -959,69 +1033,84 @@
 % abspage mapped down to the even page it faces).
 \def\@didactic@fntogroup#1{\if@twoside\ifodd#1 \advance#1\m@ne \fi\fi}
 \newdimen\@didactic@fnmarkwd
-% \@didactic@fnstate{<serial>}{<md5 of identity>}{<decision>}{<decision of the
-% pass before>}{<mode>}: the state of a citation, read from the .aux file.
-% Decisions are r (reuse), n (new note) or u (new note, since a page was not
-% yet resolved, which doesn't count as a decision). The mode is 0 (normal),
-% 1 (reserving space) or 2 (given up).
-\def\@didactic@fnstate#1#2#3#4#5{\csgdef{@didactic@fnst@#1}{{#2}{#3}{#4}{#5}}}
+% \@didactic@footcitestate{<serial>}{<decision>}{<mode>}{<changes>}: the state
+% of a citation, read from the .aux file. The serial is the MD5 sum of the
+% reuse identity and the number of the citation among those of the same
+% identity, so that editing the text only affects later citations of the same
+% source. Decisions are r (reuse), n (new note) or u (new note, since a page
+% was not yet resolved, which doesn't count as a decision). The mode is 0
+% (normal), 1 (reserving space) or 2 (given up); changes counts the changes of
+% decision in the mode. The line only changes when the decision or mode does,
+% so it costs no extra pass once the decisions have settled.
+\def\@didactic@footcitestate#1#2#3#4{\csgdef{@didactic@fnst@#1}{{#2}{#3}{#4}}}
 \AtBeginDocument{%
   \if@filesw
-    \immediate\write\@auxout{\string\providecommand\string\@didactic@fnstate[5]{}}%
+    \immediate\write\@auxout{%
+      \string\providecommand\string\@didactic@footcitestate[4]{}}%
   \fi}
 \def\@didactic@fnzero{0}
 \def\@didactic@fnone{1}
 \def\@didactic@fntwo{2}
 \def\@didactic@fnu{u}
 \def\@didactic@fnr{r}
-% \@didactic@fnread{<md5>}{<decision>}{<before>}{<mode>}: take the state if it
-% belongs to the same citation.
-\def\@didactic@fnread#1#2#3#4{%
-  \def\@tempa{#1}%
-  \ifdefstrequal{\@tempa}{\@didactic@fnid}{%
-    \def\@didactic@fnlast{#2}%
-    \def\@didactic@fnbefore{#3}%
-    \def\@didactic@fnmode{#4}}{}}
-% \@didactic@fnhold: detect flipping, set \@didactic@fnmode and record the
-% decision in the .aux file. Entering a new mode starts a new history.
+\def\@didactic@fnn{n}
+% \@didactic@fnread{<decision>}{<mode>}{<changes>}
+\def\@didactic@fnread#1#2#3{%
+  \def\@didactic@fnlast{#1}%
+  \def\@didactic@fnmode{#2}%
+  \@didactic@fnchanges=#3\relax}
+\newcount\@didactic@fnchanges
+% \@didactic@fnhold: count the changes of decision in consecutive passes and
+% switch to reserving space after \@didactic@fnthreshold of them (1 for fast,
+% 2 for compact), give up after two more, and record the state in the .aux
+% file. A pass without a change resets the count, so only flipping counts,
+% not changes spread over edits. We record the decision as it comes out of
+% the pages (raw); when we have given up, we print our own footnote instead.
+% When the raw decision is our own footnote anyway, giving up and reserving
+% space print the same, so we go back to reserving space.
 \def\@didactic@fnhold{%
-  \edef\@didactic@fnid{\pdf@mdfivesum{\@didactic@fnkey}}%
   \edef\@didactic@fnnow{%
     \ifnum\@didactic@fnpa<\@ne u\else\ifnum\@didactic@fnpb<\@ne u\else
       \if@didactic@fnreuse r\else n\fi\fi\fi}%
   \let\@didactic@fnlast\@empty
-  \let\@didactic@fnbefore\@empty
   \def\@didactic@fnmode{0}%
-  \ifcsdef{@didactic@fnst@\the\@didactic@fncount}{%
+  \@didactic@fnchanges\z@
+  \ifcsdef{@didactic@fnst@\@didactic@fnserial}{%
     \expandafter\expandafter\expandafter\@didactic@fnread
-      \csname @didactic@fnst@\the\@didactic@fncount\endcsname}{}%
-  \let\@didactic@fnwas\@didactic@fnlast
-  % flipping: back to the decision of two passes ago, both being decisions
-  \ifdefequal{\@didactic@fnnow}{\@didactic@fnlast}{}{%
-    \ifdefequal{\@didactic@fnnow}{\@didactic@fnbefore}{%
-      \ifdefequal{\@didactic@fnnow}{\@didactic@fnu}{}{%
-        \ifdefequal{\@didactic@fnlast}{\@didactic@fnu}{}{%
-          \ifdefequal{\@didactic@fnmode}{\@didactic@fnzero}
-            {\def\@didactic@fnmode{1}}
-            {\def\@didactic@fnmode{2}}%
-          \def\@didactic@fnwas{u}}}}{}}%
+      \csname @didactic@fnst@\@didactic@fnserial\endcsname}{}%
+  \ifdefequal{\@didactic@fnnow}{\@didactic@fnu}{%
+    % no decision this pass: keep the last one
+    \ifdefempty{\@didactic@fnlast}{}{\let\@didactic@fnnow\@didactic@fnlast}}{%
+    \ifdefempty{\@didactic@fnlast}{}{%
+      \ifdefequal{\@didactic@fnlast}{\@didactic@fnu}{}{%
+        \ifdefequal{\@didactic@fnnow}{\@didactic@fnlast}
+          {\@didactic@fnchanges\z@}% held for a pass
+          {\advance\@didactic@fnchanges\@ne
+           \ifcase\@didactic@fnmode\relax
+             \ifnum\@didactic@fnchanges<\@didactic@fnthreshold\else
+               \def\@didactic@fnmode{1}\@didactic@fnchanges\z@\fi
+           \or
+             \ifnum\@didactic@fnchanges>\@ne
+               \def\@didactic@fnmode{2}\@didactic@fnchanges\z@\fi
+           \fi}}}}%
   \ifdefequal{\@didactic@fnmode}{\@didactic@fntwo}{%
-    \ifdefequal{\@didactic@fnnow}{\@didactic@fnr}{%
-      \PackageWarning{didactic}{The footnote for citation
-        \the\@didactic@fncount\space(\thefield{entrykey})\MessageBreak
-        repeats one on the same page, since\MessageBreak
-        reusing it didn't settle}}{}%
-    \@didactic@fnreusefalse\def\@didactic@fnnow{n}}{}%
+    \ifdefequal{\@didactic@fnnow}{\@didactic@fnn}{%
+      \def\@didactic@fnmode{1}\@didactic@fnchanges\z@}{}}{}%
   \if@filesw
-    \immediate\write\@auxout{\string\@didactic@fnstate
-      {\the\@didactic@fncount}{\@didactic@fnid}%
-      {\@didactic@fnnow}{\@didactic@fnwas}{\@didactic@fnmode}}%
-  \fi}
-\def\@didactic@fnn{n}
+    \immediate\write\@auxout{\string\@didactic@footcitestate
+      {\@didactic@fnserial}{\@didactic@fnnow}{\@didactic@fnmode}%
+      {\the\@didactic@fnchanges}}%
+  \fi
+  \ifdefequal{\@didactic@fnmode}{\@didactic@fntwo}{%
+    \PackageWarning{didactic}{The footnote for \thefield{entrykey}\space
+      on page \zref@extractdefault{\@didactic@fnhere}{page}{??}\MessageBreak
+      repeats one on the same page, since\MessageBreak
+      reusing it didn't settle}%
+    \@didactic@fnreusefalse}{}}
 % \@didactic@fnnewnote{<text>}: a real footnote, with a label inside its text
 % for the page where it is printed.
 \def\@didactic@fnnewnote#1{%
-  \edef\@didactic@fnnotelabel{didacticfnnote@\the\@didactic@fncount}%
+  \edef\@didactic@fnnotelabel{didacticfnnote@\@didactic@fnserial}%
   \mkbibfootnote{#1\expandafter\zlabel\expandafter{\@didactic@fnnotelabel}}%
   \expandafter\xdef\csname @didactic@fncite@\@didactic@fnkey\endcsname
     {\the\c@footnote}%
@@ -1037,8 +1126,9 @@
 % e-TeX's \lastnodetype. If we meet anything else, like a rule or a whatsit,
 % we can't take it out; then the result is one empty box of the same size.
 % The note must start in a list that isn't empty, as it does in the margin,
-% or TeX leaves out the \parskip glue; so the caller puts a \kern\z@ first,
-% and we drop the kern at the top.
+% or TeX leaves out the \parskip glue. That glue is 0pt there, but it is still
+% a place where the list may break, so to keep the list the same the caller
+% puts a \kern\z@ first, and we drop the kern at the top.
 \newbox\@didactic@ghostbox
 \newbox\@didactic@ghostitem
 \newif\if@didactic@ghostok
@@ -1087,18 +1177,22 @@
     \ht\z@\ht\@tempboxa \dp\z@\dp\@tempboxa \wd\z@\wd\@tempboxa
     \setbox\@tempboxa\vbox{\box\z@}%
   \fi}
-% \@didactic@fnreserve{<text>}: the mark of the earlier footnote, as wide as
-% our own mark would be, and an invisible footnote with the structure of our
-% own. We typeset our own footnote with the next number, as \footnote would,
-% and keep only its structure.
+% \@didactic@fnreserve{<text>}: the mark of the earlier footnote, padded to
+% the width our own mark would have, and an invisible footnote with the
+% structure of our own. We typeset our own footnote with the next number, as
+% \footnote would, and keep only its structure. The padding is a kern, which
+% leaves the space factor after the mark as \footnotemark sets it.
 \def\@didactic@fnreserve#1{%
   \begingroup
     \advance\c@footnote\@ne
     \protected@edef\@thefnmark{\thefootnote}%
     \sbox\z@{\@makefnmark}\global\@didactic@fnmarkwd\wd\z@
+    \c@footnote\csname @didactic@fncite@\@didactic@fnkey\endcsname\relax
+    \protected@edef\@thefnmark{\thefootnote}%
+    \sbox\z@{\@makefnmark}\global\advance\@didactic@fnmarkwd-\wd\z@
   \endgroup
-  \makebox[\@didactic@fnmarkwd][l]{%
-    \footnotemark[\csname @didactic@fncite@\@didactic@fnkey\endcsname]}%
+  \footnotemark[\csname @didactic@fncite@\@didactic@fnkey\endcsname]%
+  \kern\@didactic@fnmarkwd
   \begingroup
     \advance\c@footnote\@ne
     \let\@didactic@makefntext\@makefntext
@@ -1109,13 +1203,33 @@
     \mkbibfootnotetext{#1}%
   \endgroup
 }
+% Inside a footnote biblatex prints the citation itself, and inside a
+% minipage footnotes have their own counter; there we leave the citation to
+% \mkbibfootnote.
 \def\@didactic@footnoteormark#1{%
+  \if@didactic@fnreuseoff
+    \mkbibfootnote{#1}%
+  \else
+    \iftoggle{blx@footnote}
+      {\mkbibfootnote{#1}}
+      {\ifdefstring{\@mpfn}{footnote}
+         {\@didactic@footnoteormark@{#1}}
+         {\mkbibfootnote{#1}}}%
+  \fi}
+\def\@didactic@footnoteormark@#1{%
   % reuse identity: entry key + prenote + postnote, detokenized for csname safety
   \protected@edef\@didactic@fnkey{%
     \thefield{entrykey}@\thefield{prenote}@\thefield{postnote}}%
   \edef\@didactic@fnkey{\detokenize\expandafter{\@didactic@fnkey}}%
-  \global\advance\@didactic@fncount\@ne
-  \edef\@didactic@fnhere{didacticfn@\the\@didactic@fncount}%
+  % serial: MD5 of the identity and the number among its citations
+  \edef\@didactic@fnid{\pdf@mdfivesum{\@didactic@fnkey}}%
+  \ifcsdef{@didactic@fnk@\@didactic@fnid}{}
+    {\csgdef{@didactic@fnk@\@didactic@fnid}{0}}%
+  \csxdef{@didactic@fnk@\@didactic@fnid}{%
+    \the\numexpr\csuse{@didactic@fnk@\@didactic@fnid}+1\relax}%
+  \edef\@didactic@fnserial{%
+    \@didactic@fnid-\csuse{@didactic@fnk@\@didactic@fnid}}%
+  \edef\@didactic@fnhere{didacticfn@\@didactic@fnserial}%
   \expandafter\zlabel\expandafter{\@didactic@fnhere}%
   \ifcsundef{@didactic@fncite@\@didactic@fnkey}%
     {\@didactic@fnnewnote{#1}}%
@@ -1126,12 +1240,14 @@
      \@didactic@fnpb=\@didactic@fnabspage{\@didactic@fnhere}\relax
      \@didactic@fngb=\@didactic@fnpb \@didactic@fntogroup\@didactic@fngb
      % reuse only when both pages are resolved (>0) and the citation shares a
-     % group with the earlier footnote or its mark
+     % group with the earlier footnote or with its resolved mark
      \@didactic@fnreusefalse
      \@didactic@fnga=\@didactic@fnpa \@didactic@fntogroup\@didactic@fnga
      \ifnum\@didactic@fnga=\@didactic@fngb \@didactic@fnreusetrue\fi
-     \@didactic@fnga=\@didactic@fnpm \@didactic@fntogroup\@didactic@fnga
-     \ifnum\@didactic@fnga=\@didactic@fngb \@didactic@fnreusetrue\fi
+     \ifnum\@didactic@fnpm>\z@
+       \@didactic@fnga=\@didactic@fnpm \@didactic@fntogroup\@didactic@fnga
+       \ifnum\@didactic@fnga=\@didactic@fngb \@didactic@fnreusetrue\fi
+     \fi
      \ifnum\@didactic@fnpa<\@ne \@didactic@fnreusefalse\fi
      \ifnum\@didactic@fnpb<\@ne \@didactic@fnreusefalse\fi
      \@didactic@fnhold
