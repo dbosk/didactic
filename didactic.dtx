@@ -150,6 +150,8 @@
 %   Marks margin notes (\texttt{\textbackslash ltnote} and the other note types) as deferrable for 
 %   \textsf{marginfix} 1.5, so that with \texttt{\textbackslash marginnotepriority} they give 
 %   way to footnotes when the margin is full.
+%   Sets the cue for split notes and adds the translations |continued| and 
+%   |continued on the next page|.
 % }
 % \changes{v2.6}{2026/09/26}{%
 %   Makes the reuse of citation footnotes on the same page settle: a 
@@ -376,6 +378,16 @@
 % The default, |warn|, changes nothing but warns, naming the notes that 
 % crowded out a footnote, so that you can shorten or move them.
 % With an older \textsf{marginfix}, the mark does nothing.
+%
+% \textsf{marginfix} splits a note at a paragraph break if there is one near 
+% the end of the page, and starts the rest with a cue, which we set to 
+% ``(continued)'' in the language of the document, ``(forts.)'' in Swedish.
+% The words are the translations |continued| and |continued on the next page| 
+% of the \textsf{translations} package, so other things that continue on the 
+% next page can use the same words, for instance the head and foot of a long 
+% table:
+% |\emph{\tablename~\thetable{} (\GetTranslation{continued})}| and
+% |\emph{\GetTranslation{continued on the next page}}|.
 %
 % \subsection{Tools for code examples}
 %
@@ -1820,14 +1832,16 @@
 % We mark the note as deferrable for \textsf{marginfix} (version 1.5 and 
 % later), so that it may give way to footnotes when the margin is full, see 
 % |\marginnotepriority|.
+% We mark it after setting the font, since \textsf{marginfix} records the 
+% font there for the cue that starts the rest of a split note.
 % Older versions don't know the command, and then we skip it.
 %    \begin{macrocode}
 \NewDocumentCommand{\indentedmarginpar}{+m}{%
   \edef\@didactic@nobreak{%
     \if@nobreak\noexpand\@nobreaktrue\else\noexpand\@nobreakfalse\fi}%
   \marginpar{%
-    \ifdefined\mfxdeferrable\mfxdeferrable\fi
     \foottextfont%
+    \ifdefined\mfxdeferrable\mfxdeferrable\fi
     \setlength{\parindent}{2em}%
     \@afterindentfalse\@afterheading #1%
   }%
@@ -1954,6 +1968,27 @@
 %    \begin{macrocode}
 \ProvideTranslation{swedish}{Learning theory}{Lärandeteori}
 \NewNoteType{ltnote}{\GetTranslationWarn{Learning theory}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\marginnotecontinued}
+% When \textsf{marginfix} splits a note over two pages (with 
+% |\marginnotepriority{split}|), the rest starts with a cue.
+% We give it in the language of the document, with the translation 
+% |continued|, which is also there for other things that continue on the next 
+% page, like long tables; and we add |continued on the next page| for their 
+% feet.
+% The cue is kept as it is and translated only where it is typeset.
+% We set it in italics, like the titles of the notes.
+% Without |memoir|, \textsf{marginfix} is loaded further down, so we set the 
+% cue at the end of the package; a setting in the preamble still wins.
+%    \begin{macrocode}
+\ProvideTranslation{swedish}{continued}{forts.}
+\ProvideTranslation{swedish}{continued on the next page}{forts.\ på nästa sida}
+\AtEndOfPackage{%
+  \ifdefined\marginnotecontinued
+    \marginnotecontinued{\emph{(\GetTranslation{continued})}}%
+  \fi}
 %    \end{macrocode}
 % \end{macro}
 %
