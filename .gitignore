@@ -262,3 +262,5 @@ TSWLatexianTemp*
 
 # generated if using elsarticle.cls
 *.spl
+test-footcite-memoir.pdf
+test-footcite-memoir.unq

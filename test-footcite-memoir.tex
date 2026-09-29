@@ -1,0 +1,40 @@
+% Test of the modes of footnote reuse in the book's setting: memoir with
+% footnotes in the margin (marginfix), biblatex verbose (didactic).
+%
+% Build: pdflatex, biber, then pdflatex until it settles (see the Makefile).
+%
+% The three pages are the same, except that the second citation of A on
+% each is forced into one mode, by setting its state at \begin{document}
+% (the MD5 is that of the identity A@@). The document is one-sided, since
+% under twoside a citation may reuse a footnote on the facing page, and the
+% footnotes are numbered from 1 on each page, since with old-style figures
+% the numbers alone change the height of the notes.
+%   Page 1, mode 0 (reuse): "Rrrr" carries A's mark 1; one note for A.
+%   Page 2, mode 1 (reserve): "Rrrr" carries A's mark 1, no second note for
+%           A is printed, but its space is kept: B's note starts lower than
+%           on page 1, at exactly the same height as on page 3.
+%   Page 3, mode 2 (given up): "Rrrr" gets its own, second note for A (2),
+%           and the log has the warning "The footnote for A on page 3
+%           repeats one on the same page".
+% On every page B gets its own note, and every mark has its note on its page.
+\documentclass[a4paper,oneside]{memoir}
+\usepackage[backend=biber,autocite=footnote,citestyle=verbose,style=verbose]{biblatex}
+\usepackage{csquotes}
+\usepackage{didactic}
+\addbibresource{test-footcite.bib}
+\makeatletter
+\AtBeginDocument{%
+  \@didactic@footcitestate{AFBD6385F812C975ADB162B375A9C14A-4}{r}{1}{0}%
+  \@didactic@footcitestate{AFBD6385F812C975ADB162B375A9C14A-6}{r}{2}{0}}
+\makeatother
+\newcommand{\sample}{%
+  \setcounter{footnote}{0}First Aaaa\footcite{A} and some words here to make a line.
+  Again Rrrr\footcite{A} and more text.
+  Then Bbbb\footcite{B} with its own note, and Zzzz ends.\par}
+\begin{document}
+\sample
+\clearpage
+\sample
+\clearpage
+\sample
+\end{document}
