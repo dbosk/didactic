@@ -10,10 +10,13 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex
 SRC+=	hello.py ask.py askmany.py greet.py filter.py
 
+# The change history (\PrintChanges) needs makeindex on the .glo file; that
+# also checks that every \changes entry can be written and typeset.
 didactic.pdf: ${SRC} didactic.sty
 	-${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	${PYTHONTEX} didactic
 	${PDFLATEX} ${LATEXFLAGS} $<
+	makeindex -s gglo.ist -o didactic.gls didactic.glo
 	${PDFLATEX} ${LATEXFLAGS} $<
 
 # docstrip asks before overwriting, so remove the old file first.
@@ -61,6 +64,7 @@ clean:
 	${RM} didactic.sty didactic.pdf
 	${RM} didactic.log
 	${RM} didactic.aux didactic.glo didactic.idx didactic.log
+	${RM} didactic.gls didactic.glg
 	${RM} didactic.out didactic.pdf
 	${RM} didactic.pytxcode didactic.pytxmcr didactic.pytxpyg
 	${RM} didactic.tar.gz didactic.toc didactic.unq
