@@ -1,0 +1,24 @@
+% Test that a margin note between a heading and its first paragraph doesn't
+% indent that paragraph (didactic).
+%
+% Build: pdflatex test-note-heading
+%
+% Expected in the resulting PDF: the first paragraph of each section starts
+% flush left, like "Aaaa" (check: pdftotext -bbox, same xMin for Aaaa, Bbbb
+% and Cccc); only "Dddd", a second paragraph, is indented.
+\documentclass[a4paper]{memoir}
+\usepackage[marginparmargin=right]{didactic}
+\begin{document}
+\section{Without a note}
+Aaaa first paragraph.
+
+\section{With a note}
+\ltnote{A note.}
+Bbbb first paragraph.
+
+\subsection{With two notes}
+\ltnote{One.}\ltnote{Two.}
+Cccc first paragraph.
+
+Dddd second paragraph, indented as usual.
+\end{document}
