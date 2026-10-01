@@ -5,7 +5,8 @@ PYTHONTEX=python3 $(shell which pythontex) --interpreter python:python3
 
 .PHONY: all
 all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
-	test-footcite-twoside.pdf test-run.pdf test-note-heading.pdf
+	test-footcite-twoside.pdf test-footcite-memoir.pdf test-run.pdf \
+	test-note-heading.pdf
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex
 SRC+=	hello.py ask.py askmany.py greet.py filter.py
@@ -37,6 +38,15 @@ test-footcite.pdf: test-footcite.tex test-footcite.bib didactic.sty
 test-footcite-twoside.pdf: test-footcite-twoside.tex test-footcite.bib didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} $<
 	biber test-footcite-twoside
+	${PDFLATEX} ${LATEXFLAGS} $<
+	${PDFLATEX} ${LATEXFLAGS} $<
+
+# modes of footnote reuse (reuse, reserve, given up) with memoir's margin
+# footnotes; the states are forced in the document, so it settles quickly.
+test-footcite-memoir.pdf: test-footcite-memoir.tex test-footcite.bib didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} $<
+	biber test-footcite-memoir
+	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
 
@@ -82,4 +92,5 @@ clean:
 	${RM} -R pythontex-files-test-run _minted-test-run
 	${RM} test-note-heading.pdf test-note-heading.aux test-note-heading.log
 	${RM} test-note-heading.unq
+	${RM} test-footcite-memoir.pdf test-footcite-memoir.unq
 	latexmk -C test.tex

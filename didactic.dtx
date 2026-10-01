@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/09/26 v2.6 didactic]
+  [2026/09/29 v2.6 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -146,6 +146,17 @@
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
 % }
+% \changes{v2.6}{2026/09/29}{%
+%   Adds the |notepriority| option, which sets \textsf{marginfix}'s priority 
+%   mode, |split| by default.
+% }
+% \changes{v2.6}{2026/09/27}{%
+%   Marks margin notes (\texttt{\textbackslash ltnote} and the other note types) as deferrable for 
+%   \textsf{marginfix} 1.5, so that with \texttt{\textbackslash marginnotepriority} they give 
+%   way to footnotes when the margin is full.
+%   Sets the cue for split notes and adds the translations |continued| and 
+%   |continued on the next page|.
+% }
 % \changes{v2.6}{2026/09/26}{%
 %   Makes the reuse of citation footnotes on the same page settle: a 
 %   citation whose decision changes between passes reserves the space of its 
@@ -158,7 +169,7 @@
 % }
 % \changes{v2.6}{2026/09/26}{%
 %   Keeps the first paragraph after a heading unindented when a margin note 
-%   (like |\ltnote|) is placed between the heading and the paragraph.
+%   (like \texttt{\textbackslash ltnote}) is placed between the heading and the paragraph.
 % }
 % \changes{v2.6}{2026/09/25}{%
 %   Adds |\runbasedir| and the |basedir| key, to run the examples of parts 
@@ -356,6 +367,39 @@
 % back on.
 %
 % Notes are off by default in |beamer|, but on by default otherwise.
+%
+% These notes are commentary, so they may give way to footnotes, which must 
+% stay with their marks.
+% When the margin is full, \textsf{marginfix} places the notes in the order of 
+% their anchors, so a footnote after a long note may be moved to the next 
+% page, away from its mark.
+% \DescribeOpt{notepriority}
+% From version~1.5, \textsf{marginfix} lets notes marked as deferrable give 
+% way, and we mark all the notes above that way.
+% The option |notepriority| chooses how (it sets \textsf{marginfix}'s 
+% |\marginnotepriority|):
+% \begin{description}
+% \item[split] A note that crowds out a footnote is split at the end of the 
+%   page and continues on the next, and a note that doesn't fit no longer 
+%   holds back the footnotes after it. This is the default.
+% \item[defer] Such a note moves to the next page whole.
+% \item[warn] Nothing moves, but a warning names the notes that crowded out 
+%   a footnote, so that you can shorten or move them. This is 
+%   \textsf{marginfix}'s own default.
+% \item[off] Like |warn|, without the warnings.
+% \end{description}
+% With an older \textsf{marginfix}, none of this happens, and the notes are 
+% placed as before.
+%
+% \textsf{marginfix} splits a note at a paragraph break if there is one near 
+% the end of the page, and starts the rest with a cue, which we set to 
+% ``(continued)'' in the language of the document, ``(forts.)'' in Swedish.
+% The words are the translations |continued| and |continued on the next page| 
+% of the \textsf{translations} package, so other things that continue on the 
+% next page can use the same words, for instance the head and foot of a long 
+% table:
+% |\emph{\tablename~\thetable{} (\GetTranslation{continued})}| and
+% |\emph{\GetTranslation{continued on the next page}}|.
 %
 % \subsection{Tools for code examples}
 %
@@ -696,6 +740,17 @@
 % \end{option}
 % \end{option}
 %
+% \begin{option}{notepriority}
+% The |notepriority| option is passed on to \textsf{marginfix}'s 
+% |\marginnotepriority| (version 1.5 and later), see below.
+% We default to |split|: this package puts footnotes and commentary in the 
+% same margin, and a footnote must stay with its mark.
+%    \begin{macrocode}
+\newcommand\@didactic@notepriority{split}
+\DeclareOptionX{notepriority}{\renewcommand\@didactic@notepriority{#1}}
+%    \end{macrocode}
+% \end{option}
+%
 % Now that we've declared the options we can process them.
 %    \begin{macrocode}
 \ProcessOptionsX\relax
@@ -1013,8 +1068,9 @@
 % Only changes in consecutive passes count: a pass without a change resets 
 % the count, so that the changes that editing the text brings about don't add 
 % up.
-% So in the last pass, a mark always points to a footnote on its page, and 
-% a repeated footnote is never silent.
+% So in the last pass, a mark always points to a footnote on its page, or 
+% to one that the margin moved on from a mark on the same page (where its own 
+% footnote would have gone too), and a repeated footnote is never silent.
 % We recognise a citation across passes by an MD5 sum of its reuse identity 
 % and its number among the citations of that identity, so that an edit only 
 % affects the state of later citations of the same source.
@@ -1022,8 +1078,8 @@
 % footnote has been the decision for a pass, it goes back to normal, since 
 % then both print the same. So the reserved space doesn't grow with edits.
 %
-% We evaluated this on a course book made of three lectures with the 
-% \textsf{import} package: |memoir| with footnotes in the margin, placed by 
+% We evaluated this on a course book, as it was on 26 September 2026, made of 
+% three lectures with the \textsf{import} package: |memoir| with footnotes in the margin, placed by 
 % \textsf{marginfix}, 188 pages in the teacher's edition (with the notes of 
 % this package) and 185 in the student's, with 162 citations that could 
 % reuse a footnote.
@@ -1796,11 +1852,20 @@
 % Adapted from https://tex.stackexchange.com/a/257171
 \RequirePackage{ragged2e}
 \setlength{\RaggedRightParindent}{\parindent}
+%    \end{macrocode}
+% We mark the note as deferrable for \textsf{marginfix} (version 1.5 and 
+% later), so that it may give way to footnotes when the margin is full, see 
+% |\marginnotepriority|.
+% We mark it after setting the font, since \textsf{marginfix} records the 
+% font there for the cue that starts the rest of a split note.
+% Older versions don't know the command, and then we skip it.
+%    \begin{macrocode}
 \NewDocumentCommand{\indentedmarginpar}{+m}{%
   \edef\@didactic@nobreak{%
     \if@nobreak\noexpand\@nobreaktrue\else\noexpand\@nobreakfalse\fi}%
   \marginpar{%
     \foottextfont%
+    \ifdefined\marginnotedeferrable\marginnotedeferrable\fi
     \setlength{\parindent}{2em}%
     \@afterindentfalse\@afterheading #1%
   }%
@@ -1927,6 +1992,34 @@
 %    \begin{macrocode}
 \ProvideTranslation{swedish}{Learning theory}{Lärandeteori}
 \NewNoteType{ltnote}{\GetTranslationWarn{Learning theory}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\marginnotecontinued}
+% When \textsf{marginfix} splits a note over two pages (with 
+% |\marginnotepriority{split}|), the rest starts with a cue.
+% We give it in the language of the document, with the translation 
+% |continued|, which is also there for other things that continue on the next 
+% page, like long tables; and we add |continued on the next page| for their 
+% feet.
+% The cue is kept as it is and translated only where it is typeset.
+% We set it in italics, like the titles of the notes.
+% Without |memoir|, \textsf{marginfix} is loaded further down, so we set the 
+% cue, and the priority from the |notepriority| option, at the end of the 
+% package.
+% So a |\marginnotecontinued| or |\marginnotepriority| of your own must come 
+% after |\usepackage{didactic}|, which should be the last package anyway; 
+% given before, ours replaces it.
+%    \begin{macrocode}
+\ProvideTranslation{swedish}{continued}{forts.}
+\ProvideTranslation{swedish}{continued on the next page}{forts.\ på nästa sida}
+\AtEndOfPackage{%
+  \ifdefined\marginnotecontinued
+    \marginnotecontinued{\emph{(\GetTranslation{continued})}}%
+  \fi
+  \ifdefined\marginnotepriority
+    \expandafter\marginnotepriority\expandafter{\@didactic@notepriority}%
+  \fi}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -2755,6 +2848,8 @@ def didactic_run_code(code, /, **kwargs):
 % We keep it apart from |\runsetup|, which is global and replaces all the 
 % defaults: a part that sets its own defaults must not lose its base 
 % directory.
+% The key |basedir| still works in |\runsetup|, but then it wins over 
+% |\runbasedir|, since the defaults are applied at each run.
 % The value |auto| means the directory of the file that the \textsf{import} 
 % package is currently reading, which we look up at each run, since 
 % \textsf{import} changes it as it goes.
