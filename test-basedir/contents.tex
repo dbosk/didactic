@@ -1,0 +1,8 @@
+% Included by test-run.tex with \subimport; the paths are relative to this
+% directory, as in a part written to be compiled on its own.
+\subsection{With chdir}
+\runpython[transcript, chdir, args={data.txt}]{examples/readdata.py}
+
+\subsection{Without chdir, deps relative to this directory}
+\runpython[tty, showcommand, args={examples/data.txt},
+  deps={examples/data.txt}]{examples/readdata.py}
