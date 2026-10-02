@@ -421,9 +421,10 @@
 % table that is too wide), it has a side caption, or it contains 
 % |\marginnotereservefloat|.
 % Use that command in a float that reaches into the margin in a way that 
-% \textsf{marginfix} can't see: content inside a |minipage|, |\parbox|, 
-% |\fbox| or math that sticks out of it, a picture drawn beyond its box, or 
-% text set with |\rlap|.
+% \textsf{marginfix} can't see: content that sticks out of a |minipage|, 
+% |\parbox| or |tabular| centred on its line (the default; at the top or 
+% bottom of the line it is seen), of an |\fbox| or a formula, a picture drawn 
+% beyond its box, or text set with |\rlap|.
 % Such a float would get notes set over it without a warning, which is why 
 % |use| isn't the default; choose it when you know your bottom floats, or 
 % mark the ones that reach out.
