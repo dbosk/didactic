@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/09/29 v2.6 didactic]
+  [2026/10/02 v2.6.1 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -145,6 +145,10 @@
 %   when it's loaded.
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
+% }
+% \changes{v2.6.1}{2026/10/02}{%
+%   Records citations in footnotes as footnote citations, so that styles like 
+%   |verbose| print a later citation in short form again.
 % }
 % \changes{v2.6}{2026/09/29}{%
 %   Adds the |notepriority| option, which sets \textsf{marginfix}'s priority 
@@ -1404,12 +1408,27 @@
        \@didactic@fnnewnote{#1}%
      \fi}%
 }
+%    \end{macrocode}
+%
+% \textsf{biblatex}'s own |\footcite| runs the whole citation inside the 
+% footnote.
+% Ours makes the footnote itself, or only prints the mark, and is back in the 
+% text when \textsf{biblatex} records that the entry has been cited.
+% Styles like |verbose| keep separate records for the text and the footnotes 
+% (|citetracker=context|), and they ask the footnote's record whether to 
+% print the citation in full or short; so with the citation recorded in the 
+% text's, every footnote would be in full.
+% Hence we end the citation by switching to the footnote context, which the 
+% group of the citation ends again, so that it is recorded as a footnote 
+% citation, as with \textsf{biblatex}'s |\footcite|.
+%    \begin{macrocode}
 \DeclareCiteCommand{\footcite}%
   [\unspace]
   {\relax}
   {\usebibmacro{citeindex}%
     \@didactic@footnoteormark
-      {\usebibmacro{prenote}\usebibmacro{cite}\usebibmacro{postnote}}}
+      {\usebibmacro{prenote}\usebibmacro{cite}\usebibmacro{postnote}}%
+    \toggletrue{blx@footnote}}
   {\textsuperscript{,}}
   {\relax}
 \DeclareMultiCiteCommand{\footcites}{\footcite}{\textsuperscript{,}}
