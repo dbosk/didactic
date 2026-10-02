@@ -399,19 +399,6 @@
 % With an older \textsf{marginfix}, none of this happens, and the notes are 
 % placed as before.
 %
-% \DescribeOpt{notebesidefloats}
-% \textsf{marginfix} normally keeps the margin beside a float at the bottom 
-% of the page empty, in case the float reaches into the margin; so notes 
-% after it move to the next page.
-% With the option |notebesidefloats=use|, the default, notes go beside a 
-% bottom float, unless the float is wider than the text (like our 
-% |fullwidth|), has a side caption, or contains 
-% |\marginnotereservefloat|.
-% Use that command in a float that reaches into the margin in a way that 
-% \textsf{marginfix} can't see, for instance a picture drawn beyond its box.
-% With |notebesidefloats=reserve| the margin beside bottom floats stays 
-% empty, as before; floats at the top of the page always keep it empty.
-%
 % \textsf{marginfix} splits a note at a paragraph break if there is one near 
 % the end of the page, and starts the rest with a cue, which we set to 
 % ``(continued)'' in the language of the document, ``(forts.)'' in Swedish.
@@ -421,6 +408,21 @@
 % table:
 % |\emph{\tablename~\thetable{} (\GetTranslation{continued})}| and
 % |\emph{\GetTranslation{continued on the next page}}|.
+%
+% \DescribeOpt{notebesidefloats}
+% \textsf{marginfix} normally keeps the margin beside a float at the bottom 
+% of the page empty, in case the float reaches into the margin; so notes 
+% after it move to the next page.
+% With the option |notebesidefloats=use|, the default, notes go beside a 
+% bottom float, unless the float reaches into the margin in a way 
+% \textsf{marginfix} sees: it is wider than the text or has lines that stick 
+% out of it (our |fullwidth|, or a table that is too wide), it has a side 
+% caption, or it contains |\marginnotereservefloat|.
+% Use that command in a float that reaches into the margin in a way that 
+% \textsf{marginfix} can't see, for instance a picture drawn beyond its box 
+% or text set with |\rlap|.
+% With |notebesidefloats=reserve| the margin beside bottom floats stays 
+% empty, as before; floats at the top of the page always keep it empty.
 %
 % \subsection{Tools for code examples}
 %
@@ -3089,11 +3091,20 @@ def didactic_run_code(code, /, **kwargs):
 % whenever |memoir| isn't used\footnote{%
 %   The |memoir| class uses |changepage|, that's the origin of the package.
 % }.
+%
+% In a float, the |fullwidth| environment reaches into the margin, so we tell 
+% \textsf{marginfix} (version 1.5 and later) to keep the margin beside the 
+% float empty (|\marginnotereservefloat|), rather than leave it to 
+% \textsf{marginfix} to see it.
+% |\@captype| is defined only inside a float.
 %    \begin{macrocode}
 \RequirePackage{changepage}
 \RequirePackage{calc}
 \newlength{\@didactic@textbytext@oldcolumnwidth}
 \NewDocumentEnvironment{fullwidth}{}{%
+  \ifdefined\@captype
+    \ifdefined\marginnotereservefloat\marginnotereservefloat\fi
+  \fi
   \setlength{\columnwidth}{\textwidth+2em+\marginparwidth+\marginparsep}
   \if@twoside
     \IfStrEqCase{\@didactic@marginparmargin}{%
@@ -3154,7 +3165,9 @@ def didactic_run_code(code, /, **kwargs):
 % |\unblockmargin| inside the |fullwidth| environment?
 % The reason is that we want to be able to use the |fullwidth| environment in 
 % other cases, for instance, in figures.
-% Floats block the margin by default, so we don't need to use it there.
+% In floats we don't need it: \textsf{marginfix} keeps the margin beside a 
+% float empty, by default, and with |notebesidefloats=use| the |fullwidth| 
+% environment marks its float so that it does so too.
 % And even if we tried, it wouldn't work, since the |\blockmargin| and 
 % |\unblockmargin| don't work in outer par mode (inside floats).
 % (See the |marginfix| documentation for details.)
