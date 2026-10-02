@@ -147,8 +147,9 @@
 %   regardless of load order.
 % }
 % \changes{v2.6.2}{2026/10/02}{%
-%   Adds the |notebesidefloats| option, which lets notes go beside floats at 
-%   the bottom of the page with \textsf{marginfix} 1.5, |use| by default.
+%   Adds the |notebesidefloats| option, which can let notes go beside floats 
+%   at the bottom of the page with \textsf{marginfix} 1.5 (|use|); 
+%   |reserve|, the old layout, is the default.
 % }
 % \changes{v2.6.1}{2026/10/02}{%
 %   Records citations in footnotes as footnote citations, so that styles like 
@@ -413,16 +414,20 @@
 % \textsf{marginfix} normally keeps the margin beside a float at the bottom 
 % of the page empty, in case the float reaches into the margin; so notes 
 % after it move to the next page.
-% With the option |notebesidefloats=use|, the default, notes go beside a 
-% bottom float, unless the float reaches into the margin in a way 
-% \textsf{marginfix} sees: it is wider than the text or has lines that stick 
-% out of it (our |fullwidth|, or a table that is too wide), it has a side 
-% caption, or it contains |\marginnotereservefloat|.
+% That is the default, |notebesidefloats=reserve|.
+% With |notebesidefloats=use|, notes go beside a bottom float, unless the 
+% float reaches into the margin in a way \textsf{marginfix} sees: it is wider 
+% than the text or has lines that stick out of it (our |fullwidth|, or a 
+% table that is too wide), it has a side caption, or it contains 
+% |\marginnotereservefloat|.
 % Use that command in a float that reaches into the margin in a way that 
-% \textsf{marginfix} can't see, for instance a picture drawn beyond its box 
-% or text set with |\rlap|.
-% With |notebesidefloats=reserve| the margin beside bottom floats stays 
-% empty, as before; floats at the top of the page always keep it empty.
+% \textsf{marginfix} can't see: content inside a |minipage|, |\parbox|, 
+% |\fbox| or math that sticks out of it, a picture drawn beyond its box, or 
+% text set with |\rlap|.
+% Such a float would get notes set over it without a warning, which is why 
+% |use| isn't the default; choose it when you know your bottom floats, or 
+% mark the ones that reach out.
+% Floats at the top of the page always keep the margin empty.
 %
 % \subsection{Tools for code examples}
 %
@@ -777,10 +782,13 @@
 % \begin{option}{notebesidefloats}
 % The |notebesidefloats| option is passed on to \textsf{marginfix}'s 
 % |\marginnotebesidefloats| (version 1.5 and later), see below.
-% We default to |use|, for the same reason: we put many notes in the margin, 
-% and a bottom float shouldn't push them to the next page.
+% We default to |reserve|, \textsf{marginfix}'s own default: with |use|, a 
+% float that reaches into the margin in a way \textsf{marginfix} can't see 
+% gets notes set over it, without a warning, and documents that worked 
+% before mustn't change like that when this package is updated.
+% A document whose floats stay in the text block can choose |use|.
 %    \begin{macrocode}
-\newcommand\@didactic@notebesidefloats{use}
+\newcommand\@didactic@notebesidefloats{reserve}
 \DeclareOptionX{notebesidefloats}{%
   \renewcommand\@didactic@notebesidefloats{#1}}
 %    \end{macrocode}
@@ -3166,7 +3174,7 @@ def didactic_run_code(code, /, **kwargs):
 % The reason is that we want to be able to use the |fullwidth| environment in 
 % other cases, for instance, in figures.
 % In floats we don't need it: \textsf{marginfix} keeps the margin beside a 
-% float empty, by default, and with |notebesidefloats=use| the |fullwidth| 
+% float empty by default, and with |notebesidefloats=use| the |fullwidth| 
 % environment marks its float so that it does so too.
 % And even if we tried, it wouldn't work, since the |\blockmargin| and 
 % |\unblockmargin| don't work in outer par mode (inside floats).
