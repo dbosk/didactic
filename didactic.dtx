@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/10/02 v2.6.1 didactic]
+  [2026/10/02 v2.6.2 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -145,6 +145,10 @@
 %   when it's loaded.
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
+% }
+% \changes{v2.6.2}{2026/10/02}{%
+%   Adds the |notebesidefloats| option, which lets notes go beside floats at 
+%   the bottom of the page with \textsf{marginfix} 1.5, |use| by default.
 % }
 % \changes{v2.6.1}{2026/10/02}{%
 %   Records citations in footnotes as footnote citations, so that styles like 
@@ -394,6 +398,19 @@
 % \end{description}
 % With an older \textsf{marginfix}, none of this happens, and the notes are 
 % placed as before.
+%
+% \DescribeOpt{notebesidefloats}
+% \textsf{marginfix} normally keeps the margin beside a float at the bottom 
+% of the page empty, in case the float reaches into the margin; so notes 
+% after it move to the next page.
+% With the option |notebesidefloats=use|, the default, notes go beside a 
+% bottom float, unless the float is wider than the text (like our 
+% |fullwidth|), has a side caption, or contains 
+% |\marginnotereservefloat|.
+% Use that command in a float that reaches into the margin in a way that 
+% \textsf{marginfix} can't see, for instance a picture drawn beyond its box.
+% With |notebesidefloats=reserve| the margin beside bottom floats stays 
+% empty, as before; floats at the top of the page always keep it empty.
 %
 % \textsf{marginfix} splits a note at a paragraph break if there is one near 
 % the end of the page, and starts the rest with a cue, which we set to 
@@ -752,6 +769,18 @@
 %    \begin{macrocode}
 \newcommand\@didactic@notepriority{split}
 \DeclareOptionX{notepriority}{\renewcommand\@didactic@notepriority{#1}}
+%    \end{macrocode}
+% \end{option}
+%
+% \begin{option}{notebesidefloats}
+% The |notebesidefloats| option is passed on to \textsf{marginfix}'s 
+% |\marginnotebesidefloats| (version 1.5 and later), see below.
+% We default to |use|, for the same reason: we put many notes in the margin, 
+% and a bottom float shouldn't push them to the next page.
+%    \begin{macrocode}
+\newcommand\@didactic@notebesidefloats{use}
+\DeclareOptionX{notebesidefloats}{%
+  \renewcommand\@didactic@notebesidefloats{#1}}
 %    \end{macrocode}
 % \end{option}
 %
@@ -2026,9 +2055,10 @@
 % Without |memoir|, \textsf{marginfix} is loaded further down, so we set the 
 % cue, and the priority from the |notepriority| option, at the end of the 
 % package.
-% So a |\marginnotecontinued| or |\marginnotepriority| of your own must come 
-% after |\usepackage{didactic}|, which should be the last package anyway; 
-% given before, ours replaces it.
+% So a |\marginnotecontinued|, |\marginnotepriority| or 
+% |\marginnotebesidefloats| of your own must come after 
+% |\usepackage{didactic}|, which should be the last package anyway; given 
+% before, ours replaces it.
 %    \begin{macrocode}
 \ProvideTranslation{swedish}{continued}{forts.}
 \ProvideTranslation{swedish}{continued on the next page}{forts.\ på nästa sida}
@@ -2038,6 +2068,10 @@
   \fi
   \ifdefined\marginnotepriority
     \expandafter\marginnotepriority\expandafter{\@didactic@notepriority}%
+  \fi
+  \ifdefined\marginnotebesidefloats
+    \expandafter\marginnotebesidefloats\expandafter
+      {\@didactic@notebesidefloats}%
   \fi}
 %    \end{macrocode}
 % \end{macro}
