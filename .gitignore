@@ -264,3 +264,7 @@ TSWLatexianTemp*
 *.spl
 test-footcite-memoir.pdf
 test-footcite-memoir.unq
+test-pair.pdf
+test-pair.unq
+test-pair-slides.pdf
+test-pair-slides.unq

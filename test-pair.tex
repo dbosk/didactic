@@ -1,0 +1,46 @@
+% Test of code side by side (didactic): \codebycode, \runbyrun and
+% didactic_pair, in the notes (memoir + beamerarticle).
+%
+% Build: see the Makefile (pdflatex -shell-escape, pythontex, pdflatex twice).
+%
+% Expected in the resulting PDF:
+%   1  The footnote before the first pair (BEFORENOTE) is printed, and so are
+%      BETWEENNOTE and AFTERNOTE.
+%   2  The two main functions side by side over the full width, the margin
+%      included, with pairgreet1.py and pairgreet2.py above the columns.
+%      pairgreet1.py calls main() at top level and asks for input: it must
+%      not be run (the build doesn't stop for input).
+%   3  greet without its docstring beside Person.greet without its
+%      docstring, the right column labelled Person.greet.
+%   4  The whole phonebook dictionary (from/to with braces) beside lines
+%      4-8 of pairgreet2.py (the class Person up to its __init__).
+%   5  \runbyrun: "Hello, world!" beside the shell's "hej".
+%   6  Three columns from didactic_pair, labelled one, two and three.
+\documentclass[a4paper]{memoir}
+\usepackage{beamerarticle}
+\usepackage{lipsum}
+\usepackage{didactic}
+\begin{document}
+\section{Pairs}
+\lipsum[1][1-3] Before the pair\footnote{BEFORENOTE must survive.} more text.
+
+\codebycode[name=main,label]{python}{pairgreet1.py}%
+  [name=main,label]{python}{pairgreet2.py}
+
+Between\footnote{BETWEENNOTE here.} the pairs.
+
+\codebycode[name=greet,nodocstring]{python}{pairgreet1.py}%
+  [name=Person.greet,nodocstring,label={\texttt{Person.greet}}]%
+  {python}{pairgreet2.py}
+
+\codebycode[from={phonebook = \{},to=\}]{python}{pairgreet1.py}%
+  [lines=4-8]{python}{pairgreet2.py}
+
+\runbyrun{hello.py}[shell]{echo hej}
+
+\begin{pycode}
+didactic_pair("a = 1", "b = 2\nc = 3", "d = 4",
+              labels=["one", "two", "three"])
+\end{pycode}
+After\footnote{AFTERNOTE here.} the end.
+\end{document}
