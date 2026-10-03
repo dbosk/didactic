@@ -18,6 +18,7 @@ didactic.unq
 didactic.hd
 tmp*
 didactic_output_*
+didactic_pair_*
 didactic_code_*
 
 ## Core latex/pdflatex auxiliary files:
