@@ -9,6 +9,14 @@
 %   2  Frame 2: \runbyrun, "Hello, world!" beside "hej", in the document's
 %      size for minted, not the small size of code pairs.
 %   3  Frame 3, not fragile: the same pair as frame 1.
+%   4  Frame 4: the whole programs in the frame's normal size don't fit: the
+%      lines run into the next column and off the frame, and the log has
+%      one warning "A line of code side by side is ...pt wider than its
+%      column ... (page 4)", the only one; in a fragile frame the line
+%      counts from the start of the frame.
+%   5  Frame 5: the same pair with breaklines: the long lines wrap, no
+%      warning.
+%   The labels of frames 1, 4 and 5 are in the size of the code under them.
 \documentclass{beamer}
 \usepackage{didactic}
 \begin{document}
@@ -24,5 +32,15 @@
 \begin{frame}
   \frametitle{Not fragile}
   \codebycode[name=main]{python}{pairgreet1.py}[name=main]{python}{pairgreet2.py}
+\end{frame}
+\codebycodesetup{slides={fontsize=\normalsize}}
+\begin{frame}[fragile]
+  \frametitle{Too wide}
+  \codebycode[label]{python}{pairgreet1.py}[label]{python}{pairgreet2.py}
+\end{frame}
+\begin{frame}[fragile]
+  \frametitle{Too wide, wrapped}
+  \codebycode[label,breaklines]{python}{pairgreet1.py}%
+    [label,breaklines]{python}{pairgreet2.py}
 \end{frame}
 \end{document}

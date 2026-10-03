@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/10/03 v2.7 didactic]
+  [2026/10/03 v2.7.1 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -145,6 +145,11 @@
 %   when it's loaded.
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
+% }
+% \changes{v2.7.1}{2026/10/03}{%
+%   Warns when a line of code side by side is wider than its column 
+%   (\#51), sets the labels of a pair in the code's size (\#52) and 
+%   documents the files that pairs and runs write (\#53).
 % }
 % \changes{v2.7}{2026/10/03}{%
 %   Adds |didactic_extract|, which cuts a function, class or lines out of a 
@@ -654,8 +659,25 @@
 % A side-by-side contrast in the notes is often wider than the text, so the 
 % full width is the default.
 % The pairs work in |beamer| frames with or without |fragile|.
-% A pair is a |tabular|, so it can't break across pages: cut long code down 
+% A pair is a |tabular|, so it can't break across pages: cut long code down
 % with |name|, |lines| or |from| and |to|.
+%
+% The columns share the width in proportion to their longest lines, but
+% whether the code fits depends on the font.
+% A line wider than its column runs into the next one, so \textsf{didactic}
+% warns about it in the log, with how much too wide it is.
+% Then use a smaller font, shorter lines, or |breaklines| for that side,
+% which wraps the long lines.
+% On the slides, |beamer|'s |shrink| doesn't help much: |shrink=10| makes the
+% frame only 11~percent wider.
+% The labels are set in the same size as the code.
+%
+% \textsf{didactic} writes each side of a pair to a file
+% |didactic_pair_|\meta{hash}|.txt|, and the output of each run to
+% |didactic_output_|\meta{hash}|.txt|, in PythonTeX's working directory, the
+% document's directory by default.
+% These are build output, like the |.aux| file: PythonTeX deletes them when 
+% it reruns the code that wrote them, and they belong in |.gitignore|.
 %
 % A use worth knowing from try-first teaching: let the students try 
 % something first, show the second version, and then repeat the first one 
@@ -3502,12 +3524,99 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   }
 \NewDocumentCommand{\codebycodesetup}{m}
   { \keys_set:nn { didactic / pairsetup } {#1} }
+%    \end{macrocode}
+% The labels above the columns should be in the same size as the code under
+% them, or a label set in the frame's normal size dwarfs code in |\tiny| and
+% can be wider than its column.
+% So when we pass the |slides| or |notes| options to |minted|, we also pick
+% out their |fontsize| for the labels and ignore the other keys.
+%    \begin{macrocode}
+\tl_new:N \l__didactic_pair_fontsize_tl
+\keys_define:nn { didactic / pairfont }
+  {
+    fontsize .tl_set:N = \l__didactic_pair_fontsize_tl ,
+    unknown  .code:n   = { } ,
+  }
 \cs_new_protected:Npn \__didactic_pair_setminted:N #1
-  { \exp_args:NV \setminted #1 }
+  {
+    \exp_args:NV \setminted #1
+    \keys_set:nV { didactic / pairfont } #1
+  }
+%    \end{macrocode}
+%
+% The columns are as wide as the code needs, counted in characters, but
+% whether the code fits depends on the font: at the frame's normal size a
+% pair of 66 and 61 characters is wider than the frame.
+% |fancyvrb| sets each line in a box as wide as the column, ending in |\hss|,
+% so a longer line runs into the next column, or off the frame, without an
+% overfull box warning.
+% We want a warning, so we measure each line.
+% |fvextra| gives each line's text to |\FancyVerbFormatText|; in the pair we
+% wrap it so that it also notes how far the widest line sticks out of the
+% column.
+% With |breaklines| the lines are broken to fit the column instead, and
+% |fvextra| breaks them inside |\FancyVerbFormatText|, so boxing the text
+% would stop that: then we leave it alone.
+% After the last column we warn if a line stuck out by more than half a
+% point.
+% |\codebycode| typesets the pair from PythonTeX's output, where 
+% |\inputlineno| counts the lines of that file, so it notes its own line in 
+% |\l__didactic_pair_line_tl| first.
+%    \begin{macrocode}
+\dim_new:N \g__didactic_pair_over_dim
+\tl_new:N \l__didactic_pair_line_tl
+\box_new:N \l__didactic_pair_line_box
+\msg_new:nnn { didactic } { pair-overflow }
+  {
+    A~line~of~code~side~by~side~is~#1~wider~than~its~column,~
+    on~input~line~#2~(page~\thepage).~
+    Use~a~smaller~font~(\token_to_str:N \codebycodesetup),~
+    fewer~characters~per~line~or~the~breaklines~option.
+  }
+\cs_new_protected:Npn \__didactic_pair_measure:n #1
+  {
+    \hbox_set:Nn \l__didactic_pair_line_box {#1}
+    \dim_compare:nNnT
+      { \box_wd:N \l__didactic_pair_line_box - \linewidth }
+      > \g__didactic_pair_over_dim
+      {
+        \dim_gset:Nn \g__didactic_pair_over_dim
+          { \box_wd:N \l__didactic_pair_line_box - \linewidth }
+      }
+    \box_use_drop:N \l__didactic_pair_line_box
+  }
+\cs_new_protected:Npn \__didactic_pair_watch_lines:
+  {
+    \dim_gzero:N \g__didactic_pair_over_dim
+    \cs_set_eq:NN \__didactic_pair_formattext:n \FancyVerbFormatText
+    \cs_set_protected:Npn \FancyVerbFormatText ##1
+      {
+        \legacy_if:nTF { FV@breaklines }
+          { \__didactic_pair_formattext:n {##1} }
+          { \__didactic_pair_measure:n { \__didactic_pair_formattext:n {##1} } }
+      }
+  }
+\cs_new_protected:Npn \__didactic_pair_check_lines:
+  {
+    \dim_compare:nNnT \g__didactic_pair_over_dim > { 0.5pt }
+      {
+        \tl_if_empty:NT \l__didactic_pair_line_tl
+          { \tl_set:Nx \l__didactic_pair_line_tl { \int_use:N \inputlineno } }
+        \msg_warning:nnxx { didactic } { pair-overflow }
+          { \dim_use:N \g__didactic_pair_over_dim }
+          { \l__didactic_pair_line_tl }
+      }
+  }
+%    \end{macrocode}
+%
+% Now the environment itself.
+%    \begin{macrocode}
 \NewDocumentEnvironment{didacticpair}{m}
   {
     \bool_set_false:N \l__didactic_pair_blocked_bool
     \bool_set_false:N \l__didactic_pair_full_bool
+    \tl_clear:N \l__didactic_pair_fontsize_tl
+    \__didactic_pair_watch_lines:
     \@ifclassloaded{beamer}
       {
         \begin{center}
@@ -3539,6 +3648,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   }
   {
     \end{tabular}
+    \__didactic_pair_check_lines:
     \@ifclassloaded{beamer}
       { \end{center} }
       {
@@ -3550,7 +3660,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
           { \end{center} }
       }
   }
-\NewDocumentCommand{\didacticpairlabel}{m}{#1}
+\NewDocumentCommand{\didacticpairlabel}{m}
+  { \group_begin: \l__didactic_pair_fontsize_tl #1 \group_end: }
 \ExplSyntaxOff
 %    \end{macrocode}
 % \end{macro}
@@ -3763,6 +3874,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \NewDocumentCommand{\codebycode}{s O{} m m O{} m m}
   {
     \group_begin:
+      \tl_set:Nx \l__didactic_pair_line_tl { \int_use:N \inputlineno }
       \seq_gclear:N \g__didactic_pair_sides_seq
       \seq_gclear:N \g__didactic_pair_langs_seq
       \seq_gclear:N \g__didactic_pair_labels_seq
