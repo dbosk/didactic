@@ -18,6 +18,7 @@ didactic.unq
 didactic.hd
 tmp*
 didactic_output_*
+didactic_pair_*
 didactic_code_*
 
 ## Core latex/pdflatex auxiliary files:
@@ -264,3 +265,7 @@ TSWLatexianTemp*
 *.spl
 test-footcite-memoir.pdf
 test-footcite-memoir.unq
+test-pair.pdf
+test-pair.unq
+test-pair-slides.pdf
+test-pair-slides.unq

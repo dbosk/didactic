@@ -1,0 +1,28 @@
+% Test of code side by side (didactic) on the slides: the same pairs as
+% test-pair.tex, in beamer frames.
+%
+% Build: see the Makefile.
+%
+% Expected in the resulting PDF:
+%   1  Frame 1: the two main functions side by side, filling the frame, in a
+%      small font (fontsize=\tiny), with the file names above.
+%   2  Frame 2: \runbyrun, "Hello, world!" beside "hej", in the document's
+%      size for minted, not the small size of code pairs.
+%   3  Frame 3, not fragile: the same pair as frame 1.
+\documentclass{beamer}
+\usepackage{didactic}
+\begin{document}
+\begin{frame}[fragile]
+  \frametitle{Two versions}
+  \codebycode[name=main,label]{python}{pairgreet1.py}%
+    [name=main,label]{python}{pairgreet2.py}
+\end{frame}
+\begin{frame}[fragile]
+  \frametitle{Two runs}
+  \runbyrun{hello.py}[shell]{echo hej}
+\end{frame}
+\begin{frame}
+  \frametitle{Not fragile}
+  \codebycode[name=main]{python}{pairgreet1.py}[name=main]{python}{pairgreet2.py}
+\end{frame}
+\end{document}

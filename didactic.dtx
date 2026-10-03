@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/10/02 v2.6.2 didactic]
+  [2026/10/03 v2.7 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -145,6 +145,15 @@
 %   when it's loaded.
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
+% }
+% \changes{v2.7}{2026/10/03}{%
+%   Adds |didactic_extract|, which cuts a function, class or lines out of a 
+%   program without running it, and |didactic_pair|, which sets code side by 
+%   side.
+%   |\codebycode| now uses them: per side |name|, |lines|, |from|, |to|, 
+%   |nodocstring|, |label| and |width|, columns as wide as the code needs, 
+%   and the full width in article mode by default (|\codebycodesetup|).
+%   |\runbyrun| uses the same layout, and |\runpython| takes |shell|.
 % }
 % \changes{v2.6.2}{2026/10/02}{%
 %   Adds the |notebesidefloats| option, which can let notes go beside floats 
@@ -486,6 +495,9 @@
 % \item[prompt] The shell prompt in front of the command line, |$ | by 
 %   default.
 % \item[cwd] The directory to run in.
+% \item[shell] Run the argument through the shell, as |\runshell| does; 
+%   the argument is then the whole command, so |args| and |interpreter| 
+%   don't apply.
 % \item[basedir] The directory that file names are relative to, see 
 %   |\runbasedir| below.
 % \item[interpreter] The interpreter, |python3| by default; it may contain 
@@ -605,38 +617,54 @@
 % This is also how we run programs in other languages, for instance
 % |\runshell[transcript, cwd=examples, deps={examples/hello.c}]{gcc -o hello hello.c && ./hello}|.
 %
+% \subsection{Code side by side}
+%
 % \DescribeMacro{\codebycode}
-% The |\codebycode| command is simply two |\lstexample| commands side by side:
-% |\codebycode[opt1]{lang1}{file1}[opt2]{lang2}{file2}|.
+% Two versions of a program, or of one function in two programs, are best 
+% compared side by side: the reader sees at once what differs and what stays 
+% the same.
+% |\codebycode[opt1]{lang1}{file1}[opt2]{lang2}{file2}| sets two files side 
+% by side, with columns as wide as the code needs.
+% Each side's options can cut out a part of the file instead:
+% |name| a function or class (|name=Person.__eq__| for a method), |lines| a 
+% range (|lines=3-10|), |from| and |to| the lines between two texts, 
+% |nodocstring| leaves out the docstring, and |label| puts a label above the 
+% column, the file name if given without a value.
+% Other options go to |minted|.
 %
 % \begin{example}
-% For instance,
-% |\codebycode[breaklines,linenos]{python}{hello.py}|
-%            |[breaklines,linenos,highlightlines=4]{python}{hello.py}|
-% yields the following.
-% \codebycode
-%   [breaklines,linenos]{python}{hello.py}
-%   [breaklines,linenos,highlightlines=4]{python}{hello.py}
+% The program |pairgreet1.py| calls |main()| at the end, without the 
+% |__name__| guard, and asks for input, so it must not be run while the 
+% document is built.
+% |\codebycode[name=main,label]{python}{pairgreet1.py}| 
+% |[name=main,label]{python}{pairgreet2.py}| reads both programs as text and 
+% shows their |main| functions:
+% \codebycode[name=main,label]{python}{pairgreet1.py}%
+%   [name=main,label]{python}{pairgreet2.py}
 % \end{example}
 %
-% \begin{example}
-% We can also use the full width of the page with the starred version.
-% |\codebycode*[breaklines,linenos]{python}{hello.py}|
-%            |[breaklines,linenos,highlightlines=4]{python}{hello.py}|
-% yields the following.
-% \codebycode*
-%   [breaklines,linenos]{python}{hello.py}
-%   [breaklines,linenos,highlightlines=4]{python}{hello.py}
-% \end{example}
+% In article mode a pair takes the full width, margin included, and keeps 
+% margin notes from being set beside it; on the slides it fills the frame, in 
+% a smaller font.
+% \DescribeMacro{\codebycodesetup}
+% |\codebycodesetup| changes that: |fullwidth=false| keeps pairs within the 
+% text width, |slides={fontsize=\footnotesize}| and |notes={...}| set the 
+% |minted| options in each mode, |gap| the space between the columns, and 
+% |labels| labels every column with its file name.
+% A side-by-side contrast in the notes is often wider than the text, so the 
+% full width is the default.
+% The pairs work in |beamer| frames with or without |fragile|.
+% A pair is a |tabular|, so it can't break across pages: cut long code down 
+% with |name|, |lines| or |from| and |to|.
+%
+% A use worth knowing from try-first teaching: let the students try 
+% something first, show the second version, and then repeat the first one 
+% beside it, so that what changed is seen at a glance.
 %
 % \DescribeMacro{\runbyrun}
-% We can do similarly with running code.
-%
-% \begin{example}
-% We can also put the output side by side using 
-% |\runbyrun{hello.py}{hello.py}|.
-% \runbyrun{hello.py}{hello.py}
-% \end{example}
+% |\runbyrun[opt1]{file1}[opt2]{file2}| does the same with two runs, in two 
+% equal columns; each side takes the keys of |\runpython|, and |shell| makes 
+% a side a command run through the shell, as with |\runshell|.
 %
 % \begin{example}
 % Both sides take the same keys as |\runpython|, which contrasts two runs of 
@@ -645,6 +673,21 @@
 % gives
 % \runbyrun[transcript, stdin={4}]{ask.py}[transcript, stdin={10}]{ask.py}
 % \end{example}
+%
+% Each run is done once, when the pair is typeset, so two runs that depend on 
+% each other, such as reading a file after writing it and after appending to 
+% it, can't be shown this way: both would see the file as it is at the end.
+% Show such runs one after the other instead.
+%
+% Which tool when: |\codebycode| for two pieces of code from files, 
+% |\runbyrun| for two runs, |didactic_pair| in PythonTeX for code that you 
+% have as text or want to prepare yourself (more than two columns too), and 
+% |\textbytext| for prose side by side.
+% To get a function out of a program, |didactic_extract| reads the program as 
+% text and never runs it, which is safe for any program; |didactic_import| 
+% and |didactic_source| import the program, which runs it, and are safe only 
+% for programs that call their |main| under the |__name__| guard and print 
+% nothing at the top level.
 %
 % Those commands are implemented using a set of Python functions that can be 
 % accessed through PythonTeX.
@@ -2723,6 +2766,227 @@ def didactic_run_code(code, /, **kwargs):
 \end{pycode}
 %    \end{macrocode}
 %
+% \subsection{Extracting code and setting it side by side}
+%
+% To show a function in a program, we have |didactic_source|, which takes 
+% the function itself, and |didactic_import| to get it: it imports the 
+% program.
+% That runs the program, which is safe only when the program calls its |main| 
+% under the |__name__| guard.
+% Programs written before that guard is taught call |main()| directly, and 
+% importing one runs it, with its |input()| and all, during the build.
+% So we also read programs as text and cut out what we want with the |ast| 
+% module, which never runs anything.
+% |didactic_extract| cuts out a function or class by name (with dots for a 
+% method in a class, |"Person.__eq__"|), a range of lines, or the lines from 
+% one text to another.
+% The text to end at must be indented no more than the text to start at, so 
+% that |from="phonebook = {"| and |to="}"| take the whole dictionary and not 
+% the first of its inner dictionaries to end.
+% The program is a dependency, so a changed program is extracted again.
+%    \begin{macrocode}
+\begin{pycode}
+import ast
+import textwrap
+
+def didactic_find_def(tree, name):
+  """
+  Return the node of the function or class `name` in the `ast` tree; a dotted 
+  name goes into classes, e.g. "Person.__eq__".
+  """
+  nodes = tree.body
+  node = None
+  for part in name.split("."):
+    node = next((n for n in nodes
+                 if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef,
+                                   ast.ClassDef))
+                 and n.name == part), None)
+    if node is None:
+      raise ValueError(f"didactic_extract: no def or class {name!r}")
+    nodes = node.body
+  return node
+
+def didactic_docstring_lines(node):
+  """
+  Return the line numbers of the docstring of `node`, if any. A docstring 
+  that shares a line with other code (the def line, or a statement after it 
+  on its last line) is kept: we drop whole lines only.
+  """
+  body = getattr(node, "body", [])
+  if (body and isinstance(body[0], ast.Expr)
+      and isinstance(body[0].value, ast.Constant)
+      and isinstance(body[0].value.value, str)):
+    doc = body[0]
+    if getattr(node, "lineno", None) == doc.lineno:
+      return set()
+    if len(body) > 1 and body[1].lineno == doc.end_lineno:
+      return set()
+    return set(range(doc.lineno, doc.end_lineno + 1))
+  return set()
+
+def didactic_line_matches(line, pattern):
+  """Whether `line` matches `pattern`, a string (substring) or a regex."""
+  if isinstance(pattern, str):
+    return pattern in line
+  return pattern.search(line) is not None
+
+def didactic_extract(path, /, name=None, *, lines=None, between=None,
+                     strip_docstring=False, basedir=None):
+  """
+  Return a part of the program in `path` as text, without importing or 
+  running it.
+
+  - `name` cuts out a function or class, with its decorators; a dotted name 
+  goes into a class, e.g. "Person.__eq__".
+  - `lines` is a range of line numbers, (first, last) or "first-last", 
+  counting from 1 and including both, or a single number.
+  - `between` is (start, end): the lines from the first line matching start 
+  to the first line after it that matches end and is indented no more than 
+  the start line. Each is a string (to be contained in the line) or a 
+  compiled regex. With end None, to the end of the block that start begins 
+  (the line before the next line indented no more than it).
+  - `strip_docstring` drops the docstring of the def, class or module.
+  - `basedir` is the directory that `path` is relative to, see 
+  `didactic_shell`.
+  Without any of these, the whole program. The text is dedented.
+  """
+  path = didactic_resolve(basedir, path)
+  didactic_track("dependencies", path)
+  with open(path, encoding="utf-8") as f:
+    source = f.read()
+  all_lines = source.splitlines()
+  numbers = list(range(1, len(all_lines) + 1))
+  drop = set()
+  if name is not None:
+    node = didactic_find_def(ast.parse(source, filename=path), name)
+    first = min([node.lineno] + [d.lineno for d in node.decorator_list])
+    numbers = list(range(first, node.end_lineno + 1))
+    if strip_docstring:
+      drop = didactic_docstring_lines(node)
+  else:
+    if strip_docstring:
+      drop = didactic_docstring_lines(ast.parse(source, filename=path))
+    if lines is not None:
+      if isinstance(lines, int):
+        first = last = lines
+      elif isinstance(lines, str):
+        parts = [int(n) for n in lines.split("-")]
+        first, last = parts[0], parts[-1]
+      else:
+        first, last = lines
+      numbers = list(range(first, last + 1))
+    elif between is not None:
+      start, end = between
+      first = next((i for i, line in enumerate(all_lines, 1)
+                    if didactic_line_matches(line, start)), None)
+      start_end = None
+      if first is not None:
+        line = all_lines[first-1]
+        if isinstance(start, str):
+          start_end = line.index(start) + len(start)
+        else:
+          start_end = start.search(line).end()
+      if first is None:
+        raise ValueError(f"didactic_extract: no line with {start!r}")
+      indent = len(all_lines[first-1]) - len(all_lines[first-1].lstrip())
+      def indent_of(i):
+        return len(all_lines[i-1]) - len(all_lines[i-1].lstrip())
+      if end is None:
+        # to the end of the block: before the next line indented no more
+        after = next((i for i in range(first + 1, len(all_lines) + 1)
+                      if all_lines[i-1].strip() and indent_of(i) <= indent),
+                     len(all_lines) + 1)
+        last = after - 1
+        while last > first and not all_lines[last-1].strip():
+          last -= 1
+      elif didactic_line_matches(all_lines[first-1][start_end:], end):
+        # the end is on the start line, after the start
+        last = first
+      else:
+        last = next((i for i in range(first + 1, len(all_lines) + 1)
+                     if didactic_line_matches(all_lines[i-1], end)
+                     and indent_of(i) <= indent), None)
+      if last is None:
+        raise ValueError(f"didactic_extract: no line with {end!r} "
+                         f"after {start!r}")
+      numbers = list(range(first, last + 1))
+  if drop and max(drop) + 1 in numbers and not all_lines[max(drop)].strip():
+    drop.add(max(drop) + 1)
+  text = "\n".join(all_lines[i-1] for i in numbers if i not in drop)
+  return textwrap.dedent(text).strip("\n")
+\end{pycode}
+%    \end{macrocode}
+%
+% |didactic_pair| sets two or more pieces of code side by side, each in its 
+% own column.
+% The columns are as wide as their longest lines need, in proportion, unless 
+% |widths| says otherwise, and they fill the line: in article mode the full 
+% width, margin included (see the |didacticpair| environment below), on the 
+% slides the frame.
+% Each piece is written to a file, as in |didactic_mint|, and typeset with 
+% |\didacticinputminted|; |labels| puts a label, usually the file name, 
+% above each column.
+%    \begin{macrocode}
+\begin{pycode}
+def didactic_file_label(name):
+  """Return a label for `didactic_pair` showing the file `name` as is."""
+  return r"\texttt{\detokenize{%s}}" % name
+
+def didactic_pair(*sides, lang="python", langs=None, widths=None,
+                  labels=None, minted_opts="", side_opts=None, hlgrep=None):
+  """
+  Typeset `sides`, two or more strings of code, side by side.
+
+  - `lang` is the language of all sides, or `langs` one per side.
+  - `widths` are the fractions of the line for the columns; by default they 
+  are in proportion to the longest line of each side.
+  - `labels` are put above the columns, None for none. They are LaTeX, so a 
+  file name with an underscore needs `didactic_file_label(name)`.
+  - `minted_opts` are minted options for all sides, `side_opts` one string 
+  per side added to them; `hlgrep` highlights lines matching any of the 
+  patterns, as in `didactic_mint`.
+  """
+  n = len(sides)
+  if n < 2:
+    raise ValueError("didactic_pair: give two or more sides")
+  langs = list(langs) if langs else [lang] * n
+  side_opts = list(side_opts) if side_opts else [""] * n
+  for what, values in (("langs", langs), ("side_opts", side_opts),
+                       ("widths", widths), ("labels", labels)):
+    if values is not None and len(values) != n:
+      raise ValueError(f"didactic_pair: {n} sides but {len(values)} {what}")
+  if widths is None:
+    longest = [max((len(line) for line in side.splitlines()), default=1)
+               for side in sides]
+    widths = [max(length, 1) / sum(max(l, 1) for l in longest)
+              for length in longest]
+  # in thousandths, the last column takes the rest so that they add up
+  shares = [round(1000 * width / sum(widths)) for width in widths[:-1]]
+  shares.append(1000 - sum(shares))
+  colspec = r"@{\hspace{\didacticpairgap}}".join(
+    r"p{\dimexpr(\linewidth-%d\didacticpairgap)*%d/1000\relax}"
+    % (n - 1, share) for share in shares)
+  print(r"\begin{didacticpair}{@{}%s@{}}" % colspec)
+  if labels:
+    print(" & ".join(r"\didacticpairlabel{%s}" % (label or "")
+                     for label in labels) + r"\\")
+  cells = []
+  for side, side_lang, extra in zip(sides, langs, side_opts):
+    options = ",".join(opt for opt in (minted_opts, extra) if opt)
+    if hlgrep:
+      lines = [i + 1 for i, line in enumerate(side.splitlines())
+               if any(re.search(pattern, line) for pattern in hlgrep)]
+      if lines:
+        options = ",".join(opt for opt in (options,
+          "highlightlines={%s}" % ",".join(map(str, lines))) if opt)
+    filename = didactic_write_file(side, "didactic_pair_", ".txt")
+    cells.append(r"\didacticinputminted[%s]{%s}{%s}"
+                 % (options, side_lang, filename))
+  print("\n&\n".join(cells))
+  print(r"\end{didacticpair}")
+\end{pycode}
+%    \end{macrocode}
+%
 %
 % \subsection{Listing and running code examples}
 %
@@ -2811,6 +3075,7 @@ def didactic_run_code(code, /, **kwargs):
 \clist_new:N \l__didactic_deps_clist
 \tl_new:N \l__didactic_lang_tl
 \bool_new:N \l__didactic_fullwidth_bool
+\bool_new:N \l__didactic_shell_bool
 \clist_new:N \l__didactic_minted_clist
 \clist_new:N \l__didactic_unknown_clist
 \tl_new:N \g__didactic_run_defaults_tl
@@ -2859,6 +3124,8 @@ def didactic_run_code(code, /, **kwargs):
     deps        .clist_set:N = \l__didactic_deps_clist ,
     lang        .tl_set:N    = \l__didactic_lang_tl ,
     fullwidth   .bool_set:N  = \l__didactic_fullwidth_bool ,
+    shell       .bool_set:N  = \l__didactic_shell_bool ,
+    shell       .default:n   = { true } ,
     fullwidth   .default:n   = { true } ,
     transcript  .meta:n      = { tty , showcommand , chdir } ,
     transcript  .value_forbidden:n = true ,
@@ -3053,9 +3320,16 @@ def didactic_run_code(code, /, **kwargs):
   {
     \group_begin:
       \__didactic_run_reset:
+      \bool_set_false:N \l__didactic_shell_bool
       \IfBooleanT{#1}{ \bool_set_true:N \l__didactic_fullwidth_bool }
       \__didactic_run_keys:n {#2}
-      \__didactic_run:nnn { didactic_output } {#3} { }
+      \bool_if:NTF \l__didactic_shell_bool
+        {
+          \tl_clear:N \l__didactic_args_tl
+          \tl_clear:N \l__didactic_interpreter_tl
+          \__didactic_run:nnn { didactic_shell } {#3} { , shell = True }
+        }
+        { \__didactic_run:nnn { didactic_output } {#3} { } }
     \group_end:
   }
 \NewDocumentCommand{\runshell}{s O{} m}
@@ -3181,57 +3455,358 @@ def didactic_run_code(code, /, **kwargs):
 % |\unblockmargin| don't work in outer par mode (inside floats).
 % (See the |marginfix| documentation for details.)
 %
+% \begin{environment}{didacticpair}
+% \begin{macro}{\codebycodesetup}
+% Code side by side has its own layout, shared by |\codebycode|, 
+% |\runbyrun| and |didactic_pair|: the |didacticpair| environment.
+% It takes the column specification of a |tabular|.
+% On the slides the columns fill the frame, in a smaller font (|slides|, 
+% |fontsize=\tiny| by default).
+% In article mode they fill the full width, margin included (|fullwidth|, 
+% on by default), with the margin blocked so that no notes are set beside 
+% them; in a float, where |\blockmargin| doesn't work, our |fullwidth| marks 
+% the float instead.
+% The minted options for article mode are |notes|, empty by default, so the 
+% document's own |\setminted| applies.
+% |gap| is the space between the columns, and |labels| puts the file name 
+% above each column of |\codebycode| by default.
+% |\codebycodesetup{fullwidth=false}| keeps the pairs within the text width.
+% The full width needs the margin blocked, which works only in the main 
+% text: in a float we use the full width and let the float keep the margin 
+% clear, and in a |minipage| or another box we keep to its width.
+% The |slides| and |notes| options apply to code; |\runbyrun| keeps the 
+% document's size for its output, so that a transcript stays readable.
+%    \begin{macrocode}
+\ExplSyntaxOn
+\newlength{\didacticpairgap}
+\setlength{\didacticpairgap}{1em}
+\bool_new:N \g__didactic_pair_fullwidth_bool
+\bool_gset_true:N \g__didactic_pair_fullwidth_bool
+\bool_new:N \g__didactic_pair_labels_bool
+\bool_new:N \l__didactic_pair_blocked_bool
+\bool_new:N \l__didactic_pair_full_bool
+\bool_new:N \l__didactic_pair_font_bool
+\bool_set_true:N \l__didactic_pair_font_bool
+\tl_new:N \g__didactic_pair_slides_tl
+\tl_gset:Nn \g__didactic_pair_slides_tl { fontsize = \tiny }
+\tl_new:N \g__didactic_pair_notes_tl
+\keys_define:nn { didactic / pairsetup }
+  {
+    fullwidth .bool_gset:N = \g__didactic_pair_fullwidth_bool ,
+    fullwidth .default:n   = { true } ,
+    labels    .bool_gset:N = \g__didactic_pair_labels_bool ,
+    labels    .default:n   = { true } ,
+    slides    .tl_gset:N   = \g__didactic_pair_slides_tl ,
+    notes     .tl_gset:N   = \g__didactic_pair_notes_tl ,
+    gap       .code:n      = { \setlength { \didacticpairgap } {#1} } ,
+  }
+\NewDocumentCommand{\codebycodesetup}{m}
+  { \keys_set:nn { didactic / pairsetup } {#1} }
+\cs_new_protected:Npn \__didactic_pair_setminted:N #1
+  { \exp_args:NV \setminted #1 }
+\NewDocumentEnvironment{didacticpair}{m}
+  {
+    \bool_set_false:N \l__didactic_pair_blocked_bool
+    \bool_set_false:N \l__didactic_pair_full_bool
+    \@ifclassloaded{beamer}
+      {
+        \begin{center}
+        \bool_if:NT \l__didactic_pair_font_bool
+          { \__didactic_pair_setminted:N \g__didactic_pair_slides_tl }
+      }
+      {
+        \par
+        \bool_if:NT \g__didactic_pair_fullwidth_bool
+          {
+            \cs_if_exist:NTF \@captype
+              { \bool_set_true:N \l__didactic_pair_full_bool }
+              {
+                \mode_if_inner:F
+                  {
+                    \blockmargin
+                    \bool_set_true:N \l__didactic_pair_blocked_bool
+                    \bool_set_true:N \l__didactic_pair_full_bool
+                  }
+              }
+          }
+        \bool_if:NTF \l__didactic_pair_full_bool
+          { \begin{fullwidth} }
+          { \begin{center} }
+        \bool_if:NT \l__didactic_pair_font_bool
+          { \__didactic_pair_setminted:N \g__didactic_pair_notes_tl }
+      }
+    \begin{tabular}{#1}
+  }
+  {
+    \end{tabular}
+    \@ifclassloaded{beamer}
+      { \end{center} }
+      {
+        \bool_if:NTF \l__didactic_pair_full_bool
+          {
+            \end{fullwidth}
+            \bool_if:NT \l__didactic_pair_blocked_bool { \unblockmargin }
+          }
+          { \end{center} }
+      }
+  }
+\NewDocumentCommand{\didacticpairlabel}{m}{#1}
+\ExplSyntaxOff
+%    \end{macrocode}
+% \end{macro}
+% \end{environment}
+%
 % \begin{macro}{\codebycode}
 % When we deal with code, we deal with verbatim data.
-% The easiest way to deal with this is to simply keep the code in files and 
-% supply the file names to |\inputminted|.
-% The |\codebycode| command is simply two |\inputminted| commands side by side:
-% |\codebycode[opt1]{lang1}{file1}[opt2]{lang2}{file2}|.
+% The easiest way to deal with this is to keep the code in files and give 
+% the file names: |\codebycode[opt1]{lang1}{file1}[opt2]{lang2}{file2}| sets 
+% the two side by side, in the |didacticpair| layout above, with columns as 
+% wide as the code needs.
 % \codebycode
 %   [breaklines,linenos]{python}{hello.py}
 %   [breaklines,highlightlines=4]{python}{hello.py}
 %
-% This gives us the following implementation.
-% We can reuse |\textbytext| to typeset the two examples side by side.
+% Each side's options cut out a part of the file, as |didactic_extract| 
+% does, without running the program:
+% \begin{description}
+% \item[name] a function or class by name, with dots for a method: 
+%   |name=Person.__eq__|; Python only, and if the name is defined more than 
+%   once (a property and its setter), the first one;
+% \item[lines] a range of lines, |lines=3-10|;
+% \item[from, to] the lines from the first one containing the |from| text to 
+%   the first one after it containing the |to| text and indented no more 
+%   (or, without |to|, to the end of that block); write a brace, percent sign 
+%   or hash as |\{|, |\}|, |\%| or |\#|, e.g.\ |from={phonebook = \{}, to=\}|;
+% \item[nodocstring] leaves out the docstring (Python only);
+% \item[label] a label above the column, the file name if given without a 
+%   value;
+% \item[width] the column's share of the line, e.g.\ |width=0.4|, if both 
+%   sides give one.
+% \end{description}
+% Other options go to |minted|, as before.
+% The file names are relative to the base directory of the runs, see 
+% |\runbasedir| (a |basedir| given to |\runsetup| applies to the runs only).
+% For instance, |\codebycode[name=main,label]{python}{greet1.py}| 
+% |[name=main,label]{python}{greet2.py}| shows the two |main| functions with 
+% their file names above.
+% The star is still accepted; the pair is full width without it now.
+%
+% The work is done by |didactic_pair| and |didactic_extract| in PythonTeX, 
+% so we build the call as a string and give it to |\pyc|, as |\runpython| 
+% does.
 %    \begin{macrocode}
-\RequirePackage{minted}
-\NewDocumentCommand{\codebycode}{sommomm}{%
-  \IfBooleanTF{#1}{\textbytext*}{\textbytext}
-  {%
-    \IfValueTF{#2}
-      {\lstexample[#2]{#3}{#4}}
-      {\lstexample{#3}{#4}}%
-  }{%
-    \IfValueTF{#5}
-      {\lstexample[#5]{#6}{#7}}
-      {\lstexample{#6}{#7}}%
-  }%
-}
+\ExplSyntaxOn
+\seq_new:N \l__didactic_pair_sides_seq
+\seq_new:N \l__didactic_pair_langs_seq
+\seq_new:N \l__didactic_pair_labels_seq
+\seq_new:N \l__didactic_pair_widths_seq
+\seq_new:N \l__didactic_pair_opts_seq
+\bool_new:N \l__didactic_pair_haslabel_bool
+\bool_new:N \l__didactic_pair_allwidths_bool
+\tl_new:N \l__didactic_side_name_tl
+\tl_new:N \l__didactic_side_lines_tl
+\tl_new:N \l__didactic_side_from_tl
+\tl_new:N \l__didactic_side_to_tl
+\tl_new:N \l__didactic_side_label_tl
+\tl_new:N \l__didactic_side_width_tl
+\bool_new:N \l__didactic_side_nodoc_bool
+\bool_new:N \l__didactic_side_filelabel_bool
+\str_new:N \l__didactic_side_str
+\keys_define:nn { didactic / side }
+  {
+    name        .tl_set:N   = \l__didactic_side_name_tl ,
+    lines       .tl_set:N   = \l__didactic_side_lines_tl ,
+    from        .tl_set:N   = \l__didactic_side_from_tl ,
+    to          .tl_set:N   = \l__didactic_side_to_tl ,
+    nodocstring .bool_set:N = \l__didactic_side_nodoc_bool ,
+    nodocstring .default:n  = { true } ,
+    label       .code:n     =
+      {
+        \tl_if_eq:nnTF {#1} { * }
+          { \bool_set_true:N \l__didactic_side_filelabel_bool }
+          {
+            \bool_set_false:N \l__didactic_side_filelabel_bool
+            \tl_set:Nn \l__didactic_side_label_tl {#1}
+          }
+      } ,
+    label       .default:n  = { * } ,
+    width       .tl_set:N   = \l__didactic_side_width_tl ,
+  }
+%    \end{macrocode}
+% Each side becomes a call to |didactic_extract| in 
+% |\l__didactic_pair_sides_seq|, with its language, label, width and 
+% |minted| options in parallel sequences.
+%    \begin{macrocode}
+\cs_new_protected:Npn \__didactic_pair_arg:nN #1#2
+  {
+    \tl_if_empty:NF #2
+      {
+        \__didactic_pyliteral:NV \l__didactic_tmp_str #2
+        \str_put_right:Nn \l__didactic_side_str { , #1 = }
+        \str_put_right:NV \l__didactic_side_str \l__didactic_tmp_str
+      }
+  }
+%    \end{macrocode}
+% In |from| and |to|, a brace, percent sign or hash can't be written as is, 
+% so they're written |\{|, |\}|, |\%| and |\#|, and we make them the 
+% characters again.
+%    \begin{macrocode}
+\cs_new_protected:Npn \__didactic_pair_unescape:N #1
+  {
+    \tl_replace_all:NnV #1 { \{ } \c_left_brace_str
+    \tl_replace_all:NnV #1 { \} } \c_right_brace_str
+    \tl_replace_all:NnV #1 { \% } \c_percent_str
+    \tl_replace_all:NnV #1 { \# } \c_hash_str
+  }
+\cs_generate_variant:Nn \tl_replace_all:Nnn { NnV }
+\cs_new_protected:Npn \__didactic_pair_side:nnn #1#2#3
+  {
+    \group_begin:
+      \tl_clear:N \l__didactic_side_name_tl
+      \tl_clear:N \l__didactic_side_lines_tl
+      \tl_clear:N \l__didactic_side_from_tl
+      \tl_clear:N \l__didactic_side_to_tl
+      \tl_clear:N \l__didactic_side_label_tl
+      \tl_clear:N \l__didactic_side_width_tl
+      \bool_set_false:N \l__didactic_side_nodoc_bool
+      \bool_set_eq:NN \l__didactic_side_filelabel_bool
+        \g__didactic_pair_labels_bool
+      \keys_set_known:nnN { didactic / side } {#1} \l__didactic_unknown_clist
+      \__didactic_pair_unescape:N \l__didactic_side_from_tl
+      \__didactic_pair_unescape:N \l__didactic_side_to_tl
+      \__didactic_pyliteral:Nn \l__didactic_side_str {#3}
+      \str_put_left:Nn \l__didactic_side_str { didactic_extract ( }
+      \__didactic_pair_arg:nN { name } \l__didactic_side_name_tl
+      \__didactic_pair_arg:nN { lines } \l__didactic_side_lines_tl
+      \tl_if_empty:NF \l__didactic_side_from_tl
+        {
+          \str_put_right:Nn \l__didactic_side_str { , between = ( }
+          \__didactic_pyliteral:NV \l__didactic_tmp_str
+            \l__didactic_side_from_tl
+          \str_put_right:NV \l__didactic_side_str \l__didactic_tmp_str
+          \str_put_right:Nn \l__didactic_side_str { , }
+          \tl_if_empty:NTF \l__didactic_side_to_tl
+            { \str_put_right:Nn \l__didactic_side_str { None } }
+            {
+              \__didactic_pyliteral:NV \l__didactic_tmp_str
+                \l__didactic_side_to_tl
+              \str_put_right:NV \l__didactic_side_str \l__didactic_tmp_str
+            }
+          \str_put_right:Nn \l__didactic_side_str { ) }
+        }
+      \bool_if:NT \l__didactic_side_nodoc_bool
+        { \str_put_right:Nn \l__didactic_side_str { , strip_docstring = True } }
+      \__didactic_basedir_resolve:
+      \__didactic_pair_arg:nN { basedir } \l__didactic_basedir_tl
+      \str_put_right:Nn \l__didactic_side_str { ) }
+      \seq_gput_right:NV \g__didactic_pair_sides_seq \l__didactic_side_str
+      \__didactic_pyliteral:Nn \l__didactic_tmp_str {#2}
+      \seq_gput_right:NV \g__didactic_pair_langs_seq \l__didactic_tmp_str
+      \bool_if:NT \l__didactic_side_filelabel_bool
+        {
+          \tl_set:Nn \l__didactic_side_label_tl
+            { \texttt { \detokenize {#3} } }
+        }
+      \tl_if_empty:NTF \l__didactic_side_label_tl
+        { \seq_gput_right:Nn \g__didactic_pair_labels_seq { None } }
+        {
+          \__didactic_pyliteral:NV \l__didactic_tmp_str
+            \l__didactic_side_label_tl
+          \seq_gput_right:NV \g__didactic_pair_labels_seq \l__didactic_tmp_str
+        }
+      \tl_if_empty:NTF \l__didactic_side_width_tl
+        { \seq_gput_right:Nn \g__didactic_pair_widths_seq { None } }
+        { \seq_gput_right:NV \g__didactic_pair_widths_seq
+            \l__didactic_side_width_tl }
+      \__didactic_pyliteral:Ne \l__didactic_tmp_str
+        { \clist_use:Nn \l__didactic_unknown_clist { , } }
+      \seq_gput_right:NV \g__didactic_pair_opts_seq \l__didactic_tmp_str
+    \group_end:
+  }
+\seq_new:N \g__didactic_pair_sides_seq
+\seq_new:N \g__didactic_pair_langs_seq
+\seq_new:N \g__didactic_pair_labels_seq
+\seq_new:N \g__didactic_pair_widths_seq
+\seq_new:N \g__didactic_pair_opts_seq
+%    \end{macrocode}
+% Then the call: labels only if a side has one, widths only if every side 
+% has one.
+%    \begin{macrocode}
+\cs_new_protected:Npn \__didactic_pair_call:
+  {
+    \str_set:Ne \l__didactic_call_str
+      {
+        didactic_pair (
+        \seq_use:Nn \g__didactic_pair_sides_seq { , }
+        , langs = [ \seq_use:Nn \g__didactic_pair_langs_seq { , } ]
+        , side_opts = [ \seq_use:Nn \g__didactic_pair_opts_seq { , } ]
+      }
+    \bool_set_false:N \l__didactic_pair_haslabel_bool
+    \seq_map_inline:Nn \g__didactic_pair_labels_seq
+      {
+        \str_if_eq:nnF {##1} { None }
+          { \bool_set_true:N \l__didactic_pair_haslabel_bool }
+      }
+    \bool_if:NT \l__didactic_pair_haslabel_bool
+      {
+        \str_put_right:Ne \l__didactic_call_str
+          { , labels = [ \seq_use:Nn \g__didactic_pair_labels_seq { , } ] }
+      }
+    \seq_if_in:NnF \g__didactic_pair_widths_seq { None }
+      {
+        \str_put_right:Ne \l__didactic_call_str
+          { , widths = [ \seq_use:Nn \g__didactic_pair_widths_seq { , } ] }
+      }
+    \str_put_right:Nn \l__didactic_call_str { ) }
+    \exp_args:NV \pyc \l__didactic_call_str
+  }
+\NewDocumentCommand{\codebycode}{s O{} m m O{} m m}
+  {
+    \group_begin:
+      \seq_gclear:N \g__didactic_pair_sides_seq
+      \seq_gclear:N \g__didactic_pair_langs_seq
+      \seq_gclear:N \g__didactic_pair_labels_seq
+      \seq_gclear:N \g__didactic_pair_widths_seq
+      \seq_gclear:N \g__didactic_pair_opts_seq
+      \__didactic_pair_side:nnn {#2} {#3} {#4}
+      \__didactic_pair_side:nnn {#5} {#6} {#7}
+      \__didactic_pair_call:
+    \group_end:
+  }
+\ExplSyntaxOff
 %    \end{macrocode}
 % \end{macro}
 %
 % \begin{macro}{\runbyrun}
-% We also want to typeset the runs (|\runpython|):
+% We also want to typeset two runs side by side (|\runpython|), in the same 
+% layout, in two equal columns:
 % |\runbyrun[highlightlines=1]{hello.py}{hello.py}| yields
 % \runbyrun[highlightlines=1]{hello.py}{hello.py}
-% |\runbyrun{hello.py}[highlightlines=1]{hello.py}| yields
-% \runbyrun{hello.py}[highlightlines=1]{hello.py}
-% And, finally, |\runbyrun{hello.py}{hello.py}| yields
-% \runbyrun{hello.py}{hello.py}
 % Each optional argument takes the same keys as |\runpython|, so two runs of 
 % one program with different input can be contrasted:
 % |\runbyrun[transcript,stdin={4}]{ask.py}[transcript,stdin={10}]{ask.py}| 
 % yields
 % \runbyrun[transcript,stdin={4}]{ask.py}[transcript,stdin={10}]{ask.py}
-% We use |\textbytext| to typeset the two outputs side by side, and 
-% |\runpython| for each run.
-% The |tabular| in |\textbytext| typesets its cells once, so the runs are 
-% executed once.
+% With the key |shell|, a side is a command run through the shell, as with 
+% |\runshell|.
+% The |tabular| typesets its cells once, so the runs are executed once.
+% The runs are executed again for each pair, so a run that changes a file 
+% shows the file as it is then: two runs that depend on the order they're 
+% done in can't be contrasted this way.
 %    \begin{macrocode}
+\ExplSyntaxOn
 \NewDocumentCommand{\runbyrun}{s O{} m O{} m}{%
-  \IfBooleanTF{#1}{\textbytext*}{\textbytext}
-    {\runpython[#2]{#3}}{\runpython[#4]{#5}}%
+  \group_begin:
+  \bool_set_false:N \l__didactic_pair_font_bool
+  \begin{didacticpair}{@{}%
+      p{\dimexpr(\linewidth-\didacticpairgap)/2\relax}%
+      @{\hspace{\didacticpairgap}}%
+      p{\dimexpr(\linewidth-\didacticpairgap)/2\relax}@{}}%
+    \runpython[#2]{#3} & \runpython[#4]{#5}%
+  \end{didacticpair}%
+  \group_end:
 }
+\ExplSyntaxOff
 %    \end{macrocode}
 % \end{macro}
 %
