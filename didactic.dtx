@@ -495,6 +495,9 @@
 % \item[prompt] The shell prompt in front of the command line, |$ | by 
 %   default.
 % \item[cwd] The directory to run in.
+% \item[shell] Run the argument through the shell, as |\runshell| does; 
+%   the argument is then the whole command, so |args| and |interpreter| 
+%   don't apply.
 % \item[basedir] The directory that file names are relative to, see 
 %   |\runbasedir| below.
 % \item[interpreter] The interpreter, |python3| by default; it may contain 
@@ -651,6 +654,8 @@
 % A side-by-side contrast in the notes is often wider than the text, so the 
 % full width is the default.
 % The pairs work in |beamer| frames with or without |fragile|.
+% A pair is a |tabular|, so it can't break across pages: cut long code down 
+% with |name|, |lines| or |from| and |to|.
 %
 % A use worth knowing from try-first teaching: let the students try 
 % something first, show the second version, and then repeat the first one 
@@ -2802,12 +2807,21 @@ def didactic_find_def(tree, name):
   return node
 
 def didactic_docstring_lines(node):
-  """Return the line numbers of the docstring of `node`, if any."""
+  """
+  Return the line numbers of the docstring of `node`, if any. A docstring 
+  that shares a line with other code (the def line, or a statement after it 
+  on its last line) is kept: we drop whole lines only.
+  """
   body = getattr(node, "body", [])
   if (body and isinstance(body[0], ast.Expr)
       and isinstance(body[0].value, ast.Constant)
       and isinstance(body[0].value.value, str)):
-    return set(range(body[0].lineno, body[0].end_lineno + 1))
+    doc = body[0]
+    if getattr(node, "lineno", None) == doc.lineno:
+      return set()
+    if len(body) > 1 and body[1].lineno == doc.end_lineno:
+      return set()
+    return set(range(doc.lineno, doc.end_lineno + 1))
   return set()
 
 def didactic_line_matches(line, pattern):
@@ -2825,7 +2839,7 @@ def didactic_extract(path, /, name=None, *, lines=None, between=None,
   - `name` cuts out a function or class, with its decorators; a dotted name 
   goes into a class, e.g. "Person.__eq__".
   - `lines` is a range of line numbers, (first, last) or "first-last", 
-  counting from 1 and including both.
+  counting from 1 and including both, or a single number.
   - `between` is (start, end): the lines from the first line matching start 
   to the first line after it that matches end and is indented no more than 
   the start line. Each is a string (to be contained in the line) or a 
@@ -2853,8 +2867,11 @@ def didactic_extract(path, /, name=None, *, lines=None, between=None,
     if strip_docstring:
       drop = didactic_docstring_lines(ast.parse(source, filename=path))
     if lines is not None:
-      if isinstance(lines, str):
-        first, last = (int(n) for n in lines.split("-"))
+      if isinstance(lines, int):
+        first = last = lines
+      elif isinstance(lines, str):
+        parts = [int(n) for n in lines.split("-")]
+        first, last = parts[0], parts[-1]
       else:
         first, last = lines
       numbers = list(range(first, last + 1))
@@ -2862,6 +2879,13 @@ def didactic_extract(path, /, name=None, *, lines=None, between=None,
       start, end = between
       first = next((i for i, line in enumerate(all_lines, 1)
                     if didactic_line_matches(line, start)), None)
+      start_end = None
+      if first is not None:
+        line = all_lines[first-1]
+        if isinstance(start, str):
+          start_end = line.index(start) + len(start)
+        else:
+          start_end = start.search(line).end()
       if first is None:
         raise ValueError(f"didactic_extract: no line with {start!r}")
       indent = len(all_lines[first-1]) - len(all_lines[first-1].lstrip())
@@ -2875,6 +2899,9 @@ def didactic_extract(path, /, name=None, *, lines=None, between=None,
         last = after - 1
         while last > first and not all_lines[last-1].strip():
           last -= 1
+      elif didactic_line_matches(all_lines[first-1][start_end:], end):
+        # the end is on the start line, after the start
+        last = first
       else:
         last = next((i for i in range(first + 1, len(all_lines) + 1)
                      if didactic_line_matches(all_lines[i-1], end)
@@ -2901,6 +2928,10 @@ def didactic_extract(path, /, name=None, *, lines=None, between=None,
 % above each column.
 %    \begin{macrocode}
 \begin{pycode}
+def didactic_file_label(name):
+  """Return a label for `didactic_pair` showing the file `name` as is."""
+  return r"\texttt{\detokenize{%s}}" % name
+
 def didactic_pair(*sides, lang="python", langs=None, widths=None,
                   labels=None, minted_opts="", side_opts=None, hlgrep=None):
   """
@@ -2909,7 +2940,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   - `lang` is the language of all sides, or `langs` one per side.
   - `widths` are the fractions of the line for the columns; by default they 
   are in proportion to the longest line of each side.
-  - `labels` are put above the columns (e.g. file names), None for none.
+  - `labels` are put above the columns, None for none. They are LaTeX, so a 
+  file name with an underscore needs `didactic_file_label(name)`.
   - `minted_opts` are minted options for all sides, `side_opts` one string 
   per side added to them; `hlgrep` highlights lines matching any of the 
   patterns, as in `didactic_mint`.
@@ -2919,14 +2951,21 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     raise ValueError("didactic_pair: give two or more sides")
   langs = list(langs) if langs else [lang] * n
   side_opts = list(side_opts) if side_opts else [""] * n
+  for what, values in (("langs", langs), ("side_opts", side_opts),
+                       ("widths", widths), ("labels", labels)):
+    if values is not None and len(values) != n:
+      raise ValueError(f"didactic_pair: {n} sides but {len(values)} {what}")
   if widths is None:
     longest = [max((len(line) for line in side.splitlines()), default=1)
                for side in sides]
     widths = [max(length, 1) / sum(max(l, 1) for l in longest)
               for length in longest]
+  # in thousandths, the last column takes the rest so that they add up
+  shares = [round(1000 * width / sum(widths)) for width in widths[:-1]]
+  shares.append(1000 - sum(shares))
   colspec = r"@{\hspace{\didacticpairgap}}".join(
     r"p{\dimexpr(\linewidth-%d\didacticpairgap)*%d/1000\relax}"
-    % (n - 1, round(1000 * width)) for width in widths)
+    % (n - 1, share) for share in shares)
   print(r"\begin{didacticpair}{@{}%s@{}}" % colspec)
   if labels:
     print(" & ".join(r"\didacticpairlabel{%s}" % (label or "")
@@ -3285,7 +3324,11 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \IfBooleanT{#1}{ \bool_set_true:N \l__didactic_fullwidth_bool }
       \__didactic_run_keys:n {#2}
       \bool_if:NTF \l__didactic_shell_bool
-        { \__didactic_run:nnn { didactic_shell } {#3} { , shell = True } }
+        {
+          \tl_clear:N \l__didactic_args_tl
+          \tl_clear:N \l__didactic_interpreter_tl
+          \__didactic_run:nnn { didactic_shell } {#3} { , shell = True }
+        }
         { \__didactic_run:nnn { didactic_output } {#3} { } }
     \group_end:
   }
@@ -3428,6 +3471,11 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % |gap| is the space between the columns, and |labels| puts the file name 
 % above each column of |\codebycode| by default.
 % |\codebycodesetup{fullwidth=false}| keeps the pairs within the text width.
+% The full width needs the margin blocked, which works only in the main 
+% text: in a float we use the full width and let the float keep the margin 
+% clear, and in a |minipage| or another box we keep to its width.
+% The |slides| and |notes| options apply to code; |\runbyrun| keeps the 
+% document's size for its output, so that a transcript stays readable.
 %    \begin{macrocode}
 \ExplSyntaxOn
 \newlength{\didacticpairgap}
@@ -3436,6 +3484,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \bool_gset_true:N \g__didactic_pair_fullwidth_bool
 \bool_new:N \g__didactic_pair_labels_bool
 \bool_new:N \l__didactic_pair_blocked_bool
+\bool_new:N \l__didactic_pair_full_bool
+\bool_new:N \l__didactic_pair_font_bool
+\bool_set_true:N \l__didactic_pair_font_bool
 \tl_new:N \g__didactic_pair_slides_tl
 \tl_gset:Nn \g__didactic_pair_slides_tl { fontsize = \tiny }
 \tl_new:N \g__didactic_pair_notes_tl
@@ -3456,24 +3507,33 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \NewDocumentEnvironment{didacticpair}{m}
   {
     \bool_set_false:N \l__didactic_pair_blocked_bool
+    \bool_set_false:N \l__didactic_pair_full_bool
     \@ifclassloaded{beamer}
       {
         \begin{center}
-        \__didactic_pair_setminted:N \g__didactic_pair_slides_tl
+        \bool_if:NT \l__didactic_pair_font_bool
+          { \__didactic_pair_setminted:N \g__didactic_pair_slides_tl }
       }
       {
-        \bool_if:NTF \g__didactic_pair_fullwidth_bool
+        \par
+        \bool_if:NT \g__didactic_pair_fullwidth_bool
           {
-            \par
-            \cs_if_exist:NF \@captype
+            \cs_if_exist:NTF \@captype
+              { \bool_set_true:N \l__didactic_pair_full_bool }
               {
-                \blockmargin
-                \bool_set_true:N \l__didactic_pair_blocked_bool
+                \mode_if_inner:F
+                  {
+                    \blockmargin
+                    \bool_set_true:N \l__didactic_pair_blocked_bool
+                    \bool_set_true:N \l__didactic_pair_full_bool
+                  }
               }
-            \begin{fullwidth}
           }
+        \bool_if:NTF \l__didactic_pair_full_bool
+          { \begin{fullwidth} }
           { \begin{center} }
-        \__didactic_pair_setminted:N \g__didactic_pair_notes_tl
+        \bool_if:NT \l__didactic_pair_font_bool
+          { \__didactic_pair_setminted:N \g__didactic_pair_notes_tl }
       }
     \begin{tabular}{#1}
   }
@@ -3482,7 +3542,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \@ifclassloaded{beamer}
       { \end{center} }
       {
-        \bool_if:NTF \g__didactic_pair_fullwidth_bool
+        \bool_if:NTF \l__didactic_pair_full_bool
           {
             \end{fullwidth}
             \bool_if:NT \l__didactic_pair_blocked_bool { \unblockmargin }
@@ -3510,13 +3570,14 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % does, without running the program:
 % \begin{description}
 % \item[name] a function or class by name, with dots for a method: 
-%   |name=Person.__eq__|;
+%   |name=Person.__eq__|; Python only, and if the name is defined more than 
+%   once (a property and its setter), the first one;
 % \item[lines] a range of lines, |lines=3-10|;
 % \item[from, to] the lines from the first one containing the |from| text to 
 %   the first one after it containing the |to| text and indented no more 
 %   (or, without |to|, to the end of that block); write a brace, percent sign 
 %   or hash as |\{|, |\}|, |\%| or |\#|, e.g.\ |from={phonebook = \{}, to=\}|;
-% \item[nodocstring] leaves out the docstring;
+% \item[nodocstring] leaves out the docstring (Python only);
 % \item[label] a label above the column, the file name if given without a 
 %   value;
 % \item[width] the column's share of the line, e.g.\ |width=0.4|, if both 
@@ -3524,7 +3585,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % \end{description}
 % Other options go to |minted|, as before.
 % The file names are relative to the base directory of the runs, see 
-% |\runbasedir|.
+% |\runbasedir| (a |basedir| given to |\runsetup| applies to the runs only).
 % For instance, |\codebycode[name=main,label]{python}{greet1.py}| 
 % |[name=main,label]{python}{greet2.py}| shows the two |main| functions with 
 % their file names above.
@@ -3563,7 +3624,10 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       {
         \tl_if_eq:nnTF {#1} { * }
           { \bool_set_true:N \l__didactic_side_filelabel_bool }
-          { \tl_set:Nn \l__didactic_side_label_tl {#1} }
+          {
+            \bool_set_false:N \l__didactic_side_filelabel_bool
+            \tl_set:Nn \l__didactic_side_label_tl {#1}
+          }
       } ,
     label       .default:n  = { * } ,
     width       .tl_set:N   = \l__didactic_side_width_tl ,
@@ -3582,9 +3646,11 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
         \str_put_right:NV \l__didactic_side_str \l__didactic_tmp_str
       }
   }
+%    \end{macrocode}
 % In |from| and |to|, a brace, percent sign or hash can't be written as is, 
 % so they're written |\{|, |\}|, |\%| and |\#|, and we make them the 
 % characters again.
+%    \begin{macrocode}
 \cs_new_protected:Npn \__didactic_pair_unescape:N #1
   {
     \tl_replace_all:NnV #1 { \{ } \c_left_brace_str
@@ -3668,7 +3734,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 %    \begin{macrocode}
 \cs_new_protected:Npn \__didactic_pair_call:
   {
-    \str_set:Nx \l__didactic_call_str
+    \str_set:Ne \l__didactic_call_str
       {
         didactic_pair (
         \seq_use:Nn \g__didactic_pair_sides_seq { , }
@@ -3683,12 +3749,12 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       }
     \bool_if:NT \l__didactic_pair_haslabel_bool
       {
-        \str_put_right:Nx \l__didactic_call_str
+        \str_put_right:Ne \l__didactic_call_str
           { , labels = [ \seq_use:Nn \g__didactic_pair_labels_seq { , } ] }
       }
     \seq_if_in:NnF \g__didactic_pair_widths_seq { None }
       {
-        \str_put_right:Nx \l__didactic_call_str
+        \str_put_right:Ne \l__didactic_call_str
           { , widths = [ \seq_use:Nn \g__didactic_pair_widths_seq { , } ] }
       }
     \str_put_right:Nn \l__didactic_call_str { ) }
@@ -3728,14 +3794,19 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % shows the file as it is then: two runs that depend on the order they're 
 % done in can't be contrasted this way.
 %    \begin{macrocode}
+\ExplSyntaxOn
 \NewDocumentCommand{\runbyrun}{s O{} m O{} m}{%
+  \group_begin:
+  \bool_set_false:N \l__didactic_pair_font_bool
   \begin{didacticpair}{@{}%
       p{\dimexpr(\linewidth-\didacticpairgap)/2\relax}%
       @{\hspace{\didacticpairgap}}%
       p{\dimexpr(\linewidth-\didacticpairgap)/2\relax}@{}}%
     \runpython[#2]{#3} & \runpython[#4]{#5}%
   \end{didacticpair}%
+  \group_end:
 }
+\ExplSyntaxOff
 %    \end{macrocode}
 % \end{macro}
 %

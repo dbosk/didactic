@@ -16,6 +16,15 @@
 %      4-8 of pairgreet2.py (the class Person up to its __init__).
 %   5  \runbyrun: "Hello, world!" beside the shell's "hej".
 %   6  Three columns from didactic_pair, labelled one, two and three.
+%   7  In a minipage: the pair within the minipage, centred; no error.
+%   8  The old call shape: hello.py twice, line numbers, line 4 highlighted
+%      on the right.
+%   9  from without to: main of pairgreet1.py up to its end; beside it the
+%      single line 23 of pairgreet2.py (INLINE = ...), and below, from and
+%      to on the same line: INLINE = {"a": 1, "b": 2} alone.
+%  10  In a figure: the pair over the full width, the caption below.
+%  11  With \codebycodesetup{labels}: pairgreet1.py above the left column,
+%      the explicit label Person.greet above the right one (not the file).
 \documentclass[a4paper]{memoir}
 \usepackage{beamerarticle}
 \usepackage{lipsum}
@@ -43,4 +52,25 @@ didactic_pair("a = 1", "b = 2\nc = 3", "d = 4",
               labels=["one", "two", "three"])
 \end{pycode}
 After\footnote{AFTERNOTE here.} the end.
+
+\begin{minipage}{0.6\textwidth}
+\codebycode[name=greet]{python}{pairgreet1.py}[name=main]{python}{pairgreet2.py}
+\end{minipage}
+
+\codebycode[breaklines,linenos]{python}{hello.py}%
+  [breaklines,linenos,highlightlines=4]{python}{hello.py}
+
+\codebycode[from={def main}]{python}{pairgreet1.py}[lines=23]{python}{pairgreet2.py}
+
+\codebycode[from=INLINE,to=\},width=0.3]{python}{pairgreet2.py}%
+  [name=greet,width=0.7]{python}{pairgreet1.py}
+
+\begin{figure}[htbp]
+\codebycode[name=main]{python}{pairgreet1.py}[name=main]{python}{pairgreet2.py}
+\caption{A pair in a float.}
+\end{figure}
+
+\codebycodesetup{labels}
+\codebycode[name=greet]{python}{pairgreet1.py}%
+  [name=Person.greet,label={\texttt{Person.greet}}]{python}{pairgreet2.py}
 \end{document}

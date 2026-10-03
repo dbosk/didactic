@@ -18,3 +18,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+INLINE = {"a": 1, "b": 2}
