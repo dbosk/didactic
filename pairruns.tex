@@ -1,0 +1,10 @@
+\begin{didacticpair}[runs]{2}
+  \didacticpairlabel{\texttt{"w"}} & \didacticpairlabel{\texttt{"a"}} \\
+  \runpython[transcript, args={w one}]{pairwrite.py}
+  \runpython[transcript, args={w two}]{pairwrite.py}
+  \runpython[transcript]{pairread.py}
+  &
+  \runpython[transcript, args={w one}]{pairwrite.py}
+  \runpython[transcript, args={a two}]{pairwrite.py}
+  \runpython[transcript]{pairread.py}
+\end{didacticpair}

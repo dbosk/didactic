@@ -20,6 +20,7 @@ tmp*
 didactic_output_*
 didactic_pair_*
 didactic_code_*
+pairfile.txt
 
 ## Core latex/pdflatex auxiliary files:
 *.aux
