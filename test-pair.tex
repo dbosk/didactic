@@ -19,7 +19,7 @@
 %   7  In a minipage: the pair within the minipage, centred; no error.
 %      The minipage is too narrow for the code: the docstring runs into the
 %      right column, and the log has the warning "A line of code side by
-%      side is ...pt wider than its column, on input line 71, near page
+%      side is ...pt wider than its column, on input line 73, near page
 %      1",
 %      the only one.
 %   8  The old call shape: hello.py twice, line numbers, line 4 highlighted
@@ -35,11 +35,13 @@
 %      has a tab before each comment), not a whole tab after the code.
 %  13  didactic_pair from pycode, a narrow first column: the long line runs
 %      into the second column, and the log warns "A line of code side by
-%      side is ...pt wider than its column, on input line 96, near page 2"
-%      (the first line of the pycode environment).
+%      side is ...pt wider than its column, on input line 98, near page 2"
+%      (the first line of code in the pycode environment; PythonTeX's
+%      line, which lags after edits above it until PythonTeX reruns the
+%      code, so check it after removing pythontex-files-test-pair).
 %  14  \runbyrun with a long output line: it runs into the right column,
 %      and the log warns "A line of output side by side ..., on input line
-%      101", advising \setminted rather than \codebycodesetup.
+%      103", advising \setminted rather than \codebycodesetup.
 %   So the log has exactly three overflow warnings: 7, 13 and 14.
 \documentclass[a4paper]{memoir}
 \usepackage{beamerarticle}

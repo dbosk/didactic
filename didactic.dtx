@@ -673,6 +673,8 @@
 % A line wider than its column runs into the next one, so \textsf{didactic}
 % warns about it in the log, with how much too wide it is, the input line 
 % and the page near which it is; on the slides, once for each overlay.
+% For |didactic_pair| in a |pycode| environment, the line is where the code 
+% was when PythonTeX last ran it, which lags after edits above it.
 % Then use a smaller font, shorter lines, or |breaklines| for that side,
 % which wraps the long lines.
 % On the slides, |beamer|'s |shrink| doesn't help much: |shrink=10| makes the
@@ -3647,10 +3649,17 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 %
 % The warning says where the pair is.
 % The pair is typeset from PythonTeX's output, where |\inputlineno| counts 
-% the lines of that file, so |didactic_pair| gives the environment the 
-% document's line in its optional argument; without it, as for 
-% |\runbyrun|, the environment is in the document and |\inputlineno| is 
-% right.
+% the lines of that file.
+% So |\codebycode| notes its own line in |\l__didactic_pair_line_tl| 
+% before it calls PythonTeX, and |didactic_pair| gives the environment 
+% PythonTeX's idea of the line in the optional argument, which we use only 
+% when no line is noted.
+% PythonTeX's line is the line where the code was when PythonTeX last ran 
+% it: PythonTeX reruns code only when the code changes, not when it moves, 
+% so after an edit above a |pycode| environment the line lags until the 
+% code is changed or the PythonTeX files are removed.
+% Without either, as for |\runbyrun|, the environment is in the document 
+% and |\inputlineno| is right.
 % In a |fragile| frame, the line counts from the start of the frame.
 % The page is the page being built: a pair that doesn't fit at the bottom 
 % may still move to the next one, so we say \emph{near} that page.
@@ -3695,7 +3704,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 %    \begin{macrocode}
 \NewDocumentEnvironment{didacticpair}{O{}m}
   {
-    \tl_set:Nn \l__didactic_pair_line_tl {#1}
+    \tl_if_empty:NT \l__didactic_pair_line_tl
+      { \tl_set:Nn \l__didactic_pair_line_tl {#1} }
     \bool_set_false:N \l__didactic_pair_blocked_bool
     \bool_set_false:N \l__didactic_pair_full_bool
     \tl_clear:N \l__didactic_pair_fontsize_tl
@@ -3957,6 +3967,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \NewDocumentCommand{\codebycode}{s O{} m m O{} m m}
   {
     \group_begin:
+      \tl_set:Ne \l__didactic_pair_line_tl { \int_use:N \inputlineno }
       \seq_gclear:N \g__didactic_pair_sides_seq
       \seq_gclear:N \g__didactic_pair_langs_seq
       \seq_gclear:N \g__didactic_pair_labels_seq
