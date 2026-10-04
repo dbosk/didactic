@@ -151,6 +151,8 @@
 %   as several runs on each side (\#56): it takes a number of equal columns, 
 %   and the keys |runs| and |line|.
 %   |\runbyrun| uses it.
+%   Transcripts no longer quote arguments in other alphabets, such as 
+%   |två| (\#57).
 % }
 % \changes{v2.7.2}{2026/10/04}{%
 %   Measures the lines of a pair around |obeytabs|, so tabs stay aligned, 
@@ -2705,11 +2707,31 @@ def didactic_shell(cmd, /, shell=False, *, stdin=None, stdinfile=None,
 
   if showcommand:
     if commandtext is None:
-      commandtext = cmd if isinstance(cmd, str) else shlex.join(cmd)
+      commandtext = (cmd if isinstance(cmd, str)
+                     else " ".join(didactic_quote(arg) for arg in cmd))
     text = prompt + commandtext + "\n" + text
     kwargs.setdefault("minted_opts", "")
 
   didactic_mint(text.strip("\n"), **kwargs)
+\end{pycode}
+%    \end{macrocode}
+%
+% The command line we show should read as the student would type it.
+% |shlex.join| quotes every argument with a character outside a small ASCII 
+% set, so |python3 greet.py Åsa| would read |python3 greet.py 'Åsa'|.
+% We quote only what the shell needs quoted: an argument of letters, in any 
+% alphabet, digits and |@%+=:,./-| is left as it is, just as |shlex.quote| 
+% leaves such ASCII arguments; anything else is quoted by |shlex.quote|.
+%    \begin{macrocode}
+\begin{pycode}
+def didactic_quote(arg, /):
+  """
+  Quote `arg` for a command line shown to the reader: as `shlex.quote`, but
+  leave words of letters in any alphabet unquoted, e.g. `två`.
+  """
+  if re.fullmatch(r"[\w@%+=:,./-]+", arg):
+    return arg
+  return shlex.quote(arg)
 \end{pycode}
 %    \end{macrocode}
 %

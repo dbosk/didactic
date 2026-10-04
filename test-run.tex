@@ -22,7 +22,9 @@
 %   10 \runsetup{prompt={> }}: the command line starts with "> "; then
 %      commandtext: shows "python3 ask.py" although run via "python3 -X utf8"
 %   11 \runbyrun: two transcripts side by side, answers 4 and 10
-%   12 greet.py with args: "Hej, Kalle!"
+%   12 greet.py with args: "Hej, Kalle!"; then "$ python3 greet.py Åsa"
+%      (no quotes around Åsa) and "Hej, Åsa!", and
+%      "$ python3 greet.py 'Kalle Anka'" and "Hej, Kalle Anka!"
 %   13 didactic_shell called directly from \pyc, list and string forms: "hi"
 %   14 \runbasedir{auto} and \subimport{test-basedir/}: "$ python3 readdata.py
 %      data.txt", then "data from test-basedir/examples"; then without chdir
@@ -76,6 +78,8 @@
 
 \section{Arguments}
 \runpython[transcript, args={Kalle}]{greet.py}
+\runpython[transcript, args={Åsa}]{greet.py}
+\runpython[transcript, args={'Kalle Anka'}]{greet.py}
 
 \section{Python API compatibility}
 \pyc{didactic_shell(["echo", "hi"])}
