@@ -70,7 +70,7 @@ test-note-heading.pdf: test-note-heading.tex didactic.sty
 
 # code side by side, in the notes and on the slides; minted needs
 # -shell-escape and a run after pythontex to insert the highlighted code.
-TEST_PAIR_EXAMPLES=	pairgreet1.py pairgreet2.py hello.py
+TEST_PAIR_EXAMPLES=	pairgreet1.py pairgreet2.py hello.py pairtabs.py
 test-pair.pdf test-pair-slides.pdf: %.pdf: %.tex didactic.sty ${TEST_PAIR_EXAMPLES}
 	-${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	${PYTHONTEX} $*

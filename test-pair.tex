@@ -19,7 +19,8 @@
 %   7  In a minipage: the pair within the minipage, centred; no error.
 %      The minipage is too narrow for the code: the docstring runs into the
 %      right column, and the log has the warning "A line of code side by
-%      side is ...pt wider than its column, on input line 60 (page 1)",
+%      side is ...pt wider than its column, on input line 71, near page
+%      1",
 %      the only one.
 %   8  The old call shape: hello.py twice, line numbers, line 4 highlighted
 %      on the right.
@@ -29,6 +30,17 @@
 %  10  In a figure: the pair over the full width, the caption below.
 %  11  With \codebycodesetup{labels}: pairgreet1.py above the left column,
 %      the explicit label Person.greet above the right one (not the file).
+%  12  obeytabs: in both columns # one and # two start at column 8 and
+%      # three at column 16, the tab stops after their code (pairtabs.py
+%      has a tab before each comment), not a whole tab after the code.
+%  13  didactic_pair from pycode, a narrow first column: the long line runs
+%      into the second column, and the log warns "A line of code side by
+%      side is ...pt wider than its column, on input line 96, near page 2"
+%      (the first line of the pycode environment).
+%  14  \runbyrun with a long output line: it runs into the right column,
+%      and the log warns "A line of output side by side ..., on input line
+%      101", advising \setminted rather than \codebycodesetup.
+%   So the log has exactly three overflow warnings: 7, 13 and 14.
 \documentclass[a4paper]{memoir}
 \usepackage{beamerarticle}
 \usepackage{lipsum}
@@ -77,4 +89,16 @@ After\footnote{AFTERNOTE here.} the end.
 \codebycodesetup{labels}
 \codebycode[name=greet]{python}{pairgreet1.py}%
   [name=Person.greet,label={\texttt{Person.greet}}]{python}{pairgreet2.py}
+\codebycodesetup{labels=false}
+
+\codebycode[obeytabs,tabsize=8]{python}{pairtabs.py}%
+  [obeytabs,tabsize=8]{python}{pairtabs.py}
+
+\begin{pycode}
+didactic_pair("x = 'a line that is far too long for this column'", "y = 2",
+              widths=[0.1, 0.9])
+\end{pycode}
+
+\runbyrun[shell]{echo 0123456789012345678901234567890123456789012345678901234567890123456789}%
+  [shell]{echo hej}
 \end{document}
