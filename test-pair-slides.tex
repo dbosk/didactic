@@ -16,6 +16,9 @@
 %      counts from the start of the frame.
 %   5  Frame 5: the same pair with breaklines: the long lines wrap, no
 %      warning.
+%   6  Frame 6: the didacticpair of runs from the documentation, in the
+%      size the frame sets with \setminted (footnotesize), not \tiny;
+%      no warning.
 %   The labels of frames 1, 4 and 5 are in the size of the code under them.
 \documentclass{beamer}
 \usepackage{didactic}
@@ -42,5 +45,10 @@
   \frametitle{Too wide, wrapped}
   \codebycode[label,breaklines]{python}{pairgreet1.py}%
     [label,breaklines]{python}{pairgreet2.py}
+\end{frame}
+\begin{frame}[fragile]
+  \frametitle{Runs by hand}
+  \setminted{fontsize=\footnotesize}
+  \input{pairruns.tex}
 \end{frame}
 \end{document}

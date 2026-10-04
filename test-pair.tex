@@ -19,9 +19,8 @@
 %   7  In a minipage: the pair within the minipage, centred; no error.
 %      The minipage is too narrow for the code: the docstring runs into the
 %      right column, and the log has the warning "A line of code side by
-%      side is ...pt wider than its column, on input line 75, near page
-%      1",
-%      the only one.
+%      side is ...pt wider than its column, on input line N, near page 1",
+%      where N is the line of that \codebycode.
 %   8  The old call shape: hello.py twice, line numbers, line 4 highlighted
 %      on the right.
 %   9  from without to: main of pairgreet1.py up to its end; beside it the
@@ -35,13 +34,19 @@
 %      has a tab before each comment), not a whole tab after the code.
 %  13  didactic_pair from pycode, a narrow first column: the long line runs
 %      into the second column, and the log warns "A line of code side by
-%      side is ...pt wider than its column, on input line 100, near page 2"
-%      (the first line of code in the pycode environment; PythonTeX's
-%      line, which lags after edits above it until PythonTeX reruns the
-%      code, so check it after removing pythontex-files-test-pair).
+%      side is ...pt wider than its column, on input line N, near page 2",
+%      where N is the first line of code in the pycode environment
+%      (PythonTeX's line, which lags after edits above it until PythonTeX
+%      reruns the code, so check it after removing pythontex-files-test-pair).
 %  14  \runbyrun with a long output line: it runs into the right column,
 %      and the log warns "A line of output side by side ..., on input line
-%      105", advising \setminted rather than \codebycodesetup.
+%      N", where N is the line where the \runbyrun command ends, advising
+%      \setminted rather than \codebycodesetup.
+%  15  didacticpair by hand, [runs]{2}: labels "w" and "a"; three runs per
+%      column, as terminal sessions in the document's size; the left ends
+%      with the file holding "two", the right with "one" and "two".
+%  16  didacticpair{3} by hand with code: the print line of pairread.py
+%      three times, in equal columns, without a warning.
 %   So the log has exactly three overflow warnings: 7, 13 and 14.
 \documentclass[a4paper]{memoir}
 \usepackage{beamerarticle}
@@ -103,4 +108,12 @@ didactic_pair("x = 'a line that is far too long for this column'", "y = 2",
 
 \runbyrun[shell]{echo 0123456789012345678901234567890123456789012345678901234567890123456789}%
   [shell]{echo hej}
+
+\input{pairruns.tex}
+
+\begin{didacticpair}{3}
+  \didacticinputminted[firstline=2]{python}{pairread.py} &
+  \didacticinputminted[firstline=2]{python}{pairread.py} &
+  \didacticinputminted[firstline=2]{python}{pairread.py}
+\end{didacticpair}
 \end{document}

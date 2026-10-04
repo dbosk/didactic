@@ -8,8 +8,9 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-footcite-twoside.pdf test-footcite-memoir.pdf test-run.pdf \
 	test-note-heading.pdf test-pair.pdf test-pair-slides.pdf
 
-SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex
+SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	hello.py ask.py askmany.py greet.py filter.py pairgreet1.py pairgreet2.py
+SRC+=	pairwrite.py pairread.py
 
 # The change history (\PrintChanges) needs makeindex on the .glo file; that
 # also checks that every \changes entry can be written and typeset.
@@ -70,7 +71,8 @@ test-note-heading.pdf: test-note-heading.tex didactic.sty
 
 # code side by side, in the notes and on the slides; minted needs
 # -shell-escape and a run after pythontex to insert the highlighted code.
-TEST_PAIR_EXAMPLES=	pairgreet1.py pairgreet2.py hello.py pairtabs.py
+TEST_PAIR_EXAMPLES=	pairgreet1.py pairgreet2.py hello.py pairtabs.py \
+			pairwrite.py pairread.py pairruns.tex
 test-pair.pdf test-pair-slides.pdf: %.pdf: %.tex didactic.sty ${TEST_PAIR_EXAMPLES}
 	-${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	${PYTHONTEX} $*

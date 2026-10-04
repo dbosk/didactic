@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/10/04 v2.7.2 didactic]
+  [2026/10/04 v2.8 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -145,6 +145,14 @@
 %   when it's loaded.
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
+% }
+% \changes{v2.8}{2026/10/04}{%
+%   Documents the |didacticpair| environment for pairs written by hand, such 
+%   as several runs on each side (\#56): it takes a number of equal columns, 
+%   and the keys |runs| and |line|.
+%   |\runbyrun| uses it.
+%   Transcripts no longer quote arguments in other alphabets, such as 
+%   |två| (\#57).
 % }
 % \changes{v2.7.2}{2026/10/04}{%
 %   Measures the lines of a pair around |obeytabs|, so tabs stay aligned, 
@@ -702,20 +710,51 @@
 % \begin{example}
 % Both sides take the same keys as |\runpython|, which contrasts two runs of 
 % one program with different input:
-% |\runbyrun[transcript, stdin={4}]{ask.py}[transcript, stdin={10}]{ask.py}| 
-% gives
+% |\runbyrun[transcript, stdin={4}]{ask.py}|%
+% |[transcript, stdin={10}]{ask.py}| gives
 % \runbyrun[transcript, stdin={4}]{ask.py}[transcript, stdin={10}]{ask.py}
 % \end{example}
 %
-% Each run is done once, when the pair is typeset, so two runs that depend on 
-% each other, such as reading a file after writing it and after appending to 
-% it, can't be shown this way: both would see the file as it is at the end.
-% Show such runs one after the other instead.
+% The runs are done in the order of the document, the left side first, so a 
+% run sees what the runs before it did, such as a file they wrote.
+%
+% \DescribeEnv{didacticpair}
+% For several runs on a side, write the pair yourself with the 
+% |didacticpair| environment, which the commands above use too.
+% |\begin{didacticpair}[runs]{2}| starts a pair of two equal columns, and 
+% |&| goes to the next column.
+% A column can hold several |\runpython| or |\runshell|; they are done 
+% from left to right, and from top to bottom within a column.
+% |\didacticpairlabel| sets a label above a column, in a first row ended by 
+% |\\|.
+% The option |runs| keeps the document's |minted| settings for the output, 
+% as |\runbyrun| does; without it, the columns are code, in the size of 
+% |\codebycodesetup|.
+% The option |line| gives the input line for the warning about code wider 
+% than its column; a pair written in the document doesn't need it.
+% The argument can also be another number of columns, written out as 
+% digits, or a column specification for |tabular|.
+%
+% \begin{example}
+% Writing to a file with |"w"| replaces what it held, and |"a"| appends to 
+% it.
+% The program |pairwrite.py| writes its second argument to a file, opened 
+% with its first argument as the mode, and |pairread.py| prints the file.
+% \input{pairruns.tex}
+% That pair is
+% \inputminted{latex}{pairruns.tex}
+% The left column is done first, and the columns share the file, so each 
+% column starts by writing the file anew.
+% On the slides the output keeps the document's size, which is often too 
+% wide for two columns: then set a smaller size with |\setminted| in the 
+% frame.
+% \end{example}
 %
 % Which tool when: |\codebycode| for two pieces of code from files, 
-% |\runbyrun| for two runs, |didactic_pair| in PythonTeX for code that you 
-% have as text or want to prepare yourself (more than two columns too), and 
-% |\textbytext| for prose side by side.
+% |\runbyrun| for two runs, the |didacticpair| environment for pairs by 
+% hand, such as several runs on a side, |didactic_pair| in PythonTeX for 
+% code that you have as text or want to prepare yourself (more than two 
+% columns too), and |\textbytext| for prose side by side.
 % To get a function out of a program, |didactic_extract| reads the program as 
 % text and never runs it, which is safe for any program; |didactic_import| 
 % and |didactic_source| import the program, which runs it, and are safe only 
@@ -2670,11 +2709,31 @@ def didactic_shell(cmd, /, shell=False, *, stdin=None, stdinfile=None,
 
   if showcommand:
     if commandtext is None:
-      commandtext = cmd if isinstance(cmd, str) else shlex.join(cmd)
+      commandtext = (cmd if isinstance(cmd, str)
+                     else " ".join(didactic_quote(arg) for arg in cmd))
     text = prompt + commandtext + "\n" + text
     kwargs.setdefault("minted_opts", "")
 
   didactic_mint(text.strip("\n"), **kwargs)
+\end{pycode}
+%    \end{macrocode}
+%
+% The command line we show should read as the student would type it.
+% |shlex.join| quotes every argument with a character outside a small ASCII 
+% set, so |python3 greet.py Åsa| would read |python3 greet.py 'Åsa'|.
+% We quote only what the shell needs quoted: an argument of letters, in any 
+% alphabet, digits and |@%+=:,./-| is left as it is, just as |shlex.quote| 
+% leaves such ASCII arguments; anything else is quoted by |shlex.quote|.
+%    \begin{macrocode}
+\begin{pycode}
+def didactic_quote(arg, /):
+  """
+  Quote `arg` for a command line shown to the reader: as `shlex.quote`, but
+  leave words of letters in any alphabet unquoted, e.g. `två`.
+  """
+  if re.fullmatch(r"[\w@%+=:,./-]+", arg):
+    return arg
+  return shlex.quote(arg)
 \end{pycode}
 %    \end{macrocode}
 %
@@ -3004,7 +3063,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     line = pytex.line
   except (NameError, AttributeError):
     line = ""
-  print(r"\begin{didacticpair}[%s]{@{}%s@{}}" % (line, colspec))
+  print(r"\begin{didacticpair}[line=%s]{@{}%s@{}}" % (line, colspec))
   if labels:
     print(" & ".join(r"\didacticpairlabel{%s}" % (label or "")
                      for label in labels) + r"\\")
@@ -3700,12 +3759,84 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   }
 %    \end{macrocode}
 %
+% The environment takes keys in its optional argument.
+% |line| is the input line for the warning, which |didactic_pair| gives 
+% when the pair comes from PythonTeX; a line that |\codebycode| has noted 
+% wins, as above.
+% |runs| says that the cells hold runs, not code: they keep the document's 
+% |minted| settings, as for |\runbyrun|, and the warning advises 
+% accordingly.
+% Before version 2.8 the optional argument was just the line, and 
+% PythonTeX's output from then holds |[96]| until PythonTeX runs again, so 
+% we take a key that is a number as the line; other unknown keys get a 
+% warning.
+%    \begin{macrocode}
+\msg_new:nnn { didactic } { pair-unknown-key }
+  { The~didacticpair~environment~has~no~key~'#1'. }
+\cs_new_protected:Npn \__didactic_pair_line:n #1
+  {
+    \tl_if_empty:NT \l__didactic_pair_line_tl
+      { \tl_set:Nn \l__didactic_pair_line_tl {#1} }
+  }
+\keys_define:nn { didactic / pair }
+  {
+    line    .code:n              = { \__didactic_pair_line:n {#1} } ,
+    runs    .bool_set_inverse:N  = \l__didactic_pair_font_bool ,
+    runs    .default:n           = { true } ,
+    unknown .code:n              =
+      {
+        \exp_args:NnV \regex_match:nnTF { \A \d+ \Z } \l_keys_key_str
+          { \exp_args:NV \__didactic_pair_line:n \l_keys_key_str }
+          {
+            \msg_warning:nnV { didactic } { pair-unknown-key }
+              \l_keys_key_str
+          }
+      } ,
+  }
+%    \end{macrocode}
+%
+% The mandatory argument is the column specification of the |tabular|, or 
+% just a number of columns.
+% A number gives that many columns of equal width that fill the line, with 
+% |\didacticpairgap| between them, as |\runbyrun| has always used: so a 
+% pair written by hand doesn't need the |p| columns spelled out.
+%    \begin{macrocode}
+\tl_new:N \l__didactic_pair_colspec_tl
+\cs_new_protected:Npn \__didactic_pair_colspec:n #1
+  {
+    \regex_match:nnTF { \A \s* \d+ \s* \Z } {#1}
+      {
+        \tl_set:Nn \l__didactic_pair_colspec_tl { @{} }
+        \int_step_inline:nn {#1}
+          {
+            \int_compare:nNnT {##1} > { 1 }
+              {
+                \tl_put_right:Nn \l__didactic_pair_colspec_tl
+                  { @{ \hspace { \didacticpairgap } } }
+              }
+            \tl_put_right:Ne \l__didactic_pair_colspec_tl
+              {
+                p
+                  {
+                    \exp_not:N \dimexpr
+                    ( \exp_not:N \linewidth
+                      - \int_eval:n { #1 - 1 } \exp_not:N \didacticpairgap )
+                    / \int_eval:n {#1} \exp_not:N \relax
+                  }
+              }
+          }
+        \tl_put_right:Nn \l__didactic_pair_colspec_tl { @{} }
+      }
+      { \tl_set:Nn \l__didactic_pair_colspec_tl {#1} }
+  }
+%    \end{macrocode}
+%
 % Now the environment itself.
 %    \begin{macrocode}
 \NewDocumentEnvironment{didacticpair}{O{}m}
   {
-    \tl_if_empty:NT \l__didactic_pair_line_tl
-      { \tl_set:Nn \l__didactic_pair_line_tl {#1} }
+    \keys_set:nn { didactic / pair } {#1}
+    \__didactic_pair_colspec:n {#2}
     \bool_set_false:N \l__didactic_pair_blocked_bool
     \bool_set_false:N \l__didactic_pair_full_bool
     \tl_clear:N \l__didactic_pair_fontsize_tl
@@ -3737,7 +3868,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
         \bool_if:NT \l__didactic_pair_font_bool
           { \__didactic_pair_setminted:N \g__didactic_pair_notes_tl }
       }
-    \begin{tabular}{#2}
+    \exp_args:NnV \begin {tabular} \l__didactic_pair_colspec_tl
   }
   {
     \end{tabular}
@@ -3994,22 +4125,17 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % \runbyrun[transcript,stdin={4}]{ask.py}[transcript,stdin={10}]{ask.py}
 % With the key |shell|, a side is a command run through the shell, as with 
 % |\runshell|.
-% The |tabular| typesets its cells once, so the runs are executed once.
-% The runs are executed again for each pair, so a run that changes a file 
-% shows the file as it is then: two runs that depend on the order they're 
-% done in can't be contrasted this way.
+% The |tabular| typesets its cells once, so the runs are executed once, in 
+% the order of the document: the left run first.
+% The pair is a |didacticpair| with two equal columns, marked as runs, so 
+% that the output keeps the document's |minted| settings; several runs on a 
+% side need the environment written out (see above).
 %    \begin{macrocode}
 \ExplSyntaxOn
 \NewDocumentCommand{\runbyrun}{s O{} m O{} m}{%
-  \group_begin:
-  \bool_set_false:N \l__didactic_pair_font_bool
-  \begin{didacticpair}{@{}%
-      p{\dimexpr(\linewidth-\didacticpairgap)/2\relax}%
-      @{\hspace{\didacticpairgap}}%
-      p{\dimexpr(\linewidth-\didacticpairgap)/2\relax}@{}}%
+  \begin{didacticpair}[runs]{2}%
     \runpython[#2]{#3} & \runpython[#4]{#5}%
   \end{didacticpair}%
-  \group_end:
 }
 \ExplSyntaxOff
 %    \end{macrocode}
