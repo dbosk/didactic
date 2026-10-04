@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/10/03 v2.7.1 didactic]
+  [2026/10/04 v2.7.2 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -145,6 +145,12 @@
 %   when it's loaded.
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
+% }
+% \changes{v2.7.2}{2026/10/04}{%
+%   Measures the lines of a pair around |obeytabs|, so tabs stay aligned, 
+%   and inside frames; the warning gives the document's line for 
+%   |didactic_pair| too, says near which page, and advises differently for 
+%   |\runbyrun|.
 % }
 % \changes{v2.7.1}{2026/10/03}{%
 %   Warns when a line of code side by side is wider than its column 
@@ -665,12 +671,17 @@
 % The columns share the width in proportion to their longest lines, but
 % whether the code fits depends on the font.
 % A line wider than its column runs into the next one, so \textsf{didactic}
-% warns about it in the log, with how much too wide it is.
+% warns about it in the log, with how much too wide it is, the input line 
+% and the page near which it is; on the slides, once for each overlay.
+% For |didactic_pair| in a |pycode| environment, the line is where the code 
+% was when PythonTeX last ran it, which lags after edits above it.
 % Then use a smaller font, shorter lines, or |breaklines| for that side,
 % which wraps the long lines.
 % On the slides, |beamer|'s |shrink| doesn't help much: |shrink=10| makes the
 % frame only 11~percent wider.
-% The labels are set in the same size as the code.
+% The labels are set in the size that |slides| or |notes| gives the code, 
+% so in the notes, where |notes| is empty by default, the labels keep the 
+% text's size even if the document's |\setminted| makes the code smaller.
 %
 % \textsf{didactic} writes each side of a pair to a file
 % |didactic_pair_|\meta{hash}|.txt|, and the output of each run to
@@ -2988,7 +2999,12 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   colspec = r"@{\hspace{\didacticpairgap}}".join(
     r"p{\dimexpr(\linewidth-%d\didacticpairgap)*%d/1000\relax}"
     % (n - 1, share) for share in shares)
-  print(r"\begin{didacticpair}{@{}%s@{}}" % colspec)
+  # the document's line, for warnings: TeX reads this from a file
+  try:
+    line = pytex.line
+  except (NameError, AttributeError):
+    line = ""
+  print(r"\begin{didacticpair}[%s]{@{}%s@{}}" % (line, colspec))
   if labels:
     print(" & ".join(r"\didacticpairlabel{%s}" % (label or "")
                      for label in labels) + r"\\")
@@ -3481,7 +3497,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % \begin{macro}{\codebycodesetup}
 % Code side by side has its own layout, shared by |\codebycode|, 
 % |\runbyrun| and |didactic_pair|: the |didacticpair| environment.
-% It takes the column specification of a |tabular|.
+% It takes the column specification of a |tabular|, and optionally the 
+% input line to give in warnings.
 % On the slides the columns fill the frame, in a smaller font (|slides|, 
 % |fontsize=\tiny| by default).
 % In article mode they fill the full width, margin included (|fullwidth|, 
@@ -3551,68 +3568,144 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % so a longer line runs into the next column, or off the frame, without an
 % overfull box warning.
 % We want a warning, so we measure each line.
-% |fvextra| gives each line's text to |\FancyVerbFormatText|; in the pair we
-% wrap it so that it also notes how far the widest line sticks out of the
-% column.
-% With |breaklines| the lines are broken to fit the column instead, and
-% |fvextra| breaks them inside |\FancyVerbFormatText|, so boxing the text
-% would stop that: then we leave it alone.
-% After the last column we warn if a line stuck out by more than half a
-% point.
-% |\codebycode| typesets the pair from PythonTeX's output, where 
-% |\inputlineno| counts the lines of that file, so it notes its own line in 
-% |\l__didactic_pair_line_tl| first.
+%
+% Where we measure matters.
+% |fvextra| sets a line as |\FancyVerbFormatLine|, which holds the 
+% highlighting, which holds |\FV@ObeyTabs|, which holds the text in 
+% |\FancyVerbFormatText|.
+% The highlighting puts the text of a highlighted line in an |\rlap| beside a 
+% space as wide as the column, so measuring outside it would hide the 
+% overflow of every highlighted line.
+% Inside |\FV@ObeyTabs| is too deep: with |obeytabs|, a tab closes and 
+% reopens the box of |\FV@ObeyTabs| and finds its tab stop only when it's 
+% one group level inside that box, so a box of ours around the text would 
+% break the alignment of tabs after text.
+% So we measure around |\FV@ObeyTabs|: it notes the group level when it 
+% starts, so a box around it doesn't disturb the tabs.
+% Without |obeytabs|, |\FV@ObeyTabs| is |\relax| and the text is just a 
+% group, which our box replaces; with |obeytabs|, |fancyvrb| lets 
+% |\FV@ObeyTabs| be |\FV@@ObeyTabs| when the listing starts, so we wrap 
+% that one too.
+% These are internal macros of |fancyvrb|, but they have kept their meaning 
+% since |fvextra| was written.
+%
+% With |breaklines| the lines are broken to fit the column instead, and 
+% |fvextra| breaks them inside |\FV@ObeyTabs|, in a |\parbox|, so a box 
+% would stop that: then we leave the lines alone.
+% With a frame the text has less room than |\linewidth|: |fvextra| subtracts 
+% the frame's rule and separation on each framed side, and so do we, one at 
+% a time, since |fancyvrb| keeps them as macros that end in |\relax|.
+%
+% We keep the widest overflow of the pair and warn after the last column if 
+% it's more than half a point; the columns' widths are rounded, so a line 
+% that just fits may stick out by a fraction of a point.
+% A pair inside a pair would reset the outer pair's overflow, but the cells 
+% come from files that PythonTeX writes, so that doesn't happen.
 %    \begin{macrocode}
 \dim_new:N \g__didactic_pair_over_dim
-\tl_new:N \l__didactic_pair_line_tl
+\dim_new:N \l__didactic_pair_room_dim
 \box_new:N \l__didactic_pair_line_box
-\msg_new:nnn { didactic } { pair-overflow }
+\cs_new_protected:Npn \__didactic_pair_less_frame:
   {
-    A~line~of~code~side~by~side~is~#1~wider~than~its~column,~
-    on~input~line~#2~(page~\thepage).~
-    Use~a~smaller~font~(\token_to_str:N \codebycodesetup),~
-    fewer~characters~per~line~or~the~breaklines~option.
+    \dim_sub:Nn \l__didactic_pair_room_dim { \FV@FrameSep }
+    \dim_sub:Nn \l__didactic_pair_room_dim { \FV@FrameRule }
   }
 \cs_new_protected:Npn \__didactic_pair_measure:n #1
   {
-    \hbox_set:Nn \l__didactic_pair_line_box {#1}
-    \dim_compare:nNnT
-      { \box_wd:N \l__didactic_pair_line_box - \linewidth }
-      > \g__didactic_pair_over_dim
+    \legacy_if:nTF { FV@breaklines }
+      { \group_begin: #1 \group_end: }
       {
-        \dim_gset:Nn \g__didactic_pair_over_dim
-          { \box_wd:N \l__didactic_pair_line_box - \linewidth }
+        \hbox_set:Nn \l__didactic_pair_line_box {#1}
+        \dim_set_eq:NN \l__didactic_pair_room_dim \linewidth
+        \token_if_eq_meaning:NNF \FV@LeftListFrame \relax
+          {
+            \__didactic_pair_less_frame:
+          }
+        \token_if_eq_meaning:NNF \FV@RightListFrame \relax
+          {
+            \__didactic_pair_less_frame:
+          }
+        \dim_compare:nNnT
+          { \box_wd:N \l__didactic_pair_line_box - \l__didactic_pair_room_dim }
+          > \g__didactic_pair_over_dim
+          {
+            \dim_gset:Nn \g__didactic_pair_over_dim
+              { \box_wd:N \l__didactic_pair_line_box
+                - \l__didactic_pair_room_dim }
+          }
+        \box_use_drop:N \l__didactic_pair_line_box
       }
-    \box_use_drop:N \l__didactic_pair_line_box
   }
 \cs_new_protected:Npn \__didactic_pair_watch_lines:
   {
     \dim_gzero:N \g__didactic_pair_over_dim
-    \cs_set_eq:NN \__didactic_pair_formattext:n \FancyVerbFormatText
-    \cs_set_protected:Npn \FancyVerbFormatText ##1
-      {
-        \legacy_if:nTF { FV@breaklines }
-          { \__didactic_pair_formattext:n {##1} }
-          { \__didactic_pair_measure:n { \__didactic_pair_formattext:n {##1} } }
-      }
+    \cs_set_eq:NN \__didactic_pair_obeytabs:n \FV@@ObeyTabs
+    \cs_set_protected:Npn \FV@@ObeyTabs ##1
+      { \__didactic_pair_measure:n { \__didactic_pair_obeytabs:n {##1} } }
+    \cs_set_protected:Npn \FV@ObeyTabs ##1
+      { \__didactic_pair_measure:n {##1} }
+  }
+%    \end{macrocode}
+%
+% The warning says where the pair is.
+% The pair is typeset from PythonTeX's output, where |\inputlineno| counts 
+% the lines of that file.
+% So |\codebycode| notes its own line in |\l__didactic_pair_line_tl| 
+% before it calls PythonTeX, and |didactic_pair| gives the environment 
+% PythonTeX's idea of the line in the optional argument, which we use only 
+% when no line is noted.
+% PythonTeX's line is the line where the code was when PythonTeX last ran 
+% it: PythonTeX reruns code only when the code changes, not when it moves, 
+% so after an edit above a |pycode| environment the line lags until the 
+% code is changed or the PythonTeX files are removed.
+% Without either, as for |\runbyrun|, the environment is in the document 
+% and |\inputlineno| is right.
+% In a |fragile| frame, the line counts from the start of the frame.
+% The page is the page being built: a pair that doesn't fit at the bottom 
+% may still move to the next one, so we say \emph{near} that page.
+% The advice depends on what is in the pair: code takes its font from 
+% |\codebycodesetup|, while |\runbyrun| keeps the document's |minted| 
+% settings for its output.
+%    \begin{macrocode}
+\tl_new:N \l__didactic_pair_line_tl
+\msg_new:nnn { didactic } { pair-overflow }
+  {
+    A~line~of~code~side~by~side~is~#1~wider~than~its~column,~
+    on~input~line~#2,~near~page~\thepage.~
+    Use~a~smaller~font~(\token_to_str:N \codebycodesetup),~
+    fewer~characters~per~line~or~the~breaklines~option.
+  }
+\msg_new:nnn { didactic } { pair-overflow-run }
+  {
+    A~line~of~output~side~by~side~is~#1~wider~than~its~column,~
+    on~input~line~#2,~near~page~\thepage.~
+    Use~shorter~lines~or~a~smaller~font~(\token_to_str:N \setminted).
   }
 \cs_new_protected:Npn \__didactic_pair_check_lines:
   {
     \dim_compare:nNnT \g__didactic_pair_over_dim > { 0.5pt }
       {
         \tl_if_empty:NT \l__didactic_pair_line_tl
-          { \tl_set:Nx \l__didactic_pair_line_tl { \int_use:N \inputlineno } }
-        \msg_warning:nnxx { didactic } { pair-overflow }
-          { \dim_use:N \g__didactic_pair_over_dim }
-          { \l__didactic_pair_line_tl }
+          { \tl_set:Ne \l__didactic_pair_line_tl { \int_use:N \inputlineno } }
+        \bool_if:NTF \l__didactic_pair_font_bool
+          { \__didactic_pair_warn:n { pair-overflow } }
+          { \__didactic_pair_warn:n { pair-overflow-run } }
       }
+  }
+\cs_new_protected:Npn \__didactic_pair_warn:n #1
+  {
+    \msg_warning:nnee { didactic } {#1}
+      { \dim_use:N \g__didactic_pair_over_dim }
+      { \l__didactic_pair_line_tl }
   }
 %    \end{macrocode}
 %
 % Now the environment itself.
 %    \begin{macrocode}
-\NewDocumentEnvironment{didacticpair}{m}
+\NewDocumentEnvironment{didacticpair}{O{}m}
   {
+    \tl_if_empty:NT \l__didactic_pair_line_tl
+      { \tl_set:Nn \l__didactic_pair_line_tl {#1} }
     \bool_set_false:N \l__didactic_pair_blocked_bool
     \bool_set_false:N \l__didactic_pair_full_bool
     \tl_clear:N \l__didactic_pair_fontsize_tl
@@ -3644,7 +3737,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
         \bool_if:NT \l__didactic_pair_font_bool
           { \__didactic_pair_setminted:N \g__didactic_pair_notes_tl }
       }
-    \begin{tabular}{#1}
+    \begin{tabular}{#2}
   }
   {
     \end{tabular}
@@ -3874,7 +3967,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \NewDocumentCommand{\codebycode}{s O{} m m O{} m m}
   {
     \group_begin:
-      \tl_set:Nx \l__didactic_pair_line_tl { \int_use:N \inputlineno }
+      \tl_set:Ne \l__didactic_pair_line_tl { \int_use:N \inputlineno }
       \seq_gclear:N \g__didactic_pair_sides_seq
       \seq_gclear:N \g__didactic_pair_langs_seq
       \seq_gclear:N \g__didactic_pair_labels_seq
