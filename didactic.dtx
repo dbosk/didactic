@@ -730,8 +730,10 @@
 % The option |runs| keeps the document's |minted| settings for the output, 
 % as |\runbyrun| does; without it, the columns are code, in the size of 
 % |\codebycodesetup|.
-% The argument can also be another number of columns, or a column 
-% specification for |tabular|.
+% The option |line| gives the input line for the warning about code wider 
+% than its column; a pair written in the document doesn't need it.
+% The argument can also be another number of columns, written out as 
+% digits, or a column specification for |tabular|.
 %
 % \begin{example}
 % Writing to a file with |"w"| replaces what it held, and |"a"| appends to 
@@ -3764,16 +3766,32 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % |runs| says that the cells hold runs, not code: they keep the document's 
 % |minted| settings, as for |\runbyrun|, and the warning advises 
 % accordingly.
+% Before version 2.8 the optional argument was just the line, and 
+% PythonTeX's output from then holds |[96]| until PythonTeX runs again, so 
+% we take a key that is a number as the line; other unknown keys get a 
+% warning.
 %    \begin{macrocode}
+\msg_new:nnn { didactic } { pair-unknown-key }
+  { The~didacticpair~environment~has~no~key~'#1'. }
+\cs_new_protected:Npn \__didactic_pair_line:n #1
+  {
+    \tl_if_empty:NT \l__didactic_pair_line_tl
+      { \tl_set:Nn \l__didactic_pair_line_tl {#1} }
+  }
 \keys_define:nn { didactic / pair }
   {
-    line .code:n =
+    line    .code:n              = { \__didactic_pair_line:n {#1} } ,
+    runs    .bool_set_inverse:N  = \l__didactic_pair_font_bool ,
+    runs    .default:n           = { true } ,
+    unknown .code:n              =
       {
-        \tl_if_empty:NT \l__didactic_pair_line_tl
-          { \tl_set:Nn \l__didactic_pair_line_tl {#1} }
+        \exp_args:NnV \regex_match:nnTF { \A \d+ \Z } \l_keys_key_str
+          { \exp_args:NV \__didactic_pair_line:n \l_keys_key_str }
+          {
+            \msg_warning:nnV { didactic } { pair-unknown-key }
+              \l_keys_key_str
+          }
       } ,
-    runs .bool_set_inverse:N = \l__didactic_pair_font_bool ,
-    runs .default:n          = { true } ,
   }
 %    \end{macrocode}
 %
