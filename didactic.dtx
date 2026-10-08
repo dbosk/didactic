@@ -288,6 +288,15 @@
 % two-sided document.
 % Contents as wide as the text, such as |\includegraphics[width=\linewidth]|, 
 % don't move.
+% The contents are made as narrow as they can be, so stretchable space 
+% between them is lost: two images with |\hfill| between them end up side 
+% by side at the caption.
+% To spread them over the text width, put them in 
+% |\makebox[\linewidth]{...}|.
+% Footnotes in the contents can make the \textsf{varwidth} package give up 
+% (it warns that it ``failed to reprocess'' them), and then the contents 
+% stay where |memoir| puts them; in our tests that happened with two 
+% |\footnote|s, not with one or with \textsf{tablefootnote}.
 % With |sidecapalign=off|, the contents are placed as in |memoir|: at the 
 % left, unless the float centres them.
 % \DescribeMacro{\flushscap}
@@ -1733,12 +1742,15 @@
 % |memoir| has decided which margin the caption goes in, so we decide it 
 % here the same way first (|\m@mscapcheckside|; |memoir| does it again at 
 % the end, with the same result, since the float is on the same page).
-% With |sidecapalign=caption| it's harmless: the contents are then as wide 
-% as they need, and placed next to the caption anyway.
+% With |sidecapalign=caption| the check isn't needed: the contents are then 
+% as wide as they need, and placed next to the caption anyway.
+% There we skip it, since it isn't quite the same check as |memoir|'s: in a 
+% two-column document, |memoir| recognises a |figure*| by |\hsize|, which 
+% inside the contents is |\sidecapfloatwidth| instead.
 %    \begin{macrocode}
 \NewDocumentCommand{\flushscap}{O{\centering}}{%
   \@ifclassloaded{memoir}{%
-    \m@mscapcheckside
+    \IfStrEq{\@didactic@sidecapalign}{caption}{}{\m@mscapcheckside}%
     \ifscapmargleft%
       \flushleft%
     \else%

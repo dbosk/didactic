@@ -14,11 +14,22 @@
 %   4  Page 4 (even): an image as wide as the text, which doesn't move; the
 %      caption in the left margin.
 %   5  Page 5 (odd): a table with \flushscap, same as 1 (TABFLUSH).
+%   6  Page 6 (even): two images with \hfill between them, in
+%      \makebox[\linewidth], spread over the text width as without
+%      sidecapalign (without the \makebox they would touch).
+%   7  Page 7 (odd): a table with a \footnote (TABFOOT) at the right, its
+%      footnote under it.
+%   8  Page 9 (odd): a table with two footnotes (TABTWO) at the right, its
+%      footnotes under it, no warning. In other documents, varwidth has
+%      given up on two footnotes ("Failed to reprocess entire contents"),
+%      leaving the table at the left, as the documentation says; a lone
+%      such table in a document of its own does that.
 %   The captions are at the same height as before, at the top of the
 %   contents.
 % test-sidecap-off.tex inputs this with sidecapalign=off: then 1, 2, 3
 % are at the left of the text block, as memoir places them, while 5, with
-% \flushscap, is at the right on its odd page.
+% \flushscap, is at the right on its odd page; 6 and 8 are the same as with
+% sidecapalign=caption, without the warning, and 7 is at the left.
 \documentclass[a4paper,twoside]{memoir}
 \usepackage{graphicx}
 \usepackage{lipsum}
@@ -74,6 +85,42 @@ B & 2 \\
 \begin{tabular}{ll}
 TABFLUSH & 1 \\
 B & 2 \\
+\end{tabular}
+\end{sidecaption}
+\end{table}
+
+\clearpage
+\lipsum[6]
+
+\begin{figure}[h]
+\begin{sidecaption}{Two images spread with hfill.}[fig:hfill]
+\makebox[\linewidth]{%
+  \includegraphics[width=0.3\linewidth]{example-image-a}\hfill
+  \includegraphics[width=0.3\linewidth]{example-image-b}}
+\end{sidecaption}
+\end{figure}
+
+\clearpage
+\lipsum[7]
+
+\begin{table}[h]
+\begin{sidecaption}{A table with a footnote.}[tab:foot]
+\begin{tabular}{ll}
+TABFOOT\footnote{A footnote in the table.} & 1 \\
+\end{tabular}
+\end{sidecaption}
+\end{table}
+
+\clearpage
+\lipsum[8]
+\clearpage
+\lipsum[9]
+
+\begin{table}[h]
+\begin{sidecaption}{A table with two footnotes.}[tab:two]
+\begin{tabular}{ll}
+TABTWO\footnote{One footnote.} & 1 \\
+B\footnote{Another footnote.} & 2 \\
 \end{tabular}
 \end{sidecaption}
 \end{table}
