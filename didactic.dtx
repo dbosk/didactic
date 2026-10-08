@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/10/04 v2.8 didactic]
+  [2026/10/08 v2.9 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -145,6 +145,12 @@
 %   when it's loaded.
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
+% }
+% \changes{v2.9}{2026/10/08}{%
+%   Adds the |sidecapalign| option: the contents of a float with a 
+%   |sidecaption| go next to the caption by default.
+%   |\flushscap| now flushes towards this float's caption, not the previous 
+%   one's.
 % }
 % \changes{v2.8}{2026/10/04}{%
 %   Documents the |didacticpair| environment for pairs written by hand, such 
@@ -269,7 +275,33 @@
 % The |top| and |bottom| options can be used to set the top and bottom margins.
 %
 % The |marginparmargin| is passed on to the |memoir| class and sets which 
-% margin to use for the margin notes.
+% margin to use for the margin notes, and for the captions of |memoir|'s 
+% |sidecaption|.
+%
+% \DescribeOpt{sidecapalign}
+% A figure or table with a |sidecaption| has its caption in the margin, so 
+% its contents should go to the side of the caption, or a narrow table 
+% leaves a gap between itself and its caption.
+% That is the default, |sidecapalign=caption|: the contents go to the right 
+% of the text block when the caption is in the right margin, and to the left 
+% when it is in the left margin, also with |outer| or |inner| margins in a 
+% two-sided document.
+% Contents as wide as the text, such as |\includegraphics[width=\linewidth]|, 
+% don't move.
+% The contents are made as narrow as they can be, so stretchable space 
+% between them is lost: two images with |\hfill| between them end up side 
+% by side at the caption.
+% To spread them over the text width, put them in 
+% |\makebox[\linewidth]{...}|.
+% Footnotes in the contents can make the \textsf{varwidth} package give up 
+% (it warns that it ``failed to reprocess'' them), and then the contents 
+% stay where |memoir| puts them; in our tests that happened with two 
+% |\footnote|s, not with one or with \textsf{tablefootnote}.
+% With |sidecapalign=off|, the contents are placed as in |memoir|: at the 
+% left, unless the float centres them.
+% \DescribeMacro{\flushscap}
+% Then |\flushscap| at the start of the |sidecaption| flushes those 
+% contents towards the caption, one float at a time.
 %
 % \DescribeOpt{footnotereuse}
 % With \textsf{biblatex}, citations become footnotes, and a citation of a 
@@ -910,6 +942,17 @@
 %    \end{macrocode}
 % \end{option}
 %
+% \begin{option}{sidecapalign}
+% The |sidecapalign| option says where the contents of a float with a side 
+% caption go, see below.
+% It's |caption| by default: next to the caption.
+%    \begin{macrocode}
+\newcommand\@didactic@sidecapalign{caption}
+\DeclareOptionX{sidecapalign}{%
+  \renewcommand\@didactic@sidecapalign{#1}}
+%    \end{macrocode}
+% \end{option}
+%
 % Now that we've declared the options we can process them.
 %    \begin{macrocode}
 \ProcessOptionsX\relax
@@ -1066,6 +1109,66 @@
 \setsidecappos{t}
 \setsidecaps{\marginparsep}{\marginparwidth}
 \renewcommand{\sidecapstyle}{\mpjustification}
+%    \end{macrocode}
+%
+% \paragraph{Contents next to a side caption.}
+% |memoir| sets the contents of a float with a |sidecaption| in a |minipage| 
+% as wide as the text, and the caption beside it in the margin.
+% So a table narrower than the text sits at the left of the text block, and 
+% with the caption in the right margin there is a gap between them.
+% We want the contents next to the caption.
+% They can't be flushed from inside: |memoir| typesets the contents first 
+% and only then decides which margin this float's caption goes in 
+% (|\m@mscapcheckside|, in |\endsidecaption|), so inside the contents 
+% |\ifscapmargleft| still tells the side of the previous float, which with 
+% |outer| or |inner| may be the other one.
+% Instead we set the contents in a |varwidth| box, which is as wide as its 
+% contents but at most as wide as the text, and place that box at the 
+% caption's side of a box as wide as the text, when the side is known 
+% (|\m@mscapopboxes|).
+% The total width stays the same, so |memoir|'s placement of the caption 
+% doesn't change, and neither does the height, which places the caption 
+% vertically (|\m@mcalcscapraise|).
+%
+% We patch three of |memoir|'s internal macros, |\m@mscapstart@fbox|, 
+% |\m@mscapend@fbox| and |\m@mscapopboxes|, which |memoir|'s other side 
+% captions (|sidecontcaption|, |sidenamedlegend|, |sidelegend|) use too.
+% The minipage's start and end must be replaced together, so we check that 
+% all three patches apply before we apply any, and otherwise leave |memoir| 
+% as it is, with a warning.
+% This code is skipped without |memoir|, where |\ifscapmargleft| is 
+% undefined: TeX wouldn't count it as a conditional while skipping, but 
+% would count its |\else| and |\fi|, so we test it, and our own flag, with 
+% |\ifbool| instead.
+%    \begin{macrocode}
+\IfStrEqCase{\@didactic@sidecapalign}{%
+  {caption}{%
+    \RequirePackage{varwidth}%
+    \newcommand\@didactic@scapbox{%
+      \ifbool{scapmargleft}
+        {\makebox[\m@mscapmainwidth][l]{\usebox{\m@mscap@fbox}}}
+        {\makebox[\m@mscapmainwidth][r]{\usebox{\m@mscap@fbox}}}}%
+    \newbool{@didactic@scappatch}%
+    \ifpatchable{\m@mscapstart@fbox}{\begin{minipage}[c]{\m@mscapmainwidth}}{%
+      \ifpatchable{\m@mscapend@fbox}{\end{minipage}}{%
+        \ifpatchable{\m@mscapopboxes}{\usebox{\m@mscap@fbox}}{%
+          \booltrue{@didactic@scappatch}}{}}{}}{}%
+    \ifbool{@didactic@scappatch}{%
+      \patchcmd{\m@mscapstart@fbox}
+        {\begin{minipage}[c]{\m@mscapmainwidth}}
+        {\begin{varwidth}[c]{\m@mscapmainwidth}}{}{}%
+      \patchcmd{\m@mscapend@fbox}{\end{minipage}}{\end{varwidth}}{}{}%
+      \patchcmd{\m@mscapopboxes}
+        {\usebox{\m@mscap@fbox}}{\@didactic@scapbox}{}{}%
+    }{%
+      \PackageWarningNoLine{didactic}{%
+        Can't patch memoir's side captions; option\MessageBreak
+        sidecapalign=caption has no effect}%
+    }}
+  {off}{}%
+}[\PackageWarningNoLine{didactic}{%
+    Unknown value `\@didactic@sidecapalign'\MessageBreak
+    for sidecapalign; use caption or off}]
 
 \makechapterstyle{arthangnum}{%
   \typeout{Using arthangnum chapter style.}
@@ -1633,10 +1736,21 @@
 % \end{environment}
 %
 % \begin{macro}{\flushscap}
-% We also want to provide a command to flush a figure towards the caption.
+% We also want to provide a command to flush a figure towards the caption, 
+% for |sidecapalign=off|.
+% With |memoir|, it's used inside the contents of the |sidecaption|, before 
+% |memoir| has decided which margin the caption goes in, so we decide it 
+% here the same way first (|\m@mscapcheckside|; |memoir| does it again at 
+% the end, with the same result, since the float is on the same page).
+% With |sidecapalign=caption| the check isn't needed: the contents are then 
+% as wide as they need, and placed next to the caption anyway.
+% There we skip it, since it isn't quite the same check as |memoir|'s: in a 
+% two-column document, |memoir| recognises a |figure*| by |\hsize|, which 
+% inside the contents is |\sidecapfloatwidth| instead.
 %    \begin{macrocode}
 \NewDocumentCommand{\flushscap}{O{\centering}}{%
   \@ifclassloaded{memoir}{%
+    \IfStrEq{\@didactic@sidecapalign}{caption}{}{\m@mscapcheckside}%
     \ifscapmargleft%
       \flushleft%
     \else%
