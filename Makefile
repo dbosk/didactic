@@ -6,7 +6,8 @@ PYTHONTEX=python3 $(shell which pythontex) --interpreter python:python3
 .PHONY: all
 all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-footcite-twoside.pdf test-footcite-memoir.pdf test-run.pdf \
-	test-note-heading.pdf test-pair.pdf test-pair-slides.pdf
+	test-note-heading.pdf test-pair.pdf test-pair-slides.pdf \
+	test-sidecap.pdf test-sidecap-off.pdf
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	hello.py ask.py askmany.py greet.py filter.py pairgreet1.py pairgreet2.py
@@ -69,6 +70,11 @@ test-run.pdf: test-run.tex didactic.sty ${TEST_RUN_EXAMPLES}
 test-note-heading.pdf: test-note-heading.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} $<
 
+# side captions; twice, since memoir finds odd and even pages from the .aux
+test-sidecap.pdf test-sidecap-off.pdf: %.pdf: %.tex test-sidecap.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} $<
+	${PDFLATEX} ${LATEXFLAGS} $<
+
 # code side by side, in the notes and on the slides; minted needs
 # -shell-escape and a run after pythontex to insert the highlighted code.
 TEST_PAIR_EXAMPLES=	pairgreet1.py pairgreet2.py hello.py pairtabs.py \
@@ -109,6 +115,9 @@ clean:
 	${RM} -R pythontex-files-test-run _minted-test-run
 	${RM} test-note-heading.pdf test-note-heading.aux test-note-heading.log
 	${RM} test-note-heading.unq
+	${RM} test-sidecap.pdf test-sidecap.aux test-sidecap.log test-sidecap.unq
+	${RM} test-sidecap-off.pdf test-sidecap-off.aux test-sidecap-off.log
+	${RM} test-sidecap-off.unq
 	${RM} test-pair.pdf test-pair.aux test-pair.log test-pair.unq
 	${RM} test-pair.pytxcode test-pair.pytxmcr test-pair.pytxpyg
 	${RM} test-pair-slides.pdf test-pair-slides.aux test-pair-slides.log

@@ -1,0 +1,80 @@
+% Test of side captions (didactic, memoir): the contents of a float with a
+% sidecaption go next to the caption (sidecapalign=caption, the default).
+% Twoside, captions in the outer margin (didactic's default): the right
+% margin on odd pages, the left on even pages.
+%
+% Build: see the Makefile (pdflatex twice, for the page check).
+%
+% Expected in the resulting PDF:
+%   1  Page 1 (odd): the narrow table TABODD at the right edge of the text
+%      block, its caption in the right margin beside it.
+%   2  Page 2 (even): the narrow table TABEVEN at the left edge of the text
+%      block, its caption in the left margin.
+%   3  Page 3 (odd): the narrow image at the right edge, caption right.
+%   4  Page 4 (even): an image as wide as the text, which doesn't move; the
+%      caption in the left margin.
+%   5  Page 5 (odd): a table with \flushscap, same as 1 (TABFLUSH).
+%   The captions are at the same height as before, at the top of the
+%   contents.
+% test-sidecap-off.tex inputs this with sidecapalign=off: then 1, 2, 3
+% are at the left of the text block, as memoir places them, while 5, with
+% \flushscap, is at the right on its odd page.
+\documentclass[a4paper,twoside]{memoir}
+\usepackage{graphicx}
+\usepackage{lipsum}
+\usepackage{didactic}
+\begin{document}
+\lipsum[1]
+
+\begin{table}[h]
+\begin{sidecaption}{A narrow table on an odd page.}[tab:odd]
+\begin{tabular}{ll}
+TABODD & 1 \\
+B & 2 \\
+\end{tabular}
+\end{sidecaption}
+\end{table}
+
+\clearpage
+\lipsum[2]
+
+\begin{table}[h]
+\begin{sidecaption}{A narrow table on an even page.}[tab:even]
+\begin{tabular}{ll}
+TABEVEN & 1 \\
+B & 2 \\
+\end{tabular}
+\end{sidecaption}
+\end{table}
+
+\clearpage
+\lipsum[3]
+
+\begin{figure}[h]
+\begin{sidecaption}{A narrow image on an odd page.}[fig:odd]
+\includegraphics[width=0.3\linewidth]{example-image-a}
+\end{sidecaption}
+\end{figure}
+
+\clearpage
+\lipsum[4]
+
+\begin{figure}[h]
+\begin{sidecaption}{An image as wide as the text, on an even page.}[fig:full]
+\includegraphics[width=\linewidth]{example-image-b}
+\end{sidecaption}
+\end{figure}
+
+\clearpage
+\lipsum[5]
+
+\begin{table}[h]
+\begin{sidecaption}{A table with flushscap, on an odd page.}[tab:flush]
+\flushscap
+\begin{tabular}{ll}
+TABFLUSH & 1 \\
+B & 2 \\
+\end{tabular}
+\end{sidecaption}
+\end{table}
+\end{document}
