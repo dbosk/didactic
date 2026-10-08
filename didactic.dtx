@@ -313,8 +313,8 @@
 % The |footnotereuse| option chooses how:
 % \begin{description}
 % \item[fast] Reserve the space as soon as a citation changes its mind 
-%   between passes. This needs the fewest passes, but may leave a few more 
-%   blanks. This is the default.
+%   between passes and reuses a footnote. This needs the fewest passes, but 
+%   may leave a few more blanks. This is the default.
 % \item[compact] Reserve the space only when a citation has changed its mind 
 %   back again. This leaves fewer blanks, but needs more passes.
 % \item[off] Give every citation its own footnote. This needs no extra 
@@ -1454,6 +1454,16 @@
 % normal mode print the same, so we go back to normal.
 % That way only citations that reuse a footnote reserve space, and reserving 
 % doesn't pile up over edits.
+%
+% With |fast|, a change to our own footnote neither counts nor makes us 
+% reserve space.
+% Our own footnote prints the same either way, and if the citation changes 
+% back to reusing the footnote in the next pass, that change makes it reserve 
+% space, before it prints anything different.
+% Counting it would only rewrite the state in the pass after, to go back to 
+% normal, and a pass that changes nothing but that state costs another pass 
+% to see that nothing changes.
+% (|compact| has to count it, since it waits for the second change.)
 %    \begin{macrocode}
 \def\@didactic@fnhold{%
   \edef\@didactic@fnnow{%
@@ -1477,6 +1487,10 @@
                 {\def\@didactic@fnmode{0}}{}}{}}%
           {\advance\@didactic@fnchanges\@ne
            \ifcase\@didactic@fnmode\relax
+             \ifnum\@didactic@fnthreshold=\@ne
+               \ifdefequal{\@didactic@fnnow}{\@didactic@fnn}
+                 {\@didactic@fnchanges\z@}{}%
+             \fi
              \ifnum\@didactic@fnchanges<\@didactic@fnthreshold\else
                \def\@didactic@fnmode{1}\@didactic@fnchanges\z@\fi
            \or
