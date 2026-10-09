@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/10/08 v2.9 didactic]
+  [2026/10/09 v2.10 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -145,6 +145,13 @@
 %   when it's loaded.
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
+% }
+% \changes{v2.10}{2026/10/09}{%
+%   Makes |footnotereuse=compact| the default: with \textsf{marginfix}'s 
+%   anchor pages recorded by place in the source, it needs only one run 
+%   more than |fast|, and leaves no blanks when many pages move at once.
+%   With |fast|, a change to a citation's own footnote no longer reserves 
+%   space, which saves a run.
 % }
 % \changes{v2.9}{2026/10/08}{%
 %   Adds the |sidecapalign| option: the contents of a float with a 
@@ -312,14 +319,16 @@
 % page reserves the space of its footnote, leaving a blank in the margin.
 % The |footnotereuse| option chooses how:
 % \begin{description}
-% \item[fast] Reserve the space as soon as a citation changes its mind 
-%   between passes. This needs the fewest passes, but may leave a few more 
-%   blanks. This is the default.
 % \item[compact] Reserve the space only when a citation has changed its mind 
-%   back again. This leaves fewer blanks, but needs more passes.
+%   back again. This leaves the fewest blanks. This is the default.
+% \item[fast] Reserve the space as soon as a citation changes its mind 
+%   between passes and reuses a footnote. This needs a pass less, but when 
+%   many pages move at once, for instance when the |.aux| file is deleted 
+%   and the bibliography isn't, it leaves blanks that stay until those 
+%   citations change their minds again.
 % \item[off] Give every citation its own footnote. This needs no extra 
 %   passes. It's the default with the |draft| option, of the class or the 
-%   package, to compile faster; |footnotereuse=fast| overrides that.
+%   package, to compile faster; |footnotereuse=compact| overrides that.
 % \end{description}
 % Either way, a mark only refers to a footnote on its own page, or to one 
 % that the margin moved on from a mark on the same page (its own footnote 
@@ -966,7 +975,7 @@
 \ifdefempty{\@didactic@fnreusemode}{%
   \ifdefstring{\@didactic@draft}{draft}
     {\renewcommand\@didactic@fnreusemode{off}}
-    {\renewcommand\@didactic@fnreusemode{fast}}}{}
+    {\renewcommand\@didactic@fnreusemode{compact}}}{}
 \newif\if@didactic@fnreuseoff
 \newcount\@didactic@fnthreshold
 \IfStrEqCase{\@didactic@fnreusemode}{%
@@ -1310,9 +1319,10 @@
 % size of its own note.
 % Then both decisions give the same layout, and the decision settles on the 
 % right one.
-% By default we don't wait to see it flip, since every pass counts in a long 
-% document, and reserving space costs no more than a blank in the margin; see 
-% the evaluation below.
+% By default we wait to see it flip back: since \textsf{marginfix} records 
+% the anchor pages by place in the source, that costs only one pass, and it 
+% leaves no blanks that wait for an edit; see the evaluation below.
+% (At first we didn't wait, since then waiting cost twice the passes.)
 % The invisible note has the same structure as the real one, not just the 
 % same size: the same lines, glue and penalties, so that nothing that looks 
 % at the list, like \textsf{marginfix} or the page builder, can tell them 
@@ -1368,6 +1378,40 @@
 % With |off|, repeated footnotes are expected; that is what the reuse avoids.
 % A clean build with |fast| thus needs more runs than \textsf{latexmk} allows 
 % by default (5).
+%
+% We evaluated it again on 8 October 2026, on the student's edition of the 
+% same book, which had grown to 16 lectures and 603 pages with 339 
+% citations, built with the book's own |make| (so the first run has no 
+% bibliography yet).
+% Before, \textsf{marginfix} recorded the page of each note's callout under 
+% the note's number in the document; a citation that changed between reusing 
+% a footnote and its own added or removed a note, which gave every later 
+% note its neighbour's page and held it back to the wrong page, which in 
+% turn moved notes and changed the minds of other citations.
+% With the pages recorded under where the note is called out in the source, 
+% and with |fast| no longer reserving space when a citation changes to its 
+% own footnote (see below):
+% \begin{center}
+% \begin{tabular}{lcccc}
+%   \hline
+%   & runs, clean & runs, edit & wrong, repeated & blanks \\
+%   \hline
+%   |fast|, before    & 14 & 15 & 0, 0 & 0 \\
+%   |compact|, before & 18 & 33 & 0, 0 & 0 \\
+%   |fast|            & 6  & 4  & 0, 0 & 0 \\
+%   |compact|         & 7  & 4  & 0, 0 & 0 \\
+%   \hline
+% \end{tabular}
+% \end{center}
+% No citation gave up, and the two made the same decisions for every 
+% citation; |compact|'s extra run only resets its count of changes.
+% They differ in the blanks when many pages move at once: with the |.aux| 
+% file deleted and the bibliography kept, the first runs see some 20 pages 
+% too few, about 40 citations change their minds when the pages come back, 
+% and |fast| kept 19 blanks of 15--32\,pt where |compact| kept none; 18 of 
+% them were still there after an edit.
+% So |compact| is the default: one run more for a margin without blanks 
+% that wait for an edit.
 %
 % The same book shaped the design:
 % \begin{itemize}
@@ -1454,6 +1498,16 @@
 % normal mode print the same, so we go back to normal.
 % That way only citations that reuse a footnote reserve space, and reserving 
 % doesn't pile up over edits.
+%
+% With |fast|, a change to our own footnote neither counts nor makes us 
+% reserve space.
+% Our own footnote prints the same either way, and if the citation changes 
+% back to reusing the footnote in the next pass, that change makes it reserve 
+% space, before it prints anything different.
+% Counting it would only rewrite the state in the pass after, to go back to 
+% normal, and a pass that changes nothing but that state costs another pass 
+% to see that nothing changes.
+% (|compact| has to count it, since it waits for the second change.)
 %    \begin{macrocode}
 \def\@didactic@fnhold{%
   \edef\@didactic@fnnow{%
@@ -1477,6 +1531,10 @@
                 {\def\@didactic@fnmode{0}}{}}{}}%
           {\advance\@didactic@fnchanges\@ne
            \ifcase\@didactic@fnmode\relax
+             \ifnum\@didactic@fnthreshold=\@ne
+               \ifdefequal{\@didactic@fnnow}{\@didactic@fnn}
+                 {\@didactic@fnchanges\z@}{}%
+             \fi
              \ifnum\@didactic@fnchanges<\@didactic@fnthreshold\else
                \def\@didactic@fnmode{1}\@didactic@fnchanges\z@\fi
            \or
