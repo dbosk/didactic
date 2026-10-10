@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/10/08 v2.9 didactic]
+  [2026/10/10 v2.10 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -145,6 +145,10 @@
 %   when it's loaded.
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
+% }
+% \changes{v2.10}{2026/10/10}{%
+%   Adds |\codebycodesetup{slidewidth=frame}|, which lets pairs on the 
+%   slides reach into the frame's side margins.
 % }
 % \changes{v2.9}{2026/10/08}{%
 %   Adds the |sidecapalign| option: the contents of a float with a 
@@ -702,6 +706,15 @@
 % text width, |slides={fontsize=\footnotesize}| and |notes={...}| set the 
 % |minted| options in each mode, |gap| the space between the columns, and 
 % |labels| labels every column with its file name.
+% On the slides, |slidewidth=frame| lets a pair reach into the frame's side 
+% margins, up to half the gap from the edge of the slide, which gives it 
+% about a fifth more width with |beamer|'s default margins; |slidewidth=text|, 
+% the default, keeps it within the text.
+% It only reaches out when the pair is as wide as the frame's text, not in a 
+% column or a |minipage|; in a block it reaches beyond the block's 
+% background.
+% Themes with a sidebar keep the sidebar in the left margin, so don't use it 
+% with those.
 % A side-by-side contrast in the notes is often wider than the text, so the 
 % full width is the default.
 % The pairs work in |beamer| frames with or without |fragile|.
@@ -3688,6 +3701,13 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % clear, and in a |minipage| or another box we keep to its width.
 % The |slides| and |notes| options apply to code; |\runbyrun| keeps the 
 % document's size for its output, so that a transcript stays readable.
+% With |slidewidth=frame| the pair reaches into |beamer|'s text margins 
+% (|\beamer@leftmargin| and |\beamer@rightmargin|) with the same 
+% |adjustwidth| as our |fullwidth|, leaving half the gap at the edges; only 
+% at the frame's text width, so that a pair in a column or a |minipage| 
+% keeps to it.
+% We compute that width from the paper and the margins, since |beamer|'s 
+% |column| sets |\textwidth| to the column's width.
 %    \begin{macrocode}
 \ExplSyntaxOn
 \newlength{\didacticpairgap}
@@ -3702,8 +3722,14 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \tl_new:N \g__didactic_pair_slides_tl
 \tl_gset:Nn \g__didactic_pair_slides_tl { fontsize = \tiny }
 \tl_new:N \g__didactic_pair_notes_tl
+\bool_new:N \g__didactic_pair_slideframe_bool
 \keys_define:nn { didactic / pairsetup }
   {
+    slidewidth .choice: ,
+    slidewidth / text  .code:n =
+      { \bool_gset_false:N \g__didactic_pair_slideframe_bool } ,
+    slidewidth / frame .code:n =
+      { \bool_gset_true:N \g__didactic_pair_slideframe_bool } ,
     fullwidth .bool_gset:N = \g__didactic_pair_fullwidth_bool ,
     fullwidth .default:n   = { true } ,
     labels    .bool_gset:N = \g__didactic_pair_labels_bool ,
@@ -3957,7 +3983,19 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \__didactic_pair_watch_lines:
     \@ifclassloaded{beamer}
       {
-        \begin{center}
+        \bool_lazy_and:nnTF
+          { \g__didactic_pair_slideframe_bool }
+          {
+            \dim_compare_p:nNn { \linewidth } =
+              { \paperwidth - \beamer@leftmargin - \beamer@rightmargin }
+          }
+          {
+            \bool_set_true:N \l__didactic_pair_full_bool
+            \begin{adjustwidth}
+              { 0.5\didacticpairgap - \beamer@leftmargin }
+              { 0.5\didacticpairgap - \beamer@rightmargin }
+          }
+          { \begin{center} }
         \bool_if:NT \l__didactic_pair_font_bool
           { \__didactic_pair_setminted:N \g__didactic_pair_slides_tl }
       }
@@ -3988,7 +4026,11 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \end{tabular}
     \__didactic_pair_check_lines:
     \@ifclassloaded{beamer}
-      { \end{center} }
+      {
+        \bool_if:NTF \l__didactic_pair_full_bool
+          { \end{adjustwidth} }
+          { \end{center} }
+      }
       {
         \bool_if:NTF \l__didactic_pair_full_bool
           {

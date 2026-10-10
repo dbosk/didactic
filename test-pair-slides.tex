@@ -12,13 +12,21 @@
 %   4  Frame 4: the whole programs in the frame's normal size don't fit: the
 %      lines run into the next column and off the frame, and the log has
 %      one warning "A line of code side by side is ...pt wider than its
-%      column ..., near page 4", the only one; in a fragile frame the line
+%      column ..., near page 4" (and one for frame 9); in a fragile frame the line
 %      counts from the start of the frame.
 %   5  Frame 5: the same pair with breaklines: the long lines wrap, no
 %      warning.
 %   6  Frame 6: the didacticpair of runs from the documentation, in the
 %      size the frame sets with \setminted (footnotesize), not \tiny;
 %      no warning.
+%   7  Frame 7: slidewidth=frame, the main functions at \scriptsize: the
+%      pair starts and ends half a gap (0.5em) from the slide's edges,
+%      outside the text margins (WIDEL at about x=5pt, not 28pt).
+%   8  Frame 8: the same pair in an example block: as wide as in frame 7,
+%      beyond the block's background.
+%   9  Frame 9: the same pair in the left one of two columns: within the
+%      column, as without the option; it's too wide for the column at
+%      \scriptsize, so the log warns "... near page 9".
 %   The labels of frames 1, 4 and 5 are in the size of the code under them.
 \documentclass{beamer}
 \usepackage{didactic}
@@ -50,5 +58,28 @@
   \frametitle{Runs by hand}
   \setminted{fontsize=\footnotesize}
   \input{pairruns.tex}
+\end{frame}
+\codebycodesetup{slidewidth=frame, slides={fontsize=\scriptsize}}
+\begin{frame}[fragile]
+  \frametitle{Slide width}
+  \codebycode[name=main,label={WIDEL}]{python}{pairgreet1.py}%
+    [name=main,label={WIDER}]{python}{pairgreet2.py}
+\end{frame}
+\begin{frame}[fragile]
+  \begin{example}[In a block]
+  \codebycode[name=main,label={BLOCKL}]{python}{pairgreet1.py}%
+    [name=main,label={BLOCKR}]{python}{pairgreet2.py}
+  \end{example}
+\end{frame}
+\begin{frame}[fragile]
+  \begin{columns}
+  \begin{column}{0.6\textwidth}
+  \codebycode[name=main,label={COLL}]{python}{pairgreet1.py}%
+    [name=main,label={COLR}]{python}{pairgreet2.py}
+  \end{column}
+  \begin{column}{0.35\textwidth}
+  Text beside.
+  \end{column}
+  \end{columns}
 \end{frame}
 \end{document}
