@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/10/11 v2.11.1 didactic]
+  [2026/10/18 v2.12 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -145,6 +145,13 @@
 %   when it's loaded.
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
+% }
+% \changes{v2.12}{2026/10/18}{%
+%   |marginfigure| and |margintable| work in a source shared with the 
+%   slides: ordinary floats in |beamer| and without |memoir|; in |memoir| 
+%   they no longer end the paragraph or start a new page when a float is 
+%   waiting, aren't raised by 1.2\,ex, and add no space to the text.
+%   Margin tables are set ragged like margin figures.
 % }
 % \changes{v2.11.1}{2026/10/11}{%
 %   |\textbytext| fits its line: it was 13 to 17\,pt too wide, which with 
@@ -506,6 +513,59 @@
 % |use| isn't the default; choose it when you know your bottom floats, or 
 % mark the ones that reach out.
 % Floats at the top of the page always keep the margin empty.
+%
+% \subsection{Figures and tables in the margin}
+%
+% \DescribeEnv{marginfigure}
+% \DescribeEnv{margintable}
+% A small figure or table can go in the margin of the notes, beside the text
+% that discusses it, with its caption under it.
+% |memoir| has the environments |marginfigure| and |margintable| for this,
+% and we make them work in a source shared with the slides:
+% \begin{description}
+% \item[In the notes] (|memoir|) the float is a |\marginpar|, so
+%   \textsf{marginfix} places it with the margin notes, in the order in which
+%   they stand in the text.
+%   It is set ragged, like the notes, and its caption is numbered with the
+%   other figures or tables, so |\cref| refers to it as to any figure or
+%   table.
+% \item[On the slides] (|beamer|) it is an ordinary |figure| or |table|,
+%   centred, with its caption.
+% \item[Elsewhere] (another class, without |beamer|) it is an ordinary
+%   float.
+% \end{description}
+% For instance, in the notes the following frame puts the picture in the
+% margin, beside the sentence, and on the slide it puts the picture under
+% the sentence.
+% \inputminted[linenos]{latex}{marginfloats.tex}
+% In the notes |\linewidth| is the width of the margin, and on the slides 
+% it's the width of the frame, so a picture needs a height too, as here, 
+% or it fills the slide.
+%
+% Write the environment where the float belongs: before the paragraph that
+% discusses it, as above, or inside the paragraph, where you would write a
+% |\marginpar|.
+% Before the paragraph, the top of the float is level with the paragraph's
+% first line; inside it, the float hangs from the line where it stands.
+% Like |\marginpar|, the environment adds no space to the text: a space
+% before it and one after it leave one space between the words around it.
+%
+% We change two things in |memoir|'s environments.
+% |memoir| ends the paragraph at a margin float and, whenever an ordinary
+% float is still waiting to be placed, starts a new page
+% (|\FloatBlock|), to keep the figures in the order of their numbers.
+% In notes with many figures, that leaves pages half empty, so we do
+% neither: the margin float stays beside its text, and a waiting float may
+% come after it with a lower number.
+% Write |\FloatBlock| before the environment to get |memoir|'s behaviour
+% back for one float.
+% |memoir| also raises a margin float by 1.2\,ex, which pushes it into the
+% space between it and a margin note above it, so that the two touch; ours
+% isn't raised.
+% The optional argument still sets the offset:
+% |\begin{marginfigure}[-1.2ex]| is |memoir|'s; on the slides it's ignored.
+% As with the notes, when the margin is full, \textsf{marginfix} moves the
+% float on to the next page.
 %
 % \subsection{Tools for code examples}
 %
@@ -1117,8 +1177,11 @@
 \setmpjustification{\RaggedRight}{\RaggedRight}
 % margin figure and caption typeset ragged against text block.
 % from the memman page 175.
-\setfloatadjustment{marginfigure}{\mpjustification}
+% Unlike the notes, not indented: a table under its caption would be.
+\setfloatadjustment{marginfigure}{\mpjustification\parindent\z@}
 \setmarginfloatcaptionadjustment{figure}{\captionstyle{\mpjustification}}
+\setfloatadjustment{margintable}{\mpjustification\parindent\z@}
+\setmarginfloatcaptionadjustment{table}{\captionstyle{\mpjustification}}
 
 \renewcommand{\sidefootform}{\mpjustification}
 \fi % we want this to exist even when not using memoir,
@@ -1837,6 +1900,91 @@
 }
 %    \end{macrocode}
 % \end{macro}
+%
+% \subsection{Margin floats in the notes and on the slides}
+%
+% \begin{environment}{marginfigure}
+% \begin{environment}{margintable}
+% We keep |memoir|'s names for the margin floats instead of adding our own.
+% New names would leave |memoir|'s environments as they are, but then a
+% deck would have two names for the same thing, and a source written for
+% |memoir| would have to be changed to work on the slides.
+% With |memoir|'s names, the notes, the slides and a plain |memoir| document
+% read the same.
+% The price is that we change |memoir|'s environments when |memoir| is
+% customized, as the user documentation says.
+%
+% |memoir| builds both on its internal environment |mem@margin@float|,
+% which takes the offset and the float type, sets the contents in a box as
+% wide as the margin and gives that box to |\marginpar|
+% (|\marginfloatmarginmacro|), which \textsf{marginfix} has redefined.
+% It starts with |\FloatBlock|, which ends the paragraph and, when an
+% ordinary float is waiting, starts a new page.
+% We make |\FloatBlock| do nothing inside our environments, and we make the
+% offset 0\,pt by default instead of $-1.2$\,ex.
+% The offset is the vertical space at the top of the box, after an empty
+% |\hbox| that is aligned with the anchor.
+% \textsf{marginfix} keeps the boxes in the margin from overlapping, so a
+% box that starts right under a note is set |\marginparpush| below it; a
+% negative offset then moves the contents back up into that space.
+% With 0\,pt, the contents start at the top of their box.
+% Since the environment no longer ends the paragraph, it may stand inside
+% one, and there it should add no space to the text, as |\marginpar|
+% doesn't.
+% |\marginpar| uses LaTeX's |\@bsphack| and |\@esphack| for this, but its
+% |\@esphack| runs inside the environment, where there are no spaces to
+% ignore.
+% So we do |\@bsphack| ourselves when the environment begins, and at the
+% end, when there was a space before it, we ignore the spaces after the
+% environment (|\ignorespacesafterend|).
+% |\@bsphack| sets |\@savsk| locally, and |\marginpar|'s own |\@bsphack|
+% happens in the group of |mem@margin@float|, so ours is intact at the end.
+%    \begin{macrocode}
+\newcommand\@didactic@marginfloat[2]{%
+  \@bsphack
+  \let\FloatBlock\relax
+  \begin{mem@margin@float}[#1]{#2}}
+\newcommand\@didactic@endmarginfloat{%
+  \end{mem@margin@float}%
+  \relax\ifhmode
+    \spacefactor\@savsf
+    \ifdim\@savsk>\z@\ignorespacesafterend\fi
+  \fi}
+%    \end{macrocode}
+% We only change |memoir|'s environments when we customize |memoir|, and
+% only if they are built as we expect.
+%    \begin{macrocode}
+\if@didactic@memoir
+\@ifundefined{mem@margin@float}{%
+  \PackageWarningNoLine{didactic}{%
+    Can't find memoir's margin floats; marginfigure\MessageBreak
+    and margintable stay as memoir defines them}%
+}{%
+  \renewenvironment{marginfigure}[1][0pt]
+    {\@didactic@marginfloat{#1}{figure}}
+    {\@didactic@endmarginfloat}%
+  \renewenvironment{margintable}[1][0pt]
+    {\@didactic@marginfloat{#1}{table}}
+    {\@didactic@endmarginfloat}%
+}
+\fi
+%    \end{macrocode}
+% Without |memoir|, there is no margin to put the float in, so the
+% environments make an ordinary float: on the slides a |figure| or |table|
+% in the frame, elsewhere one that floats.
+% We centre the contents, since a margin float is usually narrower than the
+% text.
+% The optional argument, the offset, has no use there and is ignored.
+% If the environments already exist, from |memoir| (with |nomemoir|) or
+% another package, we leave them.
+%    \begin{macrocode}
+\ProvideDocumentEnvironment{marginfigure}{o}
+  {\begin{figure}\centering}{\end{figure}}
+\ProvideDocumentEnvironment{margintable}{o}
+  {\begin{table}\centering}{\end{table}}
+%    \end{macrocode}
+% \end{environment}
+% \end{environment}
 %
 %
 % \subsection{More semantic environments}

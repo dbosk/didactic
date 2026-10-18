@@ -274,3 +274,7 @@ test-sidecap.pdf
 test-sidecap.unq
 test-sidecap-off.pdf
 test-sidecap-off.unq
+test-marginfloat.pdf
+test-marginfloat.unq
+test-marginfloat-slides.pdf
+test-marginfloat-slides.unq

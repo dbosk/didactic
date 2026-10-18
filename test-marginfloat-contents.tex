@@ -1,0 +1,39 @@
+% The source shared by test-marginfloat.tex (the notes) and
+% test-marginfloat-slides.tex (the slides): what a deck writes.  In beamer,
+% the text between the frames is skipped.
+\mode*
+\begin{frame}
+  \frametitle{A float that waits}
+  PENDINGANCHOR This frame has an ordinary figure, placed at the bottom
+  of the page, so it is still waiting when the margin floats come.
+  \begin{figure}[b]
+    \centering
+    \rule{0.5\linewidth}{1.5cm}
+    \caption{PENDINGCAP, an ordinary figure.}\label{fig:pending}
+  \end{figure}
+\end{frame}
+
+\lipsum[1][1-6] The note is on this line,
+NOTEANCHOR\ltnote{NOTEABOVE \lipsum[2][1-3]}
+just above the paragraph with the figure.
+
+\mode<all>
+\input{marginfloats.tex}
+\mode*
+
+\begin{frame}
+  \frametitle{A table}
+  The table stands in the paragraph: SPACEA \begin{margintable}
+    \caption{MTABCAP, a table in the margin.}\label{tab:margin}
+    \begin{tabular}{lr}
+      TABCELL & 1 \\
+      two & 2 \\
+    \end{tabular}
+  \end{margintable} SPACEB, with one space between the words.
+  \lipsum[3][1-4]
+\end{frame}
+
+\begin{frame}
+  \frametitle{References}
+  REFS \cref{fig:pending}, \cref{fig:beside} and \cref{tab:margin}.
+\end{frame}
