@@ -7,9 +7,11 @@ PYTHONTEX=python3 $(shell which pythontex) --interpreter python:python3
 all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-footcite-twoside.pdf test-footcite-memoir.pdf test-run.pdf \
 	test-note-heading.pdf test-pair.pdf test-pair-slides.pdf \
-	test-sidecap.pdf test-sidecap-off.pdf
+	test-sidecap.pdf test-sidecap-off.pdf \
+	test-marginfloat.pdf test-marginfloat-slides.pdf
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
+SRC+=	marginfloats.tex
 SRC+=	hello.py ask.py askmany.py greet.py filter.py pairgreet1.py pairgreet2.py
 SRC+=	pairwrite.py pairread.py
 
@@ -75,6 +77,14 @@ test-sidecap.pdf test-sidecap-off.pdf: %.pdf: %.tex test-sidecap.tex didactic.st
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
 
+# margin floats, in the notes and on the slides, from one source; twice, for
+# the references and marginfix's anchors.
+TEST_MARGINFLOAT_SRC=	test-marginfloat-contents.tex marginfloats.tex
+test-marginfloat.pdf test-marginfloat-slides.pdf: %.pdf: %.tex didactic.sty \
+		${TEST_MARGINFLOAT_SRC}
+	${PDFLATEX} ${LATEXFLAGS} $<
+	${PDFLATEX} ${LATEXFLAGS} $<
+
 # code side by side, in the notes and on the slides; minted needs
 # -shell-escape and a run after pythontex to insert the highlighted code.
 TEST_PAIR_EXAMPLES=	pairgreet1.py pairgreet2.py hello.py pairtabs.py \
@@ -126,4 +136,10 @@ clean:
 	${RM} test-pair-slides.pytxpyg test-pair-slides.out test-pair-slides.unq
 	${RM} -R pythontex-files-test-pair pythontex-files-test-pair-slides
 	${RM} test-footcite-memoir.pdf test-footcite-memoir.unq
+	${RM} test-marginfloat.pdf test-marginfloat.aux test-marginfloat.log
+	${RM} test-marginfloat.out test-marginfloat.unq
+	${RM} test-marginfloat-slides.pdf test-marginfloat-slides.aux
+	${RM} test-marginfloat-slides.log test-marginfloat-slides.nav
+	${RM} test-marginfloat-slides.snm test-marginfloat-slides.toc
+	${RM} test-marginfloat-slides.out test-marginfloat-slides.unq
 	latexmk -C test.tex
