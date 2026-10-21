@@ -1,0 +1,46 @@
+% The source shared by test-frametitle.tex (the notes) and
+% test-frametitle-slides.tex (the slides): frames with and without titles
+% and subtitles.  In beamer, the text between the frames is skipped.
+\begin{frame}{TITLEA}
+  TEXTA follows the title on the same line. \lipsum[1][1-3]
+\end{frame}
+
+\begin{frame}
+  \frametitle{TITLEB}
+  \framesubtitle{SUBB}
+
+  TEXTB, after a blank line, still follows the title and the subtitle.
+\end{frame}
+
+\begin{frame}{TITLEC}{SUBC}
+  \begin{itemize}
+  \item ITEMC, under the title.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  TEXTD, in a frame without a title.
+\end{frame}
+
+\begin{frame}
+  \frametitle{TITLEE}
+  \begin{figure}[b]
+    \centering
+    \rule{0.4\linewidth}{1cm}
+    \caption{FIGE, the only thing in the frame.}
+  \end{figure}
+\end{frame}
+
+PROSEF, between the frames, on a line of its own.
+
+\begin{frame}
+  \frametitle{TITLEG}
+  \begin{example}
+    EXAMPLEG, a block under the title.
+  \end{example}
+\end{frame}
+
+\begin{frame}
+  \frametitle<presentation>{SLIDEONLY}
+  TEXTH, in a frame titled only on the slides.
+\end{frame}

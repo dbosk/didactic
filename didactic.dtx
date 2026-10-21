@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/10/18 v2.12 didactic]
+  [2026/10/21 v2.13 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -145,6 +145,12 @@
 %   when it's loaded.
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
+% }
+% \changes{v2.13}{2026/10/21}{%
+%   In the article mode of |beamer|, a frame title is a run-in heading: the 
+%   frame's text follows it on the same line, instead of starting a new 
+%   paragraph under it.
+%   A subtitle follows the title in the heading.
 % }
 % \changes{v2.12}{2026/10/18}{%
 %   |marginfigure| and |margintable| work in a source shared with the 
@@ -415,6 +421,23 @@
 % \DescribeEnv{orangeblock}
 % We also provide a few predefined blocks in various common colours.
 % They all take a title as mandatory argument.
+%
+% \subsection{Frame titles in the notes}
+%
+% In the slides a frame title stands on a line of its own, at the top of the
+% frame.
+% In the notes (|beamerarticle|), |beamer| makes it a heading followed by an
+% empty line, so the frame's text starts a new paragraph under it, which
+% reads as if the frame had two paragraphs where it has one.
+% We make the frame title a run-in heading instead, like |\paragraph|: the
+% title in bold, and the frame's text after it on the same line.
+% A subtitle follows the title in the heading, after a dash and in italics.
+% A frame that starts with a list, a block or other displayed material gets
+% the title on a line of its own above it, as after any run-in heading.
+% The slides are unchanged.
+% The option |noarticle| keeps |beamerarticle|'s frame titles, and so does
+% setting the template |frametitle| in the preamble, after |beamerarticle|
+% is loaded.
 %
 % \subsection{Adding margin notes of different kinds}
 %
@@ -906,6 +929,8 @@
 % \begin{option}{noarticle}
 % This option is used to disable the |beamer| specific parts of the package.
 % Meaning that we don't customize |beamer| even when we find that it is loaded.
+% Likewise, |noarticle| leaves the article mode of |beamer|
+% (|beamerarticle|) as it is.
 %    \begin{macrocode}
 \newif\if@didactic@beamer
 \@ifclassloaded{beamer}{\@didactic@beamertrue}{\@didactic@beamerfalse}
@@ -1985,6 +2010,67 @@
 %    \end{macrocode}
 % \end{environment}
 % \end{environment}
+%
+% \subsection{Frame titles in the notes}
+%
+% In the article mode, |beamer| typesets a frame title with the template
+% |frametitle|, whose default is
+% \begin{center}
+% |\paragraph*{\insertframetitle}\ \par\noindent\emph{\insertframesubtitle}\par|
+% \end{center}
+% |\paragraph*| is a run-in heading: it typesets nothing at once, but
+% leaves the title to be put in front of the next paragraph, when that
+% starts.
+% The |\ | starts that paragraph at once, with only the title in it, and
+% the |\par| ends it, so the frame's text has to start a new paragraph.
+% (The line with the subtitle, empty when there is none, is a third.)
+% Our template keeps the run-in heading and drops the rest: the frame's
+% first paragraph starts with the title.
+% The subtitle goes into the heading, after an en dash, in italics and not
+% in bold, so that it reads as part of the heading and not as the start of
+% the text.
+% A blank line after the title is still no new paragraph, since a |\par|
+% between paragraphs does nothing, and a list or a block after the title
+% puts the title on a line of its own, as it does after any run-in heading.
+% |\frametitle| uses the template after the subtitle has been read, when
+% one follows it (|\begin{frame}{Title}{Subtitle}| or
+% |\frametitle{Title}\framesubtitle{Subtitle}|), so we can decide here
+% whether there is one.
+% |beamer| empties |\insertframesubtitle| at the start of each frame.
+%    \begin{macrocode}
+\newcommand\@didactic@frametitle{%
+  \ifx\insertframesubtitle\@empty
+    \paragraph*{\insertframetitle}%
+  \else
+    \paragraph*{\insertframetitle\space\textendash\space
+      \textmd{\emph{\insertframesubtitle}}}%
+  \fi}
+%    \end{macrocode}
+% The title waits for the next paragraph in |\everypar|, which is local to
+% the frame's group.
+% A frame with nothing after the title that starts a paragraph---only a
+% figure, say---would therefore lose the title when the frame ends, and
+% leave \LaTeX\ believing a run-in heading is still waiting.
+% So at the end of a frame, still inside its group, we typeset a waiting
+% title as a paragraph of its own.
+%    \begin{macrocode}
+\newcommand\@didactic@endframetitle{%
+  \if@noskipsec\leavevmode\par\fi}
+%    \end{macrocode}
+% We use the template only in the article mode, unless the option
+% |noarticle| is given.
+% |beamerarticle| is often loaded after |didactic|, so we wait until it's
+% loaded (or run at once if it already is).
+% A template the user sets in the preamble after that still wins.
+%    \begin{macrocode}
+\if@didactic@article
+\AtEndOfPackageFile*{beamerarticle}{%
+  \defbeamertemplate<article>{frametitle}{didactic}{\@didactic@frametitle}%
+  \setbeamertemplate{frametitle}[didactic]%
+  \AddToHook{env/frame/end}{\@didactic@endframetitle}%
+}
+\fi
+%    \end{macrocode}
 %
 %
 % \subsection{More semantic environments}
