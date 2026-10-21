@@ -8,7 +8,8 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-footcite-twoside.pdf test-footcite-memoir.pdf test-run.pdf \
 	test-note-heading.pdf test-pair.pdf test-pair-slides.pdf \
 	test-sidecap.pdf test-sidecap-off.pdf \
-	test-marginfloat.pdf test-marginfloat-slides.pdf
+	test-marginfloat.pdf test-marginfloat-slides.pdf \
+	test-frametitle.pdf test-frametitle-slides.pdf
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -85,6 +86,11 @@ test-marginfloat.pdf test-marginfloat-slides.pdf: %.pdf: %.tex didactic.sty \
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
 
+# frame titles, in the notes and on the slides, from one source.
+test-frametitle.pdf test-frametitle-slides.pdf: %.pdf: %.tex didactic.sty \
+		test-frametitle-contents.tex
+	${PDFLATEX} ${LATEXFLAGS} $<
+
 # code side by side, in the notes and on the slides; minted needs
 # -shell-escape and a run after pythontex to insert the highlighted code.
 TEST_PAIR_EXAMPLES=	pairgreet1.py pairgreet2.py hello.py pairtabs.py \
@@ -142,4 +148,10 @@ clean:
 	${RM} test-marginfloat-slides.log test-marginfloat-slides.nav
 	${RM} test-marginfloat-slides.snm test-marginfloat-slides.toc
 	${RM} test-marginfloat-slides.out test-marginfloat-slides.unq
+	${RM} test-frametitle.pdf test-frametitle.aux test-frametitle.log
+	${RM} test-frametitle.unq
+	${RM} test-frametitle-slides.pdf test-frametitle-slides.aux
+	${RM} test-frametitle-slides.log test-frametitle-slides.nav
+	${RM} test-frametitle-slides.snm test-frametitle-slides.toc
+	${RM} test-frametitle-slides.out test-frametitle-slides.unq
 	latexmk -C test.tex

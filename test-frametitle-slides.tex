@@ -1,0 +1,14 @@
+% Test of frame titles (didactic) on the slides: the source in
+% test-frametitle-contents.tex, shared with test-frametitle.tex, in
+% beamer.
+%
+% Expected in the resulting PDF: the frames as beamer makes them, the
+% titles at the top (TITLEB with SUBB, TITLEC with SUBC as subtitles, and
+% SLIDEONLY), no frame title for TEXTD; PROSEF nowhere.
+\documentclass{beamer}
+\usepackage[british]{babel}
+\usepackage{lipsum}
+\usepackage{didactic}
+\begin{document}
+\input{test-frametitle-contents.tex}
+\end{document}
