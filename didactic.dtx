@@ -146,6 +146,10 @@
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
 % }
+% \changes{v2.15}{2026/10/23}{%
+%   In the article mode of |beamer|, the titles of |block|, |alertblock| and 
+%   |exampleblock| are run-in headings too, like the frame titles.
+% }
 % \changes{v2.15}{2026/10/22}{%
 %   Adds |keepmaxgap|: a listing kept together moves to the next page only 
 %   if that leaves at most 5 empty lines at its foot, and otherwise breaks.
@@ -468,6 +472,9 @@
 % A frame that starts with a list, a block or other displayed material gets
 % the title on a line of its own above it, as after any run-in heading.
 % The slides are unchanged.
+% The titles of |beamer|'s blocks (|block|, |alertblock|, |exampleblock|) 
+% are run-in headings in the notes in the same way, in the fonts that 
+% |beamer| gives them there: bold, bold italic and italic.
 % The option |noarticle| keeps |beamerarticle|'s frame titles, and so does
 % setting the template |frametitle| in the preamble, after |beamerarticle|
 % is loaded.
@@ -2256,6 +2263,56 @@
   \defbeamertemplate<article>{frametitle}{didactic}{\@didactic@frametitle}%
   \setbeamertemplate{frametitle}[didactic]%
   \AddToHook{env/frame/end}{\@didactic@endframetitle}%
+}
+\fi
+%    \end{macrocode}
+%
+% \paragraph{Block titles.}
+% The titles of |beamer|'s blocks (|block|, |alertblock| and 
+% |exampleblock|) are on a line of their own in the article mode too: the 
+% templates |block begin| and the like of \textsf{beamerbasearticle} set 
+% the title, end the paragraph and start the block's text in a new one.
+% We make them run-in headings as well, with the same space before as 
+% |beamer| leaves, and in its fonts: bold, bold italic for an alerted block 
+% and italic for an example block.
+% We use |\@startsection| directly, as |\paragraph*| does, with level 4 and 
+% the space of 1\,em after the title, so that a block that starts with a 
+% list, a display or a listing gets the title on a line of its own, and so 
+% that it counts as a heading for |keepafterheading|.
+% A block without a title gets none, and its text starts without an indent, 
+% as in \textsf{beamerbasearticle}; a title that waits for a 
+% paragraph when the block ends is set on a line of its own, as for the 
+% frames.
+%    \begin{macrocode}
+\newcommand\@didactic@blocktitle[1]{%
+  \ifx\insertblocktitle\@empty
+    \par\vskip\medskipamount\noindent\ignorespaces
+  \else
+    \@startsection{paragraph}{4}{\z@}{\medskipamount}{-1em}%
+      {\normalfont#1}*{\insertblocktitle}%
+  \fi}
+\newcommand\@didactic@endblock{%
+  \if@noskipsec\leavevmode\par\fi
+  \vskip\medskipamount}
+\if@didactic@article
+\AtEndOfPackageFile*{beamerarticle}{%
+  \defbeamertemplate<article>{block begin}{didactic}%
+    {\@didactic@blocktitle{\bfseries}}%
+  \defbeamertemplate<article>{block end}{didactic}{\@didactic@endblock}%
+  \defbeamertemplate<article>{block alerted begin}{didactic}%
+    {\@didactic@blocktitle{\bfseries\itshape}}%
+  \defbeamertemplate<article>{block alerted end}{didactic}%
+    {\@didactic@endblock}%
+  \defbeamertemplate<article>{block example begin}{didactic}%
+    {\@didactic@blocktitle{\itshape}}%
+  \defbeamertemplate<article>{block example end}{didactic}%
+    {\@didactic@endblock}%
+  \setbeamertemplate{block begin}[didactic]%
+  \setbeamertemplate{block end}[didactic]%
+  \setbeamertemplate{block alerted begin}[didactic]%
+  \setbeamertemplate{block alerted end}[didactic]%
+  \setbeamertemplate{block example begin}[didactic]%
+  \setbeamertemplate{block example end}[didactic]%
 }
 \fi
 %    \end{macrocode}
