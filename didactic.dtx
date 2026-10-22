@@ -147,6 +147,11 @@
 %   regardless of load order.
 % }
 % \changes{v2.15}{2026/10/22}{%
+%   With |keepleadin|, sets the club and widow penalties to 10\,000 in the 
+%   notes, so that a lead-in of a few lines, such as an exercise's heading 
+%   and first sentence, moves whole with its listing.
+% }
+% \changes{v2.15}{2026/10/22}{%
 %   Adds the |noteoverflow| option, passed on to \textsf{marginfix}'s 
 %   \texttt{\textbackslash marginnoteoverflow} (version 1.6 and later): with |break|, the 
 %   default, a page ends before the line of a margin note that doesn't 
@@ -979,9 +984,10 @@
 %   \TeX\ doesn't break a page before a displayed formula.
 %   The header line of a code chunk of \textsf{noweb} stays with its code
 %   too.
-%   A page may still break within a longer paragraph before the listing,
-%   which leaves at least its last line with the listing: that paragraph is
-%   on the page before the listing starts.
+%   For that, no paragraph in the notes leaves its first or last line alone
+%   at the foot or the top of a page: a lead-in of up to three lines, an
+%   exercise's heading included, moves whole with the listing, and a longer
+%   one leaves at least two lines with it.
 %   The default is |true|.
 % \end{description}
 % The page that a listing moves away from keeps its space empty at the
@@ -5142,6 +5148,36 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \fi
   \@didactic@FV@ListVSpace}
 %    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\clubpenalty}
+% \begin{macro}{\widowpenalty}
+% That keeps only the last line of the paragraph with the listing: the 
+% paragraph is on the page before the listing starts, and the breaks 
+% within it are settled.
+% So the heading of an |exercise| with its first line could still end a 
+% page, with the rest of the lead-in and the code on the next.
+% Its club and widow penalties should prevent that, but with a ragged 
+% bottom (\textsf{noweb} sets one) a page that ends short of its height 
+% costs the same wherever it ends, and \TeX\ ends it as late as it can, 
+% whatever the penalties below 10\,000.
+% So with |keepleadin| we make them 10\,000, everywhere in the notes: no 
+% paragraph leaves its first line at the foot of a page or its last line at 
+% the top of the next.
+% A lead-in of up to three lines then moves whole with its listing, and a 
+% longer one leaves at least two lines with it.
+% \LaTeX\ keeps the club penalty in |\@clubpenalty| too, to restore it 
+% after headings and lists, so we set both, at the beginning of the 
+% document, after \LaTeX\ has copied it.
+%    \begin{macrocode}
+\AtBeginDocument{%
+  \if@didactic@keepleadin
+    \clubpenalty\@M
+    \@clubpenalty\@M
+    \widowpenalty\@M
+  \fi}
+%    \end{macrocode}
+% \end{macro}
 % \end{macro}
 %
 % \begin{macro}{\nwbegincode}
