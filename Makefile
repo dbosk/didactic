@@ -102,9 +102,11 @@ test-pair.pdf test-pair-slides.pdf: %.pdf: %.tex didactic.sty ${TEST_PAIR_EXAMPL
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
 
-# listings kept together across pages; twice, for the page references.  The
+# listings kept together across pages; three times, for the page references
+# and the heading before a long table, which moves in the run after.  The
 # document checks its pages itself and logs PASS or FAIL for each check.
 test-keep.pdf: test-keep.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	! grep 'didactic keep test:.*FAIL' test-keep.log

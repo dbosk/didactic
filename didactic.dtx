@@ -4910,6 +4910,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \newif\if@didactic@keep@glue
 \newif\if@didactic@keep@ok
 \newif\if@didactic@keep@long
+\newif\if@didactic@keep@ltowed
 \@ifclassloaded{beamer}{\@didactic@keepfalse}{\@didactic@keeptrue}
 \if@didactic@keep
 %    \end{macrocode}
@@ -5319,6 +5320,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \ifnum#2>\z@
     \if@noskipsec\else
       \par
+      \@didactic@keep@headrecord
       \@tempskipa#4\relax
       \ifdim\@tempskipa<\z@ \@tempskipa-\@tempskipa \fi
       \@tempskipb#5\relax
@@ -5342,8 +5344,107 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \global\@didactic@keep@headstate\@ne
       \@didactic@thm}%
   \fi
-  \g@addto@macro\@afterheading{\global\@didactic@keep@headstate\@ne}}
+  \g@addto@macro\@afterheading{%
+    \global\@didactic@keep@headstate\@ne
+    \@didactic@keep@headpage}%
+  \ifdefined\LT@start
+    \let\@didactic@LT@start\LT@start
+    \def\LT@start{\@didactic@LT@start\@didactic@keep@tablepage}%
+    \AddToHook{env/longtable/before}{\@didactic@keep@tableowed}%
+  \fi}
 %    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@keep@headrecord}
+% \begin{macro}{\@didactic@keep@headpage}
+% \begin{macro}{\@didactic@keep@tablepage}
+% \begin{macro}{\@didactic@keep@tableowed}
+% A table set with \textsf{longtable} decides for itself where it starts: 
+% if its head and first row don't fit on the page, it ends the page before 
+% it, which can leave a heading and the sentence that leads into the table 
+% at the foot of the page, whatever we estimated.
+% That we learn only when the pages are shipped out, so we remember it for 
+% the next run, as \textsf{marginfix} does for notes that don't fit.
+% Each heading on a line of its own writes its page to the |.aux| file when 
+% it's done (|\@afterheading|), under its place in the source (the file and 
+% line where |\@startsection| was called, \cs{@didactic@keep@headrecord});
+% and a table that starts among the first lines after a heading writes the 
+% page of its first row under the same place (we add that to the end of 
+% |\LT@start|, after the table's head; whether it is among the first lines 
+% we decide before the table, \cs{@didactic@keep@tableowed}, since the 
+% paragraphs in its cells count as paragraphs too).
+% When the table started on a later page than the heading, the heading 
+% ends the page before it in the next run, and records that again, so that 
+% the break stays as long as the heading is where it was in the source.
+% A heading at the top of a page, or on a page already over full, doesn't 
+% break.
+% The pages are written at shipout, like |\label|'s, through 
+% |\@didactic@keep@cpage|.
+%    \begin{macrocode}
+\def\@didactic@keep@cpage{\number\c@page}
+\def\@didactic@keep@hpage#1#2{%
+  \global\@namedef{@didactic@hp@#1}{#2}}
+\def\@didactic@keep@tpage#1#2{%
+  \@ifundefined{@didactic@hp@#1}{}{%
+    \ifnum#2>\@nameuse{@didactic@hp@#1}\relax
+      \@didactic@keep@headbreak{#1}%
+    \fi}}
+\def\@didactic@keep@headbreak#1{%
+  \ifx\@newl@bel\@testdef
+    \@ifundefined{@didactic@hb@#1}{\@tempswatrue}{}%
+  \else
+    \global\@namedef{@didactic@hb@#1}{}%
+  \fi}
+\let\@didactic@keep@headkey\@empty
+\def\@didactic@keep@headrecord{%
+  \xdef\@didactic@keep@headkey{%
+    \ifx\CurrentFile\@empty\jobname\else
+      \ifx\CurrentFile\@undefined\jobname\else\CurrentFile\fi\fi
+    :\the\inputlineno}%
+  \@ifundefined{@didactic@hb@\@didactic@keep@headkey}{}{%
+    \if@filesw
+      \immediate\write\@auxout{%
+        \string\@didactic@keep@headbreak{\@didactic@keep@headkey}}%
+    \fi
+    \ifvmode\ifinner\else\ifdim\pagegoal<\maxdimen
+      \ifdim\pagetotal>\pagegoal\else
+        \penalty-\@M
+      \fi
+    \fi\fi\fi}}
+\def\@didactic@keep@headpage{%
+  \ifx\@didactic@keep@headkey\@empty\else
+    \if@filesw
+      \protected@write\@auxout{\let\@didactic@keep@cpage\relax}{%
+        \string\@didactic@keep@hpage{\@didactic@keep@headkey}%
+          {\@didactic@keep@cpage}}%
+    \fi
+  \fi}
+\def\@didactic@keep@tableowed{%
+  \global\@didactic@keep@ltowedfalse
+  \ifnum\@didactic@keepafterheading>\z@
+    \ifx\@didactic@keep@headkey\@empty\else
+      \ifnum\@didactic@keep@headstate=\@ne
+        \global\@didactic@keep@ltowedtrue
+      \else\ifnum\@didactic@keep@headstate=\tw@
+        \ifnum\prevgraf<\@didactic@keepafterheading
+          \global\@didactic@keep@ltowedtrue
+        \fi
+      \fi\fi
+    \fi
+  \fi}
+\def\@didactic@keep@tablepage{%
+  \if@didactic@keep@ltowed
+    \global\@didactic@keep@ltowedfalse
+    \if@filesw
+      \protected@write\@auxout{\let\@didactic@keep@cpage\relax}{%
+        \string\@didactic@keep@tpage{\@didactic@keep@headkey}%
+          {\@didactic@keep@cpage}}%
+    \fi
+  \fi}
+%    \end{macrocode}
+% \end{macro}
 % \end{macro}
 % \end{macro}
 % \end{macro}
@@ -5404,6 +5505,11 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % When the chunk's code is set by |minted|, the breaks in the code itself 
 % are ours, as for every listing; when \textsf{noweb} sets the code, its 
 % breaks stay as they were.
+% \textsf{noweb} also invites a page break at the start of the text after 
+% every chunk (|\nwdocspar|): a |\filbreak|, or with the option 
+% |breakcode| a penalty of $-200$ with 0.2\,in of stretch, which in the 
+% notes ends pages right after a chunk with several lines empty.
+% With a |keepmaxgap| we leave the breaks to the rules above and drop it.
 % \textsf{noweb} is usually loaded after us, so we patch it at the beginning 
 % of the document, if it's loaded.
 % |\patchcmd| reads the patched macro anew with the category codes of the 
@@ -5435,6 +5541,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       }{\@didactic@nwkeepwarning}%
     }{\@didactic@nwkeepwarning}%
     \catcode`\@\@didactic@atcatcode
+    \ifnum\@didactic@keepmaxgap>\z@
+      \let\nwdocspar\relax
+    \fi
   \fi}
 \fi
 %    \end{macrocode}
