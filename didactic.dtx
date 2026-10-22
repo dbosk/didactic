@@ -5041,8 +5041,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % the next page would leave more than |keepmaxgap| lines empty there.
 % \TeX\ has put everything before the listing on the page by now, so 
 % |\pagegoal| less |\pagetotal| is the room left (unless the page is still 
-% empty, when |\pagegoal| is |\maxdimen|), and the box of lines is the 
-% height the listing needs.
+% empty, when |\pagegoal| is |\maxdimen|, or already holds more than the 
+% page, when we can't tell), and the box of lines is the height the listing 
+% needs.
 % With it would go the lines of the paragraph before it that are kept with 
 % it: all of them if it has at most three lines (|\prevgraf|), else two, 
 % since |keepleadin| keeps it and the paragraph's own club and widow 
@@ -5059,6 +5060,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \else\ifnum\@didactic@keepmaxgap>\z@
     \ifvmode\ifinner\else\ifdim\pagegoal<\maxdimen
       \dimen@\dimexpr\pagegoal-\pagetotal\relax
+      \ifdim\dimen@<\z@\else
       \ifdim\dimexpr\ht\@didactic@keep@box+\dp\@didactic@keep@box\relax
           >\dimen@
         \count@\prevgraf
@@ -5067,7 +5069,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
         \ifdim\dimen@>\@didactic@keepmaxgap\@didactic@keep@L
           \@didactic@keep@longtrue
         \fi
-      \fi
+      \fi\fi
     \fi\fi\fi
   \fi\fi
 }
@@ -5280,6 +5282,10 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % no limit of its own.
 % Not after another heading (|\if@nobreak|), which has asked already, nor on 
 % an empty page, nor inside a box.
+% Nor when the text so far is already more than the page holds: then \TeX\ 
+% has yet to break the page somewhere before, the rest goes to the next 
+% page with the heading, and a break here would leave that rest alone on a 
+% page.
 %
 % The sectional headings, |\section| to |\subparagraph|, start with 
 % |\@startsection|\{\meta{name}\}\{\meta{level}\}\{\meta{indent}\}\{\meta{beforeskip}\}
@@ -5300,9 +5306,11 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \ifnum\@didactic@keepafterheading>\z@
     \if@nobreak\else
       \ifvmode\ifinner\else\ifdim\pagegoal<\maxdimen
-        \ifdim\dimexpr\pagegoal-\pagetotal\relax<\dimexpr#1
-            +\@didactic@keepafterheading\@didactic@keep@L\relax
-          \penalty-\@M
+        \ifdim\pagetotal>\pagegoal\else
+          \ifdim\dimexpr\pagegoal-\pagetotal\relax<\dimexpr#1
+              +\@didactic@keepafterheading\@didactic@keep@L\relax
+            \penalty-\@M
+          \fi
         \fi
       \fi\fi\fi
     \fi
