@@ -27,6 +27,8 @@
 %      the tominted weave give), with room for 2 lines: the lead-in, the
 %      header line "<hello.py>=" and the code on the next page.
 %      Skipped without noweb.sty.
+%   J  a pair of didacticpair (as \codebycode and \runbyrun make), 8 lines
+%      tall, with room for 2 lines: on the next page with its lead-in.
 %   G  a short listing in an item of a list: the item's label "1." beside
 %      its first line, as without didactic.
 %   H  the vertical space around a listing is as without didactic: the
@@ -144,6 +146,13 @@ Text after F.
 \makeatother
 \fi
 
+\roomfor{2}
+Lead-in J, to code side by side:\label{j-lead}
+\begin{didacticpair}{2}
+  \rule{1pt}{8\baselineskip}\label{j-pair} & right column
+\end{didacticpair}
+Text after J.
+
 \roomfor{8}
 \begin{enumerate}
 \item Lead-in G, in an item:
@@ -177,6 +186,7 @@ Text after F.
 \makeatother
 \fi
 \testcheck{G first and last line together}{gL1}{=}{gL5}
+\testcheck{J lead-in with the pair}{j-lead}{=}{j-pair}
 \end{itemize}
 
 \end{document}

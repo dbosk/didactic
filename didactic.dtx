@@ -151,8 +151,8 @@
 %   most |keeplines| lines (20) doesn't break, a longer one leaves at least 
 %   |keepends| lines (3) that aren't empty on each side of a break and starts 
 %   no page with an empty line, and with |keepleadin| the 
-%   paragraph before a listing, and the header line of a \textsf{noweb} 
-%   chunk, stay with it.
+%   paragraph before a listing or a pair of |didacticpair|, and the header 
+%   line of a \textsf{noweb} chunk, stay with it.
 %   A listing of \textsf{fvextra} (so of |minted|) no longer breaks after 
 %   any line, whatever the penalties.
 %   Writes the margin column's place to the log 
@@ -948,7 +948,8 @@
 %   The default is 3.
 %   Nor does a page start with an empty line of a longer listing: it breaks
 %   after the empty line instead, between two parts of the program.
-% \item[keepleadin] No page break comes between a listing and the paragraph
+% \item[keepleadin] No page break comes between a listing, or code side by
+%   side, and the paragraph
 %   before it, which usually leads into it (``It prints:''), just as
 %   \TeX\ doesn't break a page before a displayed formula.
 %   The header line of a code chunk of \textsf{noweb} stays with its code
@@ -2930,7 +2931,7 @@ def didactic_mint(output, /, lang="text",
   matches one of the patterns will be highlighted.
   """
   if fullwidth:
-    print(r"\blockmargin")
+    print(r"\csname @didactic@blockmargin\endcsname")
     print(r"\begin{fullwidth}")
 
   if not minted_opts:
@@ -3700,10 +3701,31 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % We use these together with the |fullwidth| environment to typeset the code 
 % using the additional space taken from the margin notes, hence we need to also 
 % block the margin.
+%
+% |\blockmargin| is a margin note in vertical mode, and \LaTeX\ follows such 
+% a note with a place where the page may break (|\addpenalty|, in 
+% |\@specialoutput|), unless |\if@nobreak| is true.
+% So with the option |keepleadin|, which keeps a listing with the paragraph 
+% before it, we block the margin through |\@didactic@blockmargin|, which 
+% makes |\if@nobreak| true for that moment, if it isn't already.
+% The PythonTeX functions print it as |\csname @didactic@blockmargin| 
+% |\endcsname|, since their output is read where |@| isn't a letter.
 %    \begin{macrocode}
 \RequirePackage{marginfix}
+\newcommand\@didactic@blockmargin{%
+  \if@didactic@keepleadin
+    \if@nobreak
+      \blockmargin
+    \else
+      \@nobreaktrue
+      \blockmargin
+      \@nobreakfalse
+    \fi
+  \else
+    \blockmargin
+  \fi}
 \NewDocumentCommand{\lstexample}{somm}{%
-  \IfBooleanTF{#1}{\blockmargin\begin{fullwidth}}{\relax}
+  \IfBooleanTF{#1}{\@didactic@blockmargin\begin{fullwidth}}{\relax}
   \IfValueTF{#2}
     {\inputminted[escapeinside=||,#2]{#3}{#4}}
     {\inputminted[escapeinside=||]{#3}{#4}}
@@ -4174,6 +4196,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % keeps to it.
 % We compute that width from the paper and the margins, since |beamer|'s 
 % |column| sets |\textwidth| to the column's width.
+% With |keepleadin| (see \cref{KeepListings}), a pair in the notes stays 
+% with the paragraph that leads into it, like a listing: we forbid the page 
+% break that the list of |fullwidth| or |center| would allow before it.
 %    \begin{macrocode}
 \ExplSyntaxOn
 \newlength{\didacticpairgap}
@@ -4467,6 +4492,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       }
       {
         \par
+        \legacy_if:nT { @didactic@keepleadin }
+          { \@beginparpenalty = \@M }
         \bool_if:NT \g__didactic_pair_fullwidth_bool
           {
             \cs_if_exist:NTF \@captype
@@ -4474,7 +4501,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
               {
                 \mode_if_inner:F
                   {
-                    \blockmargin
+                    \@didactic@blockmargin
                     \bool_set_true:N \l__didactic_pair_blocked_bool
                     \bool_set_true:N \l__didactic_pair_full_bool
                   }
