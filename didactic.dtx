@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/10/22 v2.14 didactic]
+  [2026/10/22 v2.15 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -145,6 +145,12 @@
 %   when it's loaded.
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
+% }
+% \changes{v2.15}{2026/10/22}{%
+%   Adds the |noteoverflow| option, passed on to \textsf{marginfix}'s 
+%   |\marginnoteoverflow| (version 1.6 and later): with |break|, the 
+%   default, a page ends before the line of a margin note that doesn't 
+%   fit on it, instead of the note moving to the next page.
 % }
 % \changes{v2.14}{2026/10/22}{%
 %   Keeps listings together across pages outside |beamer|: a listing of at 
@@ -548,6 +554,25 @@
 % |use| isn't the default; choose it when you know your bottom floats, or 
 % mark the ones that reach out.
 % Floats at the top of the page always keep the margin empty.
+%
+% \DescribeOpt{noteoverflow}
+% Even so, the notes of a page can be more than its margin holds, say in a 
+% paragraph dense with citations, whose footnotes are in the margin too.
+% Then a note moves to the next page, away from its mark.
+% With |noteoverflow=break|, the default, the text gives way instead: the 
+% page ends before the line that calls out the first note that doesn't fit, 
+% in the next run, so that line and its note start the next page 
+% (\textsf{marginfix} 1.6 and later, with pdf\LaTeX\ or Lua\LaTeX).
+% A page that ends that early is a little shorter, but its margin is full; 
+% if its text fills less than half of it, \textsf{marginfix} warns, naming 
+% the page.
+% With |noteoverflow=carry| the notes move to the next page as before.
+% The mode is read where a note is called out, and obeys groups, so 
+% |{\marginnoteoverflow{carry}| ...|}| lets the notes of one passage move to 
+% the next page, while the rest of the document keeps |break|.
+% \textsf{marginfix} logs every note that is still carried to a later page, 
+% as |marginfix-spill: page=|\meta{p}| to=|\meta{q}| intended| for a note in 
+% the mode |carry| and |... unresolved| otherwise.
 %
 % Outside |beamer|, \textsf{didactic} writes where the margin column is to 
 % the log, once, as |didactic-margin: odd=431.65 even=431.65 width=156.7|: 
@@ -1117,6 +1142,20 @@
 \newcommand\@didactic@notebesidefloats{reserve}
 \DeclareOptionX{notebesidefloats}{%
   \renewcommand\@didactic@notebesidefloats{#1}}
+%    \end{macrocode}
+% \end{option}
+%
+% \begin{option}{noteoverflow}
+% The |noteoverflow| option is passed on to \textsf{marginfix}'s 
+% |\marginnoteoverflow| (version 1.6 and later), see below.
+% We default to |break|, unlike \textsf{marginfix}: a footnote in the 
+% margin must stay with its mark, and when the margin of a page can't hold 
+% the notes of its text even after |notepriority| has moved the commentary, 
+% the text has to give way.
+%    \begin{macrocode}
+\newcommand\@didactic@noteoverflow{break}
+\DeclareOptionX{noteoverflow}{%
+  \renewcommand\@didactic@noteoverflow{#1}}
 %    \end{macrocode}
 % \end{option}
 %
@@ -2699,8 +2738,9 @@
 % Without |memoir|, \textsf{marginfix} is loaded further down, so we set the 
 % cue, and the priority from the |notepriority| option, at the end of the 
 % package.
-% So a |\marginnotecontinued|, |\marginnotepriority| or 
-% |\marginnotebesidefloats| of your own must come after 
+% So a |\marginnotecontinued|, |\marginnotepriority|, 
+% |\marginnotebesidefloats| or |\marginnoteoverflow| of your own must come 
+% after 
 % |\usepackage{didactic}|, which should be the last package anyway; given 
 % before, ours replaces it.
 %    \begin{macrocode}
@@ -2716,6 +2756,10 @@
   \ifdefined\marginnotebesidefloats
     \expandafter\marginnotebesidefloats\expandafter
       {\@didactic@notebesidefloats}%
+  \fi
+  \ifdefined\marginnoteoverflow
+    \expandafter\marginnoteoverflow\expandafter
+      {\@didactic@noteoverflow}%
   \fi}
 %    \end{macrocode}
 % \end{macro}
