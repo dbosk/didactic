@@ -13,6 +13,9 @@ test-run.pdf
 test-run.unq
 test-note-heading.pdf
 test-note-heading.unq
+test-keep.pdf
+test-keep.unq
+test-keep-*.txt
 didactic.tar.gz
 didactic.unq
 didactic.hd

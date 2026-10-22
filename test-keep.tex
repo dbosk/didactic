@@ -1,0 +1,192 @@
+% Test of keeping listings together (didactic): in the notes (memoir +
+% beamerarticle), a listing of at most keeplines lines doesn't break across
+% pages, a longer one leaves at least keepends lines on each side of a
+% break, and the paragraph that leads into a listing stays with it.
+% Each case starts on a new page, after a rule that leaves room for a few
+% lines only, so that without didactic the listing would break there.
+%
+% Build: see the Makefile (pdflatex twice, for the page references).  The
+% document checks itself: the last page lists every check with PASS or
+% FAIL, and the log has a line "didactic keep test: <check> PASS/FAIL"
+% for each; the Makefile fails on any FAIL.
+%
+% Expected in the resulting PDF, besides PASS everywhere:
+%   A  a short listing (10 lines) with room for 4: the lead-in and the
+%      whole listing on the next page, the first page empty below the rule.
+%   B  a long listing (30 lines) with room for the lead-in and 2 lines:
+%      the lead-in and the first three lines on the next page.
+%   C  a long listing with room for 10 lines: it breaks there.
+%   D  a long listing with room for all but one line: the last three
+%      lines on the next page, not one.
+%   I  as D, but line 28 is empty: lines 27 to 30 on the next page, so
+%      that three lines that aren't empty are there and the page doesn't
+%      start with the empty line.
+%   E  a short listing read by \inputminted (5 lines), with room for 3
+%      lines: on the next page with its lead-in.
+%   F  a code chunk woven for minted (as noweb.sty's [minted] option and
+%      the tominted weave give), with room for 2 lines: the lead-in, the
+%      header line "<hello.py>=" and the code on the next page.
+%      Skipped without noweb.sty.
+%   J  a pair of didacticpair (as \codebycode and \runbyrun make), 8 lines
+%      tall, with room for 2 lines: on the next page with its lead-in.
+%   G  a short listing in an item of a list: the item's label "1." beside
+%      its first line, as without didactic.
+%   H  the vertical space around a listing is as without didactic: the
+%      text after it starts at the same height as without (not checked
+%      automatically; compare with keeplines=0, keepends=1,
+%      keepleadin=false).
+\documentclass[a4paper]{memoir}
+\usepackage[british]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\usepackage{refcount}
+\IfFileExists{noweb.sty}{\usepackage[minted]{noweb}}{}
+
+\makeatletter
+% \roomfor{n}: start a new page and fill it so that n lines of text fit
+% under the rule.
+\newcommand\roomfor[1]{%
+  \clearpage
+  \noindent\rule{\linewidth}{0.4pt}\par
+  \vspace*{\dimexpr\textheight-\topskip-#1\baselineskip-\baselineskip\relax}%
+  \par}
+% \testfile{prefix}{n}{before}{after}: write the file \jobname-prefix.txt
+% of n lines "line <i>", each followed by
+% <before>\label{prefix L<i>}<after>, except an empty line set by
+% \testblank.
+\newcount\@keeptest@i
+\newcommand\testfile[4]{%
+  \immediate\openout\@keeptest@out=\jobname-#1.txt
+  \@keeptest@i\z@
+  \loop
+    \advance\@keeptest@i\@ne
+    \ifnum\@keeptest@i=\@keeptest@blank
+      \immediate\write\@keeptest@out{}%
+    \else
+      \immediate\write\@keeptest@out{%
+        line \the\@keeptest@i#3\string\label{#1L\the\@keeptest@i}#4}%
+    \fi
+  \ifnum\@keeptest@i<#2\repeat
+  \immediate\closeout\@keeptest@out
+  \global\@keeptest@blank\z@}
+% \testblank{i}: line i of the next file is empty.
+\newcount\@keeptest@blank
+\newcommand\testblank[1]{\global\@keeptest@blank=#1\relax}
+% \testlisting{prefix}{n}: such a file as a listing of fancyvrb.
+\newcommand\testlisting[2]{%
+  \testfile{#1}{#2}{}{}%
+  \VerbatimInput[commandchars=\\\{\}]{\jobname-#1.txt}}
+\newwrite\@keeptest@out
+% \testcheck{name}{label1}{=|<}{label2}: are the labels on the same page (=)
+% or is the first on an earlier page (<)?
+\newcommand\testcheck[4]{%
+  \ifnum\getpagerefnumber{#2}#3\getpagerefnumber{#4}\relax
+    \def\@keeptest@result{PASS}%
+  \else
+    \def\@keeptest@result{FAIL}%
+  \fi
+  \typeout{didactic keep test: #1 \@keeptest@result}%
+  \item #1: \@keeptest@result\ (#2 on page \getpagerefnumber{#2}, #4 on
+    page \getpagerefnumber{#4})}
+\makeatother
+
+\begin{document}
+
+\roomfor{4}
+\section*{A: a short listing}
+Lead-in A, which says what the listing shows.\label{a-lead}
+\testlisting{a}{10}
+Text after A.
+
+\roomfor{2}
+Lead-in B, which says what the listing shows.\label{b-lead}
+\testlisting{b}{30}
+Text after B.
+
+\roomfor{10}
+Lead-in C.\label{c-lead}
+\testlisting{c}{30}
+Text after C.
+
+\roomfor{29}
+Lead-in D.\label{d-lead}
+\testlisting{d}{30}
+Text after D.
+
+\roomfor{29}
+Lead-in I, with line 28 empty.\label{i-lead}
+\testblank{28}%
+\testlisting{i}{30}
+Text after I.
+
+\roomfor{3}
+Lead-in E, a file read by \verb|\inputminted|:\label{e-lead}
+\testfile{e}{5}{|}{|}%
+\inputminted[escapeinside=||]{text}{\jobname-e.txt}
+Text after E.
+
+\makeatletter
+\ifdefined\nwbegincode
+\makeatother
+\roomfor{2}
+Lead-in F, a code chunk:\label{f-lead}
+\nwbegincode{1}\moddef{hello.py}\endmoddef\nwstartdeflinemarkup\nwenddeflinemarkup
+\catcode37=14\relax\catcode126=13\relax\catcode36=3\relax\catcode38=4\relax\catcode35=6\relax\catcode94=7\relax\catcode95=8\relax\catcode13=5\relax\partopsep=0pt\relax\begin{minted}[xleftmargin=\codemargin,vspace=0pt,escapeinside=||]{python}
+def main():|\label{fL1}|
+    print("Hello, world!")
+
+if __name__ == "__main__":
+    main()|\label{fL5}|
+\end{minted}
+\nwendcode{}\nwbegindocs{2}\nwdocspar
+Text after F.
+\nwenddocs{}
+\else
+\makeatother
+\fi
+
+\roomfor{2}
+Lead-in J, to code side by side:\label{j-lead}
+\begin{didacticpair}{2}
+  \rule{1pt}{8\baselineskip}\label{j-pair} & right column
+\end{didacticpair}
+Text after J.
+
+\roomfor{8}
+\begin{enumerate}
+\item Lead-in G, in an item:
+  \testlisting{g}{5}
+\end{enumerate}
+
+\clearpage
+\section*{Results}
+\begin{itemize}
+\item[] A short listing doesn't break and stays with its lead-in:
+\testcheck{A first line with lead-in}{a-lead}{=}{aL1}
+\testcheck{A first line on the next page}{a-lead}{=}{aL10}
+\item[] A long listing keeps three lines at each end:
+\testcheck{B lead-in with line 3}{b-lead}{=}{bL3}
+\testcheck{C breaks}{cL1}{<}{cL30}
+\testcheck{C lead-in with line 3}{c-lead}{=}{cL3}
+\testcheck{C line 28 with the last}{cL28}{=}{cL30}
+\testcheck{D breaks}{dL1}{<}{dL30}
+\testcheck{D line 28 with the last}{dL28}{=}{dL30}
+\testcheck{D line 27 with the first}{dL1}{=}{dL27}
+\testcheck{I line 27 with the last}{iL27}{=}{iL30}
+\testcheck{I breaks}{iL1}{<}{iL30}
+\item[] minted, noweb and lists:
+\testcheck{E lead-in with the listing}{e-lead}{=}{eL5}
+\makeatletter
+\ifdefined\nwbegincode
+\makeatother
+\testcheck{F lead-in with the header and code}{f-lead}{=}{fL1}
+\testcheck{F the whole chunk}{f-lead}{=}{fL5}
+\else
+\makeatother
+\fi
+\testcheck{G first and last line together}{gL1}{=}{gL5}
+\testcheck{J lead-in with the pair}{j-lead}{=}{j-pair}
+\end{itemize}
+
+\end{document}

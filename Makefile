@@ -9,7 +9,8 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-note-heading.pdf test-pair.pdf test-pair-slides.pdf \
 	test-sidecap.pdf test-sidecap-off.pdf \
 	test-marginfloat.pdf test-marginfloat-slides.pdf \
-	test-frametitle.pdf test-frametitle-slides.pdf
+	test-frametitle.pdf test-frametitle-slides.pdf \
+	test-keep.pdf
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -101,6 +102,13 @@ test-pair.pdf test-pair-slides.pdf: %.pdf: %.tex didactic.sty ${TEST_PAIR_EXAMPL
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
 
+# listings kept together across pages; twice, for the page references.  The
+# document checks its pages itself and logs PASS or FAIL for each check.
+test-keep.pdf: test-keep.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	! grep 'didactic keep test:.*FAIL' test-keep.log
+
 VERSION=$(shell sed -En "s/^.*v([0-9]+(\.[0-9]+)+) didactic.*$$/\1/p" didactic.dtx)
 .PHONY: release
 release: didactic.tar.gz didactic.pdf didactic.sty
@@ -154,4 +162,7 @@ clean:
 	${RM} test-frametitle-slides.log test-frametitle-slides.nav
 	${RM} test-frametitle-slides.snm test-frametitle-slides.toc
 	${RM} test-frametitle-slides.out test-frametitle-slides.unq
+	${RM} test-keep.pdf test-keep.aux test-keep.log test-keep.unq
+	${RM} test-keep-?.txt test-keep.pytxcode
+	${RM} -R _minted-test-keep
 	latexmk -C test.tex

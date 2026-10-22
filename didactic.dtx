@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/10/21 v2.13 didactic]
+  [2026/10/22 v2.14 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -145,6 +145,18 @@
 %   when it's loaded.
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
+% }
+% \changes{v2.14}{2026/10/22}{%
+%   Keeps listings together across pages outside |beamer|: a listing of at 
+%   most |keeplines| lines (20) doesn't break, a longer one leaves at least 
+%   |keepends| lines (3) that aren't empty on each side of a break and starts 
+%   no page with an empty line, and with |keepleadin| the 
+%   paragraph before a listing or a pair of |didacticpair|, and the header 
+%   line of a \textsf{noweb} chunk, stay with it.
+%   A listing of \textsf{fvextra} (so of |minted|) no longer breaks after 
+%   any line, whatever the penalties.
+%   Writes the margin column's place to the log 
+%   (|didactic-margin: odd=|\dots), for scripts that check the notes.
 % }
 % \changes{v2.13}{2026/10/21}{%
 %   In the article mode of |beamer|, a frame title is a run-in heading: the 
@@ -537,6 +549,14 @@
 % mark the ones that reach out.
 % Floats at the top of the page always keep the margin empty.
 %
+% Outside |beamer|, \textsf{didactic} writes where the margin column is to 
+% the log, once, as |didactic-margin: odd=431.65 even=431.65 width=156.7|: 
+% the left edge of the margin column on odd and even pages and its width, 
+% in big points (\texttt{bp}) from the left edge of the page, as in the 
+% PDF.
+% A script that checks that each margin note is printed on the page of its 
+% mark can read it there instead of guessing it.
+%
 % \subsection{Figures and tables in the margin}
 %
 % \DescribeEnv{marginfigure}
@@ -906,6 +926,53 @@
 % accessed through PythonTeX.
 % See \cref{PythonTeXdidactic} for details.
 %
+% \subsection{Listings across pages}\label{KeepListingsUsage}
+%
+% In the notes, a listing that breaks across pages is hard to read: a
+% function is cut in two, or two lines of a program sit at the foot of a page
+% and the rest on the next.
+% So outside |beamer|, \textsf{didactic} decides where listings may break.
+% This holds for every listing set by \textsf{fancyvrb}, which is every
+% listing of |minted|: |\lstexample|, |\inputminted|, the |minted|
+% environment, the output of |\runpython| and |\runshell|, and the code
+% chunks of a literate program woven for |minted|.
+% \DescribeOpt{keeplines}
+% \DescribeOpt{keepends}
+% \DescribeOpt{keepleadin}
+% \begin{description}
+% \item[keeplines] A listing of at most this many lines never breaks; it
+%   moves to the next page as a whole.
+%   The default is 20.
+% \item[keepends] A longer listing may break, but leaves at least this many
+%   lines on each side of the break, not counting empty lines.
+%   The default is 3.
+%   Nor does a page start with an empty line of a longer listing: it breaks
+%   after the empty line instead, between two parts of the program.
+% \item[keepleadin] No page break comes between a listing, or code side by
+%   side, and the paragraph
+%   before it, which usually leads into it (``It prints:''), just as
+%   \TeX\ doesn't break a page before a displayed formula.
+%   The header line of a code chunk of \textsf{noweb} stays with its code
+%   too.
+%   A page may still break within a longer paragraph before the listing,
+%   which leaves at least its last line with the listing: that paragraph is
+%   on the page before the listing starts.
+%   The default is |true|.
+% \end{description}
+% The page that a listing moves away from keeps its space empty at the
+% foot, so |keeplines| is a trade-off: 20 lines of code in |\footnotesize|
+% and the line that leads into them take about a third of the text block of
+% the notes' layout, so a page is left at most about a third empty for the
+% sake of a listing.
+% With a larger font for the code, choose fewer lines.
+% |keeplines=0, keepends=1, keepleadin=false| gives the penalties of
+% \textsf{fancyvrb} itself.
+% (They don't give its breaks with \textsf{fvextra}, which is loaded by
+% |minted|: there a listing could break after any line, whatever the
+% penalties, which no longer happens.)
+% Listings inside a box, such as the code side by side above, can't break
+% anyway, and on the slides nothing changes.
+%
 % \StopEventually{}
 %
 % \section{Implementation}
@@ -1062,6 +1129,34 @@
 \DeclareOptionX{sidecapalign}{%
   \renewcommand\@didactic@sidecapalign{#1}}
 %    \end{macrocode}
+% \end{option}
+%
+% \begin{option}{keeplines}
+% \begin{option}{keepends}
+% \begin{option}{keepleadin}
+% The options |keeplines|, |keepends| and |keepleadin| say how listings
+% break across pages, see \cref{KeepListings}.
+% A listing of at most |keeplines| lines doesn't break, a longer one leaves
+% at least |keepends| lines on each side of a break, and with |keepleadin|
+% no page break comes between a listing and the text that leads into it.
+%    \begin{macrocode}
+\newcount\@didactic@keeplines
+\@didactic@keeplines=20
+\newcount\@didactic@keepends
+\@didactic@keepends=3
+\newif\if@didactic@keepleadin
+\@didactic@keepleadintrue
+\DeclareOptionX{keeplines}{\@didactic@keeplines=#1\relax}
+\DeclareOptionX{keepends}{\@didactic@keepends=#1\relax}
+\DeclareOptionX{keepleadin}[true]{%
+  \IfStrEqCase{#1}{%
+    {true}{\@didactic@keepleadintrue}%
+    {false}{\@didactic@keepleadinfalse}%
+  }[\PackageError{didactic}{Unknown value `#1' for keepleadin}
+      {Use true or false.}]}
+%    \end{macrocode}
+% \end{option}
+% \end{option}
 % \end{option}
 %
 % Now that we've declared the options we can process them.
@@ -2625,6 +2720,72 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% \begin{macro}{\@didactic@marginlog}
+% Tools that check the notes, for instance that each margin note is printed 
+% on the page of its mark, need to know where the margin column is.
+% Guessing it from the positions of the words fails when the text reaches 
+% into the gap before the margin, as code set side by side can.
+% So, outside |beamer|, we write the margin column to the log once, when the 
+% layout is final, at the end of |\begin{document}|, in one line:
+% \begin{quote}
+% |didactic-margin: odd=|\meta{x} |even=|\meta{x} |width=|\meta{w}
+% \end{quote}
+% where \meta{x} is the left edge of the margin column on odd and on even 
+% pages and \meta{w} its width, |\marginparwidth|, all in big points 
+% (\texttt{bp}), the unit of PDF coordinates, from the left edge of the page.
+% In a one-sided document |odd| and |even| are the same.
+% The text block starts at 1\,in${}+{}$|\hoffset|${}+{}$|\oddsidemargin| 
+% (|\evensidemargin| on even pages of a two-sided document).
+% A margin to the right of it starts |\marginparsep| after the text, and one 
+% to the left starts |\marginparsep| and |\marginparwidth| before it.
+% Which side it is on we ask \textsf{marginfix}, which places the notes 
+% (|\MFX@marginside|, which knows |memoir|'s |\marginparmargin| too); it 
+% leaves |\@tempcnta| at 1 for the right and $-1$ for the left.
+%    \begin{macrocode}
+\@ifclassloaded{beamer}{}{%
+  \def\@didactic@marginx#1#2{%
+    \begingroup
+      \c@page=#1\relax
+      \@tempcnta\@ne
+      \ifdefined\MFX@marginside
+        \MFX@marginside
+      \else
+        \if@mparswitch
+          \ifodd\c@page\else\@tempcnta\m@ne\fi
+        \fi
+        \if@reversemargin\@tempcnta-\@tempcnta\fi
+      \fi
+      \@tempdima\dimexpr 1in+\hoffset\relax
+      \if@twoside
+        \ifodd\c@page
+          \advance\@tempdima\oddsidemargin
+        \else
+          \advance\@tempdima\evensidemargin
+        \fi
+      \else
+        \advance\@tempdima\oddsidemargin
+      \fi
+      \ifnum\@tempcnta>\z@
+        \advance\@tempdima\dimexpr\textwidth+\marginparsep\relax
+      \else
+        \advance\@tempdima-\dimexpr\marginparsep+\marginparwidth\relax
+      \fi
+      \xdef#2{\fpeval{round(\@tempdima/1bp, 2)}}%
+    \endgroup}
+  \def\@didactic@marginlog{%
+    \@didactic@marginx\@ne\@didactic@marginodd
+    \@didactic@marginx\tw@\@didactic@margineven
+    \typeout{didactic-margin: odd=\@didactic@marginodd\space
+      even=\@didactic@margineven\space
+      width=\fpeval{round(\marginparwidth/1bp, 2)}}}
+  \ifdefined\AddToHook
+    \AddToHook{begindocument/end}{\@didactic@marginlog}
+  \else
+    \AtBeginDocument{\@didactic@marginlog}
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+%
 %
 % \subsection{Some useful PythonTeX functions}\label{PythonTeXdidactic}
 %
@@ -2770,7 +2931,7 @@ def didactic_mint(output, /, lang="text",
   matches one of the patterns will be highlighted.
   """
   if fullwidth:
-    print(r"\blockmargin")
+    print(r"\csname @didactic@blockmargin\endcsname")
     print(r"\begin{fullwidth}")
 
   if not minted_opts:
@@ -3540,10 +3701,31 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % We use these together with the |fullwidth| environment to typeset the code 
 % using the additional space taken from the margin notes, hence we need to also 
 % block the margin.
+%
+% |\blockmargin| is a margin note in vertical mode, and \LaTeX\ follows such 
+% a note with a place where the page may break (|\addpenalty|, in 
+% |\@specialoutput|), unless |\if@nobreak| is true.
+% So with the option |keepleadin|, which keeps a listing with the paragraph 
+% before it, we block the margin through |\@didactic@blockmargin|, which 
+% makes |\if@nobreak| true for that moment, if it isn't already.
+% The PythonTeX functions print it as |\csname @didactic@blockmargin| 
+% |\endcsname|, since their output is read where |@| isn't a letter.
 %    \begin{macrocode}
 \RequirePackage{marginfix}
+\newcommand\@didactic@blockmargin{%
+  \if@didactic@keepleadin
+    \if@nobreak
+      \blockmargin
+    \else
+      \@nobreaktrue
+      \blockmargin
+      \@nobreakfalse
+    \fi
+  \else
+    \blockmargin
+  \fi}
 \NewDocumentCommand{\lstexample}{somm}{%
-  \IfBooleanTF{#1}{\blockmargin\begin{fullwidth}}{\relax}
+  \IfBooleanTF{#1}{\@didactic@blockmargin\begin{fullwidth}}{\relax}
   \IfValueTF{#2}
     {\inputminted[escapeinside=||,#2]{#3}{#4}}
     {\inputminted[escapeinside=||]{#3}{#4}}
@@ -4014,6 +4196,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % keeps to it.
 % We compute that width from the paper and the margins, since |beamer|'s 
 % |column| sets |\textwidth| to the column's width.
+% With |keepleadin| (see \cref{KeepListings}), a pair in the notes stays 
+% with the paragraph that leads into it, like a listing: we forbid the page 
+% break that the list of |fullwidth| or |center| would allow before it.
 %    \begin{macrocode}
 \ExplSyntaxOn
 \newlength{\didacticpairgap}
@@ -4307,6 +4492,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       }
       {
         \par
+        \legacy_if:nT { @didactic@keepleadin }
+          { \@beginparpenalty = \@M }
         \bool_if:NT \g__didactic_pair_fullwidth_bool
           {
             \cs_if_exist:NTF \@captype
@@ -4314,7 +4501,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
               {
                 \mode_if_inner:F
                   {
-                    \blockmargin
+                    \@didactic@blockmargin
                     \bool_set_true:N \l__didactic_pair_blocked_bool
                     \bool_set_true:N \l__didactic_pair_full_bool
                   }
@@ -4601,6 +4788,367 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 }
 \ExplSyntaxOff
 %    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Keeping listings together}\label{KeepListings}
+%
+% Now we decide where listings may break across pages (see 
+% \cref{KeepListingsUsage} for the options).
+% Every listing of |minted| is a list of \textsf{fancyvrb}, which sets each 
+% line as a box of its own in the vertical list, with a penalty between two 
+% lines.
+% \textsf{fancyvrb} knows the number of lines only at the end, so it looks 
+% one line ahead: it holds a line back until the next one comes, which is 
+% enough for a club and a widow penalty, but not for keeping a whole listing 
+% together or three lines at each end.
+% So we hold back all of them.
+% We collect the lines in a |\vbox|; at the end of the listing we know how 
+% many lines there are, put the penalties between them that we want, and 
+% add them to the page.
+%
+% This is for the notes: on the slides, frames don't break, and we want 
+% nothing to change there.
+% So we do nothing when the class is |beamer|.
+% \TeX\ skips that code as a whole, so the conditionals in it must be known 
+% before.
+%    \begin{macrocode}
+\newif\if@didactic@keep
+\newif\if@didactic@keep@glue
+\newif\if@didactic@keep@ok
+\@ifclassloaded{beamer}{\@didactic@keepfalse}{\@didactic@keeptrue}
+\if@didactic@keep
+%    \end{macrocode}
+%
+% \begin{macro}{\@didactic@keep@first}
+% \begin{macro}{\@didactic@keep@next}
+% \begin{macro}{\@didactic@keep@add}
+% \textsf{fancyvrb} sets the first line with |\FV@ListProcessLine@i|, which 
+% also puts the label of a list item before it, if the listing starts an 
+% item, and then lets |\FV@ProcessLine| be the macro for the next lines.
+% We do the same, with our own macro for the next lines.
+%
+% The lines are collected in |\@didactic@keep@box|, in the order and with 
+% the material between them that \textsf{fancyvrb} would put on the page.
+% That isn't only the lines: \textsf{fvextra} adds |\vspace| of $-0.25$\,pt 
+% after each line it sets (so that the backgrounds of two lines overlap), 
+% even without a background colour, and \textsf{fancyvrb} sets a line in a 
+% box first and puts it on the page only when the next one is set, so the 
+% space comes before the line it belongs to.
+% We do the same: we set the line with |\setbox| within the |\vbox|, and 
+% then add it.
+% When a box is added to a vertical list, \TeX\ puts the interline glue 
+% before it, computed from the depth of the box before, |\prevdepth|.
+% In a new |\vbox| that depth is lost, so we keep it in 
+% |\@didactic@keep@pd| and restore it each time.
+% For the first line it is the depth of what is on the page before the 
+% listing: so the glue before the first line is the glue it would have got 
+% on the page, and it comes along when we add the lines to the page.
+%
+% An empty line in a program shows nothing, so three lines at the foot of a 
+% page of which one is empty look like two.
+% We count the lines that aren't empty, in |\@didactic@keep@nb|, and note 
+% for each line whether it's empty, a |1| or a |0| in front of 
+% |\@didactic@keep@blanks|, so that the last line comes first.
+%    \begin{macrocode}
+\newbox\@didactic@keep@box
+\newbox\@didactic@keep@line
+\newbox\@didactic@keep@labels
+\newcount\@didactic@keep@n
+\newcount\@didactic@keep@nb
+\newdimen\@didactic@keep@pd
+\def\@didactic@keep@first#1{%
+  \setbox\@didactic@keep@labels\box\@labels
+  \global\@didactic@keep@n\z@
+  \global\@didactic@keep@nb\z@
+  \gdef\@didactic@keep@blanks{}%
+  \ifvmode
+    \global\@didactic@keep@pd\prevdepth
+  \else
+    \global\@didactic@keep@pd-\@m\p@
+  \fi
+  \global\setbox\@didactic@keep@box\vbox{%
+    \prevdepth\@didactic@keep@pd
+    \hbox{%
+      \ifvoid\@didactic@keep@labels\else
+        \hbox to\z@{\kern\@totalleftmargin\box\@didactic@keep@labels\hss}%
+      \fi
+      \FV@ListProcessLine{#1}}%
+    \global\@didactic@keep@pd\prevdepth}%
+  \@didactic@keep@add{#1}%
+  \let\FV@ProcessLine\@didactic@keep@next}
+\def\@didactic@keep@next#1{%
+  \global\setbox\@didactic@keep@box\vbox{%
+    \unvbox\@didactic@keep@box
+    \setbox\@didactic@keep@line\FV@ListProcessLine{#1}%
+    \prevdepth\@didactic@keep@pd
+    \box\@didactic@keep@line
+    \global\@didactic@keep@pd\prevdepth}%
+  \@didactic@keep@add{#1}}
+\def\@didactic@keep@add#1{%
+  \global\advance\@didactic@keep@n\@ne
+  \def\@didactic@keep@text{#1}%
+  \ifx\@didactic@keep@text\@empty
+    \xdef\@didactic@keep@blanks{1\@didactic@keep@blanks}%
+  \else
+    \global\advance\@didactic@keep@nb\@ne
+    \xdef\@didactic@keep@blanks{0\@didactic@keep@blanks}%
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@keep@penalty}
+% The penalty after line~|#1| of the |\@didactic@keep@n| lines, when 
+% |\@didactic@keep@tail| of the lines after it aren't empty, and the one 
+% right after it is empty if |\@didactic@keep@nextblank| is |1|.
+% We start from what \textsf{fancyvrb} puts there: |\interlinepenalty|, 
+% plus |\clubpenalty| after the first line and |\widowpenalty| before the 
+% last.
+% Then we forbid the break, with a penalty of 10\,000, everywhere in a 
+% listing of at most |keeplines| lines.
+% In a longer one we forbid it where fewer than |keepends| lines that aren't 
+% empty come before it or after it, and before an empty line, so that no 
+% page starts with one; a break after an empty line, between two parts of 
+% a program, stays allowed.
+%    \begin{macrocode}
+\def\@didactic@keep@penalty#1{%
+  \@tempcntb\interlinepenalty
+  \ifnum#1=\@ne
+    \advance\@tempcntb\clubpenalty
+  \fi
+  \ifnum#1=\numexpr\@didactic@keep@n-\@ne\relax
+    \advance\@tempcntb\widowpenalty
+  \fi
+  \ifnum\@didactic@keep@n>\@didactic@keeplines
+    \ifnum\numexpr\@didactic@keep@nb-\@didactic@keep@tail\relax
+        <\@didactic@keepends
+      \@tempcntb\@M
+    \fi
+    \ifnum\@didactic@keep@tail<\@didactic@keepends
+      \@tempcntb\@M
+    \fi
+    \if1\@didactic@keep@nextblank
+      \@tempcntb\@M
+    \fi
+  \else
+    \@tempcntb\@M
+  \fi
+  \penalty\@tempcntb}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@keep@flush}
+% \begin{macro}{\@didactic@keep@take}
+% \begin{macro}{\@didactic@keep@taketrail}
+% At the end of the listing we take the lines out of the box again, from 
+% the last one, which works in an internal vertical list: a box with 
+% |\lastbox|, glue with |\lastskip| and |\unskip|, a kern with |\lastkern| 
+% and |\unkern|, a penalty with |\lastpenalty| and |\unpenalty|; 
+% |\lastnodetype| (from e-\TeX) tells which one is last: 1 or 2 for a box, 11 
+% for glue, 12 for a kern and 13 for a penalty.
+% For each line, from the last, we take what comes after it 
+% (|\@didactic@keep@taketrail|, into |\@didactic@keep@trail|), the line, 
+% and the interline glue before it, unless it's the first line: before the 
+% first one there is the glue from the page before the listing, which 
+% stays.
+% We put the glue, the line, the penalty after it and what came after it in 
+% front of the lines we've already taken, in |\@didactic@keep@out|, and 
+% finally add both boxes to the page with |\unvbox|, which leaves the breaks 
+% in them to the page builder.
+% The penalty goes right after the line, before the space of 
+% \textsf{fvextra}: glue right after a box is a place where the page may 
+% break, whatever the penalties, but glue after a penalty isn't.
+% (\textsf{fancyvrb} puts the penalty after that space, so every listing of 
+% \textsf{fvextra} can break after any line, even with |samepage|.)
+% If something else comes between the lines, which we can't take, like a 
+% |\write| or a |\mark|, we stop taking lines, and the lines that are left 
+% get no penalties between them; a page can break there as at any glue.
+%
+% After each line we take its note of being empty from 
+% |\@didactic@keep@blanks|, for the penalty after the line before it, and 
+% count the lines that aren't empty, in |\@didactic@keep@tail|.
+% |\unvbox| doesn't set |\prevdepth|, so we set it to the depth of the last 
+% line, for what comes after the listing.
+%    \begin{macrocode}
+\newbox\@didactic@keep@out
+\newbox\@didactic@keep@trail
+\newcount\@didactic@keep@i
+\newcount\@didactic@keep@tail
+\newskip\@didactic@keep@skip
+\def\@didactic@keep@pop#1#2\@nil{%
+  \def\@didactic@keep@nextblank{#1}%
+  \gdef\@didactic@keep@blanks{#2}}
+\def\@didactic@keep@taketrail{%
+  \let\@didactic@keep@again\relax
+  \ifcase\numexpr\lastnodetype-10\relax
+  \or % glue
+    \skip@\lastskip
+    \unskip
+    \global\setbox\@didactic@keep@trail\vbox{%
+      \vskip\skip@\unvbox\@didactic@keep@trail}%
+    \let\@didactic@keep@again\@didactic@keep@taketrail
+  \or % kern
+    \dimen@\lastkern
+    \unkern
+    \global\setbox\@didactic@keep@trail\vbox{%
+      \kern\dimen@\unvbox\@didactic@keep@trail}%
+    \let\@didactic@keep@again\@didactic@keep@taketrail
+  \or % penalty
+    \count@\lastpenalty
+    \unpenalty
+    \global\setbox\@didactic@keep@trail\vbox{%
+      \penalty\count@\unvbox\@didactic@keep@trail}%
+    \let\@didactic@keep@again\@didactic@keep@taketrail
+  \fi
+  \@didactic@keep@again}
+\def\@didactic@keep@take{%
+  \global\setbox\@didactic@keep@trail\box\voidb@x
+  \@didactic@keep@taketrail
+  \global\@didactic@keep@okfalse
+  \ifnum\lastnodetype=\@ne
+    \global\@didactic@keep@oktrue
+  \fi
+  \ifnum\lastnodetype=\tw@
+    \global\@didactic@keep@oktrue
+  \fi
+  \if@didactic@keep@ok
+    \global\setbox\@didactic@keep@line\lastbox
+    \global\@didactic@keep@gluefalse
+    \ifnum\@didactic@keep@i>\@ne
+      \ifnum\lastnodetype=11
+        \global\@didactic@keep@skip\lastskip
+        \unskip
+        \global\@didactic@keep@gluetrue
+      \fi
+    \fi
+  \fi}
+\def\@didactic@keep@flush{%
+  \setbox\@didactic@keep@out\box\voidb@x
+  \@didactic@keep@i\@didactic@keep@n
+  \@didactic@keep@tail\z@
+  \loop
+    \setbox\@didactic@keep@box\vbox{%
+      \unvbox\@didactic@keep@box
+      \@didactic@keep@take}%
+    \if@didactic@keep@ok
+      \setbox\@didactic@keep@out\vbox{%
+        \if@didactic@keep@glue
+          \vskip\@didactic@keep@skip
+        \fi
+        \box\@didactic@keep@line
+        \ifnum\@didactic@keep@i<\@didactic@keep@n
+          \@didactic@keep@penalty\@didactic@keep@i
+        \fi
+        \unvbox\@didactic@keep@trail
+        \unvbox\@didactic@keep@out}%
+      \expandafter\@didactic@keep@pop\@didactic@keep@blanks\@nil
+      \if0\@didactic@keep@nextblank
+        \advance\@didactic@keep@tail\@ne
+      \fi
+      \advance\@didactic@keep@i\m@ne
+    \else
+      \setbox\@didactic@keep@out\vbox{%
+        \unvbox\@didactic@keep@trail
+        \unvbox\@didactic@keep@out}%
+      \@didactic@keep@i\z@
+    \fi
+  \ifnum\@didactic@keep@i>\z@
+  \repeat
+  \unvbox\@didactic@keep@box
+  \unvbox\@didactic@keep@out
+  \prevdepth\@didactic@keep@pd}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\FV@ListProcessLine@i}
+% \begin{macro}{\FV@ListProcessLastLine}
+% We hand the first line to our own macro, and at the end of the listing we 
+% add the lines to the page.
+% If the listing has no lines, \textsf{fancyvrb}'s own last-line macro 
+% complains and sets an empty line, with our first-line macro, so we add 
+% the lines after it.
+%    \begin{macrocode}
+\let\@didactic@FV@ListProcessLastLine\FV@ListProcessLastLine
+\def\FV@ListProcessLine@i{\@didactic@keep@first}
+\def\FV@ListProcessLastLine{%
+  \ifx\FV@ProcessLine\@didactic@keep@next\else
+    \@didactic@FV@ListProcessLastLine
+  \fi
+  \ifx\FV@ProcessLine\@didactic@keep@next
+    \@didactic@keep@flush
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\FV@ListVSpace}
+% Before the listing, \textsf{fancyvrb} adds |\@beginparpenalty|, as a 
+% \LaTeX\ list does, which by default invites a page break there.
+% With |keepleadin| we forbid it, so the paragraph before stays with the 
+% listing.
+% Breaks within that paragraph are still allowed.
+%    \begin{macrocode}
+\let\@didactic@FV@ListVSpace\FV@ListVSpace
+\def\FV@ListVSpace{%
+  \if@didactic@keepleadin
+    \@beginparpenalty\@M
+  \fi
+  \@didactic@FV@ListVSpace}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\nwbegincode}
+% \begin{macro}{\@begincode}
+% A code chunk of \textsf{noweb} is a list too, with a header line, 
+% \meta{chunk name}${}\equiv{}$, before the code.
+% \textsf{noweb} puts |\@highpenalty| before the chunk, which doesn't keep 
+% the chunk from being parted from its lead-in, and |\nwcodepenalty| after 
+% each line, the header line too.
+% With |keepleadin| we forbid both breaks: we make the penalty before the 
+% chunk 10\,000, and the penalty after the first line of the chunk, the 
+% header, |\@didactic@nwfirstpenalty|, which is 10\,000 in a chunk until 
+% the header has used it, and |\nwcodepenalty| otherwise.
+% When the chunk's code is set by |minted|, the breaks in the code itself 
+% are ours, as for every listing; when \textsf{noweb} sets the code, its 
+% breaks stay as they were.
+% \textsf{noweb} is usually loaded after us, so we patch it at the beginning 
+% of the document, if it's loaded.
+% |\patchcmd| reads the patched macro anew with the category codes of the 
+% moment, and there |@| usually isn't a letter any more, so we make it one 
+% for a while.
+%    \begin{macrocode}
+\let\@didactic@nwfirstpenalty\relax
+\def\@didactic@nwkeep{%
+  \if@didactic@keepleadin
+    \@beginparpenalty\@M
+    \def\@didactic@nwfirstpenalty{\@M}%
+  \fi}
+\def\@didactic@nwkeepwarning{%
+  \PackageWarningNoLine{didactic}{%
+    Can't patch noweb's code chunks; option\MessageBreak
+    keepleadin has no effect on them}}
+\AtBeginDocument{%
+  \ifdefined\nwbegincode
+    \chardef\@didactic@atcatcode\catcode`\@
+    \makeatletter
+    \let\@didactic@nwfirstpenalty\nwcodepenalty
+    \ifpatchable{\nwbegincode}{\@begincode}{%
+      \ifpatchable{\@begincode}{\@@par\penalty\nwcodepenalty}{%
+        \patchcmd{\nwbegincode}{\@begincode}
+          {\@didactic@nwkeep\@begincode}{}{}%
+        \patchcmd{\@begincode}{\@@par\penalty\nwcodepenalty}
+          {\@@par\penalty\@didactic@nwfirstpenalty
+            \let\@didactic@nwfirstpenalty\nwcodepenalty}{}{}%
+      }{\@didactic@nwkeepwarning}%
+    }{\@didactic@nwkeepwarning}%
+    \catcode`\@\@didactic@atcatcode
+  \fi}
+\fi
+%    \end{macrocode}
+% \end{macro}
 % \end{macro}
 %
 % \Finale
