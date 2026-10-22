@@ -1005,6 +1005,8 @@
 %   each side.
 %   The lines are lines of the text, and the lines of the lead-in that move 
 %   along count too.
+%   With a limit, the place to break that \textsf{noweb} offers after every 
+%   code chunk, which also leaves empty space, is dropped.
 %   The default is 5; 0 turns the limit off.
 % \item[keepafterheading] At least this many lines follow a heading on its 
 %   page: of text, of a listing, or of a table.
@@ -1013,6 +1015,8 @@
 %   included, so also for the frame titles in the notes, and for the 
 %   headings of the blocks (|example|, |exercise|, |solution| and so on), 
 %   but not for |\chapter|, which starts a page anyway.
+%   A table of \textsf{longtable} that starts on the next page, leaving the 
+%   heading behind, takes the heading along in the next run.
 %   The default is 3; 0 turns it off.
 % \end{description}
 % The page that a listing moves away from keeps its space empty at the
@@ -5279,8 +5283,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % on the page, like \textsf{needspace} does: |\@didactic@keep@room|
 % \{\meta{height}\} ends the page here if less than \meta{height} plus that 
 % many lines of the text are left.
-% The page left is then at most that much short, a few lines, so this needs 
-% no limit of its own.
+% The page left is then at most that much short, a few lines; but with a 
+% |keepmaxgap| we break only if no more than that many lines are left, and 
+% otherwise let the heading stay with as many lines as fit.
 % Not after another heading (|\if@nobreak|), which has asked already, nor on 
 % an empty page, nor inside a box.
 % Nor when the text so far is already more than the page holds: then \TeX\ 
@@ -5308,9 +5313,16 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \if@nobreak\else
       \ifvmode\ifinner\else\ifdim\pagegoal<\maxdimen
         \ifdim\pagetotal>\pagegoal\else
-          \ifdim\dimexpr\pagegoal-\pagetotal\relax<\dimexpr#1
+          \dimen@\dimexpr\pagegoal-\pagetotal\relax
+          \ifdim\dimen@<\dimexpr#1
               +\@didactic@keepafterheading\@didactic@keep@L\relax
-            \penalty-\@M
+            \ifnum\@didactic@keepmaxgap>\z@
+              \ifdim\dimen@>\@didactic@keepmaxgap\@didactic@keep@L\else
+                \penalty-\@M
+              \fi
+            \else
+              \penalty-\@M
+            \fi
           \fi
         \fi
       \fi\fi\fi
@@ -5380,6 +5392,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % the break stays as long as the heading is where it was in the source.
 % A heading at the top of a page, or on a page already over full, doesn't 
 % break.
+% Nor does one that would leave more than |keepmaxgap| lines empty: the room 
+% left on the page when the heading started (|\@didactic@keep@headtotal|, 
+% the |\pagetotal| then) must be within the limit.
 % The pages are written at shipout, like |\label|'s, through 
 % |\@didactic@keep@cpage|.
 %    \begin{macrocode}
@@ -5398,7 +5413,13 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \global\@namedef{@didactic@hb@#1}{}%
   \fi}
 \let\@didactic@keep@headkey\@empty
+\def\@didactic@keep@headtotal{-\maxdimen}
 \def\@didactic@keep@headrecord{%
+  \ifdim\pagegoal<\maxdimen
+    \xdef\@didactic@keep@headtotal{\the\pagetotal}%
+  \else
+    \gdef\@didactic@keep@headtotal{-\maxdimen}%
+  \fi
   \xdef\@didactic@keep@headkey{%
     \ifx\CurrentFile\@empty\jobname\else
       \ifx\CurrentFile\@undefined\jobname\else\CurrentFile\fi\fi
@@ -5432,6 +5453,14 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
           \global\@didactic@keep@ltowedtrue
         \fi
       \fi\fi
+      \ifnum\@didactic@keepmaxgap>\z@
+        \ifdim\@didactic@keep@headtotal<\z@
+          \global\@didactic@keep@ltowedfalse
+        \else\ifdim\dimexpr\pagegoal-\@didactic@keep@headtotal\relax
+            >\@didactic@keepmaxgap\@didactic@keep@L
+          \global\@didactic@keep@ltowedfalse
+        \fi\fi
+      \fi
     \fi
   \fi}
 \def\@didactic@keep@tablepage{%
