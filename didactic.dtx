@@ -155,6 +155,8 @@
 %   chunk, stay with it.
 %   A listing of \textsf{fvextra} (so of |minted|) no longer breaks after 
 %   any line, whatever the penalties.
+%   Writes the margin column's place to the log 
+%   (|didactic-margin: odd=|\dots), for scripts that check the notes.
 % }
 % \changes{v2.13}{2026/10/21}{%
 %   In the article mode of |beamer|, a frame title is a run-in heading: the 
@@ -546,6 +548,14 @@
 % |use| isn't the default; choose it when you know your bottom floats, or 
 % mark the ones that reach out.
 % Floats at the top of the page always keep the margin empty.
+%
+% Outside |beamer|, \textsf{didactic} writes where the margin column is to 
+% the log, once, as |didactic-margin: odd=431.65 even=431.65 width=156.7|: 
+% the left edge of the margin column on odd and even pages and its width, 
+% in big points (\texttt{bp}) from the left edge of the page, as in the 
+% PDF.
+% A script that checks that each margin note is printed on the page of its 
+% mark can read it there instead of guessing it.
 %
 % \subsection{Figures and tables in the margin}
 %
@@ -2705,6 +2715,72 @@
   \ifdefined\marginnotebesidefloats
     \expandafter\marginnotebesidefloats\expandafter
       {\@didactic@notebesidefloats}%
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@marginlog}
+% Tools that check the notes, for instance that each margin note is printed 
+% on the page of its mark, need to know where the margin column is.
+% Guessing it from the positions of the words fails when the text reaches 
+% into the gap before the margin, as code set side by side can.
+% So, outside |beamer|, we write the margin column to the log once, when the 
+% layout is final, at the end of |\begin{document}|, in one line:
+% \begin{quote}
+% |didactic-margin: odd=|\meta{x} |even=|\meta{x} |width=|\meta{w}
+% \end{quote}
+% where \meta{x} is the left edge of the margin column on odd and on even 
+% pages and \meta{w} its width, |\marginparwidth|, all in big points 
+% (\texttt{bp}), the unit of PDF coordinates, from the left edge of the page.
+% In a one-sided document |odd| and |even| are the same.
+% The text block starts at 1\,in${}+{}$|\hoffset|${}+{}$|\oddsidemargin| 
+% (|\evensidemargin| on even pages of a two-sided document).
+% A margin to the right of it starts |\marginparsep| after the text, and one 
+% to the left starts |\marginparsep| and |\marginparwidth| before it.
+% Which side it is on we ask \textsf{marginfix}, which places the notes 
+% (|\MFX@marginside|, which knows |memoir|'s |\marginparmargin| too); it 
+% leaves |\@tempcnta| at 1 for the right and $-1$ for the left.
+%    \begin{macrocode}
+\@ifclassloaded{beamer}{}{%
+  \def\@didactic@marginx#1#2{%
+    \begingroup
+      \c@page=#1\relax
+      \@tempcnta\@ne
+      \ifdefined\MFX@marginside
+        \MFX@marginside
+      \else
+        \if@mparswitch
+          \ifodd\c@page\else\@tempcnta\m@ne\fi
+        \fi
+        \if@reversemargin\@tempcnta-\@tempcnta\fi
+      \fi
+      \@tempdima\dimexpr 1in+\hoffset\relax
+      \if@twoside
+        \ifodd\c@page
+          \advance\@tempdima\oddsidemargin
+        \else
+          \advance\@tempdima\evensidemargin
+        \fi
+      \else
+        \advance\@tempdima\oddsidemargin
+      \fi
+      \ifnum\@tempcnta>\z@
+        \advance\@tempdima\dimexpr\textwidth+\marginparsep\relax
+      \else
+        \advance\@tempdima-\dimexpr\marginparsep+\marginparwidth\relax
+      \fi
+      \xdef#2{\fpeval{round(\@tempdima/1bp, 2)}}%
+    \endgroup}
+  \def\@didactic@marginlog{%
+    \@didactic@marginx\@ne\@didactic@marginodd
+    \@didactic@marginx\tw@\@didactic@margineven
+    \typeout{didactic-margin: odd=\@didactic@marginodd\space
+      even=\@didactic@margineven\space
+      width=\fpeval{round(\marginparwidth/1bp, 2)}}}
+  \ifdefined\AddToHook
+    \AddToHook{begindocument/end}{\@didactic@marginlog}
+  \else
+    \AtBeginDocument{\@didactic@marginlog}
   \fi}
 %    \end{macrocode}
 % \end{macro}
