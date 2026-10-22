@@ -5,7 +5,7 @@
 % Each case starts on a new page, after a rule that leaves room for a few
 % lines only, so that without didactic the listing would break there.
 %
-% Build: see the Makefile (pdflatex twice, for the page references).  The
+% Build: see the Makefile (three runs, for the page references and case N).  The
 % document checks itself: the last page lists every check with PASS or
 % FAIL, and the log has a line "didactic keep test: <check> PASS/FAIL"
 % for each; the Makefile fails on any FAIL.
@@ -29,6 +29,17 @@
 %      Skipped without noweb.sty.
 %   J  a pair of didacticpair (as \codebycode and \runbyrun make), 8 lines
 %      tall, with room for 2 lines: on the next page with its lead-in.
+%   L  a short listing (10 lines) with room for 8 of its lines: moving it
+%      would leave more than keepmaxgap (5) lines empty, so it breaks, with
+%      at least three lines on each side.
+%   K  a section heading followed by four lines of text, with room for it
+%      and two lines: it moves to the next page with three lines
+%      (keepafterheading).
+%   M  the heading of a block (example), with room for two of its lines:
+%      the block moves to the next page.
+%   N  a section heading, a sentence and a longtable whose caption and
+%      first row don't fit: the heading moves to the page of the table, in
+%      the run after the one that finds it (so three runs).
 %   G  a short listing in an item of a list: the item's label "1." beside
 %      its first line, as without didactic.
 %   H  the vertical space around a listing is as without didactic: the
@@ -41,6 +52,7 @@
 \usepackage{didactic}
 \usepackage[noamsthm,notheorems]{beamerarticle}
 \usepackage{refcount}
+\usepackage{longtable}
 \IfFileExists{noweb.sty}{\usepackage[minted]{noweb}}{}
 
 \makeatletter
@@ -153,6 +165,37 @@ Lead-in J, to code side by side:\label{j-lead}
 \end{didacticpair}
 Text after J.
 
+\roomfor{9}
+Lead-in L, to a short listing with room for eight of its ten lines.%
+\label{l-lead}
+\testlisting{l}{10}
+Text after L.
+
+\roomfor{6}
+\section*{Heading K}\label{k-head}
+First line of K\\
+second line\\
+third line\label{kL3}\\
+fourth line.
+
+\roomfor{2}
+\begin{example}[Heading M]\label{m-head}
+First line of M\label{mL1}\\
+second line\\
+third line\label{mL3}\\
+fourth line.
+\end{example}
+
+\roomfor{4}
+\section*{Heading N}\label{n-head}
+Table N lists the rows.
+\begin{longtable}{ll}
+\caption{A caption of several lines, several lines, several lines, several
+  lines, several lines, several lines, several lines, several
+  lines.}\label{n-tab}\\
+a & b\\ a & b\\ a & b\\ a & b\\
+\end{longtable}
+
 \roomfor{8}
 \begin{enumerate}
 \item Lead-in G, in an item:
@@ -187,6 +230,12 @@ Text after J.
 \fi
 \testcheck{G first and last line together}{gL1}{=}{gL5}
 \testcheck{J lead-in with the pair}{j-lead}{=}{j-pair}
+\item[] Limits on the empty space and headings:
+\testcheck{L breaks, rather than leave the room empty}{lL1}{<}{lL10}
+\testcheck{L lead-in with line 3}{l-lead}{=}{lL3}
+\testcheck{K heading with three lines}{k-head}{=}{kL3}
+\testcheck{M block heading with its third line}{mL1}{=}{mL3}
+\testcheck{N heading with its long table}{n-head}{=}{n-tab}
 \end{itemize}
 
 \end{document}

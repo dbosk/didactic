@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/10/22 v2.14 didactic]
+  [2026/10/22 v2.15 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -145,6 +145,31 @@
 %   when it's loaded.
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
+% }
+% \changes{v2.15}{2026/10/23}{%
+%   In the article mode of |beamer|, the titles of |block|, |alertblock| and 
+%   |exampleblock| are run-in headings too, like the frame titles.
+% }
+% \changes{v2.15}{2026/10/22}{%
+%   Adds |keepmaxgap|: a listing kept together moves to the next page only 
+%   if that leaves at most 5 empty lines at its foot, and otherwise breaks.
+%   Adds |keepafterheading|: at least 3 lines follow a heading, of a section 
+%   or a block, on its page, or the heading moves to the next page.
+% }
+% \changes{v2.15}{2026/10/22}{%
+%   Lowers the default of |keeplines| to 10 lines: long programs may break, 
+%   and a page is left less empty for a listing.
+% }
+% \changes{v2.15}{2026/10/22}{%
+%   With |keepleadin|, sets the club and widow penalties to 10\,000 in the 
+%   notes, so that a lead-in of a few lines, such as an exercise's heading 
+%   and first sentence, moves whole with its listing.
+% }
+% \changes{v2.15}{2026/10/22}{%
+%   Adds the |noteoverflow| option, passed on to \textsf{marginfix}'s 
+%   \texttt{\textbackslash marginnoteoverflow} (version 1.6 and later): with |break|, the 
+%   default, a page ends before the line of a margin note that doesn't 
+%   fit on it, instead of the note moving to the next page.
 % }
 % \changes{v2.14}{2026/10/22}{%
 %   Keeps listings together across pages outside |beamer|: a listing of at 
@@ -447,6 +472,9 @@
 % A frame that starts with a list, a block or other displayed material gets
 % the title on a line of its own above it, as after any run-in heading.
 % The slides are unchanged.
+% The titles of |beamer|'s blocks (|block|, |alertblock|, |exampleblock|) 
+% are run-in headings in the notes in the same way, in the fonts that 
+% |beamer| gives them there: bold, bold italic and italic.
 % The option |noarticle| keeps |beamerarticle|'s frame titles, and so does
 % setting the template |frametitle| in the preamble, after |beamerarticle|
 % is loaded.
@@ -548,6 +576,25 @@
 % |use| isn't the default; choose it when you know your bottom floats, or 
 % mark the ones that reach out.
 % Floats at the top of the page always keep the margin empty.
+%
+% \DescribeOpt{noteoverflow}
+% Even so, the notes of a page can be more than its margin holds, say in a 
+% paragraph dense with citations, whose footnotes are in the margin too.
+% Then a note moves to the next page, away from its mark.
+% With |noteoverflow=break|, the default, the text gives way instead: the 
+% page ends before the line that calls out the first note that doesn't fit, 
+% in the next run, so that line and its note start the next page 
+% (\textsf{marginfix} 1.6 and later, with pdf\LaTeX\ or Lua\LaTeX).
+% A page that ends that early is a little shorter, but its margin is full; 
+% if its text fills less than half of it, \textsf{marginfix} warns, naming 
+% the page.
+% With |noteoverflow=carry| the notes move to the next page as before.
+% The mode is read where a note is called out, and obeys groups, so 
+% |{\marginnoteoverflow{carry}| ...|}| lets the notes of one passage move to 
+% the next page, while the rest of the document keeps |break|.
+% \textsf{marginfix} logs every note that is still carried to a later page, 
+% as |marginfix-spill: page=|\meta{p}| to=|\meta{q}| intended| for a note in 
+% the mode |carry| and |... unresolved| otherwise.
 %
 % Outside |beamer|, \textsf{didactic} writes where the margin column is to 
 % the log, once, as |didactic-margin: odd=431.65 even=431.65 width=156.7|: 
@@ -942,7 +989,7 @@
 % \begin{description}
 % \item[keeplines] A listing of at most this many lines never breaks; it
 %   moves to the next page as a whole.
-%   The default is 20.
+%   The default is 10.
 % \item[keepends] A longer listing may break, but leaves at least this many
 %   lines on each side of the break, not counting empty lines.
 %   The default is 3.
@@ -954,16 +1001,39 @@
 %   \TeX\ doesn't break a page before a displayed formula.
 %   The header line of a code chunk of \textsf{noweb} stays with its code
 %   too.
-%   A page may still break within a longer paragraph before the listing,
-%   which leaves at least its last line with the listing: that paragraph is
-%   on the page before the listing starts.
+%   For that, no paragraph in the notes leaves its first or last line alone
+%   at the foot or the top of a page: a lead-in of up to three lines, an
+%   exercise's heading included, moves whole with the listing, and a longer
+%   one leaves at least two lines with it.
 %   The default is |true|.
+% \item[keepmaxgap] A listing of at most |keeplines| lines moves to the next 
+%   page only if that leaves at most this many empty lines at the foot of 
+%   the page; otherwise it breaks there, still with |keepends| lines on 
+%   each side.
+%   The lines are lines of the text, and the lines of the lead-in that move 
+%   along count too.
+%   With a limit, the place to break that \textsf{noweb} offers after every 
+%   code chunk, which also leaves empty space, is dropped.
+%   The default is 5; 0 turns the limit off.
+% \item[keepafterheading] At least this many lines follow a heading on its 
+%   page: of text, of a listing, or of a table.
+%   If they don't fit, the heading starts the next page.
+%   This holds for |\section| and the levels below it, |\paragraph| 
+%   included, so also for the frame titles in the notes, and for the 
+%   headings of the blocks (|example|, |exercise|, |solution| and so on), 
+%   but not for |\chapter|, which starts a page anyway.
+%   A table of \textsf{longtable} that starts on the next page, leaving the 
+%   heading behind, takes the heading along in the next run.
+%   The default is 3; 0 turns it off.
 % \end{description}
 % The page that a listing moves away from keeps its space empty at the
-% foot, so |keeplines| is a trade-off: 20 lines of code in |\footnotesize|
-% and the line that leads into them take about a third of the text block of
-% the notes' layout, so a page is left at most about a third empty for the
-% sake of a listing.
+% foot, so |keeplines| is a trade-off between a listing cut in two and 
+% empty space, and |keepmaxgap| bounds the empty space: a listing of 10 
+% lines moves whole only if at most 5 lines of the page are left empty, 
+% and otherwise breaks as a longer one does.
+% The default keeps a short function whole and lets a whole program break.
+% Since a longer listing keeps |keepends| lines at each end, one of fewer 
+% than $2\times3$ lines that aren't empty can't break anyway.
 % With a larger font for the code, choose fewer lines.
 % |keeplines=0, keepends=1, keepleadin=false| gives the penalties of
 % \textsf{fancyvrb} itself.
@@ -1120,6 +1190,20 @@
 %    \end{macrocode}
 % \end{option}
 %
+% \begin{option}{noteoverflow}
+% The |noteoverflow| option is passed on to \textsf{marginfix}'s 
+% |\marginnoteoverflow| (version 1.6 and later), see below.
+% We default to |break|, unlike \textsf{marginfix}: a footnote in the 
+% margin must stay with its mark, and when the margin of a page can't hold 
+% the notes of its text even after |notepriority| has moved the commentary, 
+% the text has to give way.
+%    \begin{macrocode}
+\newcommand\@didactic@noteoverflow{break}
+\DeclareOptionX{noteoverflow}{%
+  \renewcommand\@didactic@noteoverflow{#1}}
+%    \end{macrocode}
+% \end{option}
+%
 % \begin{option}{sidecapalign}
 % The |sidecapalign| option says where the contents of a float with a side 
 % caption go, see below.
@@ -1141,7 +1225,7 @@
 % no page break comes between a listing and the text that leads into it.
 %    \begin{macrocode}
 \newcount\@didactic@keeplines
-\@didactic@keeplines=20
+\@didactic@keeplines=10
 \newcount\@didactic@keepends
 \@didactic@keepends=3
 \newif\if@didactic@keepleadin
@@ -1154,6 +1238,22 @@
     {false}{\@didactic@keepleadinfalse}%
   }[\PackageError{didactic}{Unknown value `#1' for keepleadin}
       {Use true or false.}]}
+%    \end{macrocode}
+% \end{option}
+% \end{option}
+%
+% \begin{option}{keepafterheading}
+% \begin{option}{keepmaxgap}
+% |keepafterheading| is the number of lines that follow a heading on its 
+% page, and |keepmaxgap| the number of empty lines that keeping a listing 
+% together may leave at the foot of a page, see \cref{KeepListings}.
+%    \begin{macrocode}
+\newcount\@didactic@keepafterheading
+\@didactic@keepafterheading=3
+\newcount\@didactic@keepmaxgap
+\@didactic@keepmaxgap=5
+\DeclareOptionX{keepafterheading}{\@didactic@keepafterheading=#1\relax}
+\DeclareOptionX{keepmaxgap}{\@didactic@keepmaxgap=#1\relax}
 %    \end{macrocode}
 % \end{option}
 % \end{option}
@@ -2167,6 +2267,56 @@
 \fi
 %    \end{macrocode}
 %
+% \paragraph{Block titles.}
+% The titles of |beamer|'s blocks (|block|, |alertblock| and 
+% |exampleblock|) are on a line of their own in the article mode too: the 
+% templates |block begin| and the like of \textsf{beamerbasearticle} set 
+% the title, end the paragraph and start the block's text in a new one.
+% We make them run-in headings as well, with the same space before as 
+% |beamer| leaves, and in its fonts: bold, bold italic for an alerted block 
+% and italic for an example block.
+% We use |\@startsection| directly, as |\paragraph*| does, with level 4 and 
+% the space of 1\,em after the title, so that a block that starts with a 
+% list, a display or a listing gets the title on a line of its own, and so 
+% that it counts as a heading for |keepafterheading|.
+% A block without a title gets none, and its text starts without an indent, 
+% as in \textsf{beamerbasearticle}; a title that waits for a 
+% paragraph when the block ends is set on a line of its own, as for the 
+% frames.
+%    \begin{macrocode}
+\newcommand\@didactic@blocktitle[1]{%
+  \ifx\insertblocktitle\@empty
+    \par\vskip\medskipamount\noindent\ignorespaces
+  \else
+    \@startsection{paragraph}{4}{\z@}{\medskipamount}{-1em}%
+      {\normalfont#1}*{\insertblocktitle}%
+  \fi}
+\newcommand\@didactic@endblock{%
+  \if@noskipsec\leavevmode\par\fi
+  \vskip\medskipamount}
+\if@didactic@article
+\AtEndOfPackageFile*{beamerarticle}{%
+  \defbeamertemplate<article>{block begin}{didactic}%
+    {\@didactic@blocktitle{\bfseries}}%
+  \defbeamertemplate<article>{block end}{didactic}{\@didactic@endblock}%
+  \defbeamertemplate<article>{block alerted begin}{didactic}%
+    {\@didactic@blocktitle{\bfseries\itshape}}%
+  \defbeamertemplate<article>{block alerted end}{didactic}%
+    {\@didactic@endblock}%
+  \defbeamertemplate<article>{block example begin}{didactic}%
+    {\@didactic@blocktitle{\itshape}}%
+  \defbeamertemplate<article>{block example end}{didactic}%
+    {\@didactic@endblock}%
+  \setbeamertemplate{block begin}[didactic]%
+  \setbeamertemplate{block end}[didactic]%
+  \setbeamertemplate{block alerted begin}[didactic]%
+  \setbeamertemplate{block alerted end}[didactic]%
+  \setbeamertemplate{block example begin}[didactic]%
+  \setbeamertemplate{block example end}[didactic]%
+}
+\fi
+%    \end{macrocode}
+%
 %
 % \subsection{More semantic environments}
 %
@@ -2699,8 +2849,9 @@
 % Without |memoir|, \textsf{marginfix} is loaded further down, so we set the 
 % cue, and the priority from the |notepriority| option, at the end of the 
 % package.
-% So a |\marginnotecontinued|, |\marginnotepriority| or 
-% |\marginnotebesidefloats| of your own must come after 
+% So a |\marginnotecontinued|, |\marginnotepriority|, 
+% |\marginnotebesidefloats| or |\marginnoteoverflow| of your own must come 
+% after 
 % |\usepackage{didactic}|, which should be the last package anyway; given 
 % before, ours replaces it.
 %    \begin{macrocode}
@@ -2716,6 +2867,10 @@
   \ifdefined\marginnotebesidefloats
     \expandafter\marginnotebesidefloats\expandafter
       {\@didactic@notebesidefloats}%
+  \fi
+  \ifdefined\marginnoteoverflow
+    \expandafter\marginnoteoverflow\expandafter
+      {\@didactic@noteoverflow}%
   \fi}
 %    \end{macrocode}
 % \end{macro}
@@ -4815,6 +4970,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \newif\if@didactic@keep
 \newif\if@didactic@keep@glue
 \newif\if@didactic@keep@ok
+\newif\if@didactic@keep@long
+\newif\if@didactic@keep@ltowed
 \@ifclassloaded{beamer}{\@didactic@keepfalse}{\@didactic@keeptrue}
 \if@didactic@keep
 %    \end{macrocode}
@@ -4906,7 +5063,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % plus |\clubpenalty| after the first line and |\widowpenalty| before the 
 % last.
 % Then we forbid the break, with a penalty of 10\,000, everywhere in a 
-% listing of at most |keeplines| lines.
+% listing of at most |keeplines| lines, unless moving it would leave too much 
+% empty space (|\if@didactic@keep@long|, see |\@didactic@keep@gap|).
 % In a longer one we forbid it where fewer than |keepends| lines that aren't 
 % empty come before it or after it, and before an empty line, so that no 
 % page starts with one; a break after an empty line, between two parts of 
@@ -4920,7 +5078,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \ifnum#1=\numexpr\@didactic@keep@n-\@ne\relax
     \advance\@tempcntb\widowpenalty
   \fi
-  \ifnum\@didactic@keep@n>\@didactic@keeplines
+  \if@didactic@keep@long
     \ifnum\numexpr\@didactic@keep@nb-\@didactic@keep@tail\relax
         <\@didactic@keepends
       \@tempcntb\@M
@@ -4936,6 +5094,49 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \fi
   \penalty\@tempcntb}
 %    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@keep@gap}
+% \begin{macro}{\@didactic@keep@L}
+% Whether the listing counts as long: when it has more than |keeplines| 
+% lines, or when it doesn't fit on what is left of the page and moving it to 
+% the next page would leave more than |keepmaxgap| lines empty there.
+% \TeX\ has put everything before the listing on the page by now, so 
+% |\pagegoal| less |\pagetotal| is the room left (unless the page is still 
+% empty, when |\pagegoal| is |\maxdimen|, or already holds more than the 
+% page, when we can't tell), and the box of lines is the height the listing 
+% needs.
+% With it would go the lines of the paragraph before it that are kept with 
+% it: all of them if it has at most three lines (|\prevgraf|), else two, 
+% since |keepleadin| keeps it and the paragraph's own club and widow 
+% penalties.
+% Lines are lines of the text, |\@didactic@keep@L|, the |\baselineskip| at 
+% the beginning of the document; the listing's own lines may be smaller.
+%    \begin{macrocode}
+\newdimen\@didactic@keep@L
+\AtBeginDocument{\@didactic@keep@L\baselineskip}
+\def\@didactic@keep@gap{%
+  \@didactic@keep@longfalse
+  \ifnum\@didactic@keep@n>\@didactic@keeplines
+    \@didactic@keep@longtrue
+  \else\ifnum\@didactic@keepmaxgap>\z@
+    \ifvmode\ifinner\else\ifdim\pagegoal<\maxdimen
+      \dimen@\dimexpr\pagegoal-\pagetotal\relax
+      \ifdim\dimen@<\z@\else
+      \ifdim\dimexpr\ht\@didactic@keep@box+\dp\@didactic@keep@box\relax
+          >\dimen@
+        \count@\prevgraf
+        \ifnum\count@>\thr@@ \count@\tw@ \fi
+        \advance\dimen@\count@\@didactic@keep@L
+        \ifdim\dimen@>\@didactic@keepmaxgap\@didactic@keep@L
+          \@didactic@keep@longtrue
+        \fi
+      \fi\fi
+    \fi\fi\fi
+  \fi\fi
+}
+%    \end{macrocode}
+% \end{macro}
 % \end{macro}
 %
 % \begin{macro}{\@didactic@keep@flush}
@@ -5024,6 +5225,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \fi
   \fi}
 \def\@didactic@keep@flush{%
+  \@didactic@keep@gap
   \setbox\@didactic@keep@out\box\voidb@x
   \@didactic@keep@i\@didactic@keep@n
   \@didactic@keep@tail\z@
@@ -5100,6 +5302,281 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 %    \end{macrocode}
 % \end{macro}
 %
+% \begin{macro}{\clubpenalty}
+% \begin{macro}{\widowpenalty}
+% That keeps only the last line of the paragraph with the listing: the 
+% paragraph is on the page before the listing starts, and the breaks 
+% within it are settled.
+% So the heading of an |exercise| with its first line could still end a 
+% page, with the rest of the lead-in and the code on the next.
+% Its club and widow penalties should prevent that, but with a ragged 
+% bottom (\textsf{noweb} sets one) a page that ends short of its height 
+% costs the same wherever it ends, and \TeX\ ends it as late as it can, 
+% whatever the penalties below 10\,000.
+% So with |keepleadin| we make them 10\,000, everywhere in the notes: no 
+% paragraph leaves its first line at the foot of a page or its last line at 
+% the top of the next.
+% A lead-in of up to three lines then moves whole with its listing, and a 
+% longer one leaves at least two lines with it.
+% \LaTeX\ keeps the club penalty in |\@clubpenalty| too, to restore it 
+% after headings and lists, so we set both, at the beginning of the 
+% document, after \LaTeX\ has copied it.
+%    \begin{macrocode}
+\AtBeginDocument{%
+  \if@didactic@keepleadin
+    \clubpenalty\@M
+    \@clubpenalty\@M
+    \widowpenalty\@M
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@keep@room}
+% \begin{macro}{\@startsection}
+% \begin{macro}{\@thm}
+% A heading should have |keepafterheading| lines after it on its page.
+% Whether they fit we can only say before the heading, from the room left 
+% on the page, like \textsf{needspace} does: |\@didactic@keep@room|
+% \{\meta{height}\} ends the page here if less than \meta{height} plus that 
+% many lines of the text are left.
+% The page left is then at most that much short, a few lines; but with a 
+% |keepmaxgap| we break only if no more than that many lines are left, and 
+% otherwise let the heading stay with as many lines as fit.
+% Not after another heading (|\if@nobreak|), which has asked already, nor on 
+% an empty page, nor inside a box.
+% Nor when the text so far is already more than the page holds: then \TeX\ 
+% has yet to break the page somewhere before, the rest goes to the next 
+% page with the heading, and a break here would leave that rest alone on a 
+% page.
+%
+% The sectional headings, |\section| to |\subparagraph|, start with 
+% |\@startsection|\{\meta{name}\}\{\meta{level}\}\{\meta{indent}\}\{\meta{beforeskip}\}
+% \{\meta{afterskip}\}\{\meta{style}\}; |\chapter| doesn't.
+% A heading on a line of its own (a positive \meta{afterskip}) needs that 
+% line, which we count as two lines of the text for its larger font, and 
+% the space after it; a run-in heading only the space before it, since it 
+% starts the first line.
+% That is an estimate, but it covers what follows whatever it is, a table 
+% too; the lines of a paragraph we keep exactly, below.
+% The headings of the blocks are those of \textsf{amsthm}'s theorems, 
+% run-in at the start of their first paragraph, which start with 
+% |\@thm|; it ends the paragraph before it first, and so do we.
+% Both are wrapped at the beginning of the document, when the class and 
+% \textsf{amsthm} have defined them.
+%    \begin{macrocode}
+\def\@didactic@keep@room#1{%
+  \ifnum\@didactic@keepafterheading>\z@
+    \if@nobreak\else
+      \ifvmode\ifinner\else\ifdim\pagegoal<\maxdimen
+        \ifdim\pagetotal>\pagegoal\else
+          \dimen@\dimexpr\pagegoal-\pagetotal\relax
+          \ifdim\dimen@<\dimexpr#1
+              +\@didactic@keepafterheading\@didactic@keep@L\relax
+            \ifnum\@didactic@keepmaxgap>\z@
+              \ifdim\dimen@>\@didactic@keepmaxgap\@didactic@keep@L\else
+                \penalty-\@M
+              \fi
+            \else
+              \penalty-\@M
+            \fi
+          \fi
+        \fi
+      \fi\fi\fi
+    \fi
+  \fi}
+\def\@didactic@keep@startsection#1#2#3#4#5#6{%
+  \ifnum#2>\z@
+    \if@noskipsec\else
+      \par
+      \@didactic@keep@headrecord
+      \@tempskipa#4\relax
+      \ifdim\@tempskipa<\z@ \@tempskipa-\@tempskipa \fi
+      \@tempskipb#5\relax
+      \ifdim\@tempskipb>\z@
+        \@didactic@keep@room{\@tempskipa+1.5\@didactic@keep@L+\@tempskipb}%
+      \else
+        \@didactic@keep@room{\@tempskipa}%
+        \global\@didactic@keep@headstate\@ne
+      \fi
+    \fi
+  \fi
+  \@didactic@startsection{#1}{#2}{#3}{#4}{#5}{#6}}
+\AtBeginDocument{%
+  \let\@didactic@startsection\@startsection
+  \let\@startsection\@didactic@keep@startsection
+  \ifdefined\@thm
+    \let\@didactic@thm\@thm
+    \def\@thm{%
+      \ifhmode\unskip\unskip\par\fi
+      \@didactic@keep@room{\topsep}%
+      \global\@didactic@keep@headstate\@ne
+      \@didactic@thm}%
+  \fi
+  \g@addto@macro\@afterheading{%
+    \global\@didactic@keep@headstate\@ne
+    \@didactic@keep@headpage}%
+  \ifdefined\LT@start
+    \let\@didactic@LT@start\LT@start
+    \def\LT@start{\@didactic@LT@start\@didactic@keep@tablepage}%
+    \AddToHook{env/longtable/before}{\@didactic@keep@tableowed}%
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@keep@headrecord}
+% \begin{macro}{\@didactic@keep@headpage}
+% \begin{macro}{\@didactic@keep@tablepage}
+% \begin{macro}{\@didactic@keep@tableowed}
+% A table set with \textsf{longtable} decides for itself where it starts: 
+% if its head and first row don't fit on the page, it ends the page before 
+% it, which can leave a heading and the sentence that leads into the table 
+% at the foot of the page, whatever we estimated.
+% That we learn only when the pages are shipped out, so we remember it for 
+% the next run, as \textsf{marginfix} does for notes that don't fit.
+% Each heading on a line of its own writes its page to the |.aux| file when 
+% it's done (|\@afterheading|), under its place in the source (the file and 
+% line where |\@startsection| was called, \cs{@didactic@keep@headrecord});
+% and a table that starts among the first lines after a heading writes the 
+% page of its first row under the same place (we add that to the end of 
+% |\LT@start|, after the table's head; whether it is among the first lines 
+% we decide before the table, \cs{@didactic@keep@tableowed}, since the 
+% paragraphs in its cells count as paragraphs too).
+% When the table started on a later page than the heading, the heading 
+% ends the page before it in the next run, and records that again, so that 
+% the break stays as long as the heading is where it was in the source.
+% A heading at the top of a page, or on a page already over full, doesn't 
+% break.
+% Nor does one that would leave more than |keepmaxgap| lines empty: the room 
+% left on the page when the heading started (|\@didactic@keep@headtotal|, 
+% the |\pagetotal| then) must be within the limit.
+% The pages are written at shipout, like |\label|'s, through 
+% |\@didactic@keep@cpage|.
+%    \begin{macrocode}
+\def\@didactic@keep@cpage{\number\c@page}
+\def\@didactic@keep@hpage#1#2{%
+  \global\@namedef{@didactic@hp@#1}{#2}}
+\def\@didactic@keep@tpage#1#2{%
+  \@ifundefined{@didactic@hp@#1}{}{%
+    \ifnum#2>\@nameuse{@didactic@hp@#1}\relax
+      \@didactic@keep@headbreak{#1}%
+    \fi}}
+\def\@didactic@keep@headbreak#1{%
+  \ifx\@newl@bel\@testdef
+    \@ifundefined{@didactic@hb@#1}{\@tempswatrue}{}%
+  \else
+    \global\@namedef{@didactic@hb@#1}{}%
+  \fi}
+\let\@didactic@keep@headkey\@empty
+\def\@didactic@keep@headtotal{-\maxdimen}
+\def\@didactic@keep@headrecord{%
+  \ifdim\pagegoal<\maxdimen
+    \xdef\@didactic@keep@headtotal{\the\pagetotal}%
+  \else
+    \gdef\@didactic@keep@headtotal{-\maxdimen}%
+  \fi
+  \xdef\@didactic@keep@headkey{%
+    \ifx\CurrentFile\@empty\jobname\else
+      \ifx\CurrentFile\@undefined\jobname\else\CurrentFile\fi\fi
+    :\the\inputlineno}%
+  \@ifundefined{@didactic@hb@\@didactic@keep@headkey}{}{%
+    \if@filesw
+      \immediate\write\@auxout{%
+        \string\@didactic@keep@headbreak{\@didactic@keep@headkey}}%
+    \fi
+    \ifvmode\ifinner\else\ifdim\pagegoal<\maxdimen
+      \ifdim\pagetotal>\pagegoal\else
+        \penalty-\@M
+      \fi
+    \fi\fi\fi}}
+\def\@didactic@keep@headpage{%
+  \ifx\@didactic@keep@headkey\@empty\else
+    \if@filesw
+      \protected@write\@auxout{\let\@didactic@keep@cpage\relax}{%
+        \string\@didactic@keep@hpage{\@didactic@keep@headkey}%
+          {\@didactic@keep@cpage}}%
+    \fi
+  \fi}
+\def\@didactic@keep@tableowed{%
+  \global\@didactic@keep@ltowedfalse
+  \ifnum\@didactic@keepafterheading>\z@
+    \ifx\@didactic@keep@headkey\@empty\else
+      \ifnum\@didactic@keep@headstate=\@ne
+        \global\@didactic@keep@ltowedtrue
+      \else\ifnum\@didactic@keep@headstate=\tw@
+        \ifnum\prevgraf<\@didactic@keepafterheading
+          \global\@didactic@keep@ltowedtrue
+        \fi
+      \fi\fi
+      \ifnum\@didactic@keepmaxgap>\z@
+        \ifdim\@didactic@keep@headtotal<\z@
+          \global\@didactic@keep@ltowedfalse
+        \else\ifdim\dimexpr\pagegoal-\@didactic@keep@headtotal\relax
+            >\@didactic@keepmaxgap\@didactic@keep@L
+          \global\@didactic@keep@ltowedfalse
+        \fi\fi
+      \fi
+    \fi
+  \fi}
+\def\@didactic@keep@tablepage{%
+  \if@didactic@keep@ltowed
+    \global\@didactic@keep@ltowedfalse
+    \if@filesw
+      \protected@write\@auxout{\let\@didactic@keep@cpage\relax}{%
+        \string\@didactic@keep@tpage{\@didactic@keep@headkey}%
+          {\@didactic@keep@cpage}}%
+    \fi
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@keep@para}
+% \begin{macro}{\@didactic@keep@headstate}
+% The first paragraph after a heading keeps its first |keepafterheading| 
+% lines together: we give it e-\TeX's |\clubpenalties| with 10\,000 after 
+% each of its first lines but the last of them, and 0 after the rest (the 
+% normal penalties between lines still apply).
+% The heading tells us that the next paragraph is the first after it by 
+% setting |\@didactic@keep@headstate| to 1: a heading on a line of its own 
+% when it's done (|\@afterheading|, after the heading's own paragraph), a 
+% run-in heading or the heading of a block before (its paragraph is the 
+% first).
+% At the start of that paragraph (the hook |para/begin|) we set the 
+% penalties and the state to 2, and at the start of the next paragraph we 
+% turn them off again.
+% A first paragraph shorter than that is followed by a listing, which 
+% |keepleadin| and |keepends| keep with it, or by another paragraph, where 
+% the page may still break; the estimate before the heading usually 
+% prevents that.
+%    \begin{macrocode}
+\newcount\@didactic@keep@headstate
+\def\@didactic@keep@para{%
+  \ifcase\@didactic@keep@headstate
+  \or
+    \ifnum\@didactic@keepafterheading>\@ne
+      \count@\@didactic@keepafterheading
+      \edef\reserved@a{\the\count@}%
+      \loop\ifnum\count@>\@ne
+        \edef\reserved@a{\reserved@a\space\the\@M}%
+        \advance\count@\m@ne
+      \repeat
+      \clubpenalties\reserved@a\space 0\relax
+    \fi
+    \global\@didactic@keep@headstate\tw@
+  \or
+    \clubpenalties\z@
+    \global\@didactic@keep@headstate\z@
+  \fi}
+\AddToHook{para/begin}{\@didactic@keep@para}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
 % \begin{macro}{\nwbegincode}
 % \begin{macro}{\@begincode}
 % A code chunk of \textsf{noweb} is a list too, with a header line, 
@@ -5114,6 +5591,11 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % When the chunk's code is set by |minted|, the breaks in the code itself 
 % are ours, as for every listing; when \textsf{noweb} sets the code, its 
 % breaks stay as they were.
+% \textsf{noweb} also invites a page break at the start of the text after 
+% every chunk (|\nwdocspar|): a |\filbreak|, or with the option 
+% |breakcode| a penalty of $-200$ with 0.2\,in of stretch, which in the 
+% notes ends pages right after a chunk with several lines empty.
+% With a |keepmaxgap| we leave the breaks to the rules above and drop it.
 % \textsf{noweb} is usually loaded after us, so we patch it at the beginning 
 % of the document, if it's loaded.
 % |\patchcmd| reads the patched macro anew with the category codes of the 
@@ -5145,6 +5627,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       }{\@didactic@nwkeepwarning}%
     }{\@didactic@nwkeepwarning}%
     \catcode`\@\@didactic@atcatcode
+    \ifnum\@didactic@keepmaxgap>\z@
+      \let\nwdocspar\relax
+    \fi
   \fi}
 \fi
 %    \end{macrocode}
