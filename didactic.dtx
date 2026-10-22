@@ -147,6 +147,10 @@
 %   regardless of load order.
 % }
 % \changes{v2.15}{2026/10/22}{%
+%   Lowers the default of |keeplines| to 10 lines: long programs may break, 
+%   and a page is left less empty for a listing.
+% }
+% \changes{v2.15}{2026/10/22}{%
 %   With |keepleadin|, sets the club and widow penalties to 10\,000 in the 
 %   notes, so that a lead-in of a few lines, such as an exercise's heading 
 %   and first sentence, moves whole with its listing.
@@ -972,7 +976,7 @@
 % \begin{description}
 % \item[keeplines] A listing of at most this many lines never breaks; it
 %   moves to the next page as a whole.
-%   The default is 20.
+%   The default is 10.
 % \item[keepends] A longer listing may break, but leaves at least this many
 %   lines on each side of the break, not counting empty lines.
 %   The default is 3.
@@ -991,10 +995,15 @@
 %   The default is |true|.
 % \end{description}
 % The page that a listing moves away from keeps its space empty at the
-% foot, so |keeplines| is a trade-off: 20 lines of code in |\footnotesize|
-% and the line that leads into them take about a third of the text block of
-% the notes' layout, so a page is left at most about a third empty for the
+% foot, so |keeplines| is a trade-off between a listing cut in two and 
+% empty space.
+% The default keeps a short function whole and lets a whole program break: 
+% 10 lines of code in |\footnotesize|, the header line of a chunk and a 
+% lead-in of three lines take about a quarter of the text block of the 
+% notes' layout, so a page is left at most about a quarter empty for the 
 % sake of a listing.
+% Since a longer listing keeps |keepends| lines at each end, one of fewer 
+% than $2\times3$ lines that aren't empty can't break anyway.
 % With a larger font for the code, choose fewer lines.
 % |keeplines=0, keepends=1, keepleadin=false| gives the penalties of
 % \textsf{fancyvrb} itself.
@@ -1186,7 +1195,7 @@
 % no page break comes between a listing and the text that leads into it.
 %    \begin{macrocode}
 \newcount\@didactic@keeplines
-\@didactic@keeplines=20
+\@didactic@keeplines=10
 \newcount\@didactic@keepends
 \@didactic@keepends=3
 \newif\if@didactic@keepleadin
