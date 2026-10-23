@@ -10,7 +10,7 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-sidecap.pdf test-sidecap-off.pdf \
 	test-marginfloat.pdf test-marginfloat-slides.pdf \
 	test-frametitle.pdf test-frametitle-slides.pdf \
-	test-keep.pdf
+	test-keep.pdf test-noteyield
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -110,6 +110,22 @@ test-keep.pdf: test-keep.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	! grep 'didactic keep test:.*FAIL' test-keep.log
+
+# noteyieldmaxgap: marginfix's \marginnoteyieldlimit in lines, by default
+# keepmaxgap's; one run per case, options:lines (0 for no limit).  Needs
+# a marginfix with \marginnoteyieldlimit (else SKIP, which fails).
+NOTEYIELD_CASES=:5 keepmaxgap=8:8 noteyieldmaxgap=3:3 \
+	keepmaxgap=8,noteyieldmaxgap=2:2 noteyieldmaxgap=0:0
+.PHONY: test-noteyield
+test-noteyield: test-noteyield.tex didactic.sty
+	for c in ${NOTEYIELD_CASES}; do \
+	  ${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode \
+	    "\\def\\testoptions{$${c%:*}}\\def\\testlines{$${c#*:}}\\input{$<}" \
+	    >/dev/null; \
+	  grep 'didactic noteyield test:' test-noteyield.log; \
+	  ! grep -q 'didactic noteyield test:.*\(FAIL\|SKIP\)' \
+	    test-noteyield.log || exit 1; \
+	done
 
 VERSION=$(shell sed -En "s/^.*v([0-9]+(\.[0-9]+)+) didactic.*$$/\1/p" didactic.dtx)
 .PHONY: release
