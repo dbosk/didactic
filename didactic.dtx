@@ -147,6 +147,12 @@
 %   regardless of load order.
 % }
 % \changes{v2.15}{2026/10/23}{%
+%   Adds |noteyieldmaxgap|, passed on to \textsf{marginfix}'s 
+%   \texttt{\textbackslash marginnoteyieldlimit} in lines: a page doesn't end 
+%   early for a margin note if that leaves more than this many lines empty. 
+%   The default is |keepmaxgap|.
+% }
+% \changes{v2.15}{2026/10/23}{%
 %   In the article mode of |beamer|, the titles of |block|, |alertblock| and 
 %   |exampleblock| are run-in headings too, like the frame titles.
 % }
@@ -594,7 +600,21 @@
 % the next page, while the rest of the document keeps |break|.
 % \textsf{marginfix} logs every note that is still carried to a later page, 
 % as |marginfix-spill: page=|\meta{p}| to=|\meta{q}| intended| for a note in 
-% the mode |carry| and |... unresolved| otherwise.
+% the mode |carry|, |... capped| for one that |noteyieldmaxgap| kept from 
+% ending its page, and |... unresolved| otherwise.
+%
+% \DescribeOpt{noteyieldmaxgap}
+% A page that ends early for a note keeps its notes by its text, but when 
+% the line that calls out the note is near its top, say a paragraph dense 
+% with citations, most of the page is left empty.
+% |noteyieldmaxgap|\meta{=lines} caps that: a page that would end early 
+% leaving more than \meta{lines} lines empty doesn't (in the next run), and 
+% its notes go to the next page, as with |carry|; the other notes called 
+% out on that page are capped with it.
+% The default is the value of |keepmaxgap|, 5 lines unless given, the same 
+% bound as for keeping a listing together; 0 turns the cap off.
+% It needs \textsf{marginfix} with |\marginnoteyieldlimit|; with an older 
+% one it does nothing.
 %
 % Outside |beamer|, \textsf{didactic} writes where the margin column is to 
 % the log, once, as |didactic-margin: odd=431.65 even=431.65 width=156.7|: 
@@ -1256,6 +1276,20 @@
 \DeclareOptionX{keepmaxgap}{\@didactic@keepmaxgap=#1\relax}
 %    \end{macrocode}
 % \end{option}
+% \end{option}
+%
+% \begin{option}{noteyieldmaxgap}
+% |noteyieldmaxgap| is the number of empty lines that a page may be left 
+% with when it ends early for a margin note (|noteoverflow=break|), passed 
+% on to \textsf{marginfix}'s |\marginnoteyieldlimit|, see below.
+% Unless it's given, it's the value of |keepmaxgap|, which we know only 
+% when all the options have been read, so we keep $-1$ for that and 
+% resolve it where we pass it on.
+%    \begin{macrocode}
+\newcount\@didactic@noteyieldmaxgap
+\@didactic@noteyieldmaxgap=\m@ne
+\DeclareOptionX{noteyieldmaxgap}{\@didactic@noteyieldmaxgap=#1\relax}
+%    \end{macrocode}
 % \end{option}
 % \end{option}
 %
@@ -2871,6 +2905,22 @@
   \ifdefined\marginnoteoverflow
     \expandafter\marginnoteoverflow\expandafter
       {\@didactic@noteoverflow}%
+  \fi}
+%    \end{macrocode}
+% The limit of |noteyieldmaxgap| is a number of lines, so we set it when 
+% the document starts and |\baselineskip| is that of the text.
+% With 0 we leave \textsf{marginfix}'s limit as it is: none, or your own.
+% So your own |\marginnoteyieldlimit| needs |noteyieldmaxgap=0|, or must 
+% come after |\begin{document}|.
+%    \begin{macrocode}
+\ifnum\@didactic@noteyieldmaxgap<\z@
+  \@didactic@noteyieldmaxgap=\@didactic@keepmaxgap
+\fi
+\AtBeginDocument{%
+  \ifdefined\marginnoteyieldlimit
+    \ifnum\@didactic@noteyieldmaxgap>\z@
+      \marginnoteyieldlimit{\@didactic@noteyieldmaxgap\baselineskip}%
+    \fi
   \fi}
 %    \end{macrocode}
 % \end{macro}
