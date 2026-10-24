@@ -53,7 +53,7 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-marginfloat-cases.pdf test-marginfloat-order.pdf \
 	test-marginfloat-inorder.pdf test-marginfloat-hidden.pdf \
 	${TEST_FLOATORDER:=.pdf} test-marginfloat-include.pdf \
-	test-format.pdf test-oldkernel-title.pdf check
+	test-format.pdf test-oldkernel-title.pdf test-biburl check
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -479,6 +479,22 @@ test-margin-log.pdf test-margin-log-article.pdf: %.pdf: %.tex test-margin-log.te
 test-oldkernel.pdf: test-oldkernel.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	grep -q 'didactic-margin: odd=[0-9.]* even=[0-9.]* width=[0-9.]*' test-oldkernel.log
+
+# biburlpenalty: biblatex's URL break penalties, with biblatex loaded before
+# didactic, after it or not at all; one run per case,
+# order:options:value set in the preamble:expected value.
+BIBURL_CASES=before:::9000 after:::9000 before:biburlpenalty=500::500 \
+	after:biburlpenalty=0::0 before::100:100 after::100:100 none:::0
+.PHONY: test-biburl
+test-biburl: test-biburl.tex didactic.sty
+	for c in ${BIBURL_CASES}; do \
+	  IFS=:; set -- $$c; unset IFS; ${RM} test-biburl.aux; \
+	  ${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode \
+	    "\\def\\testorder{$$1}\\def\\testoptions{$$2}\\def\\testset{$$3}\\def\\testexpect{$$4}\\input{$<}" \
+	    >/dev/null; \
+	  grep 'didactic biburl test:' test-biburl.log || exit 1; \
+	  ! grep -q 'didactic biburl test:.*FAIL' test-biburl.log || exit 1; \
+	done
 
 VERSION=$(shell sed -En "s/^.*v([0-9]+(\.[0-9]+)+) didactic.*$$/\1/p" didactic.dtx)
 .PHONY: release
