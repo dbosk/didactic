@@ -10,7 +10,7 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-sidecap.pdf test-sidecap-off.pdf \
 	test-marginfloat.pdf test-marginfloat-slides.pdf \
 	test-frametitle.pdf test-frametitle-slides.pdf \
-	test-keep.pdf test-noteyield
+	test-keep.pdf test-noteyield test-biburl
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -125,6 +125,27 @@ test-noteyield: test-noteyield.tex didactic.sty
 	  grep 'didactic noteyield test:' test-noteyield.log; \
 	  ! grep -q 'didactic noteyield test:.*\(FAIL\|SKIP\)' \
 	    test-noteyield.log || exit 1; \
+	done
+
+# biburlpenalty and bibemergencystretch: biblatex's URL break penalties and
+# the bibliography's \emergencystretch, with biblatex loaded before didactic,
+# after it or not at all; one run per case, order:options:penalty set in
+# the preamble:expected penalty:stretch set in the preamble:expected stretch.
+BIBURL_CASES=before:::9000::3em after:::9000::3em \
+	before:biburlpenalty=500::500::3em after:biburlpenalty=0::0::3em \
+	before::100:100::3em after::100:100::3em \
+	before:bibemergencystretch=1em::9000::1em \
+	after:bibemergencystretch=0pt::9000::0pt \
+	before:::9000:2em:2em after:::9000:2em:2em none:::0::
+.PHONY: test-biburl
+test-biburl: test-biburl.tex didactic.sty
+	for c in ${BIBURL_CASES}; do \
+	  IFS=:; set -- $$c; unset IFS; ${RM} test-biburl.aux; \
+	  ${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode \
+	    "\\def\\testorder{$$1}\\def\\testoptions{$$2}\\def\\testset{$$3}\\def\\testexpect{$$4}\\def\\testsetstretch{$$5}\\def\\testexpectstretch{$$6}\\input{$<}" \
+	    >/dev/null; \
+	  grep 'didactic biburl test:' test-biburl.log || exit 1; \
+	  ! grep -q 'didactic biburl test:.*FAIL' test-biburl.log || exit 1; \
 	done
 
 VERSION=$(shell sed -En "s/^.*v([0-9]+(\.[0-9]+)+) didactic.*$$/\1/p" didactic.dtx)
