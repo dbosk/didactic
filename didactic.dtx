@@ -147,9 +147,15 @@
 %   regardless of load order.
 % }
 % \changes{v2.16}{2026/10/24}{%
+%   With \textsf{biblatex}, sets \texttt{\textbackslash emergencystretch} 
+%   to 3\,em in the bibliography, as \texttt{bibemergencystretch} sets, so 
+%   that a line of long names or titles is set loose instead of running into 
+%   the margin.
+% }
+% \changes{v2.16}{2026/10/24}{%
 %   With \textsf{biblatex}, lets long URLs and DOIs break after any letter or 
-%   digit, with a penalty of 9\,000 that |biburlpenalty| sets, so that they 
-%   no longer run into the margin.
+%   digit, with a penalty of 9\,000 that \texttt{biburlpenalty} sets, so 
+%   that they no longer run into the margin.
 % }
 % \changes{v2.15}{2026/10/23}{%
 %   Adds |noteyieldmaxgap|, passed on to \textsf{marginfix}'s 
@@ -421,6 +427,19 @@
 % |\setcounter| of them in the preamble wins.
 % |biburlpenalty=0| leaves the counters as they are, which in 
 % \textsf{biblatex} means that a URL doesn't break after letters or digits.
+%
+% \DescribeOpt{bibemergencystretch}
+% A line in the bibliography can run into the margin without a URL too: 
+% names and titles are long, often joined by hyphens, such as 
+% ``Castillo-Manzano'' or ``Object-Oriented'', and the narrow 
+% text of a document with wide margins gives a line few places to break.
+% So in the bibliography we set |\emergencystretch| to 
+% |bibemergencystretch|, 3\,em unless given, the space \TeX\ may add to a 
+% line before it gives up and lets it run over: such a line is then set 
+% loose instead.
+% A |\emergencystretch| of your own in the preamble wins, as does one in 
+% your own |\AtBeginBibliography|, and |bibemergencystretch=0pt| leaves 
+% the bibliography as it is.
 %
 % \subsection{Beamer blocks and semantic environments for papers}
 %
@@ -1322,6 +1341,17 @@
 \DeclareOptionX{biburlpenalty}{\@didactic@biburlpenalty=#1\relax}
 %    \end{macrocode}
 % \end{option}
+%
+% \begin{option}{bibemergencystretch}
+% |bibemergencystretch| is the |\emergencystretch| of \textsf{biblatex}'s 
+% bibliography, see below.
+% We keep it as text, so that |em| is that of the bibliography's font.
+%    \begin{macrocode}
+\newcommand\@didactic@bibemergencystretch{3em}
+\DeclareOptionX{bibemergencystretch}{%
+  \renewcommand\@didactic@bibemergencystretch{#1}}
+%    \end{macrocode}
+% \end{option}
 % \end{option}
 %
 % Now that we've declared the options we can process them.
@@ -2144,16 +2174,27 @@
 % digits, upper-case and lower-case letters to |biburlpenalty|.
 % \textsf{biblatex} reads them when it typesets a URL, so they need only 
 % be set before the document's bibliography.
-% Unlike the |csquotes| setting above, they are counters that a document 
-% may set itself, so we don't wait for the end of the preamble, which would 
-% undo that: we set them as soon as \textsf{biblatex} is loaded, now if it 
+% Likewise a line of long names should be set loose rather than run into 
+% the margin, so the bibliography gets an |\emergencystretch| of 
+% |bibemergencystretch|, unless the document has set one of its own, which 
+% we only know in the bibliography.
+% Unlike the |csquotes| setting above, these are settings that a document 
+% may make itself, so we don't wait for the end of the preamble, which would 
+% undo that: we make them as soon as \textsf{biblatex} is loaded, now if it 
 % is already, and otherwise right after it is.
+% Then a document's own |\AtBeginBibliography| comes after ours too.
 %    \begin{macrocode}
 \newcommand\@didactic@bibbreaks{%
   \ifnum\@didactic@biburlpenalty>\z@
     \setcounter{biburlnumpenalty}{\@didactic@biburlpenalty}%
     \setcounter{biburlucpenalty}{\@didactic@biburlpenalty}%
     \setcounter{biburllcpenalty}{\@didactic@biburlpenalty}%
+  \fi
+  \ifdim\@didactic@bibemergencystretch>\z@
+    \AtBeginBibliography{%
+      \ifdim\emergencystretch=\z@
+        \setlength\emergencystretch{\@didactic@bibemergencystretch}%
+      \fi}%
   \fi}
 \@ifpackageloaded{biblatex}
   {\@didactic@bibbreaks}

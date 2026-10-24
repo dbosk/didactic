@@ -127,17 +127,22 @@ test-noteyield: test-noteyield.tex didactic.sty
 	    test-noteyield.log || exit 1; \
 	done
 
-# biburlpenalty: biblatex's URL break penalties, with biblatex loaded before
-# didactic, after it or not at all; one run per case,
-# order:options:value set in the preamble:expected value.
-BIBURL_CASES=before:::9000 after:::9000 before:biburlpenalty=500::500 \
-	after:biburlpenalty=0::0 before::100:100 after::100:100 none:::0
+# biburlpenalty and bibemergencystretch: biblatex's URL break penalties and
+# the bibliography's \emergencystretch, with biblatex loaded before didactic,
+# after it or not at all; one run per case, order:options:penalty set in
+# the preamble:expected penalty:stretch set in the preamble:expected stretch.
+BIBURL_CASES=before:::9000::3em after:::9000::3em \
+	before:biburlpenalty=500::500::3em after:biburlpenalty=0::0::3em \
+	before::100:100::3em after::100:100::3em \
+	before:bibemergencystretch=1em::9000::1em \
+	after:bibemergencystretch=0pt::9000::0pt \
+	before:::9000:2em:2em after:::9000:2em:2em none:::0::
 .PHONY: test-biburl
 test-biburl: test-biburl.tex didactic.sty
 	for c in ${BIBURL_CASES}; do \
 	  IFS=:; set -- $$c; unset IFS; ${RM} test-biburl.aux; \
 	  ${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode \
-	    "\\def\\testorder{$$1}\\def\\testoptions{$$2}\\def\\testset{$$3}\\def\\testexpect{$$4}\\input{$<}" \
+	    "\\def\\testorder{$$1}\\def\\testoptions{$$2}\\def\\testset{$$3}\\def\\testexpect{$$4}\\def\\testsetstretch{$$5}\\def\\testexpectstretch{$$6}\\input{$<}" \
 	    >/dev/null; \
 	  grep 'didactic biburl test:' test-biburl.log || exit 1; \
 	  ! grep -q 'didactic biburl test:.*FAIL' test-biburl.log || exit 1; \
