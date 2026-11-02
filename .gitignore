@@ -292,3 +292,5 @@ test-marginfloat-hidden.pdf
 test-marginfloat-hidden.unq
 test-frametitle-*.pdf
 test-frametitle-*.unq
+test-marginfloat-*.pdf
+test-marginfloat-*.unq

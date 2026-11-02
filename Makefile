@@ -9,6 +9,10 @@ TEST_FRAMETITLE_CASES=	test-frametitle-overlay test-frametitle-floats \
 			test-frametitle-template \
 			test-frametitle-template-after \
 			test-frametitle-noarticle test-frametitle-article
+# The order of float numbers, from the pages the floats end up on.
+TEST_FLOATORDER=	test-marginfloat-samepar test-marginfloat-moved \
+			test-marginfloat-chapters test-marginfloat-kinds \
+			test-marginfloat-article
 
 .PHONY: all
 all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
@@ -19,7 +23,8 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-frametitle.pdf test-frametitle-slides.pdf \
 	${TEST_FRAMETITLE_CASES:=.pdf} \
 	test-marginfloat-cases.pdf test-marginfloat-order.pdf \
-	test-marginfloat-inorder.pdf test-marginfloat-hidden.pdf check
+	test-marginfloat-inorder.pdf test-marginfloat-hidden.pdf \
+	${TEST_FLOATORDER:=.pdf} check
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -102,6 +107,9 @@ test-marginfloat-order.pdf test-marginfloat-inorder.pdf: %.pdf: %.tex \
 		test-marginfloat-order.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
+${TEST_FLOATORDER:=.pdf}: %.pdf: %.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} $<
+	${PDFLATEX} ${LATEXFLAGS} $<
 
 # What the headers of the tests expect, from the PDFs and logs: building a test
 # only shows that LaTeX didn't stop.  Phony, so that it runs every time, also
@@ -109,7 +117,7 @@ test-marginfloat-order.pdf test-marginfloat-inorder.pdf: %.pdf: %.tex \
 CHECKED_TESTS=	test-marginfloat test-marginfloat-slides test-marginfloat-cases \
 		test-marginfloat-order test-marginfloat-inorder \
 		test-marginfloat-hidden test-frametitle test-frametitle-slides \
-		${TEST_FRAMETITLE_CASES}
+		${TEST_FRAMETITLE_CASES} ${TEST_FLOATORDER}
 .PHONY: check
 check: test-check.py ${CHECKED_TESTS:=.pdf}
 	python3 test-check.py ${CHECKED_TESTS}
@@ -208,4 +216,9 @@ clean:
 	${RM} test-marginfloat.pytxcode test-marginfloat-slides.pytxcode
 	${RM} test-marginfloat-cases.pytxcode test-marginfloat-order.pytxcode
 	${RM} test-marginfloat-inorder.pytxcode test-marginfloat-hidden.pytxcode
+	${RM} ${TEST_FLOATORDER:=.pdf} ${TEST_FLOATORDER:=.aux}
+	${RM} ${TEST_FLOATORDER:=.log} ${TEST_FLOATORDER:=.out}
+	${RM} ${TEST_FLOATORDER:=.lof} ${TEST_FLOATORDER:=.lot}
+	${RM} ${TEST_FLOATORDER:=.toc} ${TEST_FLOATORDER:=.unq}
+	${RM} ${TEST_FLOATORDER:=.pytxcode}
 	latexmk -C test.tex

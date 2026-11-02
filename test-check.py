@@ -65,8 +65,19 @@ class Check:
     def num_pages(self, n):
         self.ok(len(self.pages) == n, f"{n} page(s), has {len(self.pages)}")
 
-    def clean_log(self):
-        """No errors, undefined references or requests for another run."""
+    def order_warnings(self):
+        """The warnings from didactic about the order of float numbers, as
+        (counter, number, page, counter's other number, other page)."""
+        return re.findall(
+            r"Package didactic Warning: (\S+) (\S+) on page (\S+) comes after "
+            r"\S+ (\S+) on page (\S+):", self.log)
+
+    def clean_log(self, order=()):
+        """No errors, undefined references or requests for another run, and no
+        warnings about the order of float numbers but the expected ones."""
+        found = self.order_warnings()
+        self.ok(found == list(order),
+                f"warnings about the order: {found}, expected {list(order)}")
         for pattern in (r"^! ", r"Reference `.*' on page .* undefined",
                         r"There were undefined references",
                         r"Rerun to get", r"may have changed\. Rerun"):
@@ -156,7 +167,6 @@ def marginfloat(c):
          f"TABCELL is not indented: {cell['xmin'] - cap['xmin']:.1f}pt")
     c.one_space("SPACEA", "SPACEB")                  # 4
     c.has_text("REFS Figure 1, Figure 2 and Table 1.")  # 5
-    c.in_log(ORDER_WARNING, expected=False)          # the [b] figure isn't late
 
 
 def marginfloat_slides(c):
@@ -197,28 +207,65 @@ def marginfloat_cases(c):
     c.ok(len(c.words("JOINAJOINB")) == 1, "JOINA and JOINB make one word")
 
 
-ORDER_WARNING = r"Package didactic Warning: Margin (figure|table)"
-
-
 def marginfloat_beside(c):
     """test-marginfloat-order.tex, case 1."""
-    c.clean_log()
-    marginafter = c.one("MARGINAFTER")
-    c.ok(marginafter["page"] < c.one("ORDINARY")["page"],
+    c.clean_log(order=[("figure", "0.2", "2", "0.3", "1")])
+    c.ok(c.one("MARGINAFTER")["page"] < c.one("ORDINARY")["page"],
          "the margin figure stays beside its text, before ORDINARY")
     c.in_margin("MARGINAFTER", "TEXTAFTER")
-    c.ok(len(re.findall(ORDER_WARNING, c.log)) == 1,
-         "one warning about the order, not one for the [b] table too")
-    # Line 39 has the \begin; TeX has read line 40, looking for an optional
-    # argument, when the environment starts.
-    c.in_log(ORDER_WARNING + r"[\s\S]*?on input line 40\.")
 
 
 def marginfloat_inorder(c):
     """test-marginfloat-order.tex, case 2."""
     c.clean_log()
     c.above("ORDINARY", "MARGINAFTER")
-    c.in_log(ORDER_WARNING, expected=False)
+
+
+def marginfloat_samepar(c):
+    """test-marginfloat-samepar.tex."""
+    c.clean_log(order=[("figure", "0.1", "2", "0.2", "1")])
+    c.ok(c.one("MARGINAL")["page"] == 1, "the margin figure is on page 1")
+    c.ok(c.one("ORDINARY")["page"] == 2, "the ordinary figure is on page 2")
+
+
+def marginfloat_moved(c):
+    """test-marginfloat-moved.tex."""
+    c.clean_log(order=[("figure", "0.1", "2", "0.2", "1")])
+    c.ok(c.one("MOVED")["page"] == 2, "marginfix moved MOVED to page 2")
+    c.ok(c.one("STAYS")["page"] == 1, "STAYS is on page 1")
+
+
+def marginfloat_chapters(c):
+    """test-marginfloat-chapters.tex."""
+    late, early = c.one("FIGLATE"), c.one("EARLY")
+    c.ok(late["page"] > early["page"], "FIGLATE is on a later page than EARLY")
+    c.clean_log(order=[("figure", "1.1", "2", "1.2", "1")])
+    c.has_text("Figure 2.1: TWOA")
+    with open(c.name + ".aux", encoding="latin-1") as aux:
+        # Only floats are recorded: chapters go to the ToC and have counters too.
+        records = aux.read()
+    c.ok("floatrec{figure}" in records and "floatrec{chapter}" not in records,
+         "the .aux records the figures and not the chapters")
+    c.ok(c.one("TABLELATE")["page"] > c.one("TABMARGIN")["page"],
+         "TABLELATE is on a later page than TABMARGIN")
+
+
+def marginfloat_kinds(c):
+    """test-marginfloat-kinds.tex."""
+    found = c.order_warnings()
+    c.ok(found == [("figure", "0.1", "2", "0.2", "1"),
+                   ("listing", "1", "4", "2", "3"),
+                   ("table", "0.1", "6", "0.2", "5")],
+         f"warnings about the order: {found}")
+
+
+def marginfloat_article(c):
+    """test-marginfloat-article.tex."""
+    found = c.order_warnings()
+    c.ok(found == [("figure", "1", "2", "2", "1"),
+                   ("floatone", "1", "4", "2", "3"),
+                   ("table", "1", "6", "2", "5")],
+         f"warnings about the order: {found}")
 
 
 def marginfloat_hidden(c):
@@ -381,6 +428,11 @@ CHECKS = {
     "test-marginfloat-cases": marginfloat_cases,
     "test-marginfloat-order": marginfloat_beside,
     "test-marginfloat-inorder": marginfloat_inorder,
+    "test-marginfloat-samepar": marginfloat_samepar,
+    "test-marginfloat-moved": marginfloat_moved,
+    "test-marginfloat-chapters": marginfloat_chapters,
+    "test-marginfloat-kinds": marginfloat_kinds,
+    "test-marginfloat-article": marginfloat_article,
     "test-marginfloat-hidden": marginfloat_hidden,
     "test-frametitle": frametitle,
     "test-frametitle-slides": frametitle_slides,
