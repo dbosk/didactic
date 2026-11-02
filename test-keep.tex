@@ -5,10 +5,11 @@
 % Each case starts on a new page, after a rule that leaves room for a few
 % lines only, so that without didactic the listing would break there.
 %
-% Build: see the Makefile (pdflatex twice, for the page references).  The
+% Build: see the Makefile (LaTeX until the page references settle).  The
 % document checks itself: the last page lists every check with PASS or
 % FAIL, and the log has a line "didactic keep test: <check> PASS/FAIL"
-% for each; the Makefile fails on any FAIL.
+% for each, then "didactic keep test: all checks ran"; the Makefile fails
+% on any FAIL or SKIP and when that last line is missing.
 %
 % Expected in the resulting PDF, besides PASS everywhere:
 %   A  a short listing (10 lines) with room for 4: the lead-in and the
@@ -26,7 +27,7 @@
 %   F  a code chunk woven for minted (as noweb.sty's [minted] option and
 %      the tominted weave give), with room for 2 lines: the lead-in, the
 %      header line "<hello.py>=" and the code on the next page.
-%      Skipped without noweb.sty.
+%      Without noweb.sty it is a SKIP, which fails the build.
 %   J  a pair of didacticpair (as \codebycode and \runbyrun make), 8 lines
 %      tall, with room for 2 lines: on the next page with its lead-in.
 %   G  a short listing in an item of a list: the item's label "1." beside
@@ -80,11 +81,15 @@
 \newwrite\@keeptest@out
 % \testcheck{name}{label1}{=|<}{label2}: are the labels on the same page (=)
 % or is the first on an earlier page (<)?
+% A label that doesn't exist has page 0: that is a FAIL, not a match.
 \newcommand\testcheck[4]{%
-  \ifnum\getpagerefnumber{#2}#3\getpagerefnumber{#4}\relax
-    \def\@keeptest@result{PASS}%
-  \else
-    \def\@keeptest@result{FAIL}%
+  \def\@keeptest@result{FAIL}%
+  \ifnum\getpagerefnumber{#2}>\z@
+    \ifnum\getpagerefnumber{#4}>\z@
+      \ifnum\getpagerefnumber{#2}#3\getpagerefnumber{#4}\relax
+        \def\@keeptest@result{PASS}%
+      \fi
+    \fi
   \fi
   \typeout{didactic keep test: #1 \@keeptest@result}%
   \item #1: \@keeptest@result\ (#2 on page \getpagerefnumber{#2}, #4 on
@@ -184,9 +189,12 @@ Text after J.
 \testcheck{F the whole chunk}{f-lead}{=}{fL5}
 \else
 \makeatother
+\typeout{didactic keep test: F no noweb.sty SKIP}%
+\item F: SKIP, no noweb.sty
 \fi
 \testcheck{G first and last line together}{gL1}{=}{gL5}
 \testcheck{J lead-in with the pair}{j-lead}{=}{j-pair}
 \end{itemize}
+\typeout{didactic keep test: all checks ran}
 
 \end{document}

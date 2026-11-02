@@ -115,12 +115,13 @@ done; echo "$<: references did not settle"; exit 1
 endef
 
 # listings kept together across pages.  The document checks its pages itself
-# and logs PASS or FAIL for each check.  A
+# and logs PASS or FAIL for each check, and a last line if it got there.  A
 # failed test leaves no PDF, only the log (.DELETE_ON_ERROR), so that the next
 # make doesn't call it up to date.
 test-keep.pdf: test-keep.tex didactic.sty
 	@${latex_until_settled}
-	! grep 'didactic keep test:.*FAIL' test-keep.log
+	! grep -E 'didactic keep test:.*(FAIL|SKIP)' test-keep.log
+	grep -q 'didactic keep test: all checks ran' test-keep.log
 
 VERSION=$(shell sed -En "s/^.*v([0-9]+(\.[0-9]+)+) didactic.*$$/\1/p" didactic.dtx)
 .PHONY: release
