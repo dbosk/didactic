@@ -321,6 +321,27 @@ def frametitle_boxes(c):
          "PROSEHEAD and PROSETAB are on one line")
 
 
+def frametitle_end(c):
+    """test-frametitle-end.tex; the numbers are those of its header."""
+    c.num_pages(1)
+    c.clean_log()
+    c.above("TENVEMPTY", "PROSEA")                   # 1
+    c.above("TCMDEMPTY", "PROSEB")
+    c.above("TENVNOTE", "PROSEC")                    # 2
+    c.above("TCMDNOTE", "PROSED")
+    c.ok(c.same_line(c.one("TCMDTEXT"), c.one("TEXTCMD")),  # 3
+         "TCMDTEXT runs in with TEXTCMD")
+    indent = c.one("PROSEA")["xmin"]                 # 4
+    for word in "PROSEB", "PROSEC", "PROSED", "PROSEE":
+        c.ok(abs(c.one(word)["xmin"] - indent) < 0.5,
+             f"{word} starts like an ordinary paragraph")
+    c.absent("THIDENV")                              # 5
+    c.absent("THICMD")
+    c.ok(c.same_line(c.one("TAFTER"), c.one("TEXTAFTER")),
+         "TAFTER runs in with TEXTAFTER")
+    c.one("TWICE")                                   # 6
+
+
 CHECKS = {
     "test-marginfloat": marginfloat,
     "test-marginfloat-slides": marginfloat_slides,
@@ -333,6 +354,7 @@ CHECKS = {
     "test-frametitle-overlay": frametitle_overlay,
     "test-frametitle-floats": frametitle_floats,
     "test-frametitle-boxes": frametitle_boxes,
+    "test-frametitle-end": frametitle_end,
 }
 
 

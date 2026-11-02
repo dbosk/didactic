@@ -2152,7 +2152,13 @@
 % An empty title (|\begin{frame}{}|) makes no heading, and with a subtitle only
 % the subtitle is the heading, without the dash.
 %    \begin{macrocode}
-\newcommand\@didactic@runinheading[1]{\paragraph*{#1}}
+\newcommand\@didactic@framehead{}
+\protected\def\@didactic@frameheadused{%
+  \global\let\@didactic@framehead\@empty}
+\newcommand\@didactic@runinheading[1]{%
+  \paragraph*{\@didactic@frameheadused #1}%
+  \gdef\@didactic@framehead{#1}%
+  \aftergroup\@didactic@endframetitle}
 \newcommand\@didactic@frametitle{%
   \ifx\insertframesubtitle\@empty
     \ifx\insertframetitle\@empty\else
@@ -2172,13 +2178,37 @@
 % The title waits for the next paragraph in |\everypar|, which is local to
 % the frame's group.
 % A frame with nothing after the title that starts a paragraph---only a
-% figure, say---would therefore lose the title when the frame ends, and
+% margin note, say---would therefore lose the title when the frame ends, and
 % leave \LaTeX\ believing a run-in heading is still waiting.
-% So at the end of a frame, still inside its group, we typeset a waiting
-% title as a paragraph of its own.
+% So the heading empties |\@didactic@framehead| when it is typeset, and after the
+% group in which |\frametitle| was used (|\aftergroup|), if it still isn't empty,
+% we typeset it again as a paragraph of its own.
+% This works for |\begin{frame}| and |\frame{...}| alike, where a hook at the end
+% of the environment wouldn't be used for the second form.
+% It comes after the box of a frame that isn't there
+% (|\begin{frame}<presentation>|), so there we only forget the title.
+% We don't look at |\if@noskipsec| to decide this, since that is also true for a
+% |\paragraph| that the author wrote at the end of the frame, after the title has
+% been set; that heading is lost as it would be at the end of any group.
 %    \begin{macrocode}
+\newcommand\@didactic@settitle{%
+  \begingroup
+    \leftskip\z@ \rightskip\@rightskip \parfillskip\@flushglue
+    \leavevmode\par
+  \endgroup}
+\newcommand\@didactic@lateframetitle[1]{%
+  \paragraph*{\@didactic@frameheadused #1}%
+  \@didactic@settitle}
 \newcommand\@didactic@endframetitle{%
-  \if@noskipsec\leavevmode\par\fi}
+  \ifx\@didactic@framehead\@empty\else
+    \global\@noskipsecfalse
+    \ifx\beamer@howtotreatframe\beamer@donoframe
+      \@didactic@frameheadused
+    \else
+      \expandafter\@didactic@lateframetitle\expandafter
+        {\@didactic@framehead}%
+    \fi
+  \fi}
 %    \end{macrocode}
 % A float can't wait for the title either: \LaTeX\ may set it right here (|[h]|,
 % or |[H]| from the \textsf{float} package), so the figure would come above its
@@ -2206,12 +2236,7 @@
   \AddToHook{#1/before}{\@didactic@flushframetitle}}
 \newcommand\@didactic@flushframetitle{%
   \ifbeamer@inframe
-    \if@noskipsec
-      \begingroup
-        \leftskip\z@ \rightskip\@rightskip \parfillskip\@flushglue
-        \leavevmode\par
-      \endgroup
-    \fi
+    \if@noskipsec\@didactic@settitle\fi
   \fi}
 %    \end{macrocode}
 % We use the template only in the article mode, unless the option
@@ -2224,7 +2249,6 @@
 \AtEndOfPackageFile*{beamerarticle}{%
   \defbeamertemplate<article>{frametitle}{didactic}{\@didactic@frametitle}%
   \setbeamertemplate{frametitle}[didactic]%
-  \AddToHook{env/frame/end}{\@didactic@endframetitle}%
   \@didactic@titlefirst{env/figure}%
   \@didactic@titlefirst{env/figure*}%
   \@didactic@titlefirst{env/table}%
