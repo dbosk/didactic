@@ -141,6 +141,9 @@ def marginfloat(c):
     """test-marginfloat.tex; the numbers are those of its header."""
     c.num_pages(1)                                   # no \FloatBlock page break
     c.clean_log()
+    # beamerarticle is loaded before didactic here, and titles still run in.
+    c.ok(c.same_line(c.one("waits"), c.one("PENDINGANCHOR")),
+         "the frame title runs in with PENDINGANCHOR")
     c.has_text("Figure 1: PENDINGCAP,")              # 1
     c.above("REFS", "PENDINGCAP")
     c.in_margin("beside", "PENDINGANCHOR")           # 2
@@ -228,6 +231,41 @@ def marginfloat_hidden(c):
     c.has_text("Table 1: TABVISIBLE")
 
 
+def frametitle(c):
+    """test-frametitle.tex; the numbers are those of its header."""
+    c.num_pages(1)
+    c.clean_log()
+    c.ok(c.same_line(c.one("TITLEA"), c.one("TEXTA")),    # 1
+         "TITLEA and TEXTA are on one line")
+    c.has_text("TITLEB \u2013 SUBB TEXTB,")               # 2
+    c.has_text("TITLEC \u2013 SUBC")                      # 3
+    c.above("TITLEC", "ITEMC")
+    c.ok(c.one("TEXTD")["xmin"] > c.one("TITLEA")["xmin"],  # 4, indented
+         "TEXTD starts a paragraph of its own")
+    c.above("TITLEE", "PROSEF")                           # 5
+    c.has_text("Figure 0.1: FIGE,")
+    c.above("TITLEG", "EXAMPLEG")                         # 6
+    c.ok(c.one("TEXTH")["xmin"] > c.one("TITLEA")["xmin"],  # 7
+         "TEXTH has no heading in front of it")
+    c.absent("SLIDEONLY")
+
+
+def frametitle_slides(c):
+    """test-frametitle-slides.tex: the frames as beamer makes them."""
+    c.num_pages(7)
+    c.clean_log()
+    c.absent("PROSEF")
+    c.above("TITLEA", "TEXTA")
+    c.above("TITLEB", "SUBB")
+    c.above("SUBB", "TEXTB")
+    c.above("TITLEC", "SUBC")
+    c.above("SUBC", "ITEMC")
+    c.above("TITLEE", "FIGE")
+    c.above("TITLEG", "EXAMPLEG")
+    c.above("SLIDEONLY", "TEXTH")
+    c.has_text("Figure: FIGE,")
+
+
 CHECKS = {
     "test-marginfloat": marginfloat,
     "test-marginfloat-slides": marginfloat_slides,
@@ -235,6 +273,8 @@ CHECKS = {
     "test-marginfloat-order": marginfloat_beside,
     "test-marginfloat-inorder": marginfloat_inorder,
     "test-marginfloat-hidden": marginfloat_hidden,
+    "test-frametitle": frametitle,
+    "test-frametitle-slides": frametitle_slides,
 }
 
 

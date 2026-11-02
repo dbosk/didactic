@@ -100,14 +100,16 @@ test-marginfloat-order.pdf test-marginfloat-inorder.pdf: %.pdf: %.tex \
 # on PDFs that are up to date.
 CHECKED_TESTS=	test-marginfloat test-marginfloat-slides test-marginfloat-cases \
 		test-marginfloat-order test-marginfloat-inorder \
-		test-marginfloat-hidden
+		test-marginfloat-hidden test-frametitle test-frametitle-slides
 .PHONY: check
 check: test-check.py ${CHECKED_TESTS:=.pdf}
 	python3 test-check.py ${CHECKED_TESTS}
 
-# frame titles, in the notes and on the slides, from one source.
+# frame titles, in the notes and on the slides, from one source; twice, since
+# beamer asks for a rerun for its outline.
 test-frametitle.pdf test-frametitle-slides.pdf: %.pdf: %.tex didactic.sty \
 		test-frametitle-contents.tex
+	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
 
 # code side by side, in the notes and on the slides; minted needs
