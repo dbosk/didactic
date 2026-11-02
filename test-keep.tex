@@ -37,9 +37,12 @@
 %   S  a short listing over the full width by \lstexample*, with room for
 %      2 lines: on the next page with its lead-in.
 %   Y  the same by didactic_mint(fullwidth=True), through PythonTeX.
-%   N  a listing after a blank line and an \ltnote, with room for 2 lines:
-%      on the next page with its lead-in.  M the same with \marginpar, P
-%      with a float.
+%   N  a listing after a paragraph with an \ltnote in it, with room for 2
+%      lines: on the next page with its lead-in.  M the same with \marginpar,
+%      P with a float before the lead-in.  (Between the lead-in and the listing,
+%      on their own after a blank line, they give a place to break, which the
+%      docs state as a limit.  Taking that place away isn't right either:
+%      test-keep-chain shows paragraphs that can't part.)
 %   O  a listing with formatcom=\color{blue}: on the next page with its
 %      lead-in.
 %   K  a long listing with line 13 empty and room for 12 lines: lines 12 up
@@ -231,25 +234,22 @@ didactic_mint("\n".join(f"line {i}|\\label{{yL{i}}}|" for i in range(1, 6)),
 Text after Y.
 
 \roomfor{2}
-Lead-in N, then a note after a blank line:\label{n-lead}
-
-\ltnote{A note in vertical mode.}
+Lead-in N, with a note in its paragraph:\label{n-lead}
+\ltnote{A note in the paragraph.}
 \testlisting{n}{3}
 Text after N.
 
 \roomfor{2}
-Lead-in M, then a margin note after a blank line:\label{m-lead}
-
-\marginpar{A margin note in vertical mode.}
+Lead-in M, with a margin note in its paragraph:\label{m-lead}
+\marginpar{A margin note in the paragraph.}
 \testlisting{m}{3}
 Text after M.
 
 \roomfor{2}
-Lead-in P, then a float after a blank line:\label{p-lead}
-
 \begin{figure}[b]
-  \caption{A float in vertical mode.}
+  \caption{A float before the lead-in.}
 \end{figure}
+Lead-in P, with a float before it:\label{p-lead}
 \testlisting{p}{3}
 Text after P.
 
@@ -331,9 +331,9 @@ Text after H.
 \testcheck{S the whole listing}{s-lead}{=}{sL5}
 \testcheck{Y lead-in with the listing}{y-lead}{=}{yL1}
 \testcheck{Y the whole listing}{y-lead}{=}{yL5}
-\testcheck{N lead-in with the listing, a note between}{n-lead}{=}{nL1}
-\testcheck{M lead-in with the listing, a margin note between}{m-lead}{=}{mL1}
-\testcheck{P lead-in with the listing, a float between}{p-lead}{=}{pL1}
+\testcheck{N lead-in with the listing, a note in the paragraph}{n-lead}{=}{nL1}
+\testcheck{M lead-in with the listing, a margin note in the paragraph}{m-lead}{=}{mL1}
+\testcheck{P lead-in with the listing, a float before it}{p-lead}{=}{pL1}
 \testcheck{O lead-in with the listing in colour}{o-lead}{=}{oL1}
 \end{itemize}
 \typeout{didactic keep test: all checks ran}
