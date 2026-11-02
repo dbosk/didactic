@@ -3,6 +3,9 @@ PDFLATEX?=xelatex -pdf
 LATEXFLAGS=-shell-escape
 PYTHONTEX=python3 $(shell which pythontex) --interpreter python:python3
 
+# The cases of frame titles, one file per kind; see the header of each file.
+TEST_FRAMETITLE_CASES=	test-frametitle-overlay
+
 .PHONY: all
 all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-footcite-twoside.pdf test-footcite-memoir.pdf test-run.pdf \
@@ -10,6 +13,7 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-sidecap.pdf test-sidecap-off.pdf \
 	test-marginfloat.pdf test-marginfloat-slides.pdf \
 	test-frametitle.pdf test-frametitle-slides.pdf \
+	${TEST_FRAMETITLE_CASES:=.pdf} \
 	test-marginfloat-cases.pdf test-marginfloat-order.pdf \
 	test-marginfloat-inorder.pdf test-marginfloat-hidden.pdf check
 
@@ -100,7 +104,8 @@ test-marginfloat-order.pdf test-marginfloat-inorder.pdf: %.pdf: %.tex \
 # on PDFs that are up to date.
 CHECKED_TESTS=	test-marginfloat test-marginfloat-slides test-marginfloat-cases \
 		test-marginfloat-order test-marginfloat-inorder \
-		test-marginfloat-hidden test-frametitle test-frametitle-slides
+		test-marginfloat-hidden test-frametitle test-frametitle-slides \
+		${TEST_FRAMETITLE_CASES}
 .PHONY: check
 check: test-check.py ${CHECKED_TESTS:=.pdf}
 	python3 test-check.py ${CHECKED_TESTS}
@@ -109,6 +114,9 @@ check: test-check.py ${CHECKED_TESTS:=.pdf}
 # beamer asks for a rerun for its outline.
 test-frametitle.pdf test-frametitle-slides.pdf: %.pdf: %.tex didactic.sty \
 		test-frametitle-contents.tex
+	${PDFLATEX} ${LATEXFLAGS} $<
+	${PDFLATEX} ${LATEXFLAGS} $<
+${TEST_FRAMETITLE_CASES:=.pdf}: %.pdf: %.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
 
@@ -175,6 +183,10 @@ clean:
 	${RM} test-frametitle-slides.log test-frametitle-slides.nav
 	${RM} test-frametitle-slides.snm test-frametitle-slides.toc
 	${RM} test-frametitle-slides.out test-frametitle-slides.unq
+	${RM} ${TEST_FRAMETITLE_CASES:=.pdf} ${TEST_FRAMETITLE_CASES:=.aux}
+	${RM} ${TEST_FRAMETITLE_CASES:=.log} ${TEST_FRAMETITLE_CASES:=.toc}
+	${RM} ${TEST_FRAMETITLE_CASES:=.lof} ${TEST_FRAMETITLE_CASES:=.lot}
+	${RM} ${TEST_FRAMETITLE_CASES:=.unq} ${TEST_FRAMETITLE_CASES:=.out}
 	${RM} test-marginfloat-cases.pdf test-marginfloat-cases.aux
 	${RM} test-marginfloat-cases.log test-marginfloat-cases.out
 	${RM} test-marginfloat-cases.unq

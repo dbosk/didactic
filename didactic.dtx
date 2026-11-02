@@ -2131,13 +2131,27 @@
 % |\frametitle{Title}\framesubtitle{Subtitle}|), so we can decide here
 % whether there is one.
 % |beamer| empties |\insertframesubtitle| at the start of each frame.
+%
+% We give |\paragraph*| the title itself and not |\insertframetitle|, since it
+% is only typeset later, at the next paragraph: by then a second |\frametitle|
+% in the frame (|\frametitle<2>|) may have changed |\insertframetitle|, which
+% would lose the first title and set the second one twice.
+% That is one step of expansion only: the title may hold anything that a frame
+% title can hold, and a full expansion would fail on commands that aren't
+% robust, which a frame title never had to be.
+% So a macro in the title gets the meaning it has at that next paragraph.
 %    \begin{macrocode}
+\newcommand\@didactic@runinheading[1]{\paragraph*{#1}}
 \newcommand\@didactic@frametitle{%
   \ifx\insertframesubtitle\@empty
-    \paragraph*{\insertframetitle}%
+    \expandafter\@didactic@runinheading\expandafter{\insertframetitle}%
   \else
-    \paragraph*{\insertframetitle\space\textendash\space
-      \textmd{\emph{\insertframesubtitle}}}%
+    \edef\@didactic@heading{%
+      \unexpanded\expandafter{\insertframetitle}%
+      \noexpand\space\noexpand\textendash\noexpand\space
+      \noexpand\textmd{\noexpand\emph{%
+        \unexpanded\expandafter{\insertframesubtitle}}}}%
+    \expandafter\@didactic@runinheading\expandafter{\@didactic@heading}%
   \fi}
 %    \end{macrocode}
 % The title waits for the next paragraph in |\everypar|, which is local to

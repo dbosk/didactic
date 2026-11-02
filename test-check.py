@@ -266,6 +266,16 @@ def frametitle_slides(c):
     c.has_text("Figure: FIGE,")
 
 
+def frametitle_overlay(c):
+    """test-frametitle-overlay.tex; the numbers are those of its header."""
+    c.num_pages(1)
+    c.clean_log()
+    c.above("OVERA", "OVERB")                        # 1
+    c.has_text("OVERB TEXTOVER")
+    c.above("ONLYA", "ONLYB")                        # 2
+    c.has_text("ONLYB TEXTONLY")
+
+
 CHECKS = {
     "test-marginfloat": marginfloat,
     "test-marginfloat-slides": marginfloat_slides,
@@ -275,6 +285,7 @@ CHECKS = {
     "test-marginfloat-hidden": marginfloat_hidden,
     "test-frametitle": frametitle,
     "test-frametitle-slides": frametitle_slides,
+    "test-frametitle-overlay": frametitle_overlay,
 }
 
 
