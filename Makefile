@@ -3,6 +3,8 @@ PDFLATEX?=xelatex -pdf
 LATEXFLAGS=-shell-escape
 PYTHONTEX=python3 $(shell which pythontex) --interpreter python:python3
 
+.DELETE_ON_ERROR:
+
 .PHONY: all
 all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-footcite-twoside.pdf test-footcite-memoir.pdf test-run.pdf \
@@ -102,11 +104,22 @@ test-pair.pdf test-pair-slides.pdf: %.pdf: %.tex didactic.sty ${TEST_PAIR_EXAMPL
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
 
-# listings kept together across pages; twice, for the page references.  The
-# document checks its pages itself and logs PASS or FAIL for each check.
+# Run LaTeX on $< until the references settle.  The labels inside a listing of
+# minted come only once minted has its cache, so on a fresh checkout the page
+# references take three passes, later builds two.  Fail if they never settle.
+define latex_until_settled
+for i in 1 2 3 4 5; do \
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $< || exit 1; \
+	grep -q 'Rerun to get' $(basename $<).log || exit 0; \
+done; echo "$<: references did not settle"; exit 1
+endef
+
+# listings kept together across pages.  The document checks its pages itself
+# and logs PASS or FAIL for each check.  A
+# failed test leaves no PDF, only the log (.DELETE_ON_ERROR), so that the next
+# make doesn't call it up to date.
 test-keep.pdf: test-keep.tex didactic.sty
-	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
-	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	@${latex_until_settled}
 	! grep 'didactic keep test:.*FAIL' test-keep.log
 
 VERSION=$(shell sed -En "s/^.*v([0-9]+(\.[0-9]+)+) didactic.*$$/\1/p" didactic.dtx)
@@ -164,5 +177,5 @@ clean:
 	${RM} test-frametitle-slides.out test-frametitle-slides.unq
 	${RM} test-keep.pdf test-keep.aux test-keep.log test-keep.unq
 	${RM} test-keep-?.txt test-keep.pytxcode
-	${RM} -R _minted-test-keep
+	${RM} _minted/*.minted
 	latexmk -C test.tex
