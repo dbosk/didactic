@@ -281,6 +281,19 @@ def frametitle_overlay(c):
     c.absent("\u2013")
 
 
+def frametitle_floats(c):
+    """test-frametitle-floats.tex; the numbers are those of its header."""
+    c.num_pages(1)
+    c.clean_log()
+    c.above("TITLEH", "FIGH")                        # 1
+    c.above("TITLEBIGH", "FIGBIGH")                  # 2
+    c.above("TITLETAB", "TABH")                      # 3
+    c.above("TITLETEXT", "FIGT")                     # 4
+    c.above("FIGT", "TEXTT")
+    c.ok(c.same_line(c.one("FLOATPROSE"), c.one("PROSEAFTER")),  # 5
+         "FLOATPROSE still runs in with PROSEAFTER")
+
+
 CHECKS = {
     "test-marginfloat": marginfloat,
     "test-marginfloat-slides": marginfloat_slides,
@@ -291,6 +304,7 @@ CHECKS = {
     "test-frametitle": frametitle,
     "test-frametitle-slides": frametitle_slides,
     "test-frametitle-overlay": frametitle_overlay,
+    "test-frametitle-floats": frametitle_floats,
 }
 
 

@@ -440,6 +440,9 @@
 % A subtitle follows the title in the heading, after a dash and in italics.
 % A frame that starts with a list, a block or other displayed material gets
 % the title on a line of its own above it, as after any run-in heading.
+% So does a frame that starts with a figure or table, since the float could
+% otherwise come above the title: then the text after the float doesn't run in
+% with the title either.
 % The slides are unchanged.
 % The option |noarticle| keeps |beamerarticle|'s frame titles, and so does
 % setting the template |frametitle| in the preamble, after |beamerarticle|
@@ -2172,6 +2175,27 @@
 \newcommand\@didactic@endframetitle{%
   \if@noskipsec\leavevmode\par\fi}
 %    \end{macrocode}
+% A float can't wait for the title either: \LaTeX\ may set it right here (|[h]|,
+% or |[H]| from the \textsf{float} package), so the figure would come above its
+% title.
+% So a float that starts while a title waits in a frame sets the title first.
+% That also holds for a float that goes elsewhere, since we can't know where
+% it will go.
+% Outside the frames, a run-in heading before a float stays as it is.
+% We set the title flush left and with an ordinary last line, whatever the frame
+% has set up (|\centering| before the float, say); the frame's text isn't
+% typeset yet, so it never was in that setup.
+%    \begin{macrocode}
+\newcommand\@didactic@flushframetitle{%
+  \ifbeamer@inframe
+    \if@noskipsec
+      \begingroup
+        \leftskip\z@ \rightskip\@rightskip \parfillskip\@flushglue
+        \leavevmode\par
+      \endgroup
+    \fi
+  \fi}
+%    \end{macrocode}
 % We use the template only in the article mode, unless the option
 % |noarticle| is given.
 % |beamerarticle| is often loaded after |didactic|, so we wait until it's
@@ -2183,6 +2207,10 @@
   \defbeamertemplate<article>{frametitle}{didactic}{\@didactic@frametitle}%
   \setbeamertemplate{frametitle}[didactic]%
   \AddToHook{env/frame/end}{\@didactic@endframetitle}%
+  \AddToHook{env/figure/before}{\@didactic@flushframetitle}%
+  \AddToHook{env/figure*/before}{\@didactic@flushframetitle}%
+  \AddToHook{env/table/before}{\@didactic@flushframetitle}%
+  \AddToHook{env/table*/before}{\@didactic@flushframetitle}%
 }
 \fi
 %    \end{macrocode}
