@@ -7,11 +7,12 @@ PYTHONTEX=python3 $(shell which pythontex) --interpreter python:python3
 all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-footcite-twoside.pdf test-footcite-memoir.pdf test-run.pdf \
 	test-note-heading.pdf test-pair.pdf test-pair-slides.pdf \
-	test-sidecap.pdf test-sidecap-off.pdf
+	test-sidecap.pdf test-sidecap-off.pdf didactic-sync.py
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	hello.py ask.py askmany.py greet.py filter.py pairgreet1.py pairgreet2.py
 SRC+=	pairwrite.py pairread.py
+SRC+=	didactic-sync.nw didactic-sync.tex didactic-sync.py
 
 # The change history (\PrintChanges) needs makeindex on the .glo file; that
 # also checks that every \changes entry can be written and typeset.  minted
@@ -29,6 +30,24 @@ didactic.pdf: ${SRC} didactic.sty
 didactic.sty: didactic.ins didactic.dtx
 	${RM} $@
 	${LATEX} ${LATEXFLAGS} $<
+
+# The sync script is a literate program.  It's tangled next to didactic.sty, so
+# that builds find it with kpsewhich, and its explanation is woven into
+# didactic.pdf.  black only tidies the spacing between chunks, so it's optional.
+BLACK?=	$(if $(shell command -v black),black -q -,cat)
+didactic-sync.py: didactic-sync.nw
+	notangle -R"[[$@]]" $< | ${BLACK} > $@
+	chmod +x $@
+
+test_didactic_sync.py: didactic-sync.nw
+	notangle -R"[[$@]]" $< > $@
+
+didactic-sync.tex: didactic-sync.nw
+	noweave -n -delay -t2 -autolang -index -filter tominted $< > $@
+
+.PHONY: test-sync
+test-sync: didactic-sync.py test_didactic_sync.py
+	python3 -m pytest -q test_didactic_sync.py
 
 didactic.tar.gz: ${SRC} didactic.ins LICENSE Makefile README.md didactic.pdf
 	tar -czf $@ --transform "s|^|didactic/|" $^
@@ -150,6 +169,7 @@ clean:
 	${RM} test-pair-slides.pytxpyg test-pair-slides.out test-pair-slides.unq
 	${RM} -R pythontex-files-test-pair pythontex-files-test-pair-slides
 	${RM} test-footcite-memoir.pdf test-footcite-memoir.unq
+	${RM} didactic-sync.py didactic-sync.tex test_didactic_sync.py
 	${RM} *.cut
 	${RM} $(addsuffix .pdf,${TEST_BILINGUAL}) test-bilingual-off.pdf
 	${RM} $(addsuffix .unq,${TEST_BILINGUAL}) test-bilingual-off.unq

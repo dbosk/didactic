@@ -52,6 +52,13 @@
 \usepackage{hyperref}
 \usepackage{cleveref}
 \usepackage{csquotes}
+\usepackage{booktabs}
+% The sync script's explanation is woven from didactic-sync.nw.  Its chunks go
+% through minted; the identifier lists under them would only be noise here.
+\usepackage[minted]{noweb}
+\noweboptions{breakcode}
+\def\nwidentdefs#1{}
+\def\nwidentuses#1{}
 \EnableCrossrefs
 \CodelineIndex
 \RecordChanges
@@ -245,6 +252,8 @@
 %   \texttt{\textbackslash tr}, the option |language|, 
 %   \texttt{\textbackslash didacticlanguage} and the option |nobilingual|; 
 %   loads \textsf{comment}.
+%   Adds the script \texttt{didactic-sync.py}, a literate program, which 
+%   keeps the two languages of a pair in step.
 % }
 %
 % \GetFileInfo{didactic.dtx}
@@ -4591,6 +4600,12 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \ExplSyntaxOff
 %    \end{macrocode}
 % \end{macro}
+%
+% The next section comes from a literate program, which isn't written for the 
+% conventions of \textsf{doc}: |%| starts a comment there and \verb+|+ is just a 
+% character.
+% \DeleteShortVerb{\|}\MakePercentComment\input{didactic-sync.tex}\MakePercentIgnore
+% \MakeShortVerb{\|}
 %
 % \Finale
 \endinput

@@ -2,6 +2,9 @@ __pycache__
 
 didactic.pdf
 didactic.sty
+didactic-sync.py
+didactic-sync.tex
+test_didactic_sync.py
 *.cut
 *.vrb
 test-bilingual*.pdf
