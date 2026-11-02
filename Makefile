@@ -13,7 +13,8 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-marginfloat.pdf test-marginfloat-slides.pdf \
 	test-frametitle.pdf test-frametitle-slides.pdf \
 	test-keep.pdf test-keep-tall.pdf test-keep-tall100.pdf \
-	test-keep-chain.pdf test-oldkernel.pdf
+	test-keep-chain.pdf test-oldkernel.pdf \
+	test-margin-log.pdf test-margin-log-article.pdf
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -125,6 +126,7 @@ test-keep.pdf: test-keep.tex didactic.sty
 	@${latex_until_settled}
 	! grep -E 'didactic keep test:.*(FAIL|SKIP)' test-keep.log
 	grep -q 'didactic keep test: all checks ran' test-keep.log
+	pdftotext -layout test-keep.pdf - | grep -Eq '^ *1\. +qline 1$$'
 	test "$$(pdftotext test-keep.pdf - | awk -v RS='\f' '/wline 1\n/ && /wline 30/ {n++} /wline 27/ && /wline 30/ {m++} END {print n+0, m+0}')" = "0 1"
 
 # listings too tall for a page, and what warns when one can't be kept: see the
@@ -159,6 +161,13 @@ test-keep-chain.pdf: test-keep-chain.tex didactic.sty
 	grep -q 'Overfull .vbox' test-keep-chain.log
 	test "${call count_warn,doesn.t fit}" -eq 2
 	test "${call count_word,chained}" -eq 40
+
+# the place of the margin column in the log against where a note is printed.
+test-margin-log.pdf test-margin-log-article.pdf: %.pdf: %.tex test-margin-log.tex \
+		test-margin-log.sh didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	./test-margin-log.sh $*
 
 # a kernel from before \fpeval; see the document.
 test-oldkernel.pdf: test-oldkernel.tex didactic.sty
@@ -230,5 +239,10 @@ clean:
 	${RM} test-keep-chain.unq test-keep-chain.pytxcode test-keep-chain-?.txt
 	${RM} test-oldkernel.pdf test-oldkernel.aux test-oldkernel.log
 	${RM} test-oldkernel.unq test-oldkernel.pytxcode
+	${RM} test-margin-log.pdf test-margin-log.aux test-margin-log.log
+	${RM} test-margin-log.unq test-margin-log.pytxcode
+	${RM} test-margin-log-article.pdf test-margin-log-article.aux
+	${RM} test-margin-log-article.log test-margin-log-article.unq
+	${RM} test-margin-log-article.pytxcode
 	${RM} _minted/*.minted
 	latexmk -C test.tex
