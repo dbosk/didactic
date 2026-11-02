@@ -13,7 +13,7 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-marginfloat.pdf test-marginfloat-slides.pdf \
 	test-frametitle.pdf test-frametitle-slides.pdf \
 	test-keep.pdf test-keep-tall.pdf test-keep-tall100.pdf \
-	test-keep-chain.pdf
+	test-keep-chain.pdf test-oldkernel.pdf
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -159,6 +159,11 @@ test-keep-chain.pdf: test-keep-chain.tex didactic.sty
 	test "${call count_warn,doesn.t fit}" -eq 2
 	test "${call count_word,chained}" -eq 40
 
+# a kernel from before \fpeval; see the document.
+test-oldkernel.pdf: test-oldkernel.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	grep -q 'didactic-margin: odd=[0-9.]* even=[0-9.]* width=[0-9.]*' test-oldkernel.log
+
 VERSION=$(shell sed -En "s/^.*v([0-9]+(\.[0-9]+)+) didactic.*$$/\1/p" didactic.dtx)
 .PHONY: release
 release: didactic.tar.gz didactic.pdf didactic.sty
@@ -222,5 +227,7 @@ clean:
 	${RM} test-keep-tall100-?.txt
 	${RM} test-keep-chain.pdf test-keep-chain.aux test-keep-chain.log
 	${RM} test-keep-chain.unq test-keep-chain.pytxcode test-keep-chain-?.txt
+	${RM} test-oldkernel.pdf test-oldkernel.aux test-oldkernel.log
+	${RM} test-oldkernel.unq test-oldkernel.pytxcode
 	${RM} _minted/*.minted
 	latexmk -C test.tex
