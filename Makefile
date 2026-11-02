@@ -191,6 +191,8 @@ clean:
 	${RM} ${TEST_FRAMETITLE_CASES:=.log} ${TEST_FRAMETITLE_CASES:=.toc}
 	${RM} ${TEST_FRAMETITLE_CASES:=.lof} ${TEST_FRAMETITLE_CASES:=.lot}
 	${RM} ${TEST_FRAMETITLE_CASES:=.unq} ${TEST_FRAMETITLE_CASES:=.out}
+	${RM} ${TEST_FRAMETITLE_CASES:=.pytxcode} test-frametitle.pytxcode
+	${RM} test-frametitle-slides.pytxcode
 	${RM} test-marginfloat-cases.pdf test-marginfloat-cases.aux
 	${RM} test-marginfloat-cases.log test-marginfloat-cases.out
 	${RM} test-marginfloat-cases.unq
