@@ -286,3 +286,5 @@ test-marginfloat-inorder.pdf
 test-marginfloat-inorder.unq
 test-marginfloat-hidden.pdf
 test-marginfloat-hidden.unq
+test-marginfloat-*.pdf
+test-marginfloat-*.unq

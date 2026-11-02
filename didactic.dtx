@@ -19,7 +19,7 @@
 %<*driver>
 \ProvidesFile{didactic.dtx}
 %</driver>
-%<package>\NeedsTeXFormat{LaTeX2e}
+%<package>\NeedsTeXFormat{LaTeX2e}[2020/10/01]
 %<package>\ProvidesPackage{didactic}
 %<*package>
   [2026/10/18 v2.12 didactic]
@@ -155,9 +155,10 @@
 % }
 % \changes{v2.12}{2026/10/18}{%
 %   Adds the option \texttt{marginfloatorder}: with \texttt{beside}, the 
-%   default, a margin float stays beside its text and a warning says when its 
-%   number can come out of page order; \texttt{inorder} keeps the order, as 
-%   \textsf{memoir} does.
+%   default, a margin float stays beside its text; \texttt{inorder} keeps the 
+%   order of the numbers, as \textsf{memoir} does.
+%   At the end of a run, a warning names any float whose number is out of page 
+%   order, of any kind.
 % }
 % \changes{v2.11.1}{2026/10/11}{%
 %   |\textbytext| fits its line: it was 13 to 17\,pt too wide, which with 
@@ -572,9 +573,7 @@
 %   paragraph goes on and no page ends.
 %   A figure that is still waiting may then come on a later page with a lower
 %   number, so the numbers can come out of page order.
-%   A warning gives the input line of each margin float where that can happen.
-%   A float at the bottom of the current page isn't waiting in that sense: it
-%   comes on the same page, so it gets no warning.
+%   The warning described below says when they did.
 % \item[inorder] The numbers stay in page order, as in |memoir|: the
 %   environment ends the paragraph, and starts a new page when an ordinary
 %   float is waiting, also one for the bottom of the current page.
@@ -582,6 +581,25 @@
 % \end{description}
 % To keep the order for one float, write |\FloatBlock| before the environment
 % with |beside|.
+%
+% Whatever the option, at the end of each run we compare the pages where the
+% captions ended up, for all floats of each kind (figures, tables, a float type
+% of your own) and not only for margin floats.
+% A caption on a later page than one numbered after it gives one warning, which
+% names both numbers, both pages and both input lines; numbers on the same page
+% don't count.
+% That also covers a margin float that \textsf{marginfix} moves on to the next
+% page, and a figure with |[H]| that overtakes one that waits.
+% The warning takes no extra run, since it reads what the same run wrote; it does
+% mean that it can appear in a run where the pages aren't final yet, so only
+% believe the one from the last run.
+% We see a caption when it goes into its list (|\addcontentsline|), so a caption
+% that doesn't (|\captionsetup{list=no}| from the package \textsf{caption}) isn't
+% compared, and neither is anything under |\nofiles|, which writes no \texttt{.aux}.
+% It stays on in a draft, as it costs next to nothing.
+% On the slides (the class |beamer|) floats don't move, so there is nothing to
+% check.
+%
 % |memoir| also raises a margin float by 1.2\,ex, which pushes it into the
 % space between it and a margin note above it, so that the two touch; ours
 % isn't raised.
@@ -589,11 +607,6 @@
 % |\begin{marginfigure}[-1.2ex]| is |memoir|'s; on the slides it's ignored.
 % As with the notes, when the margin is full, \textsf{marginfix} moves the
 % float on to the next page.
-% The warning above doesn't cover this case: an ordinary figure after such a
-% float can then come first with a higher number.
-% Nor does it see a figure written earlier in the same paragraph, which \TeX\
-% only hands over to \LaTeX\ when the paragraph ends: leave a blank line after
-% the figure if you want the warning.
 %
 % \subsection{Tools for code examples}
 %
@@ -2018,32 +2031,16 @@
 %    \end{macrocode}
 % With |inorder| we simply do what |memoir| does, before |\@bsphack|, so that
 % the environment starts between paragraphs and there is no space to save.
-% With |beside| we warn when |\FloatBlock| would have started a new page, with
-% the same test, except that a float for the bottom of this page (|\@botlist|)
-% doesn't count: it comes on the same page as the margin float, so their numbers
-% can't be out of page order.
-% A float in |\@deferlist| has no place on this page any more.
+% With |beside| we do nothing here, and the comparison below reports the outcome.
 %    \begin{macrocode}
-\newcommand\@didactic@warnfloatorder[1]{%
-  \begingroup
-    \let\@elt\relax
-    \edef\@tempa{\@deferlist\@dbldeferlist}%
-    \ifx\@tempa\@empty\else
-      \PackageWarning{didactic}{%
-        Margin #1 before a float that is still waiting:\MessageBreak
-        their numbers can come out of page order.\MessageBreak
-        marginfloatorder=inorder or \string\FloatBlock\space
-        keeps the order}%
-    \fi
-  \endgroup}
 \newcommand\@didactic@blockfloatorder[1]{\FloatBlock}
 \IfStrEqCase{\@didactic@marginfloatorder}{%
-  {beside}{\let\@didactic@marginfloatorder@check\@didactic@warnfloatorder}%
+  {beside}{\let\@didactic@marginfloatorder@check\@gobble}%
   {inorder}{\let\@didactic@marginfloatorder@check\@didactic@blockfloatorder}%
 }[\PackageError{didactic}{%
     Unknown value `\@didactic@marginfloatorder'\MessageBreak
     for marginfloatorder}{Use beside or inorder.}%
-  \let\@didactic@marginfloatorder@check\@didactic@warnfloatorder]
+  \let\@didactic@marginfloatorder@check\@gobble]
 %    \end{macrocode}
 % We only change |memoir|'s environments when we customize |memoir|, and
 % only if they are built as we expect.
@@ -2076,6 +2073,108 @@
   {\begin{figure}\centering}{\end{figure}}
 \ProvideDocumentEnvironment{margintable}{o}
   {\begin{table}\centering}{\end{table}}
+%    \end{macrocode}
+%
+% Then the order of the numbers.
+% We can't tell from the state of \LaTeX\ when a float starts whether its number
+% will come out of page order: a float earlier in the same paragraph isn't in
+% any list yet, and \textsf{marginfix} can move a margin float later.
+% So we look at the outcome: where each caption was shipped out.
+%
+% |\addcontentsline| is where we see a caption, since every way of making one
+% comes through it with the name of the counter: the kernel, |memoir| with its
+% side captions, \textsf{hyperref}, \textsf{float}'s own captions and
+% \textsf{longtable}.
+% |\@caption| doesn't do for the last two, and |\refstepcounter| doesn't do for
+% \textsf{longtable} and has an optional argument with \textsf{cleveref}.
+% Next to the entry for the list, in the same box, we write a line to the
+% \texttt{.aux} with the counter, a running number for the order in which the
+% numbers were given, the number as printed, and the input line, all expanded now,
+% and the page, printed and absolute, expanded when the page is shipped out.
+% The running number is what makes a counter that starts over in each chapter
+% harmless, and the absolute page a page number that starts over.
+% A frame that isn't there (|\begin{frame}<presentation>|) ends in a box that is
+% thrown away, and this line with it.
+%    \begin{macrocode}
+\newcount\@didactic@floatseq
+\newcommand\@didactic@floatrec[6]{}
+\newcommand\@didactic@recordfloat[2]{%
+  \if@filesw
+    \edef\@didactic@tmp{#1}\def\@didactic@tmpb{toc}%
+    \ifx\@didactic@tmp\@didactic@tmpb\else
+      \@ifundefined{c@#2}{}{%
+        \global\advance\@didactic@floatseq\@ne
+        \protected@write\@auxout{}{%
+          \string\@didactic@floatrec{#2}{\the\@didactic@floatseq}%
+          {\csname the#2\endcsname}{\thepage}%
+          {\noexpand\the\ReadonlyShipoutCounter}{\the\inputlineno}}%
+      }%
+    \fi
+  \fi}
+\newcommand\@didactic@contentsline[2]{%
+  \@didactic@recordfloat{#1}{#2}%
+  \@didactic@addcontentsline{#1}{#2}}
+\newcommand\@didactic@recordfloats{%
+  \if@filesw
+    \immediate\write\@mainaux{%
+      \string\providecommand\string\@didactic@floatrec[6]{}}%
+  \fi
+  \let\@didactic@addcontentsline\addcontentsline
+  \let\addcontentsline\@didactic@contentsline}
+%    \end{macrocode}
+% \LaTeX\ reads the \texttt{.aux} at the start of the document, where the lines
+% do nothing, and again at the end, after the last page, where they are compared.
+% That reading is of what this run wrote, so it takes no extra run, and it
+% changes nothing that \LaTeX\ compares to ask for one.
+%
+% The lines are in the order of the pages.
+% For each counter we keep the highest running number of the page we're on and the
+% highest one of the pages before it.
+% A caption with a lower running number than that last one has been overtaken; a
+% lower running number on the same page doesn't count.
+%    \begin{macrocode}
+\newcommand\@didactic@fo[2]{\csname @didactic@fo@#1@#2\endcsname}
+\newcommand\@didactic@foset[3]{%
+  \expandafter\gdef\csname @didactic@fo@#1@#2\endcsname{#3}}
+\newcommand\@didactic@focopy[3]{%
+  \expandafter\global\expandafter\let\csname @didactic@fo@#1@#2\expandafter
+    \endcsname\csname @didactic@fo@#1@#3\endcsname}
+\newcommand\@didactic@floatcheck[6]{%
+  \@ifundefined{@didactic@fo@#1@abspage}{%
+    \@didactic@foset{#1}{abspage}{#5}%
+    \@didactic@foset{#1}{curseq}{0}%
+    \@didactic@foset{#1}{prevseq}{0}%
+  }{}%
+  \ifnum#5>\@didactic@fo{#1}{abspage}\relax
+    \ifnum\@didactic@fo{#1}{curseq}>\@didactic@fo{#1}{prevseq}\relax
+      \@didactic@focopy{#1}{prevseq}{curseq}%
+      \@didactic@focopy{#1}{prevnum}{curnum}%
+      \@didactic@focopy{#1}{prevpage}{curpage}%
+      \@didactic@focopy{#1}{prevline}{curline}%
+    \fi
+    \@didactic@foset{#1}{abspage}{#5}%
+    \@didactic@foset{#1}{curseq}{0}%
+  \fi
+  \ifnum#2<\@didactic@fo{#1}{prevseq}\relax
+    \PackageWarningNoLine{didactic}{%
+      #1 #3 on page #4 comes after #1 \@didactic@fo{#1}{prevnum}
+      on page \@didactic@fo{#1}{prevpage}:\MessageBreak
+      the numbers are out of page order (captions at input\MessageBreak
+      lines #6 and \@didactic@fo{#1}{prevline}).
+      marginfloatorder=inorder or\MessageBreak
+      \string\FloatBlock\space before the later number keeps the order}%
+  \fi
+  \ifnum#2>\@didactic@fo{#1}{curseq}\relax
+    \@didactic@foset{#1}{curseq}{#2}%
+    \@didactic@foset{#1}{curnum}{#3}%
+    \@didactic@foset{#1}{curpage}{#4}%
+    \@didactic@foset{#1}{curline}{#6}%
+  \fi}
+\@ifclassloaded{beamer}{}{%
+  \AddToHook{begindocument/end}{\@didactic@recordfloats}%
+  \AddToHook{enddocument/afterlastpage}{%
+    \let\@didactic@floatrec\@didactic@floatcheck}%
+}
 %    \end{macrocode}
 % \end{environment}
 % \end{environment}

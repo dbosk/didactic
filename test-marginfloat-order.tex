@@ -1,18 +1,17 @@
 % Test of the option marginfloatorder (didactic), by default beside; the
 % test-marginfloat-inorder.tex runs this with inorder.
 %
-% An ordinary figure that can only go on a page of its own waits, numbered 1,
-% when a margin figure, numbered 2, comes.  A [b] table on the page of its text
-% doesn't wait in that way.
+% An ordinary figure that can only go on a page of its own waits when a margin
+% figure with a higher number comes.  A [b] table on the page of its text stays
+% there.
 %
 % Build: see the Makefile (twice, for marginfix's anchors).
 %
 % Expected in the resulting PDF and log:
-%   1  beside: MARGINAFTER (Figure 2) on page 1, beside its text; ORDINARY
-%      (Figure 1) on a later page.  A warning from didactic that names the
-%      input line of the margin figure (the first one in the environment),
-%      and only that one: MARGINBOTTOM, on
-%      the page of the [b] table, gets none.
+%   1  beside: MARGINAFTER (Figure 0.3) on page 1, beside its text; ORDINARY
+%      (Figure 0.2) on page 2.  One warning from didactic, at the end of the
+%      run, that names both numbers and both pages; none for MARGINBOTTOM, on
+%      the page of the [b] table.
 %   2  inorder: ORDINARY on a page before that of MARGINAFTER, no such warning.
 \documentclass[a4paper]{memoir}
 \usepackage{lipsum}
