@@ -2140,15 +2140,22 @@
 % title can hold, and a full expansion would fail on commands that aren't
 % robust, which a frame title never had to be.
 % So a macro in the title gets the meaning it has at that next paragraph.
+%
+% An empty title (|\begin{frame}{}|) makes no heading, and with a subtitle only
+% the subtitle is the heading, without the dash.
 %    \begin{macrocode}
 \newcommand\@didactic@runinheading[1]{\paragraph*{#1}}
 \newcommand\@didactic@frametitle{%
   \ifx\insertframesubtitle\@empty
-    \expandafter\@didactic@runinheading\expandafter{\insertframetitle}%
+    \ifx\insertframetitle\@empty\else
+      \expandafter\@didactic@runinheading\expandafter{\insertframetitle}%
+    \fi
   \else
     \edef\@didactic@heading{%
-      \unexpanded\expandafter{\insertframetitle}%
-      \noexpand\space\noexpand\textendash\noexpand\space
+      \ifx\insertframetitle\@empty\else
+        \unexpanded\expandafter{\insertframetitle}%
+        \noexpand\space\noexpand\textendash\noexpand\space
+      \fi
       \noexpand\textmd{\noexpand\emph{%
         \unexpanded\expandafter{\insertframesubtitle}}}}%
     \expandafter\@didactic@runinheading\expandafter{\@didactic@heading}%

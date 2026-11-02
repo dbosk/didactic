@@ -274,6 +274,11 @@ def frametitle_overlay(c):
     c.has_text("OVERB TEXTOVER")
     c.above("ONLYA", "ONLYB")                        # 2
     c.has_text("ONLYB TEXTONLY")
+    plain, empty = c.one("PLAINPARA"), c.one("TEXTEMPTY")  # 3
+    c.ok(abs(plain["xmin"] - empty["xmin"]) < 0.5,
+         f"TEXTEMPTY starts like a paragraph: {empty['xmin'] - plain['xmin']:.1f}pt")
+    c.has_text("SUBONLY TEXTSUBONLY")                # 4
+    c.absent("\u2013")
 
 
 CHECKS = {
