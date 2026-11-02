@@ -5,7 +5,10 @@ PYTHONTEX=python3 $(shell which pythontex) --interpreter python:python3
 
 # The cases of frame titles, one file per kind; see the header of each file.
 TEST_FRAMETITLE_CASES=	test-frametitle-overlay test-frametitle-floats \
-			test-frametitle-boxes test-frametitle-end
+			test-frametitle-boxes test-frametitle-end \
+			test-frametitle-template \
+			test-frametitle-template-after \
+			test-frametitle-noarticle test-frametitle-article
 
 .PHONY: all
 all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \

@@ -152,6 +152,11 @@
 %   paragraph under it.
 %   A subtitle follows the title in the heading.
 % }
+% \changes{v2.13}{2026/10/21}{%
+%   A frame title goes on a line of its own above a float or a picture, table, 
+%   \texttt{columns} or table of contents at the start of the frame, and a 
+%   \texttt{frametitle} template of your own wins wherever it is set.
+% }
 % \changes{v2.12}{2026/10/18}{%
 %   |marginfigure| and |margintable| work in a source shared with the 
 %   slides: ordinary floats in |beamer| and without |memoir|; in |memoir| 
@@ -449,9 +454,12 @@
 % word, as after any run-in heading, so it stands beside the title.
 % To put one under the title, write it in a |center|.
 % The slides are unchanged.
-% The option |noarticle| keeps |beamerarticle|'s frame titles, and so does
-% setting the template |frametitle| in the preamble, after |beamerarticle|
-% is loaded.
+% The option |noarticle| keeps |beamerarticle|'s frame titles.
+% A template |frametitle| of your own in the preamble wins too, wherever it
+% stands, before or after the packages.
+% If it's |beamerarticle|'s default you want, use |noarticle|: writing
+% |\setbeamertemplate{frametitle}[default]| only works after both packages, since
+% before |didactic| it can't be told from not having set a template.
 %
 % \subsection{Adding margin notes of different kinds}
 %
@@ -2243,12 +2251,22 @@
 % |noarticle| is given.
 % |beamerarticle| is often loaded after |didactic|, so we wait until it's
 % loaded (or run at once if it already is).
-% A template the user sets in the preamble after that still wins.
+% A template the user sets in the preamble after that still wins, because it
+% comes later.
+% One that the user set before |didactic|, after |beamerarticle|, wins because we
+% only replace |beamerarticle|'s default: |\ifx| compares what is set to what
+% setting the default makes.
 %    \begin{macrocode}
 \if@didactic@article
 \AtEndOfPackageFile*{beamerarticle}{%
+  \begingroup
+    \setbeamertemplate{frametitle}[default]%
+    \global\let\@didactic@defaulttitle\beamer@@tmpl@frametitle
+  \endgroup
   \defbeamertemplate<article>{frametitle}{didactic}{\@didactic@frametitle}%
-  \setbeamertemplate{frametitle}[didactic]%
+  \ifx\beamer@@tmpl@frametitle\@didactic@defaulttitle
+    \setbeamertemplate{frametitle}[didactic]%
+  \fi
   \@didactic@titlefirst{env/figure}%
   \@didactic@titlefirst{env/figure*}%
   \@didactic@titlefirst{env/table}%

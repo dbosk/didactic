@@ -342,6 +342,34 @@ def frametitle_end(c):
     c.one("TWICE")                                   # 6
 
 
+def frametitle_template(c):
+    """test-frametitle-template.tex and -template-after.tex."""
+    c.num_pages(1)
+    c.clean_log()
+    c.has_text("USERTEMPLATE TITLETPL")
+    c.above("TITLETPL", "TEXTTPL")
+
+
+def frametitle_noarticle(c):
+    """test-frametitle-noarticle.tex."""
+    c.num_pages(1)
+    c.clean_log()
+    c.above("TITLENOA", "TEXTNOA")
+    c.above("TITLESUB", "SUBNOA")
+    c.above("SUBNOA", "TEXTSUB")
+    c.absent("\u2013")
+
+
+def frametitle_article(c):
+    """test-frametitle-article.tex."""
+    c.num_pages(1)
+    c.clean_log()
+    c.has_text("TITLEART TEXTART")
+    c.has_text("TITLESUBART \u2013 SUBART TEXTSUBART")
+    c.above("TITLELIST", "ITEMART")
+    c.above("TITLEIMG", "FIGIMG")
+
+
 CHECKS = {
     "test-marginfloat": marginfloat,
     "test-marginfloat-slides": marginfloat_slides,
@@ -355,6 +383,10 @@ CHECKS = {
     "test-frametitle-floats": frametitle_floats,
     "test-frametitle-boxes": frametitle_boxes,
     "test-frametitle-end": frametitle_end,
+    "test-frametitle-template": frametitle_template,
+    "test-frametitle-template-after": frametitle_template,
+    "test-frametitle-noarticle": frametitle_noarticle,
+    "test-frametitle-article": frametitle_article,
 }
 
 
