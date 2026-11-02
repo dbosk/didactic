@@ -1,0 +1,12 @@
+% The preamble of the test-bilingual documents.  It says nothing about the
+% language: babel's main language and the order of cleveref's languages come
+% from the driver.
+\usepackage[british,swedish]{babel}
+\usepackage{pythontex}
+\usepackage{minted}
+\usepackage{amsmath}
+\makeatletter
+\@ifclassloaded{beamer}{}{\usepackage{hyperref}}
+\makeatother
+\usepackage{cleveref}
+\usepackage{didactic}

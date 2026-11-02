@@ -3,6 +3,9 @@ __pycache__
 didactic.pdf
 didactic.sty
 *.cut
+*.vrb
+test-bilingual*.pdf
+test-bilingual*.unq
 ltxobj
 test.pdf
 test.unq

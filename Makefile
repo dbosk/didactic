@@ -14,8 +14,11 @@ SRC+=	hello.py ask.py askmany.py greet.py filter.py pairgreet1.py pairgreet2.py
 SRC+=	pairwrite.py pairread.py
 
 # The change history (\PrintChanges) needs makeindex on the .glo file; that
-# also checks that every \changes entry can be written and typeset.
+# also checks that every \changes entry can be written and typeset.  minted
+# takes a _minted found elsewhere on the search path, such as in an installed
+# copy of this package, for its own unless there is one here.
 didactic.pdf: ${SRC} didactic.sty
+	@mkdir -p _minted
 	-${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	${PYTHONTEX} didactic
 	${PDFLATEX} ${LATEXFLAGS} $<
@@ -85,6 +88,27 @@ test-pair.pdf test-pair-slides.pdf: %.pdf: %.tex didactic.sty ${TEST_PAIR_EXAMPL
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
 
+# bilingual documents: one contents file, both editions, as notes and slides.
+# The first pass fails on the missing pythontex output; check-bilingual reads
+# the PDFs for what should and shouldn't be there.
+TEST_BILINGUAL=	test-bilingual test-bilingual-sv \
+		test-bilingual-slides test-bilingual-slides-sv
+$(addsuffix .pdf,${TEST_BILINGUAL}): %.pdf: %.tex test-bilingual-contents.tex \
+		didactic.sty hello.py
+	@mkdir -p _minted
+	-${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	${PYTHONTEX} $*
+	${PDFLATEX} ${LATEXFLAGS} $<
+	${PDFLATEX} ${LATEXFLAGS} $<
+
+# nobilingual leaves the names alone, for a document with its own \tr
+test-bilingual-off.pdf: test-bilingual-off.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} $<
+
+.PHONY: check-bilingual
+check-bilingual: $(addsuffix .pdf,${TEST_BILINGUAL}) test-bilingual-off.pdf
+	./test-bilingual.sh
+
 VERSION=$(shell sed -En "s/^.*v([0-9]+(\.[0-9]+)+) didactic.*$$/\1/p" didactic.dtx)
 .PHONY: release
 release: didactic.tar.gz didactic.pdf didactic.sty
@@ -126,4 +150,11 @@ clean:
 	${RM} test-pair-slides.pytxpyg test-pair-slides.out test-pair-slides.unq
 	${RM} -R pythontex-files-test-pair pythontex-files-test-pair-slides
 	${RM} test-footcite-memoir.pdf test-footcite-memoir.unq
+	${RM} *.cut
+	${RM} $(addsuffix .pdf,${TEST_BILINGUAL}) test-bilingual-off.pdf
+	${RM} $(addsuffix .unq,${TEST_BILINGUAL}) test-bilingual-off.unq
+	${RM} $(addsuffix .pytxcode,${TEST_BILINGUAL})
+	${RM} $(addsuffix .pytxmcr,${TEST_BILINGUAL})
+	${RM} $(addsuffix .pytxpyg,${TEST_BILINGUAL})
+	${RM} -R $(addprefix pythontex-files-,${TEST_BILINGUAL})
 	latexmk -C test.tex

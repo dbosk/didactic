@@ -1,0 +1,15 @@
+% The Swedish slides of test-bilingual.tex; see there.
+\documentclass{beamer}
+\PassOptionsToPackage{main=swedish}{babel}
+\PassOptionsToPackage{english,swedish}{cleveref}
+\input{test-bilingual-preamble.tex}
+\begin{document}
+\title{\tr{ENTITLE}{SVTITLE}}
+\author{A}
+\begin{frame}
+  \maketitle
+\end{frame}
+\mode<all>
+\input{test-bilingual-contents.tex}
+\mode*
+\end{document}
