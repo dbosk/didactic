@@ -148,16 +148,18 @@
 %   regardless of load order.
 % }
 % \changes{v2.14}{2026/10/22}{%
-%   Keeps listings together across pages outside |beamer|: a listing of at 
-%   most |keeplines| lines (20) doesn't break, a longer one leaves at least 
-%   |keepends| lines (3) that aren't empty on each side of a break and starts 
-%   no page with an empty line, and with |keepleadin| the 
-%   paragraph before a listing or a pair of |didacticpair|, and the header 
-%   line of a \textsf{noweb} chunk, stay with it.
-%   A listing of \textsf{fvextra} (so of |minted|) no longer breaks after 
-%   any line, whatever the penalties.
+%   Keeps listings together across pages outside \texttt{beamer}: a listing 
+%   of at most \texttt{keeplines} lines (20) doesn't break, a longer one 
+%   leaves at least \texttt{keepends} lines (3) that aren't empty on each 
+%   side of a break and starts no page with an empty line, and with 
+%   \texttt{keepleadin} the paragraph before a listing or a pair of 
+%   \texttt{didacticpair}, and the header line of a \textsf{noweb} chunk, 
+%   stay with it.
+%   A listing too tall for a page breaks anyway, with a warning.
+%   A listing of \textsf{fvextra} (so of \texttt{minted}) no longer breaks 
+%   after any line, whatever the penalties.
 %   Writes the margin column's place to the log 
-%   (|didactic-margin: odd=|\dots), for scripts that check the notes.
+%   (\texttt{didactic-margin:}\dots), for scripts that check the notes.
 % }
 % \changes{v2.13}{2026/10/21}{%
 %   In the article mode of |beamer|, a frame title is a run-in heading: the 
@@ -557,6 +559,8 @@
 % PDF.
 % A script that checks that each margin note is printed on the page of its 
 % mark can read it there instead of guessing it.
+% The line assumes one column of text: with |twocolumn|, where the notes of 
+% each column go into the margin beside it, it doesn't say where they are.
 %
 % \subsection{Figures and tables in the margin}
 %
@@ -959,6 +963,10 @@
 %   side, and the paragraph
 %   before it, which usually leads into it (``It prints:''), just as
 %   \TeX\ doesn't break a page before a displayed formula.
+%   A margin note or a float between them doesn't change that, and a colour
+%   set for the listing neither.
+%   Space that you add with |\vspace| between them does: it is a place to
+%   break, as it is anywhere.
 %   The header line of a code chunk of \textsf{noweb} stays with its code
 %   too.
 %   A page may still break within a longer paragraph before the listing,
@@ -966,17 +974,41 @@
 %   on the page before the listing starts.
 %   The default is |true|.
 % \end{description}
-% The page that a listing moves away from keeps its space empty at the
-% foot, so |keeplines| is a trade-off: 20 lines of code in |\footnotesize|
+% A line counts as empty when it holds nothing but spaces and tabs.
+% One that holds only something else that prints nothing, like a |\label| by
+% |escapeinside|, counts as a line.
+%
+% A listing kept whole can still fail to fit on a page, with what is kept
+% with it: a tall box in the paragraph before it, or a float at the top of
+% the next page, which is placed before \TeX\ gets to the listing.
+% Then that page is overfull, and \textsf{didactic} warns, as it does whenever
+% it can't do what these options ask.
+% Give the listing room with a place to break before it, such as a blank line
+% and |\vspace|.
+%
+% The page that a listing moves away from comes up short, and what happens
+% with that space depends on the document.
+% With |\raggedbottom| the space stays empty at the foot of the page.
+% That is the default of the one-sided documents of the standard classes
+% and |memoir|.
+% With |\flushbottom|, the default of their two-sided documents, and so of
+% |memoir| without options, \TeX\ stretches the page to its full height: the
+% space goes to the gaps around headings and between paragraphs, and the log
+% has an |Underfull \vbox|.
+% If you want the empty foot, put |\raggedbottom| in the preamble of the
+% notes; \textsf{didactic} doesn't change it for you.
+% Either way |keeplines| is a trade-off: 20 lines of code in |\footnotesize|
 % and the line that leads into them take about a third of the text block of
-% the notes' layout, so a page is left at most about a third empty for the
-% sake of a listing.
+% the notes' layout, so about a third of a page may go for the sake of a
+% listing.
 % With a larger font for the code, choose fewer lines.
-% |keeplines=0, keepends=1, keepleadin=false| gives the penalties of
-% \textsf{fancyvrb} itself.
-% (They don't give its breaks with \textsf{fvextra}, which is loaded by
-% |minted|: there a listing could break after any line, whatever the
-% penalties, which no longer happens.)
+%
+% |keeplines=0, keepends=1, keepleadin=false| comes closest to the breaks of
+% \textsf{fancyvrb} itself, which it can't turn into quite the same.
+% A page still doesn't start with an empty line of a listing; no option
+% changes that.
+% And \textsf{fvextra}, which is loaded by |minted|, lets a listing break
+% after any line, whatever the penalties: that no longer happens.
 % Listings inside a box, such as the code side by side above, can't break
 % anyway, and on the slides nothing changes.
 %
