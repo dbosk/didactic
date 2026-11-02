@@ -5030,7 +5030,10 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % \textsf{fvextra} can break after any line, even with |samepage|.)
 % If something else comes between the lines, which we can't take, like a 
 % |\write| or a |\mark|, we stop taking lines, and the lines that are left 
-% get no penalties between them; a page can break there as at any glue.
+% get no penalties between them; a page can break there as at any glue, 
+% so we warn.
+% Nothing in \textsf{fancyvrb} or \textsf{fvextra} puts such a thing there, 
+% only a redefinition of |\FV@ListProcessLine| can.
 %
 % After each line we take its note of being empty from 
 % |\@didactic@keep@blanks|, for the penalty after the line before it, and 
@@ -5154,6 +5157,11 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \setbox\@didactic@keep@out\vbox{%
         \unvbox\@didactic@keep@trail
         \unvbox\@didactic@keep@out}%
+      \PackageWarning{didactic}{%
+        A listing has something between its lines that\MessageBreak
+        we can't take out, so lines 1 to \the\@didactic@keep@i\space
+        of \the\@didactic@keep@n\space may break\MessageBreak
+        anywhere, near page \the\c@page}%
       \@didactic@keep@i\z@
     \fi
   \ifnum\@didactic@keep@i>\z@

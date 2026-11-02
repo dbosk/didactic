@@ -139,6 +139,8 @@ test-keep-tall.pdf: test-keep-tall.tex didactic.sty
 	test "${call count_word,long}" -eq 8161
 	test "${call count_warn,too tall}" -eq 2
 	test "${call count_warn,can.t keep}" -eq 1
+	test "${call count_warn,something between}" -eq 1
+	test "${call count_word,marked}" -eq 8
 	test "${call count_warn,doesn.t fit}" -eq 0
 
 test-keep-tall100.pdf: test-keep-tall100.tex test-keep-tall.tex didactic.sty
