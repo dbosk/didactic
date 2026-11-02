@@ -173,4 +173,7 @@ clean:
 	${RM} test-marginfloat-hidden.pdf test-marginfloat-hidden.aux
 	${RM} test-marginfloat-hidden.log test-marginfloat-hidden.out
 	${RM} test-marginfloat-hidden.unq
+	${RM} test-marginfloat.pytxcode test-marginfloat-slides.pytxcode
+	${RM} test-marginfloat-cases.pytxcode test-marginfloat-order.pytxcode
+	${RM} test-marginfloat-inorder.pytxcode test-marginfloat-hidden.pytxcode
 	latexmk -C test.tex
