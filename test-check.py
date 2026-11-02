@@ -294,6 +294,33 @@ def frametitle_floats(c):
          "FLOATPROSE still runs in with PROSEAFTER")
 
 
+def frametitle_boxes(c):
+    """test-frametitle-boxes.tex; the numbers are those of its header."""
+    c.clean_log()
+    for title, first in (("TIMG", "A"), ("TCENTRE", "B"), ("TPLAIN", "TABWORD"),   # 1
+                         ("TTABS", "TABSWORD"), ("TTABX", "TABXWORD"),
+                         ("TTIKZ", "TIKZWORD"), ("TMINI", "MINIWORD"),
+                         ("TCOLS", "COLWORD"), ("TBYTEXT", "BYTEXTWORD"),
+                         ("TMINTED", "print")):
+        title_word = c.one(title)
+        below = [w for w in c.pages[title_word["page"] - 1]
+                 if w["text"].split("(")[0] == first]
+        c.ok(any(w["ymin"] >= title_word["ymax"] - 1 for w in below),
+             f"{title} is on a line of its own, above {first}")
+    heading = max(c.words("Contents"), key=lambda w: w["ymax"] - w["ymin"])
+    toc_title = c.one("TTOC")
+    c.ok((toc_title["page"], toc_title["ymax"] - 1) <= (heading["page"], heading["ymin"]),
+         "TTOC is on a line of its own, above the heading Contents")
+    c.ok(abs(c.one("TCENTRE")["xmin"] - c.one("TIMG")["xmin"]) < 0.5,  # 2
+         "TCENTRE is flush left, like TIMG")
+    c.absent("THIDDEN")                              # 3
+    c.absent("currentsection")
+    c.ok(c.same_line(c.one("TFBOX"), c.one("FBOXWORD")),  # 4
+         "TFBOX and FBOXWORD are on one line")
+    c.ok(c.same_line(c.one("PROSEHEAD"), c.one("PROSETAB")),  # 5
+         "PROSEHEAD and PROSETAB are on one line")
+
+
 CHECKS = {
     "test-marginfloat": marginfloat,
     "test-marginfloat-slides": marginfloat_slides,
@@ -305,6 +332,7 @@ CHECKS = {
     "test-frametitle-slides": frametitle_slides,
     "test-frametitle-overlay": frametitle_overlay,
     "test-frametitle-floats": frametitle_floats,
+    "test-frametitle-boxes": frametitle_boxes,
 }
 
 

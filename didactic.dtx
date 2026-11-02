@@ -438,11 +438,16 @@
 % We make the frame title a run-in heading instead, like |\paragraph|: the
 % title in bold, and the frame's text after it on the same line.
 % A subtitle follows the title in the heading, after a dash and in italics.
-% A frame that starts with a list, a block or other displayed material gets
-% the title on a line of its own above it, as after any run-in heading.
-% So does a frame that starts with a figure or table, since the float could
-% otherwise come above the title: then the text after the float doesn't run in
-% with the title either.
+% A frame that starts with a list, a block, a display or code gets the title on a
+% line of its own above it, as after any run-in heading.
+% So does a frame that starts with a picture (|\includegraphics|, |tikzpicture|),
+% a table (|tabular|, |tabular*|, |tabularx|), a |minipage|, |columns| or
+% |\tableofcontents|, which would otherwise stand beside the title; and a frame
+% that starts with a figure or table float, which could otherwise come above the
+% title: then the text after the float doesn't run in with the title either.
+% Any other box (an |\fbox|, a |\parbox|, a |\rule|) is set in the line like a
+% word, as after any run-in heading, so it stands beside the title.
+% To put one under the title, write it in a |center|.
 % The slides are unchanged.
 % The option |noarticle| keeps |beamerarticle|'s frame titles, and so does
 % setting the template |frametitle| in the preamble, after |beamerarticle|
@@ -2181,11 +2186,24 @@
 % So a float that starts while a title waits in a frame sets the title first.
 % That also holds for a float that goes elsewhere, since we can't know where
 % it will go.
-% Outside the frames, a run-in heading before a float stays as it is.
+%
+% A box has the opposite problem: it starts the paragraph, so the title runs in
+% with it, and a picture has the title at its baseline, as if it were a label.
+% The boxes that a frame usually starts with therefore set the title first too,
+% through their |before| hooks.
+% |\tableofcontents| is among them, since the title would run into its heading.
+% A box that isn't in the list stands beside the title; that can't be wrong in
+% another way, and the user documentation says so.
+%
+% All of these only act while a title waits, in a frame, so they can't change
+% text elsewhere: outside the frames, a run-in heading before a float or a box
+% stays as it is.
 % We set the title flush left and with an ordinary last line, whatever the frame
-% has set up (|\centering| before the float, say); the frame's text isn't
-% typeset yet, so it never was in that setup.
+% has set up (|\centering| before the picture, say): the frame's text isn't
+% typeset yet, so the title was never in that setup.
 %    \begin{macrocode}
+\newcommand\@didactic@titlefirst[1]{%
+  \AddToHook{#1/before}{\@didactic@flushframetitle}}
 \newcommand\@didactic@flushframetitle{%
   \ifbeamer@inframe
     \if@noskipsec
@@ -2207,10 +2225,18 @@
   \defbeamertemplate<article>{frametitle}{didactic}{\@didactic@frametitle}%
   \setbeamertemplate{frametitle}[didactic]%
   \AddToHook{env/frame/end}{\@didactic@endframetitle}%
-  \AddToHook{env/figure/before}{\@didactic@flushframetitle}%
-  \AddToHook{env/figure*/before}{\@didactic@flushframetitle}%
-  \AddToHook{env/table/before}{\@didactic@flushframetitle}%
-  \AddToHook{env/table*/before}{\@didactic@flushframetitle}%
+  \@didactic@titlefirst{env/figure}%
+  \@didactic@titlefirst{env/figure*}%
+  \@didactic@titlefirst{env/table}%
+  \@didactic@titlefirst{env/table*}%
+  \@didactic@titlefirst{env/tabular}%
+  \@didactic@titlefirst{env/tabular*}%
+  \@didactic@titlefirst{env/tabularx}%
+  \@didactic@titlefirst{env/minipage}%
+  \@didactic@titlefirst{env/tikzpicture}%
+  \@didactic@titlefirst{env/columns}%
+  \@didactic@titlefirst{cmd/includegraphics}%
+  \@didactic@titlefirst{cmd/tableofcontents}%
 }
 \fi
 %    \end{macrocode}
