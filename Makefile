@@ -106,10 +106,12 @@ test-pair.pdf test-pair-slides.pdf: %.pdf: %.tex didactic.sty ${TEST_PAIR_EXAMPL
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
 
-# Run LaTeX on $< until the references settle.  The labels inside a listing of
-# minted come only once minted has its cache, so on a fresh checkout the page
-# references take three passes, later builds two.  Fail if they never settle.
+# Run LaTeX on $< until the references settle.  Without a cache minted sets its
+# listings as plain text in the first pass, with no labels, so on a fresh checkout
+# the page references take three passes, later builds two.  At least two, for
+# that plain text.  Fail if they never settle.
 define latex_until_settled
+${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $< || exit 1; \
 for i in 1 2 3 4 5; do \
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $< || exit 1; \
 	grep -q 'Rerun to get' $(basename $<).log || exit 0; \
