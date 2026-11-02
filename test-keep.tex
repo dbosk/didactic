@@ -34,6 +34,11 @@
 %   S  a short listing over the full width by \lstexample*, with room for
 %      2 lines: on the next page with its lead-in.
 %   Y  the same by didactic_mint(fullwidth=True), through PythonTeX.
+%   N  a listing after a blank line and an \ltnote, with room for 2 lines:
+%      on the next page with its lead-in.  M the same with \marginpar, P
+%      with a float.
+%   O  a listing with formatcom=\color{blue}: on the next page with its
+%      lead-in.
 %   G  a short listing in an item of a list: the item's label "1." beside
 %      its first line, as without didactic.
 %   H  the vertical space around a listing is as without didactic: the
@@ -176,6 +181,36 @@ didactic_mint("\n".join(f"line {i}|\\label{{yL{i}}}|" for i in range(1, 6)),
 \end{pycode}
 Text after Y.
 
+\roomfor{2}
+Lead-in N, then a note after a blank line:\label{n-lead}
+
+\ltnote{A note in vertical mode.}
+\testlisting{n}{3}
+Text after N.
+
+\roomfor{2}
+Lead-in M, then a margin note after a blank line:\label{m-lead}
+
+\marginpar{A margin note in vertical mode.}
+\testlisting{m}{3}
+Text after M.
+
+\roomfor{2}
+Lead-in P, then a float after a blank line:\label{p-lead}
+
+\begin{figure}[b]
+  \caption{A float in vertical mode.}
+\end{figure}
+\testlisting{p}{3}
+Text after P.
+
+\roomfor{2}
+Lead-in O, a listing with a colour:\label{o-lead}
+\testfile{o}{3}{}{}%
+\VerbatimInput[commandchars=\\\{\},formatcom=\color{blue}]{\jobname-o.txt}
+Text after O.
+
+\clearpage
 \roomfor{8}
 \begin{enumerate}
 \item Lead-in G, in an item:
@@ -216,6 +251,10 @@ Text after Y.
 \testcheck{S the whole listing}{s-lead}{=}{sL5}
 \testcheck{Y lead-in with the listing}{y-lead}{=}{yL1}
 \testcheck{Y the whole listing}{y-lead}{=}{yL5}
+\testcheck{N lead-in with the listing, a note between}{n-lead}{=}{nL1}
+\testcheck{M lead-in with the listing, a margin note between}{m-lead}{=}{mL1}
+\testcheck{P lead-in with the listing, a float between}{p-lead}{=}{pL1}
+\testcheck{O lead-in with the listing in colour}{o-lead}{=}{oL1}
 \end{itemize}
 \typeout{didactic keep test: all checks ran}
 

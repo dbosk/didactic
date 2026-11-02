@@ -3706,33 +3706,16 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % using the additional space taken from the margin notes, hence we need to also 
 % block the margin.
 %
-% |\blockmargin| is a margin note in vertical mode, and \LaTeX\ follows such 
-% a note with a place where the page may break (|\addpenalty|, in 
-% |\@specialoutput|), unless |\if@nobreak| is true.
-% So with the option |keepleadin|, which keeps a listing with the paragraph 
-% before it, we block the margin through |\@didactic@blockmargin|, which 
-% makes |\if@nobreak| true for that moment, if it isn't already.
-% The |fullwidth| environment is a list, whose start allows a page break 
-% too, so with |keepleadin| we forbid that one as well, in a group around 
-% the environment: |\@didactic@beginfullcode| and |\@didactic@endfullcode|.
+% The |fullwidth| environment is a list, whose start allows a page break, so 
+% with |keepleadin|, which keeps a listing with the paragraph before it, we 
+% forbid that, in a group around the environment: 
+% |\@didactic@beginfullcode| and |\@didactic@endfullcode|.
 % The PythonTeX functions print them with |\csname|, since their output is 
 % read where |@| isn't a letter.
 %    \begin{macrocode}
 \RequirePackage{marginfix}
-\newcommand\@didactic@blockmargin{%
-  \if@didactic@keepleadin
-    \if@nobreak
-      \blockmargin
-    \else
-      \@nobreaktrue
-      \blockmargin
-      \@nobreakfalse
-    \fi
-  \else
-    \blockmargin
-  \fi}
 \newcommand\@didactic@beginfullcode{%
-  \@didactic@blockmargin
+  \blockmargin
   \begingroup
   \if@didactic@keepleadin
     \@beginparpenalty\@M
@@ -4519,7 +4502,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
               {
                 \mode_if_inner:F
                   {
-                    \@didactic@blockmargin
+                    \blockmargin
                     \bool_set_true:N \l__didactic_pair_blocked_bool
                     \bool_set_true:N \l__didactic_pair_full_bool
                   }
@@ -5054,6 +5037,10 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % count the lines that aren't empty, in |\@didactic@keep@tail|.
 % |\unvbox| doesn't set |\prevdepth|, so we set it to the depth of the last 
 % line, for what comes after the listing.
+% With |keepleadin| a |\nobreak| goes before the lines: what the formatting 
+% of \textsf{fancyvrb} adds before the first line, like the colour of 
+% |formatcom=\color{blue}|, makes the glue before that line a place to break 
+% otherwise.
 %
 % A line that \textsf{fvextra} wraps (|breaklines|) is a box with the first 
 % row as its height and the other rows as its depth.
@@ -5171,6 +5158,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \fi
   \ifnum\@didactic@keep@i>\z@
   \repeat
+  \if@didactic@keepleadin
+    \nobreak
+  \fi
   \unvbox\@didactic@keep@box
   \unvbox\@didactic@keep@out
   \prevdepth\@didactic@keep@pd}
@@ -5247,6 +5237,25 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \@beginparpenalty\@M
   \fi
   \@didactic@FV@ListVSpace}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@specialoutput}
+% A margin note or a float in vertical mode, between the lead-in and the 
+% listing, goes through the output routine, and \LaTeX\ ends that with 
+% |\addpenalty\interlinepenalty|: a place to break, which it adds for the 
+% sake of what comes after the note, as the output routine took the 
+% vertical list apart.
+% With |keepleadin| we leave it out.
+% What comes next is what gives a place to break if there is one, the glue 
+% of the next paragraph (a box followed by glue is one), and the listing, 
+% which allows none.
+%    \begin{macrocode}
+\patchcmd{\@specialoutput}{\addpenalty\interlinepenalty}
+  {\if@didactic@keepleadin\else\addpenalty\interlinepenalty\fi}{}{%
+    \PackageWarningNoLine{didactic}{%
+      Can't patch \string\@specialoutput; a margin note or\MessageBreak
+      float before a listing can part it from its lead-in}}
 %    \end{macrocode}
 % \end{macro}
 %
