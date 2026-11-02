@@ -10,7 +10,7 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-sidecap.pdf test-sidecap-off.pdf \
 	test-marginfloat.pdf test-marginfloat-slides.pdf \
 	test-marginfloat-cases.pdf test-marginfloat-order.pdf \
-	test-marginfloat-inorder.pdf check
+	test-marginfloat-inorder.pdf test-marginfloat-hidden.pdf check
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -86,7 +86,7 @@ test-marginfloat.pdf test-marginfloat-slides.pdf: %.pdf: %.tex didactic.sty \
 		${TEST_MARGINFLOAT_SRC}
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
-test-marginfloat-cases.pdf: test-marginfloat-cases.tex didactic.sty
+test-marginfloat-cases.pdf test-marginfloat-hidden.pdf: %.pdf: %.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
 test-marginfloat-order.pdf test-marginfloat-inorder.pdf: %.pdf: %.tex \
@@ -98,7 +98,8 @@ test-marginfloat-order.pdf test-marginfloat-inorder.pdf: %.pdf: %.tex \
 # only shows that LaTeX didn't stop.  Phony, so that it runs every time, also
 # on PDFs that are up to date.
 CHECKED_TESTS=	test-marginfloat test-marginfloat-slides test-marginfloat-cases \
-		test-marginfloat-order test-marginfloat-inorder
+		test-marginfloat-order test-marginfloat-inorder \
+		test-marginfloat-hidden
 .PHONY: check
 check: test-check.py ${CHECKED_TESTS:=.pdf}
 	python3 test-check.py ${CHECKED_TESTS}
@@ -169,4 +170,7 @@ clean:
 	${RM} test-marginfloat-inorder.pdf test-marginfloat-inorder.aux
 	${RM} test-marginfloat-inorder.log test-marginfloat-inorder.out
 	${RM} test-marginfloat-inorder.unq
+	${RM} test-marginfloat-hidden.pdf test-marginfloat-hidden.aux
+	${RM} test-marginfloat-hidden.log test-marginfloat-hidden.out
+	${RM} test-marginfloat-hidden.unq
 	latexmk -C test.tex

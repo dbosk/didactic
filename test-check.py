@@ -218,12 +218,23 @@ def marginfloat_inorder(c):
     c.in_log(ORDER_WARNING, expected=False)
 
 
+def marginfloat_hidden(c):
+    """test-marginfloat-hidden.tex; the numbers are those of its header."""
+    c.clean_log()                                    # 1
+    for word in ("HIDDENPAR", "HIDDENV", "HIDDENTAB", "HIDDENTEXT"):  # 2
+        c.absent(word)
+    c.in_margin("VISIBLE", "VISTEXT")                # 3
+    c.has_text("Figure 1: VISIBLE")
+    c.has_text("Table 1: TABVISIBLE")
+
+
 CHECKS = {
     "test-marginfloat": marginfloat,
     "test-marginfloat-slides": marginfloat_slides,
     "test-marginfloat-cases": marginfloat_cases,
     "test-marginfloat-order": marginfloat_beside,
     "test-marginfloat-inorder": marginfloat_inorder,
+    "test-marginfloat-hidden": marginfloat_hidden,
 }
 
 

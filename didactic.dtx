@@ -555,6 +555,9 @@
 % first line; inside it, the float hangs from the line where it stands.
 % Like |\marginpar|, the environment adds no space to the text: a space
 % before it and one after it leave one space between the words around it.
+% In a frame that is only on the slides (|\begin{frame}<presentation>|), the
+% float has no effect on the notes: it isn't set and takes no number, and a
+% |\label| in it is undefined there.
 %
 % We change two things in |memoir|'s environments.
 % |memoir| ends the paragraph at a margin float and, whenever an ordinary
@@ -1976,14 +1979,38 @@
 % environment (|\ignorespacesafterend|).
 % |\@bsphack| sets |\@savsk| locally, and |\marginpar|'s own |\@bsphack|
 % happens in the group of |mem@margin@float|, so ours is intact at the end.
+%
+% In the notes, a frame that isn't there (|\begin{frame}<presentation>|) is
+% typeset all the same, in a box that |beamer| throws away.
+% Inside it, a |\marginpar| goes wrong in two ways: between paragraphs, where the
+% box counts as inner mode, it fails with an undefined |\@marbox|, and in a
+% paragraph, where it doesn't, it takes float boxes that never come back, so
+% \LaTeX\ reports lost floats and other floats are lost in fact.
+% So we don't give the box to |\marginpar| in such a frame, and we take the
+% number back, since nothing in the notes will show it.
+% The order of the floats doesn't matter there either, and |\FloatBlock| would
+% end a page from inside the box.
 %    \begin{macrocode}
+\newcommand\@didactic@ifhiddenframe{%
+  \@tempswafalse
+  \@ifundefined{beamer@donoframe}{}{%
+    \ifbeamer@inframe
+      \ifx\beamer@howtotreatframe\beamer@donoframe\@tempswatrue\fi
+    \fi}%
+  \if@tempswa\expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
+\newcommand\@didactic@aftermarginfloat{}
 \newcommand\@didactic@marginfloat[2]{%
-  \@didactic@marginfloatorder@check{#2}%
+  \@didactic@ifhiddenframe
+    {\let\marginfloatmarginmacro\@gobble
+     \edef\@didactic@aftermarginfloat{%
+       \noexpand\setcounter{#2}{\the\value{#2}}}}%
+    {\@didactic@marginfloatorder@check{#2}}%
   \@bsphack
   \let\FloatBlock\relax
   \begin{mem@margin@float}[#1]{#2}}
 \newcommand\@didactic@endmarginfloat{%
   \end{mem@margin@float}%
+  \@didactic@aftermarginfloat
   \relax\ifhmode
     \spacefactor\@savsf
     \ifdim\@savsk>\z@\ignorespacesafterend\fi
