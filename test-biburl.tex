@@ -1,0 +1,76 @@
+% Test of the biburlpenalty and bibemergencystretch options (didactic):
+% biburlpenalty sets biblatex's biburlnumpenalty, biburlucpenalty and
+% biburllcpenalty, by default to 9000, whether biblatex is loaded before
+% didactic or after; 0 leaves them at biblatex's 0; and a \setcounter in
+% the preamble after both packages wins.  bibemergencystretch is the
+% \emergencystretch in the bibliography, 3em by default, 0pt for none, and
+% an \emergencystretch of the document's own wins.  Without biblatex,
+% didactic must load as before.
+%
+% Build: see the Makefile, which runs it once per case with
+%   \def\testorder{before|after|none}\def\testoptions{<options of didactic>}
+%   \def\testset{<value to \setcounter after both, or empty>}
+%   \def\testexpect{<expected value of all three counters>}
+%   \def\testsetstretch{<\emergencystretch set in the preamble, or empty>}
+%   \def\testexpectstretch{<expected \emergencystretch in the bibliography>}
+% The log has a line "didactic biburl test: <case> PASS/FAIL", and the
+% Makefile fails on any FAIL.
+\documentclass[a4paper]{memoir}
+\makeatletter
+\def\@biburltest@before{before}
+\def\@biburltest@after{after}
+\def\@biburltest@none{none}
+\ifdefined\testorder\else
+  \def\testorder{before}\def\testoptions{}\def\testset{}\def\testexpect{9000}
+  \def\testsetstretch{}\def\testexpectstretch{3em}
+\fi
+\ifx\testorder\@biburltest@before\usepackage{biblatex}\fi
+\expandafter\PassOptionsToPackage\expandafter{\testoptions}{didactic}
+\usepackage{didactic}
+\ifx\testorder\@biburltest@after\usepackage{biblatex}\fi
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\ifx\testset\empty\else
+  \setcounter{biburlnumpenalty}{\testset}%
+  \setcounter{biburlucpenalty}{\testset}%
+  \setcounter{biburllcpenalty}{\testset}%
+\fi
+\ifx\testsetstretch\empty\else
+  \setlength\emergencystretch{\testsetstretch}%
+\fi
+\begin{document}
+\makeatletter
+\def\@biburltest@case{[\testorder; \testoptions; \testset;
+  \testsetstretch]}
+\ifx\testorder\@biburltest@none
+  \ifcsname c@biburlnumpenalty\endcsname
+    \def\@biburltest@result{FAIL}%
+  \else
+    \def\@biburltest@result{PASS}%
+  \fi
+  \typeout{didactic biburl test: \@biburltest@case\space\@biburltest@result
+    \space(no biblatex)}
+\else
+  \def\@biburltest@result{PASS}%
+  \ifnum\value{biburlnumpenalty}=\testexpect\else
+    \def\@biburltest@result{FAIL}\fi
+  \ifnum\value{biburlucpenalty}=\testexpect\else
+    \def\@biburltest@result{FAIL}\fi
+  \ifnum\value{biburllcpenalty}=\testexpect\else
+    \def\@biburltest@result{FAIL}\fi
+  % What the bibliography starts with (the hook of \AtBeginBibliography),
+  % here in the font of the text, as in the bibliography.
+  \begingroup
+    \csuse{blx@hook@bibinit}%
+    \dimen@=\testexpectstretch\relax
+    \ifdim\emergencystretch=\dimen@\else
+      \gdef\@biburltest@result{FAIL}\fi
+    \xdef\@biburltest@stretch{\the\emergencystretch, expected
+      \the\dimen@}%
+  \endgroup
+  \typeout{didactic biburl test: \@biburltest@case\space\@biburltest@result
+    \space(num \the\value{biburlnumpenalty},
+    uc \the\value{biburlucpenalty}, lc \the\value{biburllcpenalty},
+    expected \testexpect; stretch \@biburltest@stretch)}
+\fi
+\@biburltest@case: \@biburltest@result
+\end{document}
