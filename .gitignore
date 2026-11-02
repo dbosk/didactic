@@ -280,3 +280,7 @@ test-marginfloat-slides.pdf
 test-marginfloat-slides.unq
 test-marginfloat-cases.pdf
 test-marginfloat-cases.unq
+test-marginfloat-order.pdf
+test-marginfloat-order.unq
+test-marginfloat-inorder.pdf
+test-marginfloat-inorder.unq

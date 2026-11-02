@@ -153,6 +153,7 @@ def marginfloat(c):
          f"TABCELL is not indented: {cell['xmin'] - cap['xmin']:.1f}pt")
     c.one_space("SPACEA", "SPACEB")                  # 4
     c.has_text("REFS Figure 1, Figure 2 and Table 1.")  # 5
+    c.in_log(ORDER_WARNING, expected=False)          # the [b] figure isn't late
 
 
 def marginfloat_slides(c):
@@ -193,10 +194,36 @@ def marginfloat_cases(c):
     c.ok(len(c.words("JOINAJOINB")) == 1, "JOINA and JOINB make one word")
 
 
+ORDER_WARNING = r"Package didactic Warning: Margin (figure|table)"
+
+
+def marginfloat_beside(c):
+    """test-marginfloat-order.tex, case 1."""
+    c.clean_log()
+    marginafter = c.one("MARGINAFTER")
+    c.ok(marginafter["page"] < c.one("ORDINARY")["page"],
+         "the margin figure stays beside its text, before ORDINARY")
+    c.in_margin("MARGINAFTER", "TEXTAFTER")
+    c.ok(len(re.findall(ORDER_WARNING, c.log)) == 1,
+         "one warning about the order, not one for the [b] table too")
+    # Line 39 has the \begin; TeX has read line 40, looking for an optional
+    # argument, when the environment starts.
+    c.in_log(ORDER_WARNING + r"[\s\S]*?on input line 40\.")
+
+
+def marginfloat_inorder(c):
+    """test-marginfloat-order.tex, case 2."""
+    c.clean_log()
+    c.above("ORDINARY", "MARGINAFTER")
+    c.in_log(ORDER_WARNING, expected=False)
+
+
 CHECKS = {
     "test-marginfloat": marginfloat,
     "test-marginfloat-slides": marginfloat_slides,
     "test-marginfloat-cases": marginfloat_cases,
+    "test-marginfloat-order": marginfloat_beside,
+    "test-marginfloat-inorder": marginfloat_inorder,
 }
 
 

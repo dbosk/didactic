@@ -9,7 +9,8 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-note-heading.pdf test-pair.pdf test-pair-slides.pdf \
 	test-sidecap.pdf test-sidecap-off.pdf \
 	test-marginfloat.pdf test-marginfloat-slides.pdf \
-	test-marginfloat-cases.pdf check
+	test-marginfloat-cases.pdf test-marginfloat-order.pdf \
+	test-marginfloat-inorder.pdf check
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -88,11 +89,16 @@ test-marginfloat.pdf test-marginfloat-slides.pdf: %.pdf: %.tex didactic.sty \
 test-marginfloat-cases.pdf: test-marginfloat-cases.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
+test-marginfloat-order.pdf test-marginfloat-inorder.pdf: %.pdf: %.tex \
+		test-marginfloat-order.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} $<
+	${PDFLATEX} ${LATEXFLAGS} $<
 
 # What the headers of the tests expect, from the PDFs and logs: building a test
 # only shows that LaTeX didn't stop.  Phony, so that it runs every time, also
 # on PDFs that are up to date.
-CHECKED_TESTS=	test-marginfloat test-marginfloat-slides test-marginfloat-cases
+CHECKED_TESTS=	test-marginfloat test-marginfloat-slides test-marginfloat-cases \
+		test-marginfloat-order test-marginfloat-inorder
 .PHONY: check
 check: test-check.py ${CHECKED_TESTS:=.pdf}
 	python3 test-check.py ${CHECKED_TESTS}
@@ -157,4 +163,10 @@ clean:
 	${RM} test-marginfloat-cases.pdf test-marginfloat-cases.aux
 	${RM} test-marginfloat-cases.log test-marginfloat-cases.out
 	${RM} test-marginfloat-cases.unq
+	${RM} test-marginfloat-order.pdf test-marginfloat-order.aux
+	${RM} test-marginfloat-order.log test-marginfloat-order.out
+	${RM} test-marginfloat-order.unq
+	${RM} test-marginfloat-inorder.pdf test-marginfloat-inorder.aux
+	${RM} test-marginfloat-inorder.log test-marginfloat-inorder.out
+	${RM} test-marginfloat-inorder.unq
 	latexmk -C test.tex
