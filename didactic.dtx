@@ -19,7 +19,7 @@
 %<*driver>
 \ProvidesFile{didactic.dtx}
 %</driver>
-%<package>\NeedsTeXFormat{LaTeX2e}
+%<package>\NeedsTeXFormat{LaTeX2e}[2021/06/01]
 %<package>\ProvidesPackage{didactic}
 %<*package>
   [2026/10/21 v2.13 didactic]
@@ -2258,7 +2258,7 @@
 % setting the default makes.
 %    \begin{macrocode}
 \if@didactic@article
-\AtEndOfPackageFile*{beamerarticle}{%
+\newcommand\@didactic@articletitles{%
   \begingroup
     \setbeamertemplate{frametitle}[default]%
     \global\let\@didactic@defaulttitle\beamer@@tmpl@frametitle
@@ -2280,6 +2280,9 @@
   \@didactic@titlefirst{cmd/includegraphics}%
   \@didactic@titlefirst{cmd/tableofcontents}%
 }
+\@ifpackageloaded{beamerarticle}
+  {\@didactic@articletitles}
+  {\AddToHook{package/beamerarticle/after}{\@didactic@articletitles}}
 \fi
 %    \end{macrocode}
 %
