@@ -124,8 +124,15 @@ $(addsuffix .pdf,${TEST_BILINGUAL}): %.pdf: %.tex test-bilingual-contents.tex \
 test-bilingual-off.pdf: test-bilingual-off.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} $<
 
+# a block that inputs a file holding a block
+test-bilingual-nested.pdf: test-bilingual-nested.tex \
+		test-bilingual-nested-inner.tex test-bilingual-nested-innermost.tex \
+		didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} $<
+
 .PHONY: check-bilingual
-check-bilingual: $(addsuffix .pdf,${TEST_BILINGUAL}) test-bilingual-off.pdf
+check-bilingual: $(addsuffix .pdf,${TEST_BILINGUAL}) test-bilingual-off.pdf \
+		test-bilingual-nested.pdf
 	./test-bilingual.sh
 
 VERSION=$(shell sed -En "s/^.*v([0-9]+(\.[0-9]+)+) didactic.*$$/\1/p" didactic.dtx)
@@ -172,6 +179,8 @@ clean:
 	${RM} didactic-sync.py didactic-sync.tex test_didactic_sync.py
 	${RM} *.cut
 	${RM} $(addsuffix .pdf,${TEST_BILINGUAL}) test-bilingual-off.pdf
+	${RM} test-bilingual-nested.pdf test-bilingual-nested.unq
+	${RM} test-bilingual-taken.pdf test-bilingual-taken.unq
 	${RM} $(addsuffix .unq,${TEST_BILINGUAL}) test-bilingual-off.unq
 	${RM} $(addsuffix .pytxcode,${TEST_BILINGUAL})
 	${RM} $(addsuffix .pytxmcr,${TEST_BILINGUAL})

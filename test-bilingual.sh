@@ -72,5 +72,43 @@ pdftotext test-bilingual-off.pdf - | grep -q 'own tr: x' \
 pdftotext test-bilingual-off.pdf - | grep -q 'own en' \
   || fail test-bilingual-off "own en is gone"
 
+nested=$(pdftotext test-bilingual-nested.pdf -)
+for word in NESTEDFIRST NESTEDINNER NESTEDINNERMOST NESTEDINNEREND NESTEDLAST \
+  AFTERNESTED; do
+  case "$nested" in
+    *"$word"*) ;;
+    *) fail test-bilingual-nested "$word is missing" ;;
+  esac
+done
+case "$nested" in
+  *NESTEDSV*) fail test-bilingual-nested "the other language" ;;
+esac
+
+# A name that comment.sty would overwrite stops the build, with a message that
+# names the way out; an environment of that name is no such thing.
+taken() {
+  ${PDFLATEX:-pdflatex} -shell-escape -interaction=nonstopmode \
+    -jobname=test-bilingual-taken \
+    "\\documentclass{article}\\usepackage[british]{babel}$1\\begin{document}x\\end{document}" \
+    >/dev/null 2>&1
+}
+for name in comment en sv; do
+  taken "\\newcommand\\$name[1]{#1}\\usepackage{didactic}"
+  grep -q "Package didactic Error.*\\\\$name" test-bilingual-taken.log \
+    || fail taken "no error for $name"
+  grep -q nobilingual test-bilingual-taken.log \
+    || fail taken "the error for $name does not name nobilingual"
+  taken "\\newcommand\\$name[1]{#1}\\usepackage[nobilingual]{didactic}"
+  if grep -q '^!' test-bilingual-taken.log; then
+    fail taken "nobilingual with own $name"
+  fi
+done
+for package in comment verbatim; do
+  taken "\\usepackage{$package}\\usepackage{didactic}"
+  if grep -q '^!' test-bilingual-taken.log; then
+    fail taken "$package loaded first"
+  fi
+done
+
 [ "$status" = 0 ] && echo "bilingual: all as expected"
 exit $status

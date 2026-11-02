@@ -248,10 +248,10 @@
 % }
 %
 % \changes{v2.17}{2026/11/01}{%
-%   Adds bilingual documents: the environments |en| and |sv|, 
-%   \texttt{\textbackslash tr}, the option |language|, 
-%   \texttt{\textbackslash didacticlanguage} and the option |nobilingual|; 
-%   loads \textsf{comment}.
+%   Adds bilingual documents: the environments \texttt{en} and \texttt{sv}, 
+%   \texttt{\textbackslash tr}, the option \texttt{language}, 
+%   \texttt{\textbackslash didacticlanguage} and the option 
+%   \texttt{nobilingual}; loads \textsf{comment}.
 %   Adds the script \texttt{didactic-sync.py}, a literate program, which 
 %   keeps the two languages of a pair in step.
 % }
@@ -886,9 +886,9 @@
 % \PassOptionsToPackage{english,swedish}{cleveref}
 % \input{preamble.tex}
 % \end{verbatim}
-% The option |language=en| or |language=sv| overrides that, and so does 
-% |\didacticlanguage{en}| or |\didacticlanguage{sv}|, which can also be used 
-% in the document, between blocks.
+% The option |language=en| or |language=sv| overrides that.
+% So does the command |\didacticlanguage| with the same argument, which can 
+% also be used in the document, between blocks.
 %
 % The names that \textsf{babel} sets follow by themselves: captions, 
 % \textsf{beamer}'s and this package's block titles.
@@ -914,16 +914,18 @@
 % \begin{description}
 % \item[The end of a block] |\end{en}| and |\end{sv}| stand alone on their 
 %   line, in the first column, or the block doesn't end and \TeX\ runs to the 
-%   end of the file (|File ended while scanning use of \next|).
+%   end of the file: \enquote{File ended while scanning use of} |\next| or 
+%   |\ProcessCommentLine|.
 %   |\begin{en}| may be indented, but the rest of its line is ignored.
 % \item[Frames] A frame holding a block is |[fragile]|, because the body of 
 %   any other frame has been read as an argument already.
-%   On the slides, a block in any other frame ends the run with the same 
-%   error as above; in the notes, it happens to work.
+%   On the slides, a block in any other frame ends the run with one of the 
+%   errors above; in the notes, it happens to work.
 %   \texttt{didactic-sync.py} points such frames out.
 % \item[Arguments] For the same reason, no block goes inside the argument of 
 %   a macro: not in |\ltnote{...}|, |\mode<article>{...}|, |\only<2>{...}| 
 %   or |\footnote{...}|.
+%   The errors are the ones above, or one that names |\xComment|.
 %   Put the block around the macro, or use |\tr| inside it.
 % \item[Outside frames] On the slides, |\mode*| skips text between the 
 %   frames without seeing the blocks, so it stops at a frame or a |\section| 
@@ -945,17 +947,26 @@
 % \end{description}
 % The block's lines reach \TeX\ through the file \meta{jobname}|.cut|, so an 
 % error in a block is reported at a line of that file.
+% A block can input a file that holds blocks: those use 
+% \meta{jobname}|-1.cut| and so on, one file per depth.
 % They aren't in a group, so definitions in a block stay in force after it, 
 % and a block may even open an environment that it doesn't close.
 %
 % \DescribeOpt{nobilingual}
-% The names |en|, |sv| and |\tr| are free in the packages that this package 
-% is used with, but a document might define them for itself, as might a 
-% package: \textsf{physics} has a |\tr| for the trace.
+% The names |en|, |sv|, |\tr| and, through \textsf{comment}, |\comment| are 
+% free in the packages that this package is used with, but a document might 
+% define them for itself, as might a package: \textsf{physics} has a |\tr| for 
+% the trace, and \textsf{changes} a |\comment|.
 % If |\tr| is taken when this package is loaded, it stays as it is, with a 
 % warning, and the command is available as |\didactictr|.
-% If the document defines its own afterwards, or doesn't want any of this, 
-% the option |nobilingual| leaves the names, and \textsf{comment}, alone.
+% If |\en|, |\sv| or a command |\comment| is taken, then \textsf{comment} would 
+% overwrite it and the document would break somewhere else, so that's an error; 
+% an environment |comment|, as \textsf{verbatim} and \textsf{memoir} have, works 
+% just like the one that replaces it.
+% If the document defines one of them, or loads such a package, afterwards, 
+% \LaTeX\ says so itself.
+% In all these cases, or if the document doesn't want any of this, the option 
+% |nobilingual| leaves the names, and \textsf{comment}, alone.
 %
 % \StopEventually{}
 %
@@ -2272,8 +2283,29 @@
 % We build the two blocks on \textsf{comment}, the package that can include 
 % or skip verbatim material: it reads the lines one by one, and doesn't 
 % tokenize them as \TeX\ text before it has decided.
+% It defines |\comment| and, through the blocks, |\en| and |\sv| without 
+% looking whether they're taken, and the document then fails far from the cause 
+% with something like \enquote{Extra \textbackslash endgroup}, so we look first.
+% An environment |comment| has an end, a command doesn't, and an environment of 
+% that name does what \textsf{comment}'s does.
 %    \begin{macrocode}
 \if@didactic@bilingual
+\newcommand\@didactic@nametaken[1]{%
+  \PackageError{didactic}{%
+    \string#1 is already defined, and bilingual documents would overwrite 
+    it.\MessageBreak Load didactic with the option nobilingual%
+  }{%
+    The environments en and sv use the comment package, which defines
+    \string\comment, \string\en\space and \string\sv.%
+  }%
+}
+\@ifpackageloaded{comment}{}{%
+  \ifdefined\comment
+    \ifdefined\endcomment\else\@didactic@nametaken\comment\fi
+  \fi
+}
+\ifdefined\en\@didactic@nametaken\en\fi
+\ifdefined\sv\@didactic@nametaken\sv\fi
 \RequirePackage{comment}
 %    \end{macrocode}
 % \textsf{comment} writes each block that it includes to a file and inputs 
@@ -2285,9 +2317,29 @@
 % \texttt{comment.cut} from building the deck on its own would be found 
 % instead of the book's.
 % With the name of the job, the file belongs to the document being built.
+%
+% One file isn't enough, though.
+% A block may input a file that holds a block, and that block's lines go to a 
+% file too; if it's the same file, it's truncated while \TeX\ is still reading 
+% the outer block from it.
+% What \TeX\ has buffered, about 4\,KB, is still read, and the rest is silently 
+% lost, so short blocks hide this.
+% So we count how deep we are, and each depth has a file of its own.
+% An excluded block is never written, and \textsf{comment} makes its 
+% |\ProcessCutFile| empty, so only the included ones count.
 %    \begin{macrocode}
-\def\DefaultCutFileName{\def\CommentCutFile{\jobname.cut}}
+\newcount\@didactic@cutdepth
+\def\DefaultCutFileName{%
+  \edef\CommentCutFile{%
+    \jobname\ifnum\@didactic@cutdepth>\z@ -\the\@didactic@cutdepth\fi.cut%
+  }%
+}
 \DefaultCutFileName
+\def\ProcessCutFile{%
+  \global\advance\@didactic@cutdepth\@ne
+  \input{\CommentCutFile}\relax
+  \global\advance\@didactic@cutdepth\m@ne
+}
 %    \end{macrocode}
 %
 % \begin{macro}{\didacticlanguage}
