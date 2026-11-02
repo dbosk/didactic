@@ -1,0 +1,145 @@
+% Test a block that inputs a file holding a block (didactic).
+%
+% Build: make check-bilingual
+%
+% comment.sty writes an included block to a file and inputs it.  With one file
+% for all blocks, the inner block truncates the file the outer block is still
+% being read from: whatever TeX hasn't buffered yet, about 4 KB, is lost without
+% an error.  Hence the filler: the block must be longer than the buffer.
+%
+% Expected in the PDF: NESTEDFIRST, NESTEDINNER, NESTEDINNERMOST, NESTEDLAST and
+% AFTERNESTED, and NESTEDSV in none of them.
+\documentclass{article}
+\usepackage[british]{babel}
+\usepackage{didactic}
+\begin{document}
+\begin{en}
+NESTEDFIRST
+\input{test-bilingual-nested-inner.tex}
+filler line 1 of the outer block, long enough that the file buffer matters here.
+filler line 2 of the outer block, long enough that the file buffer matters here.
+filler line 3 of the outer block, long enough that the file buffer matters here.
+filler line 4 of the outer block, long enough that the file buffer matters here.
+filler line 5 of the outer block, long enough that the file buffer matters here.
+filler line 6 of the outer block, long enough that the file buffer matters here.
+filler line 7 of the outer block, long enough that the file buffer matters here.
+filler line 8 of the outer block, long enough that the file buffer matters here.
+filler line 9 of the outer block, long enough that the file buffer matters here.
+filler line 10 of the outer block, long enough that the file buffer matters here.
+filler line 11 of the outer block, long enough that the file buffer matters here.
+filler line 12 of the outer block, long enough that the file buffer matters here.
+filler line 13 of the outer block, long enough that the file buffer matters here.
+filler line 14 of the outer block, long enough that the file buffer matters here.
+filler line 15 of the outer block, long enough that the file buffer matters here.
+filler line 16 of the outer block, long enough that the file buffer matters here.
+filler line 17 of the outer block, long enough that the file buffer matters here.
+filler line 18 of the outer block, long enough that the file buffer matters here.
+filler line 19 of the outer block, long enough that the file buffer matters here.
+filler line 20 of the outer block, long enough that the file buffer matters here.
+filler line 21 of the outer block, long enough that the file buffer matters here.
+filler line 22 of the outer block, long enough that the file buffer matters here.
+filler line 23 of the outer block, long enough that the file buffer matters here.
+filler line 24 of the outer block, long enough that the file buffer matters here.
+filler line 25 of the outer block, long enough that the file buffer matters here.
+filler line 26 of the outer block, long enough that the file buffer matters here.
+filler line 27 of the outer block, long enough that the file buffer matters here.
+filler line 28 of the outer block, long enough that the file buffer matters here.
+filler line 29 of the outer block, long enough that the file buffer matters here.
+filler line 30 of the outer block, long enough that the file buffer matters here.
+filler line 31 of the outer block, long enough that the file buffer matters here.
+filler line 32 of the outer block, long enough that the file buffer matters here.
+filler line 33 of the outer block, long enough that the file buffer matters here.
+filler line 34 of the outer block, long enough that the file buffer matters here.
+filler line 35 of the outer block, long enough that the file buffer matters here.
+filler line 36 of the outer block, long enough that the file buffer matters here.
+filler line 37 of the outer block, long enough that the file buffer matters here.
+filler line 38 of the outer block, long enough that the file buffer matters here.
+filler line 39 of the outer block, long enough that the file buffer matters here.
+filler line 40 of the outer block, long enough that the file buffer matters here.
+filler line 41 of the outer block, long enough that the file buffer matters here.
+filler line 42 of the outer block, long enough that the file buffer matters here.
+filler line 43 of the outer block, long enough that the file buffer matters here.
+filler line 44 of the outer block, long enough that the file buffer matters here.
+filler line 45 of the outer block, long enough that the file buffer matters here.
+filler line 46 of the outer block, long enough that the file buffer matters here.
+filler line 47 of the outer block, long enough that the file buffer matters here.
+filler line 48 of the outer block, long enough that the file buffer matters here.
+filler line 49 of the outer block, long enough that the file buffer matters here.
+filler line 50 of the outer block, long enough that the file buffer matters here.
+filler line 51 of the outer block, long enough that the file buffer matters here.
+filler line 52 of the outer block, long enough that the file buffer matters here.
+filler line 53 of the outer block, long enough that the file buffer matters here.
+filler line 54 of the outer block, long enough that the file buffer matters here.
+filler line 55 of the outer block, long enough that the file buffer matters here.
+filler line 56 of the outer block, long enough that the file buffer matters here.
+filler line 57 of the outer block, long enough that the file buffer matters here.
+filler line 58 of the outer block, long enough that the file buffer matters here.
+filler line 59 of the outer block, long enough that the file buffer matters here.
+filler line 60 of the outer block, long enough that the file buffer matters here.
+filler line 61 of the outer block, long enough that the file buffer matters here.
+filler line 62 of the outer block, long enough that the file buffer matters here.
+filler line 63 of the outer block, long enough that the file buffer matters here.
+filler line 64 of the outer block, long enough that the file buffer matters here.
+filler line 65 of the outer block, long enough that the file buffer matters here.
+filler line 66 of the outer block, long enough that the file buffer matters here.
+filler line 67 of the outer block, long enough that the file buffer matters here.
+filler line 68 of the outer block, long enough that the file buffer matters here.
+filler line 69 of the outer block, long enough that the file buffer matters here.
+filler line 70 of the outer block, long enough that the file buffer matters here.
+filler line 71 of the outer block, long enough that the file buffer matters here.
+filler line 72 of the outer block, long enough that the file buffer matters here.
+filler line 73 of the outer block, long enough that the file buffer matters here.
+filler line 74 of the outer block, long enough that the file buffer matters here.
+filler line 75 of the outer block, long enough that the file buffer matters here.
+filler line 76 of the outer block, long enough that the file buffer matters here.
+filler line 77 of the outer block, long enough that the file buffer matters here.
+filler line 78 of the outer block, long enough that the file buffer matters here.
+filler line 79 of the outer block, long enough that the file buffer matters here.
+filler line 80 of the outer block, long enough that the file buffer matters here.
+filler line 81 of the outer block, long enough that the file buffer matters here.
+filler line 82 of the outer block, long enough that the file buffer matters here.
+filler line 83 of the outer block, long enough that the file buffer matters here.
+filler line 84 of the outer block, long enough that the file buffer matters here.
+filler line 85 of the outer block, long enough that the file buffer matters here.
+filler line 86 of the outer block, long enough that the file buffer matters here.
+filler line 87 of the outer block, long enough that the file buffer matters here.
+filler line 88 of the outer block, long enough that the file buffer matters here.
+filler line 89 of the outer block, long enough that the file buffer matters here.
+filler line 90 of the outer block, long enough that the file buffer matters here.
+filler line 91 of the outer block, long enough that the file buffer matters here.
+filler line 92 of the outer block, long enough that the file buffer matters here.
+filler line 93 of the outer block, long enough that the file buffer matters here.
+filler line 94 of the outer block, long enough that the file buffer matters here.
+filler line 95 of the outer block, long enough that the file buffer matters here.
+filler line 96 of the outer block, long enough that the file buffer matters here.
+filler line 97 of the outer block, long enough that the file buffer matters here.
+filler line 98 of the outer block, long enough that the file buffer matters here.
+filler line 99 of the outer block, long enough that the file buffer matters here.
+filler line 100 of the outer block, long enough that the file buffer matters here.
+filler line 101 of the outer block, long enough that the file buffer matters here.
+filler line 102 of the outer block, long enough that the file buffer matters here.
+filler line 103 of the outer block, long enough that the file buffer matters here.
+filler line 104 of the outer block, long enough that the file buffer matters here.
+filler line 105 of the outer block, long enough that the file buffer matters here.
+filler line 106 of the outer block, long enough that the file buffer matters here.
+filler line 107 of the outer block, long enough that the file buffer matters here.
+filler line 108 of the outer block, long enough that the file buffer matters here.
+filler line 109 of the outer block, long enough that the file buffer matters here.
+filler line 110 of the outer block, long enough that the file buffer matters here.
+filler line 111 of the outer block, long enough that the file buffer matters here.
+filler line 112 of the outer block, long enough that the file buffer matters here.
+filler line 113 of the outer block, long enough that the file buffer matters here.
+filler line 114 of the outer block, long enough that the file buffer matters here.
+filler line 115 of the outer block, long enough that the file buffer matters here.
+filler line 116 of the outer block, long enough that the file buffer matters here.
+filler line 117 of the outer block, long enough that the file buffer matters here.
+filler line 118 of the outer block, long enough that the file buffer matters here.
+filler line 119 of the outer block, long enough that the file buffer matters here.
+filler line 120 of the outer block, long enough that the file buffer matters here.
+NESTEDLAST
+\end{en}
+\begin{sv}
+NESTEDSV
+\end{sv}
+AFTERNESTED
+\end{document}

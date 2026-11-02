@@ -1,0 +1,86 @@
+\mode*
+
+\section{\tr{ENSECTION}{SVSECTION}}\label{sec:bilingual-test}
+
+% sync en=000000 sv=000000
+\begin{en}
+ENPROSE in the notes only, see \cref{sec:bilingual-test}.
+\end{en}
+\begin{sv}
+SVPROSE in the notes only, see \cref{sec:bilingual-test}.
+\end{sv}
+
+\begin{frame}[fragile]
+  \frametitle{\tr{ENFRAMETITLE}{SVFRAMETITLE}}
+  SHARED on every page.
+
+  \begin{en}
+ENFRAME with code:
+\begin{minted}{text}
+ENVERBATIM
+\end{minted}
+\inputminted{python}{hello.py}
+\runpython[showcommand]{hello.py}
+\end{en}
+  \begin{sv}
+SVFRAME with code:
+\begin{minted}{text}
+SVVERBATIM
+\end{minted}
+\inputminted{python}{hello.py}
+\runpython[showcommand]{hello.py}
+\end{sv}
+
+  \begin{exercise}[\tr{ENEXERCISE}{SVEXERCISE}]
+    \begin{itemize}
+      \item \tr{ENITEM}{SVITEM}
+    \end{itemize}
+  \end{exercise}
+\end{frame}
+
+\begin{frame}[fragile]
+\begin{en}
+\begin{exercise}[ENBLOCKED]\label{ex:same}
+A.
+\end{exercise}
+\ltnote{ENNOTE}
+\end{en}
+\begin{sv}
+\begin{exercise}[SVBLOCKED]\label{ex:same}
+B.
+\end{exercise}
+\ltnote{SVNOTE}
+\end{sv}
+\end{frame}
+
+\mode<all>
+\begin{en}
+\begin{frame}
+ENWHOLEFRAME
+\end{frame}
+\end{en}
+\begin{sv}
+\begin{frame}
+SVWHOLEFRAME
+\end{frame}
+\end{sv}
+\mode*
+
+\begin{en}
+\begin{figure}
+\rule{1cm}{1cm}
+\caption{ENCAPTION}\label{fig:same}
+\end{figure}
+\end{en}
+\begin{sv}
+\begin{figure}
+\rule{1cm}{1cm}
+\caption{SVCAPTION}\label{fig:same}
+\end{figure}
+\end{sv}
+
+\begin{frame}
+  \tr{ENSTRING \emph{in {braces}}}{SVSTRING \emph{i {klamrar}}}
+\end{frame}
+
+Prose outside the frames, for both: \cref{fig:same}.

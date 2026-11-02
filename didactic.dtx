@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/10/11 v2.11.1 didactic]
+  [2026/11/01 v2.17 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -51,6 +51,14 @@
 \usepackage{lipsum}
 \usepackage{hyperref}
 \usepackage{cleveref}
+\usepackage{csquotes}
+\usepackage{booktabs}
+% The sync script's explanation is woven from didactic-sync.nw.  Its chunks go
+% through minted; the identifier lists under them would only be noise here.
+\usepackage[minted]{noweb}
+\noweboptions{breakcode}
+\def\nwidentdefs#1{}
+\def\nwidentuses#1{}
 \EnableCrossrefs
 \CodelineIndex
 \RecordChanges
@@ -237,6 +245,15 @@
 %   |didactic_output|, and the |didactic_resolve| PythonTeX function.
 %   The PythonTeX functions no longer depend on the working directory, so 
 %   code in the document may change it.
+% }
+%
+% \changes{v2.17}{2026/11/01}{%
+%   Adds bilingual documents: the environments \texttt{en} and \texttt{sv}, 
+%   \texttt{\textbackslash tr}, the option \texttt{language}, 
+%   \texttt{\textbackslash didacticlanguage} and the option 
+%   \texttt{nobilingual}; loads \textsf{comment}.
+%   Adds the script \texttt{didactic-sync.py}, a literate program, which 
+%   keeps the two languages of a pair in step.
 % }
 %
 % \GetFileInfo{didactic.dtx}
@@ -823,6 +840,134 @@
 % accessed through PythonTeX.
 % See \cref{PythonTeXdidactic} for details.
 %
+% \subsection{Bilingual documents}\label{sec:bilingual}
+%
+% One source can hold two editions of a text, in English and in Swedish: 
+% the material that doesn't depend on the language (code, runs, figures, 
+% the structure) is written once and only the prose is written twice.
+%
+% \DescribeEnv{en}
+% \DescribeEnv{sv}
+% Prose comes in pairs of blocks, one paragraph or one list per block:
+% \begin{verbatim}
+% % sync en=3f9c1a sv=b20e7d
+% \begin{en}
+% The program prints one line.
+% \end{en}
+% \begin{sv}
+% Programmet skriver ut en rad.
+% \end{sv}
+% \end{verbatim}
+% Either language may come first.
+% Two blocks form a pair when only blank lines and comments lie between 
+% them; a block with no partner next to it belongs to one edition only.
+% The comment above the pair is written by the script 
+% \texttt{didactic-sync.py}, which is the subject of 
+% \cref{sec:didactic-sync}.
+%
+% \DescribeMacro{\tr}
+% Short strings use |\tr{English}{Svenska}|: frame titles, section titles, 
+% captions, list items, the title of the document.
+% It's expandable, so it's safe in moving arguments: the table of contents, 
+% the bookmarks and the headline of the slides only ever see the edition's 
+% language.
+% Its arguments are read as arguments, so they can't hold verbatim material 
+% such as a chunk or |\verb|, but noweb's |[[code]]| quoting is fine.
+%
+% \DescribeOpt{language}
+% \DescribeMacro{\didacticlanguage}
+% The edition is the main language of \textsf{babel}: |swedish| gives the 
+% Swedish edition, and any other language the English one.
+% So a driver for each edition needs to say its language only once, before 
+% the shared preamble, and a whole book, such as a Swedish book that binds 
+% some bilingual decks, gets the right edition with no further setting:
+% \begin{verbatim}
+% \PassOptionsToPackage{main=swedish}{babel}
+% \PassOptionsToPackage{english,swedish}{cleveref}
+% \input{preamble.tex}
+% \end{verbatim}
+% The option |language=en| or |language=sv| overrides that.
+% So does the command |\didacticlanguage| with the same argument, which can 
+% also be used in the document, between blocks.
+%
+% The names that \textsf{babel} sets follow by themselves: captions, 
+% \textsf{beamer}'s and this package's block titles.
+% The names of |\cref| don't: \textsf{cleveref} takes them from the 
+% \emph{last} language among its options.
+% Giving it both languages isn't enough, since \textsf{cleveref} adds a 
+% language's names to \textsf{babel}'s switch at the start of the document, 
+% after \textsf{babel} has already switched to the main language.
+% With |[swedish,english]| the Swedish edition says \enquote{section~1.1}; 
+% with |[english,swedish]| it says \enquote{avsnitt~1.1}.
+% Therefore the driver gives \textsf{cleveref} the edition's language last, 
+% as above, and the shared preamble loads it without a language.
+% Names set in the preamble with |\crefname| depend on the edition too, and 
+% can use |\tr|.
+%
+% The blocks are built on the \textsf{comment} package, which reads a block 
+% line by line and writes it to a file, or skips it, so a block can hold 
+% verbatim material: a woven chunk, |\inputminted|, |\runpython|, floats with 
+% their captions and labels, |\cref|, |\ltnote|, or an |exercise|.
+% (A package such as \textsf{multilang}, which reads a block as the argument 
+% of a macro, can't.)
+% Reading line by line also gives the rules for using them:
+% \begin{description}
+% \item[The end of a block] |\end{en}| and |\end{sv}| stand alone on their 
+%   line, in the first column, or the block doesn't end and \TeX\ runs to the 
+%   end of the file: \enquote{File ended while scanning use of} |\next| or 
+%   |\ProcessCommentLine|.
+%   |\begin{en}| may be indented, but the rest of its line is ignored.
+% \item[Frames] A frame holding a block is |[fragile]|, because the body of 
+%   any other frame has been read as an argument already.
+%   On the slides, a block in any other frame ends the run with one of the 
+%   errors above; in the notes, it happens to work.
+%   \texttt{didactic-sync.py} points such frames out.
+% \item[Arguments] For the same reason, no block goes inside the argument of 
+%   a macro: not in |\ltnote{...}|, |\mode<article>{...}|, |\only<2>{...}| 
+%   or |\footnote{...}|.
+%   The errors are the ones above, or one that names |\xComment|.
+%   Put the block around the macro, or use |\tr| inside it.
+% \item[Outside frames] On the slides, |\mode*| skips text between the 
+%   frames without seeing the blocks, so it stops at a frame or a |\section| 
+%   in an \emph{excluded} block too, and both languages come out.
+%   A block around a frame, or around a sectioning command, therefore needs 
+%   |\mode<all>| before it and |\mode*| after it.
+%   Prose outside frames needs nothing: it's in the notes only.
+% \item[Chunks] A chunk defined in a block has a name of its own to that 
+%   block, and is used only there.
+%   If a shared chunk uses it, or a chunk of the same name stands outside 
+%   the block, then the edition that excludes the block prints |??| for 
+%   noweb's references to it, and if both blocks of a pair define the same 
+%   name, then the tangled file gets both.
+%   Tangling doesn't know about languages: |notangle| tangles what's in an 
+%   excluded block as well, so a program per language tangles to two files.
+% \item[Labels] A label in a block doesn't exist in the other edition, so 
+%   text outside the block can only refer to it if the partner defines the 
+%   same label, which is fine since only one of them is read.
+% \end{description}
+% The block's lines reach \TeX\ through the file \meta{jobname}|.cut|, so an 
+% error in a block is reported at a line of that file.
+% A block can input a file that holds blocks: those use 
+% \meta{jobname}|-1.cut| and so on, one file per depth.
+% They aren't in a group, so definitions in a block stay in force after it, 
+% and a block may even open an environment that it doesn't close.
+%
+% \DescribeOpt{nobilingual}
+% The names |en|, |sv|, |\tr| and, through \textsf{comment}, |\comment| are 
+% free in the packages that this package is used with, but a document might 
+% define them for itself, as might a package: \textsf{physics} has a |\tr| for 
+% the trace, and \textsf{changes} a |\comment|.
+% If |\tr| is taken when this package is loaded, it stays as it is, with a 
+% warning, and the command is available as |\didactictr|.
+% If |\en|, |\sv| or a command |\comment| is taken, then \textsf{comment} would 
+% overwrite it and the document would break somewhere else, so that's an error; 
+% an environment |comment|, as \textsf{verbatim} and \textsf{memoir} have, works 
+% just like the one that replaces it.
+% If the document defines one of them, or loads such a package, afterwards, 
+% \LaTeX\ says so itself.
+% In all these cases, or if the document doesn't want any of this, the option 
+% |nobilingual| leaves the names, and \textsf{comment}, alone.
+%
 % \StopEventually{}
 %
 % \section{Implementation}
@@ -977,6 +1122,23 @@
 \DeclareOptionX{sidecapalign}{%
   \renewcommand\@didactic@sidecapalign{#1}}
 %    \end{macrocode}
+% \end{option}
+%
+% \begin{option}{language}
+% \begin{option}{nobilingual}
+% The |language| option chooses the edition of a bilingual document, |en| or 
+% |sv|.
+% By default it's |auto|, which means that we follow \textsf{babel}, see 
+% \cref{sec:impl-bilingual}.
+% Then |nobilingual|, which turns all of that off.
+%    \begin{macrocode}
+\newcommand\@didactic@language{auto}
+\DeclareOptionX{language}{\renewcommand\@didactic@language{#1}}
+\newif\if@didactic@bilingual
+\@didactic@bilingualtrue
+\DeclareOptionX{nobilingual}{\@didactic@bilingualfalse}
+%    \end{macrocode}
+% \end{option}
 % \end{option}
 %
 % Now that we've declared the options we can process them.
@@ -2115,6 +2277,128 @@
 \ProvideTranslation{swedish}{examples}{exemplen}
 %    \end{macrocode}
 %
+%
+% \subsection{Bilingual documents}\label{sec:impl-bilingual}
+%
+% We build the two blocks on \textsf{comment}, the package that can include 
+% or skip verbatim material: it reads the lines one by one, and doesn't 
+% tokenize them as \TeX\ text before it has decided.
+% It defines |\comment| and, through the blocks, |\en| and |\sv| without 
+% looking whether they're taken, and the document then fails far from the cause 
+% with something like \enquote{Extra \textbackslash endgroup}, so we look first.
+% An environment |comment| has an end, a command doesn't, and an environment of 
+% that name does what \textsf{comment}'s does.
+%    \begin{macrocode}
+\if@didactic@bilingual
+\newcommand\@didactic@nametaken[1]{%
+  \PackageError{didactic}{%
+    \string#1 is already defined, and bilingual documents would overwrite 
+    it.\MessageBreak Load didactic with the option nobilingual%
+  }{%
+    The environments en and sv use the comment package, which defines
+    \string\comment, \string\en\space and \string\sv.%
+  }%
+}
+\@ifpackageloaded{comment}{}{%
+  \ifdefined\comment
+    \ifdefined\endcomment\else\@didactic@nametaken\comment\fi
+  \fi
+}
+\ifdefined\en\@didactic@nametaken\en\fi
+\ifdefined\sv\@didactic@nametaken\sv\fi
+\RequirePackage{comment}
+%    \end{macrocode}
+% \textsf{comment} writes each block that it includes to a file and inputs 
+% that file.
+% Its default name, \texttt{comment.cut}, is shared by everything in a 
+% directory.
+% That's a problem for a deck that's bound into a book with 
+% \textsf{import}: |\input| looks in the deck's directory first, where a 
+% \texttt{comment.cut} from building the deck on its own would be found 
+% instead of the book's.
+% With the name of the job, the file belongs to the document being built.
+%
+% One file isn't enough, though.
+% A block may input a file that holds a block, and that block's lines go to a 
+% file too; if it's the same file, it's truncated while \TeX\ is still reading 
+% the outer block from it.
+% What \TeX\ has buffered, about 4\,KB, is still read, and the rest is silently 
+% lost, so short blocks hide this.
+% So we count how deep we are, and each depth has a file of its own.
+% An excluded block is never written, and \textsf{comment} makes its 
+% |\ProcessCutFile| empty, so only the included ones count.
+%    \begin{macrocode}
+\newcount\@didactic@cutdepth
+\def\DefaultCutFileName{%
+  \edef\CommentCutFile{%
+    \jobname\ifnum\@didactic@cutdepth>\z@ -\the\@didactic@cutdepth\fi.cut%
+  }%
+}
+\DefaultCutFileName
+\def\ProcessCutFile{%
+  \global\advance\@didactic@cutdepth\@ne
+  \input{\CommentCutFile}\relax
+  \global\advance\@didactic@cutdepth\m@ne
+}
+%    \end{macrocode}
+%
+% \begin{macro}{\didacticlanguage}
+% Choosing the edition is then a matter of which block is included, and 
+% which argument |\tr| returns.
+%    \begin{macrocode}
+\newcommand\didacticlanguage[1]{%
+  \IfStrEqCase{#1}{%
+    {en}{%
+      \includecomment{en}%
+      \excludecomment{sv}%
+      \let\@didactic@tr\@firstoftwo
+    }%
+    {sv}{%
+      \excludecomment{en}%
+      \includecomment{sv}%
+      \let\@didactic@tr\@secondoftwo
+    }%
+  }[\PackageError{didactic}{Unknown language `#1'}{Use en or sv.}]%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% By default we follow the main language of \textsf{babel}, so that a driver 
+% has only one thing to set.
+% \textsf{babel} has settled that when it was loaded, which is at the latest 
+% at the top of this package.
+%    \begin{macrocode}
+\ifdefstring{\@didactic@language}{auto}{%
+  \IfStrEq{\bbl@main@language}{swedish}
+    {\didacticlanguage{sv}}
+    {\didacticlanguage{en}}%
+}{%
+  \didacticlanguage{\@didactic@language}%
+}
+%    \end{macrocode}
+%
+% \begin{macro}{\tr}
+% \begin{macro}{\didactictr}
+% The command has to expand to the text itself and nothing else, so that it 
+% survives moving arguments: \textsf{hyperref} can't put anything but text in 
+% a bookmark.
+% That's why it isn't robust and only expands to one of its arguments.
+% We don't overwrite a |\tr| that's there already, it's likely a package's, 
+% and overwriting it would break the document at some unrelated place.
+%    \begin{macrocode}
+\newcommand\didactictr[2]{\@didactic@tr{#1}{#2}}
+\@ifundefined{tr}{%
+  \let\tr\didactictr
+}{%
+  \PackageWarningNoLine{didactic}{%
+    \string\tr\space is already defined, keeping that definition.\MessageBreak
+    Use \string\didactictr\space for bilingual strings%
+  }%
+}
+\fi
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
 %
 % \subsection{Coloured blocks}
 %
@@ -4368,6 +4652,12 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \ExplSyntaxOff
 %    \end{macrocode}
 % \end{macro}
+%
+% The next section comes from a literate program, which isn't written for the 
+% conventions of \textsf{doc}: |%| starts a comment there and \verb+|+ is just a 
+% character.
+% \DeleteShortVerb{\|}\MakePercentComment\input{didactic-sync.tex}\MakePercentIgnore
+% \MakeShortVerb{\|}
 %
 % \Finale
 \endinput

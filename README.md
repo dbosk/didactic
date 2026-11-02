@@ -9,6 +9,10 @@ as "normal" text in handouts produced by `beamerarticle` (same style as
 
 It also provides macros for typesetting code listings and output side by side.
 
+For a bilingual source, it provides the environments `en` and `sv` and the 
+command `\tr`, with which one source yields an English and a Swedish edition. 
+The script `didactic-sync.py` keeps the two languages of each pair in step.
+
 Finally, it modifies the appearance of `beamer` (Berlin based theme) and 
 `memoir` (Tufte style layout), if loaded. It's designed to be used with 
 `beamer` to produce slides and `beamerarticle` with `memoir` to produce notes, 
@@ -30,8 +34,8 @@ cd didactic
 make all
 ```
 
-That will build both `didactic.sty` and `didactic.pdf`. The documentation is 
-located in `didactic.pdf`.
+That will build `didactic.sty`, `didactic-sync.py` and `didactic.pdf`. The 
+documentation is located in `didactic.pdf`.
 
 
 ## Maintainer
