@@ -4814,6 +4814,16 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % \TeX\ skips that code as a whole, so the conditionals in it must be known 
 % before.
 %    \begin{macrocode}
+\ExplSyntaxOn
+\regex_const:Nn \c__didactic_keep_blank_regex
+  { \A (?: \s | \\PYG\ \{ [^\}]* \} \{ \s* \} )* \Z }
+\cs_new_protected:Npn \@didactic@keep@ifblank #1
+  {
+    \str_set:Nn \l_tmpa_str {#1}
+    \exp_args:NNV \regex_match:NnTF
+      \c__didactic_keep_blank_regex \l_tmpa_str
+  }
+\ExplSyntaxOff
 \newif\if@didactic@keep
 \newif\if@didactic@keep@glue
 \newif\if@didactic@keep@ok
@@ -4854,6 +4864,15 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % We count the lines that aren't empty, in |\@didactic@keep@nb|, and note 
 % for each line whether it's empty, a |1| or a |0| in front of 
 % |\@didactic@keep@blanks|, so that the last line comes first.
+% A line of spaces or tabs shows nothing either, but it needn't be empty as a 
+% token list: \TeX\ removes the spaces at the end of a line it reads, 
+% but a line from |minted| holds what the lexer gave, for some 
+% lexers |\PYG{+w}{    }|.
+% So |\@didactic@keep@ifblank| looks at the line as a string, and takes it as 
+% empty if it holds nothing else than white space and |\PYG| around white 
+% space.
+% (A line that holds only something else invisible, like the |\label| of 
+% |escapeinside|, counts as a line: we can't tell what a command does.)
 %    \begin{macrocode}
 \newbox\@didactic@keep@box
 \newbox\@didactic@keep@line
@@ -4891,13 +4910,12 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \@didactic@keep@add{#1}}
 \def\@didactic@keep@add#1{%
   \global\advance\@didactic@keep@n\@ne
-  \def\@didactic@keep@text{#1}%
-  \ifx\@didactic@keep@text\@empty
+  \@didactic@keep@ifblank{#1}{%
     \xdef\@didactic@keep@blanks{1\@didactic@keep@blanks}%
-  \else
+  }{%
     \global\advance\@didactic@keep@nb\@ne
     \xdef\@didactic@keep@blanks{0\@didactic@keep@blanks}%
-  \fi}
+  }}
 %    \end{macrocode}
 % \end{macro}
 % \end{macro}

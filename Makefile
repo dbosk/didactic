@@ -125,6 +125,7 @@ test-keep.pdf: test-keep.tex didactic.sty
 	@${latex_until_settled}
 	! grep -E 'didactic keep test:.*(FAIL|SKIP)' test-keep.log
 	grep -q 'didactic keep test: all checks ran' test-keep.log
+	test "$$(pdftotext test-keep.pdf - | awk -v RS='\f' '/wline 1\n/ && /wline 30/ {n++} /wline 27/ && /wline 30/ {m++} END {print n+0, m+0}')" = "0 1"
 
 # listings too tall for a page, and what warns when one can't be kept: see the
 # documents.  Words that are off the paper aren't in pdftotext's output.

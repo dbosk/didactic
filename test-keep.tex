@@ -23,6 +23,9 @@
 %   I  as D, but line 28 is empty: lines 27 to 30 on the next page, so
 %      that three lines that aren't empty are there and the page doesn't
 %      start with the empty line.
+%   W  as I, but line 29 holds only spaces, in a minted listing whose lexer
+%      keeps them (bash): lines 27 to 30 on the next page.  The Makefile
+%      checks that from the PDF, since it has no labels.
 %   E  a short listing read by \inputminted (5 lines), with room for 3
 %      lines: on the next page with its lead-in.
 %   F  a code chunk woven for minted (as noweb.sty's [minted] option and
@@ -72,17 +75,39 @@
   \loop
     \advance\@keeptest@i\@ne
     \ifnum\@keeptest@i=\@keeptest@blank
-      \immediate\write\@keeptest@out{}%
+      \immediate\write\@keeptest@out{\@keeptest@blankline}%
     \else
       \immediate\write\@keeptest@out{%
         line \the\@keeptest@i#3\string\label{#1L\the\@keeptest@i}#4}%
     \fi
   \ifnum\@keeptest@i<#2\repeat
   \immediate\closeout\@keeptest@out
-  \global\@keeptest@blank\z@}
-% \testblank{i}: line i of the next file is empty.
+  \global\@keeptest@blank\z@
+  \global\let\@keeptest@blankline\@empty}
+% \testplainfile{prefix}{n}: such a file of lines "<prefix>line <i>" without
+% labels, since escapeinside fails in some lexers.  The Makefile checks these
+% from the PDF.
+\newcommand\testplainfile[2]{%
+  \immediate\openout\@keeptest@out=\jobname-#1.txt
+  \@keeptest@i\z@
+  \@whilenum\@keeptest@i<#2\do{%
+    \advance\@keeptest@i\@ne
+    \ifnum\@keeptest@i=\@keeptest@blank
+      \immediate\write\@keeptest@out{\@keeptest@blankline}%
+    \else
+      \immediate\write\@keeptest@out{#1line \the\@keeptest@i}%
+    \fi}%
+  \immediate\closeout\@keeptest@out
+  \global\@keeptest@blank\z@
+  \global\let\@keeptest@blankline\@empty}
+% \testblank{i}: line i of the next file is empty; \testspaces{i}: it holds
+% only spaces.
 \newcount\@keeptest@blank
+\let\@keeptest@blankline\@empty
 \newcommand\testblank[1]{\global\@keeptest@blank=#1\relax}
+\newcommand\testspaces[1]{%
+  \testblank{#1}%
+  \gdef\@keeptest@blankline{\space\space\space\space}}
 % \testlisting{prefix}{n}: such a file as a listing of fancyvrb.
 \newcommand\testlisting[2]{%
   \testfile{#1}{#2}{}{}%
@@ -133,6 +158,13 @@ Lead-in I, with line 28 empty.\label{i-lead}
 \testblank{28}%
 \testlisting{i}{30}
 Text after I.
+
+\roomfor{27}
+Lead-in W, with line 29 of spaces only, in a lexer that keeps them:\label{w-lead}
+\testspaces{29}%
+\testplainfile{w}{30}%
+\inputminted{bash}{\jobname-w.txt}
+Text after W.
 
 \roomfor{3}
 Lead-in E, a file read by \verb|\inputminted|:\label{e-lead}
