@@ -120,6 +120,8 @@ endef
 # failed test leaves no PDF, only the log (.DELETE_ON_ERROR), so that the next
 # make doesn't call it up to date.
 test-keep.pdf: test-keep.tex didactic.sty
+	-${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	${PYTHONTEX} test-keep
 	@${latex_until_settled}
 	! grep -E 'didactic keep test:.*(FAIL|SKIP)' test-keep.log
 	grep -q 'didactic keep test: all checks ran' test-keep.log
@@ -209,7 +211,8 @@ clean:
 	${RM} test-frametitle-slides.snm test-frametitle-slides.toc
 	${RM} test-frametitle-slides.out test-frametitle-slides.unq
 	${RM} test-keep.pdf test-keep.aux test-keep.log test-keep.unq
-	${RM} test-keep-?.txt test-keep.pytxcode
+	${RM} test-keep-?.txt test-keep.pytxcode test-keep.pytxmcr test-keep.pytxpyg
+	${RM} -R pythontex-files-test-keep
 	${RM} test-keep-tall.pdf test-keep-tall.aux test-keep-tall.log
 	${RM} test-keep-tall.unq test-keep-tall.pytxcode test-keep-tall-?.txt
 	${RM} test-keep-tall100.pdf test-keep-tall100.aux test-keep-tall100.log

@@ -2937,8 +2937,7 @@ def didactic_mint(output, /, lang="text",
   matches one of the patterns will be highlighted.
   """
   if fullwidth:
-    print(r"\csname @didactic@blockmargin\endcsname")
-    print(r"\begin{fullwidth}")
+    print(r"\csname @didactic@beginfullcode\endcsname")
 
   if not minted_opts:
     minted_opts = ""
@@ -2964,8 +2963,7 @@ def didactic_mint(output, /, lang="text",
     print(r"\didacticinputminted{%s}{%s}" % (lang, filename))
 
   if fullwidth:
-    print(r"\end{fullwidth}")
-    print(r"\unblockmargin")
+    print(r"\csname @didactic@endfullcode\endcsname")
 \end{pycode}
 %    \end{macrocode}
 %
@@ -3714,8 +3712,11 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % So with the option |keepleadin|, which keeps a listing with the paragraph 
 % before it, we block the margin through |\@didactic@blockmargin|, which 
 % makes |\if@nobreak| true for that moment, if it isn't already.
-% The PythonTeX functions print it as |\csname @didactic@blockmargin| 
-% |\endcsname|, since their output is read where |@| isn't a letter.
+% The |fullwidth| environment is a list, whose start allows a page break 
+% too, so with |keepleadin| we forbid that one as well, in a group around 
+% the environment: |\@didactic@beginfullcode| and |\@didactic@endfullcode|.
+% The PythonTeX functions print them with |\csname|, since their output is 
+% read where |@| isn't a letter.
 %    \begin{macrocode}
 \RequirePackage{marginfix}
 \newcommand\@didactic@blockmargin{%
@@ -3730,12 +3731,23 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \else
     \blockmargin
   \fi}
+\newcommand\@didactic@beginfullcode{%
+  \@didactic@blockmargin
+  \begingroup
+  \if@didactic@keepleadin
+    \@beginparpenalty\@M
+  \fi
+  \begin{fullwidth}}
+\newcommand\@didactic@endfullcode{%
+  \end{fullwidth}%
+  \endgroup
+  \unblockmargin}
 \NewDocumentCommand{\lstexample}{somm}{%
-  \IfBooleanTF{#1}{\@didactic@blockmargin\begin{fullwidth}}{\relax}
+  \IfBooleanTF{#1}{\@didactic@beginfullcode}{\relax}
   \IfValueTF{#2}
     {\inputminted[escapeinside=||,#2]{#3}{#4}}
     {\inputminted[escapeinside=||]{#3}{#4}}
-  \IfBooleanTF{#1}{\end{fullwidth}\unblockmargin}{\relax}
+  \IfBooleanTF{#1}{\@didactic@endfullcode}{\relax}
 }
 %    \end{macrocode}
 % \end{macro}
