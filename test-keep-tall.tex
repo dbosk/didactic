@@ -25,7 +25,9 @@
 %       stay.
 %       8 times "marked".
 % test-keep-tall100.tex, keeplines=100:
-%   T2  90 lines: warns "too tall".  90 times "unit".
+%   T2  90 lines: warns "too tall".  90 times "unit".  It follows the rule of
+%       keepends, not just what fits: it starts on the half page it can,
+%       and lines 88 to 90 are on one page.
 %   T6  A listing that fits the text block, but not with the heading and
 %       lead-in before it: breaks, warns "too tall", and no overfull page.
 \documentclass[a4paper]{memoir}
@@ -42,7 +44,8 @@
 \newwrite\@talltest@out
 \newcount\@talltest@i
 \newcount\@talltest@j
-% \talltest{name}{lines}{words per line}{word}: write \jobname-name.txt.
+% \talltest{name}{lines}{words per line}{word}: write \jobname-name.txt; with
+% 0 words per line, each line is the word and its number.
 \newcommand\talltest[4]{%
   \immediate\openout\@talltest@out=\jobname-#1.txt
   \def\@talltest@line{}%
@@ -53,15 +56,20 @@
   \@talltest@i\z@
   \@whilenum\@talltest@i<#2\do{%
     \advance\@talltest@i\@ne
-    \immediate\write\@talltest@out{\@talltest@line}}%
+    \immediate\write\@talltest@out{%
+      \ifnum#3=\z@ #4 \the\@talltest@i\else\@talltest@line\fi}}%
   \immediate\closeout\@talltest@out}
 \newcount\talltestfit
 \makeatother
 \begin{document}
 \ifdefined\TALLOPTS
 \section{T2}
+Half a page to start from, so that what fits and the rule differ:
+
+\rule{1pt}{0.5\textheight}
+
 Lead-in to a listing of 90 lines, which the option asks to keep:
-\talltest{u}{90}{1}{unit}%
+\talltest{u}{90}{0}{unit}%
 \VerbatimInput{\jobname-u.txt}
 Text after T2.
 

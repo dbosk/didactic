@@ -150,6 +150,7 @@ test-keep-tall100.pdf: test-keep-tall100.tex test-keep-tall.tex didactic.sty
 	@${latex_until_settled}
 	! grep 'Overfull .vbox' test-keep-tall100.log
 	test "${call count_word,unit}" -eq 90
+	test "$$(pdftotext $@ - | awk -v RS='\f' '/Half a page/ && /unit 10\n/ {n++} /unit 88\n/ && /unit 90\n/ {m++} END {print n+0, m+0}')" = "1 1"
 	test "${call count_word,fitting}" -eq "$$(wc -l < test-keep-tall100-f.txt)"
 	test "${call count_warn,too tall}" -eq 2
 	test "${call count_warn,doesn.t fit}" -eq 0
