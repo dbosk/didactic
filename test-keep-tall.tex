@@ -1,0 +1,109 @@
+% Test of listings too tall to keep together (didactic): a listing of at most
+% keeplines lines that doesn't fit on a page must break, as a long listing
+% does, with a warning, and nothing may run off the paper.
+%
+% Build: see the Makefile, which checks this document's PDF and log:
+%   - no "Overfull \vbox";
+%   - every word of every listing is in the PDF (pdftotext leaves out what
+%     is off the paper);
+%   - the warnings below, each with its input line.
+%
+% The options are explicit, so that the cases don't depend on the defaults.
+% test-keep-tall100.tex is the same with keeplines=100, for the cases of a
+% long listing that the option asks to keep.
+%
+% This document, keeplines=20:
+%   T1  20 lines of minted[breaklines], each wrapped over many rows: pages
+%       of them.  Warns "too tall".  1600 times "word".
+%   T3  6 lines of more than a third of a page each, so that keepends=3 lines
+%       don't fit on a page: breaks between them anyway.  Warns "too tall".
+%       2041 times "third", with the lead-in.
+%   T4  A long listing (24 lines) of such lines: warns "can't keep".
+%       8161 times "long", with the lead-in.
+%   T5  Something between the lines that can't be taken apart (a \mark, by
+%       a redefined \FV@ListProcessLine): warns "can't set", all lines stay.
+%       8 times "marked".
+% test-keep-tall100.tex, keeplines=100:
+%   T2  90 lines: warns "too tall".  90 times "unit".
+%   T6  A listing that fits the text block, but not with the heading and
+%       lead-in before it: breaks, warns "too tall", and no overfull page.
+\documentclass[a4paper]{memoir}
+\usepackage[british]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\ifdefined\TALLOPTS
+  \PassOptionsToPackage{keeplines=100}{didactic}
+\else
+  \PassOptionsToPackage{keeplines=20}{didactic}
+\fi
+\usepackage{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\makeatletter
+\newwrite\@talltest@out
+\newcount\@talltest@i
+\newcount\@talltest@j
+% \talltest{name}{lines}{words per line}{word}: write \jobname-name.txt.
+\newcommand\talltest[4]{%
+  \immediate\openout\@talltest@out=\jobname-#1.txt
+  \def\@talltest@line{}%
+  \@talltest@j\z@
+  \@whilenum\@talltest@j<#3\do{%
+    \advance\@talltest@j\@ne
+    \edef\@talltest@line{\@talltest@line #4 }}%
+  \@talltest@i\z@
+  \@whilenum\@talltest@i<#2\do{%
+    \advance\@talltest@i\@ne
+    \immediate\write\@talltest@out{\@talltest@line}}%
+  \immediate\closeout\@talltest@out}
+\newcount\talltestfit
+\makeatother
+\begin{document}
+\ifdefined\TALLOPTS
+\section{T2}
+Lead-in to a listing of 90 lines, which the option asks to keep:
+\talltest{u}{90}{1}{unit}%
+\VerbatimInput{\jobname-u.txt}
+Text after T2.
+
+\clearpage
+\section{T6}
+Lead-in to a listing that fits the text block, but not with this:
+% one line short of the text block, in lines of the text
+\talltestfit=\numexpr\textheight/\baselineskip-1\relax
+\talltest{f}{\talltestfit}{1}{fitting}%
+\VerbatimInput{\jobname-f.txt}
+Text after T6.
+\else
+\section{T1}
+Lead-in to a listing of 20 lines that wrap:
+\talltest{a}{20}{80}{word}%
+\inputminted[breaklines]{text}{\jobname-a.txt}
+Text after T1.
+
+\clearpage
+\section{T3}
+Lead-in to lines of a third of a page:
+\talltest{c}{6}{340}{third}%
+\VerbatimInput[breaklines,fontsize=\footnotesize]{\jobname-c.txt}
+Text after T3.
+
+\clearpage
+\section{T4}
+Lead-in to a long listing of such lines:
+\talltest{d}{24}{340}{long}%
+\VerbatimInput[breaklines,fontsize=\footnotesize]{\jobname-d.txt}
+Text after T4.
+
+\clearpage
+\section{T5}
+Lead-in to a listing with something between its lines:
+\talltest{e}{8}{1}{marked}%
+\begingroup
+\makeatletter
+\let\talltestline\FV@ListProcessLine
+\def\FV@ListProcessLine#1{\talltestline{#1}\mark{}}%
+\makeatother
+\VerbatimInput{\jobname-e.txt}
+\endgroup
+Text after T5.
+\fi
+\end{document}

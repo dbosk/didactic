@@ -16,6 +16,12 @@ test-note-heading.unq
 test-keep.pdf
 test-keep.unq
 test-keep-*.txt
+test-keep-tall.pdf
+test-keep-tall.unq
+test-keep-tall100.pdf
+test-keep-tall100.unq
+test-keep-chain.pdf
+test-keep-chain.unq
 didactic.tar.gz
 didactic.unq
 didactic.hd

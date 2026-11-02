@@ -12,7 +12,8 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-sidecap.pdf test-sidecap-off.pdf \
 	test-marginfloat.pdf test-marginfloat-slides.pdf \
 	test-frametitle.pdf test-frametitle-slides.pdf \
-	test-keep.pdf
+	test-keep.pdf test-keep-tall.pdf test-keep-tall100.pdf \
+	test-keep-chain.pdf
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -123,6 +124,37 @@ test-keep.pdf: test-keep.tex didactic.sty
 	! grep -E 'didactic keep test:.*(FAIL|SKIP)' test-keep.log
 	grep -q 'didactic keep test: all checks ran' test-keep.log
 
+# listings too tall for a page, and what warns when one can't be kept: see the
+# documents.  Words that are off the paper aren't in pdftotext's output.
+count_word=$$(pdftotext $@ - | grep -o $(1) | wc -l)
+count_warn=$$(grep -c 'Package didactic Warning: .*$(1)' $(basename $@).log)
+
+test-keep-tall.pdf: test-keep-tall.tex didactic.sty
+	@${latex_until_settled}
+	! grep 'Overfull .vbox' test-keep-tall.log
+	test "${call count_word,word}" -eq 1600
+	test "${call count_word,third}" -eq 2041
+	test "${call count_word,long}" -eq 8161
+	test "${call count_warn,too tall}" -eq 2
+	test "${call count_warn,can.t keep}" -eq 1
+	test "${call count_warn,doesn.t fit}" -eq 0
+
+test-keep-tall100.pdf: test-keep-tall100.tex test-keep-tall.tex didactic.sty
+	@${latex_until_settled}
+	! grep 'Overfull .vbox' test-keep-tall100.log
+	test "${call count_word,unit}" -eq 90
+	test "${call count_word,fitting}" -eq "$$(wc -l < test-keep-tall100-f.txt)"
+	test "${call count_warn,too tall}" -eq 2
+	test "${call count_warn,doesn.t fit}" -eq 0
+
+# what is kept with a listing makes the page overfull: that can't be undone,
+# so it must warn.
+test-keep-chain.pdf: test-keep-chain.tex didactic.sty
+	@${latex_until_settled}
+	grep -q 'Overfull .vbox' test-keep-chain.log
+	test "${call count_warn,doesn.t fit}" -eq 2
+	test "${call count_word,chained}" -eq 40
+
 VERSION=$(shell sed -En "s/^.*v([0-9]+(\.[0-9]+)+) didactic.*$$/\1/p" didactic.dtx)
 .PHONY: release
 release: didactic.tar.gz didactic.pdf didactic.sty
@@ -178,5 +210,12 @@ clean:
 	${RM} test-frametitle-slides.out test-frametitle-slides.unq
 	${RM} test-keep.pdf test-keep.aux test-keep.log test-keep.unq
 	${RM} test-keep-?.txt test-keep.pytxcode
+	${RM} test-keep-tall.pdf test-keep-tall.aux test-keep-tall.log
+	${RM} test-keep-tall.unq test-keep-tall.pytxcode test-keep-tall-?.txt
+	${RM} test-keep-tall100.pdf test-keep-tall100.aux test-keep-tall100.log
+	${RM} test-keep-tall100.unq test-keep-tall100.pytxcode
+	${RM} test-keep-tall100-?.txt
+	${RM} test-keep-chain.pdf test-keep-chain.aux test-keep-chain.log
+	${RM} test-keep-chain.unq test-keep-chain.pytxcode test-keep-chain-?.txt
 	${RM} _minted/*.minted
 	latexmk -C test.tex
