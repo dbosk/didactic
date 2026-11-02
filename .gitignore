@@ -2,6 +2,7 @@ __pycache__
 
 didactic.pdf
 didactic.sty
+*.cut
 ltxobj
 test.pdf
 test.unq
@@ -171,6 +172,8 @@ acs-*.bib
 
 # minted
 _minted*
+*.data.minted
+*.config.minted
 *.pyg
 
 # morewrites
