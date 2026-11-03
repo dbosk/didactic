@@ -648,8 +648,17 @@
 % with citations, most of the page is left empty.
 % |noteyieldmaxgap|\meta{=lines} caps that: a page that would end early 
 % leaving more than \meta{lines} lines empty doesn't (in the next run), and 
-% its notes go to the next page, as with |carry|; the other notes called 
+% its notes go to a later page, as with |carry|; the other notes called 
 % out on that page are capped with it.
+% A later page need not be the next one, and it sets the notes that its own 
+% text calls out first, so a capped note can come after a note that follows 
+% it in the text.
+% So \textsf{marginfix} warns about each such note, naming where it is called 
+% out and the two pages.
+% The cap is tried again in each run, so a new value counts in the next runs, 
+% with no need to delete the |.aux| file; the exception is a note whose page 
+% really ended early and left too much, which stays capped, even if the text 
+% moves, until the value changes.
 % The default is the value of |keepmaxgap|, 5 lines unless given, the same 
 % bound as for keeping a listing together; 0 turns the cap off.
 % It needs \textsf{marginfix} with |\marginnoteyieldlimit|; with an older 
