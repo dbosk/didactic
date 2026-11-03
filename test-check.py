@@ -322,7 +322,7 @@ def blocks_nested(c):
 
 def frametitle_slides(c):
     """test-frametitle-slides.tex: the frames as beamer makes them."""
-    c.num_pages(7)
+    c.num_pages(8)
     c.clean_log()
     c.absent("PROSEF")
     c.above("TITLEA", "TEXTA")

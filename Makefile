@@ -119,8 +119,7 @@ test-marginfloat-order.pdf test-marginfloat-inorder.pdf: %.pdf: %.tex \
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
 ${TEST_FLOATORDER:=.pdf}: %.pdf: %.tex didactic.sty
-	${PDFLATEX} ${LATEXFLAGS} $<
-	${PDFLATEX} ${LATEXFLAGS} $<
+	@${latex_until_settled}
 
 # What the headers of the tests expect, from the PDFs and logs: building a test
 # only shows that LaTeX didn't stop.  Phony, so that it runs every time, also
