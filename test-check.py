@@ -292,7 +292,12 @@ def frametitle(c):
     c.above("TITLEE", "PROSEF")                           # 5
     c.has_text("Figure 0.1: FIGE,")
     c.above("TITLEG", "EXAMPLEG")                         # 6
-    c.ok(c.one("TEXTH")["xmin"] > c.one("TITLEA")["xmin"],  # 7
+    c.ok(c.same_line(c.one("BLOCKI"), c.one("TEXTI")),    # 7
+         "BLOCKI and TEXTI are on one line")
+    c.above("ALERTJ", "ITEMJ")
+    c.ok(c.one("TEXTK")["xmin"] == c.one("TITLEA")["xmin"],
+         "TEXTK starts without an indent, with no title")
+    c.ok(c.one("TEXTH")["xmin"] > c.one("TITLEA")["xmin"],  # 8
          "TEXTH has no heading in front of it")
     c.absent("SLIDEONLY")
     with open("didactic.sty", encoding="utf-8") as sty:
@@ -300,6 +305,19 @@ def frametitle(c):
         # (2021/06/01), from the kernel.
         c.ok(r"\NeedsTeXFormat{LaTeX2e}[2021/06/01]" in sty.read(),
              "didactic.sty asks for the format with cmd hooks")
+
+
+def blocks_nested(c):
+    """test-block-nested.tex: titles of blocks in blocks."""
+    c.clean_log()
+    c.has_text("OUTERONE")
+    c.has_text("INNERONE TEXTONE")
+    c.above("OUTERONE", "INNERONE")
+    c.absent("INNERTWO INNERTWO")
+    c.ok(len(c.words("INNERONE")) == 1, "the inner title is there once")
+    c.ok(c.same_line(c.one("ALERTTWO"), c.one("TEXTTWO")),
+         "a block after a frame title has its title run in")
+    c.above("FRAMETWO", "ALERTTWO")
 
 
 def frametitle_slides(c):
@@ -435,6 +453,7 @@ CHECKS = {
     "test-marginfloat-article": marginfloat_article,
     "test-marginfloat-hidden": marginfloat_hidden,
     "test-frametitle": frametitle,
+    "test-block-nested": blocks_nested,
     "test-frametitle-slides": frametitle_slides,
     "test-frametitle-overlay": frametitle_overlay,
     "test-frametitle-floats": frametitle_floats,

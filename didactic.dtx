@@ -2634,6 +2634,9 @@
 % the space of 1\,em after the title, so that a block that starts with a 
 % list, a display or a listing gets the title on a line of its own, and so 
 % that it counts as a heading for |keepafterheading|.
+% The title goes in as it is now, not as |\insertblocktitle|: it waits for the 
+% next paragraph, and if that is in a block inside this one, the name means the 
+% title of that block by then.
 % A block without a title gets none, and its text starts without an indent, 
 % as in \textsf{beamerbasearticle}; a title that waits for a 
 % paragraph when the block ends is set on a line of its own, as for the 
@@ -2643,9 +2646,11 @@
   \ifx\insertblocktitle\@empty
     \par\vskip\medskipamount\noindent\ignorespaces
   \else
-    \@startsection{paragraph}{4}{\z@}{\medskipamount}{-1em}%
-      {\normalfont#1}*{\insertblocktitle}%
+    \expandafter\@didactic@blockhead\expandafter{\insertblocktitle}{#1}%
   \fi}
+\newcommand\@didactic@blockhead[2]{%
+  \@startsection{paragraph}{4}{\z@}{\medskipamount}{-1em}%
+    {\normalfont#2}*{#1}}
 \newcommand\@didactic@endblock{%
   \if@noskipsec\leavevmode\par\fi
   \vskip\medskipamount}

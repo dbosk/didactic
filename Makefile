@@ -121,7 +121,7 @@ ${TEST_FLOATORDER:=.pdf}: %.pdf: %.tex didactic.sty
 CHECKED_TESTS=	test-marginfloat test-marginfloat-slides test-marginfloat-cases \
 		test-marginfloat-order test-marginfloat-inorder \
 		test-marginfloat-hidden test-frametitle test-frametitle-slides \
-		${TEST_FRAMETITLE_CASES} ${TEST_FLOATORDER}
+		test-block-nested ${TEST_FRAMETITLE_CASES} ${TEST_FLOATORDER}
 .PHONY: check
 check: test-check.py ${CHECKED_TESTS:=.pdf}
 	python3 test-check.py ${CHECKED_TESTS}
@@ -132,7 +132,7 @@ test-frametitle.pdf test-frametitle-slides.pdf: %.pdf: %.tex didactic.sty \
 		test-frametitle-contents.tex
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
-${TEST_FRAMETITLE_CASES:=.pdf}: %.pdf: %.tex didactic.sty
+test-block-nested.pdf ${TEST_FRAMETITLE_CASES:=.pdf}: %.pdf: %.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
 
