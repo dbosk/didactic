@@ -8,7 +8,8 @@
 % Build: see the Makefile (LaTeX, PythonTeX, LaTeX until the page references
 % settle).  The
 % document checks itself: the last page lists every check with PASS or
-% FAIL, and the log has a line "didactic keep test: <check> PASS/FAIL"
+% FAIL, and the log has a line "didactic keep test: PASS/FAIL <check>",
+% the result first as TeX wraps long lines in the log,
 % for each, then "didactic keep test: all checks ran"; the Makefile fails
 % on any FAIL or SKIP and when that last line is missing.
 %
@@ -60,13 +61,19 @@
 %      would leave more than keepmaxgap (5) lines empty, so it breaks, with
 %      at least three lines on each side.
 %   U  a section heading followed by four lines of text, with room for it
-%      and two lines: it moves to the next page with three lines
-%      (keepafterheading).
+%      and one line, within keepmaxgap: it moves to the next page with three
+%      lines (keepafterheading).
+%   X  a place to break of noweb between two paragraphs (\nwdocspar), with room
+%      for a few lines of the second: with keepmaxgap it isn't taken, the text
+%      goes on on this page.
+%   Z  a listing of 15 lines, over the default of keeplines, with room for 4:
+%      it breaks, rather than moving as a whole.
 %   V  the heading of a block (example), with room for two of its lines:
 %      the block moves to the next page.
 %   R  a section heading, a sentence and a longtable whose caption and
-%      first row don't fit: the heading moves to the page of the table, in
-%      the run after the one that finds it (so three runs).
+%      first row don't fit, with room for little: the heading moves to the page
+%      of the table, as the estimate before it sees.  (When only the table's
+%      place shows it, in the next run: test-keep-heading, AB to AD.)
 \documentclass[a4paper]{memoir}
 \usepackage[british]{babel}
 \usepackage{amsmath,amssymb,amsthm}
@@ -145,7 +152,7 @@
       \fi
     \fi
   \fi
-  \typeout{didactic keep test: #1 \@keeptest@result}%
+  \typeout{didactic keep test: \@keeptest@result\space #1}%
   \item #1: \@keeptest@result\ (#2 on page \getpagerefnumber{#2}, #4 on
     page \getpagerefnumber{#4})}
 \makeatother
@@ -277,7 +284,7 @@ Lead-in T, to a short listing with room for eight of its ten lines.%
 \testlisting{t}{10}
 Text after T.
 
-\roomfor{6}
+\roomfor{4}
 \section*{Heading U}\label{u-head}
 First line of U\\
 second line\\
@@ -301,6 +308,24 @@ Table R lists the rows.
   lines.}\label{r-tab}\\
 a & b\\ a & b\\ a & b\\ a & b\\
 \end{longtable}
+
+\roomfor{4}
+Before X.\label{x-before}
+\ifdefined\nwdocspar\nwdocspar\fi
+
+First line of X\label{x-1}\\
+second line\\
+third line\\
+fourth line\\
+fifth line\\
+sixth line\\
+seventh line\\
+eighth line.
+
+\roomfor{4}
+Lead-in Z.\label{z-lead}
+\testlisting{z}{15}
+Text after Z.
 
 \roomfor{3}
 \begin{enumerate}
@@ -350,7 +375,7 @@ Text after H.
 \testcheck{F the whole chunk}{f-lead}{=}{fL5}
 \else
 \makeatother
-\typeout{didactic keep test: F no noweb.sty SKIP}%
+\typeout{didactic keep test: SKIP F no noweb.sty}%
 \item F: SKIP, no noweb.sty
 \fi
 \testcheck{G first and last line together}{gL1}{=}{gL5}
@@ -366,7 +391,7 @@ Text after H.
 \else
   \def\@keeptest@result{FAIL}%
 \fi
-\typeout{didactic keep test: H depth after the listing \@keeptest@result}%
+\typeout{didactic keep test: \@keeptest@result\space H depth after the listing}%
 \item H depth after the listing: \@keeptest@result\ (\@keeptest@hdepth)
 \makeatother
 \testcheck{J lead-in with the pair}{j-lead}{=}{j-pair}
@@ -384,6 +409,9 @@ Text after H.
 \testcheck{U heading with three lines}{u-head}{=}{uL3}
 \testcheck{V block heading with its third line}{vL1}{=}{vL3}
 \testcheck{R heading with its long table}{r-head}{=}{r-tab}
+\testcheck{X text goes on after the place to break of noweb}{x-before}{=}{x-1}
+\testcheck{Z lead-in with line 3}{z-lead}{=}{zL3}
+\testcheck{Z breaks}{zL1}{<}{zL15}
 \end{itemize}
 \typeout{didactic keep test: all checks ran}
 
