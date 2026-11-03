@@ -7,10 +7,13 @@
 %   C1  A paragraph with a tall box, as a lead-in.
 %   C2  A top float takes room that the kept listing then needs.
 %   C3  Control: the same listing with room to spare: no warning.
+% With the limit of keepmaxgap, the default, the listings of C1 and C2 would
+% break instead of moving, as the room left is more than 5 lines: so this test
+% turns the limit off, to reach the case it is about.
 \documentclass[a4paper,oneside]{memoir}
 \usepackage[british]{babel}
 \usepackage{amsmath,amssymb,amsthm}
-\PassOptionsToPackage{keeplines=20,keepleadin=true}{didactic}
+\PassOptionsToPackage{keeplines=20,keepleadin=true,keepmaxgap=0}{didactic}
 \usepackage{didactic}
 \usepackage[noamsthm,notheorems]{beamerarticle}
 \begin{document}
