@@ -118,6 +118,10 @@ test-keep.pdf: test-keep.tex didactic.sty
 NOTEYIELD_CASES=:5 keepmaxgap=8:8 noteyieldmaxgap=3:3 \
 	keepmaxgap=8,noteyieldmaxgap=2:2 noteyieldmaxgap=0:0 \
 	:own noteyieldmaxgap=3:own
+# With a marginfix too old for \marginnoteyieldlimit: options:warn if the
+# option asks for a limit that can't be honoured, quiet if not.
+NOTEYIELD_OLD_CASES=noteyieldmaxgap=3:warn :quiet keepmaxgap=8:quiet \
+	noteyieldmaxgap=0:quiet
 .PHONY: test-noteyield
 test-noteyield: test-noteyield.tex didactic.sty
 	for c in ${NOTEYIELD_CASES}; do \
@@ -127,6 +131,18 @@ test-noteyield: test-noteyield.tex didactic.sty
 	  grep 'didactic noteyield test:' test-noteyield.log || exit 1; \
 	  ! grep -q 'didactic noteyield test:.*\(FAIL\|SKIP\)' \
 	    test-noteyield.log || exit 1; \
+	done
+	for c in ${NOTEYIELD_OLD_CASES}; do \
+	  ${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode \
+	    "\\def\\testoptions{$${c%:*}}\\def\\testlines{old}\\input{$<}" \
+	    >/dev/null; \
+	  grep 'didactic noteyield test:.*OLD' test-noteyield.log || exit 1; \
+	  case $$c in \
+	    *:warn) grep -q '^Package didactic Warning: .*noteyieldmaxgap' \
+	      test-noteyield.log || { echo "no warning: $$c"; exit 1; };; \
+	    *) ! grep -q '^Package didactic Warning: .*noteyieldmaxgap' \
+	      test-noteyield.log || { echo "warning: $$c"; exit 1; };; \
+	  esac; \
 	done
 
 # biburlpenalty and bibemergencystretch: biblatex's URL break penalties and

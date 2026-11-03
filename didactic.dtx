@@ -653,7 +653,7 @@
 % The default is the value of |keepmaxgap|, 5 lines unless given, the same 
 % bound as for keeping a listing together; 0 turns the cap off.
 % It needs \textsf{marginfix} with |\marginnoteyieldlimit|; with an older 
-% one it does nothing.
+% one it does nothing, and if you gave the option, we warn.
 % A |\marginnoteyieldlimit| of your own in the preamble wins over the option 
 % (a limit of |\maxdimen| can't be told from none: for no limit, use 0).
 %
@@ -1326,10 +1326,14 @@
 % Unless it's given, it's the value of |keepmaxgap|, which we know only 
 % when all the options have been read, so we keep $-1$ for that and 
 % resolve it where we pass it on.
+% There we also warn if it was given and \textsf{marginfix} can't honour it.
 %    \begin{macrocode}
 \newcount\@didactic@noteyieldmaxgap
 \@didactic@noteyieldmaxgap=\m@ne
-\DeclareOptionX{noteyieldmaxgap}{\@didactic@noteyieldmaxgap=#1\relax}
+\newif\if@didactic@noteyieldgiven
+\DeclareOptionX{noteyieldmaxgap}{%
+  \@didactic@noteyieldmaxgap=#1\relax
+  \@didactic@noteyieldgiventrue}
 %    \end{macrocode}
 % \end{option}
 %
@@ -3019,6 +3023,16 @@
     \ifnum\@didactic@noteyieldmaxgap>\z@
       \ifdim\mfx@yieldlimit=\maxdimen
         \marginnoteyieldlimit{\@didactic@noteyieldmaxgap\baselineskip}%
+      \fi
+    \fi
+  \else
+    \if@didactic@noteyieldgiven
+      \ifnum\@didactic@noteyieldmaxgap>\z@
+        \PackageWarningNoLine{didactic}{The option noteyieldmaxgap does
+          nothing here:\MessageBreak
+          it needs a marginfix with \string\marginnoteyieldlimit,\MessageBreak
+          from the integration branch of\MessageBreak
+          https://github.com/dbosk/marginfix}%
       \fi
     \fi
   \fi}

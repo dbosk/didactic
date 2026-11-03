@@ -6,10 +6,12 @@
 % Build: see the Makefile, which runs it once per case with
 %   \def\testoptions{<options of didactic>}\def\testlines{<lines>}
 % (lines 0: expect \maxdimen; own: set a limit of 2cm in the preamble and
-% expect it).  The log has a line
+% expect it; old: undefine \marginnoteyieldlimit in the preamble, as with an
+% older marginfix).  The log has a line
 % "didactic noteyield test: <options> PASS/FAIL", and the Makefile fails on
-% any FAIL and on no such line.  With a marginfix that lacks
-% \marginnoteyieldlimit the test says SKIP, which fails too.
+% any FAIL and on no such line.  With a marginfix that really lacks
+% \marginnoteyieldlimit the test says SKIP, which fails too; with lines old
+% it says OLD, and the Makefile checks the warning.
 \documentclass[a4paper]{memoir}
 \ifdefined\testoptions\else\def\testoptions{}\def\testlines{5}\fi
 \expandafter\PassOptionsToPackage\expandafter{\testoptions}{didactic}
@@ -17,11 +19,15 @@
 \usepackage[noamsthm,notheorems]{beamerarticle}
 \makeatletter
 \def\@noteyieldtest@own{own}
+\def\@noteyieldtest@old{old}
 \ifx\testlines\@noteyieldtest@own\marginnoteyieldlimit{2cm}\fi
+\ifx\testlines\@noteyieldtest@old\let\marginnoteyieldlimit\@undefined\fi
 \makeatother
 \begin{document}
 \makeatletter
-\ifdefined\marginnoteyieldlimit
+\ifx\testlines\@noteyieldtest@old
+  \def\@noteyieldtest@result{OLD}%
+\else\ifdefined\marginnoteyieldlimit
   \ifx\testlines\@noteyieldtest@own
     \dimen@2cm\relax
   \else\ifnum\testlines=\z@
@@ -36,7 +42,7 @@
   \fi
 \else
   \def\@noteyieldtest@result{SKIP}%
-\fi
+\fi\fi
 \typeout{didactic noteyield test: [\testoptions] \@noteyieldtest@result
   \space(limit \ifdefined\mfx@yieldlimit\the\mfx@yieldlimit\fi,
   expected \the\dimen@)}
