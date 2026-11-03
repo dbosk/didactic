@@ -162,7 +162,7 @@ BIBURL_CASES=before:::9000::3em after:::9000::3em \
 	after:bibemergencystretch=0pt::9000::0pt \
 	before:::9000:2em:2em after:::9000:2em:2em none:::0::
 .PHONY: test-biburl
-test-biburl: test-biburl.tex didactic.sty
+test-biburl: test-biburl.tex test-biburl-bbl.tex test-biburl.bib didactic.sty
 	for c in ${BIBURL_CASES}; do \
 	  IFS=:; set -- $$c; unset IFS; ${RM} test-biburl.aux; \
 	  ${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode \
@@ -170,6 +170,21 @@ test-biburl: test-biburl.tex didactic.sty
 	    >/dev/null; \
 	  grep 'didactic biburl test:' test-biburl.log || exit 1; \
 	  ! grep -q 'didactic biburl test:.*FAIL' test-biburl.log || exit 1; \
+	done
+	${RM} test-biburl-bbl.bbl test-biburl-bbl.aux
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode test-biburl-bbl \
+	  >/dev/null
+	biber --quiet test-biburl-bbl
+	for c in :none biburlpenalty=0:some bibemergencystretch=0pt:some; do \
+	  for i in 1 2; do \
+	    ${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode \
+	      "\\def\\testoptions{$${c%:*}}\\input{test-biburl-bbl}" >/dev/null; \
+	  done; \
+	  pdftotext test-biburl-bbl.pdf - | grep -q 'example.org' \
+	    || { echo "no URL in the bibliography: $$c"; exit 1; }; \
+	  n=$$(grep -c 'Overfull .hbox' test-biburl-bbl.log); \
+	  echo "didactic biburl bbl test: [$${c%:*}] $$n Overfull, $${c#*:} wanted"; \
+	  case $${c#*:},$$n in none,0|some,[1-9]*) ;; *) exit 1;; esac; \
 	done
 
 VERSION=$(shell sed -En "s/^.*v([0-9]+(\.[0-9]+)+) didactic.*$$/\1/p" didactic.dtx)
