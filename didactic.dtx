@@ -28,6 +28,7 @@
 %<package>\RequirePackage{xkeyval}
 %<package>\RequirePackage{xstring}
 %<package>\RequirePackage{etoolbox}
+%<package>\RequirePackage{xfp}
 %<package>\RequirePackage{pythontex}
 %<package>\RequirePackage{minted}
 %<package>\RequirePackage{babel}
@@ -172,16 +173,18 @@
 %   fit on it, instead of the note moving to the next page.
 % }
 % \changes{v2.14}{2026/10/22}{%
-%   Keeps listings together across pages outside |beamer|: a listing of at 
-%   most |keeplines| lines (20) doesn't break, a longer one leaves at least 
-%   |keepends| lines (3) that aren't empty on each side of a break and starts 
-%   no page with an empty line, and with |keepleadin| the 
-%   paragraph before a listing or a pair of |didacticpair|, and the header 
-%   line of a \textsf{noweb} chunk, stay with it.
-%   A listing of \textsf{fvextra} (so of |minted|) no longer breaks after 
-%   any line, whatever the penalties.
+%   Keeps listings together across pages outside \texttt{beamer}: a listing 
+%   of at most \texttt{keeplines} lines (20) doesn't break, a longer one 
+%   leaves at least \texttt{keepends} lines (3) that aren't empty on each 
+%   side of a break and starts no page with an empty line, and with 
+%   \texttt{keepleadin} the paragraph before a listing or a pair of 
+%   \texttt{didacticpair}, and the header line of a \textsf{noweb} chunk, 
+%   stay with it.
+%   A listing too tall for a page breaks anyway, with a warning.
+%   A listing of \textsf{fvextra} (so of \texttt{minted}) no longer breaks 
+%   after any line, whatever the penalties.
 %   Writes the margin column's place to the log 
-%   (|didactic-margin: odd=|\dots), for scripts that check the notes.
+%   (\texttt{didactic-margin:}\dots), for scripts that check the notes.
 % }
 % \changes{v2.13}{2026/10/21}{%
 %   In the article mode of |beamer|, a frame title is a run-in heading: the 
@@ -626,6 +629,8 @@
 % PDF.
 % A script that checks that each margin note is printed on the page of its 
 % mark can read it there instead of guessing it.
+% The line assumes one column of text: with |twocolumn|, where the notes of 
+% each column go into the margin beside it, it doesn't say where they are.
 %
 % \subsection{Figures and tables in the margin}
 %
@@ -1044,18 +1049,31 @@
 % \DescribeOpt{keepends}
 % \DescribeOpt{keepleadin}
 % \begin{description}
-% \item[keeplines] A listing of at most this many lines never breaks; it
+% \item[keeplines] A listing of at most this many lines doesn't break; it
 %   moves to the next page as a whole.
+%   Unless it wouldn't fit on a page, with a few lines to spare for what is
+%   kept with it: lines can wrap (|breaklines|), so that is a matter of its
+%   height.
+%   Such a listing breaks by the rule of |keepends|, with a warning.
 %   The default is 10.
 % \item[keepends] A longer listing may break, but leaves at least this many
 %   lines on each side of the break, not counting empty lines.
 %   The default is 3.
+%   If those lines don't fit on a page, for they wrap, they break too, with
+%   a warning.
 %   Nor does a page start with an empty line of a longer listing: it breaks
 %   after the empty line instead, between two parts of the program.
 % \item[keepleadin] No page break comes between a listing, or code side by
 %   side, and the paragraph
 %   before it, which usually leads into it (``It prints:''), just as
 %   \TeX\ doesn't break a page before a displayed formula.
+%   A colour set for the listing doesn't change that.
+%   A margin note or a float on its own between them, after a blank line,
+%   does, and so does space that you add with |\vspace|: \LaTeX\ gives a
+%   place to break there, whatever comes next, and the two can land on
+%   different pages.
+%   To keep them together, write a note in the paragraph that leads into the
+%   listing, without a blank line, and a float before that paragraph.
 %   The header line of a code chunk of \textsf{noweb} stays with its code
 %   too.
 %   For that, no paragraph in the notes leaves its first or last line alone
@@ -1083,20 +1101,44 @@
 %   heading behind, takes the heading along in the next run.
 %   The default is 3; 0 turns it off.
 % \end{description}
-% The page that a listing moves away from keeps its space empty at the
-% foot, so |keeplines| is a trade-off between a listing cut in two and 
-% empty space, and |keepmaxgap| bounds the empty space: a listing of 10 
-% lines moves whole only if at most 5 lines of the page are left empty, 
+% A line counts as empty when it holds nothing but spaces and tabs.
+% One that holds only something else that prints nothing, like a |\label| by
+% |escapeinside|, counts as a line.
+%
+% A listing kept whole can still fail to fit on a page, with what is kept
+% with it: a tall box in the paragraph before it, or a float at the top of
+% the next page, which is placed before \TeX\ gets to the listing.
+% Then that page is overfull, and \textsf{didactic} warns, as it does whenever
+% it can't do what these options ask.
+% Give the listing room with a place to break before it, such as a blank line
+% and |\vspace|.
+%
+% The page that a listing moves away from comes up short, and what happens
+% with that space depends on the document.
+% With |\raggedbottom| the space stays empty at the foot of the page.
+% That is the default of the one-sided documents of the standard classes
+% and |memoir|.
+% With |\flushbottom|, the default of their two-sided documents, and so of
+% |memoir| without options, \TeX\ stretches the page to its full height: the
+% space goes to the gaps around headings and between paragraphs, and the log
+% has an |Underfull \vbox|.
+% If you want the empty foot, put |\raggedbottom| in the preamble of the
+% notes; \textsf{didactic} doesn't change it for you.
+% Either way |keeplines| is a trade-off between a listing cut in two and
+% empty space, and |keepmaxgap| bounds the empty space: a listing of 10
+% lines moves whole only if at most 5 lines of the page are left empty,
 % and otherwise breaks as a longer one does.
 % The default keeps a short function whole and lets a whole program break.
-% Since a longer listing keeps |keepends| lines at each end, one of fewer 
+% Since a longer listing keeps |keepends| lines at each end, one of fewer
 % than $2\times3$ lines that aren't empty can't break anyway.
 % With a larger font for the code, choose fewer lines.
-% |keeplines=0, keepends=1, keepleadin=false| gives the penalties of
-% \textsf{fancyvrb} itself.
-% (They don't give its breaks with \textsf{fvextra}, which is loaded by
-% |minted|: there a listing could break after any line, whatever the
-% penalties, which no longer happens.)
+%
+% |keeplines=0, keepends=1, keepleadin=false| comes closest to the breaks of
+% \textsf{fancyvrb} itself, which it can't turn into quite the same.
+% A page still doesn't start with an empty line of a listing; no option
+% changes that.
+% And \textsf{fvextra}, which is loaded by |minted|, lets a listing break
+% after any line, whatever the penalties: that no longer happens.
 % Listings inside a box, such as the code side by side above, can't break
 % anyway, and on the slides nothing changes.
 %
@@ -3399,8 +3441,7 @@ def didactic_mint(output, /, lang="text",
   matches one of the patterns will be highlighted.
   """
   if fullwidth:
-    print(r"\csname @didactic@blockmargin\endcsname")
-    print(r"\begin{fullwidth}")
+    print(r"\csname @didactic@beginfullcode\endcsname")
 
   if not minted_opts:
     minted_opts = ""
@@ -3426,8 +3467,7 @@ def didactic_mint(output, /, lang="text",
     print(r"\didacticinputminted{%s}{%s}" % (lang, filename))
 
   if fullwidth:
-    print(r"\end{fullwidth}")
-    print(r"\unblockmargin")
+    print(r"\csname @didactic@endfullcode\endcsname")
 \end{pycode}
 %    \end{macrocode}
 %
@@ -4176,8 +4216,12 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % So with the option |keepleadin|, which keeps a listing with the paragraph 
 % before it, we block the margin through |\@didactic@blockmargin|, which 
 % makes |\if@nobreak| true for that moment, if it isn't already.
-% The PythonTeX functions print it as |\csname @didactic@blockmargin| 
-% |\endcsname|, since their output is read where |@| isn't a letter.
+% We can do that here because we know that a listing comes next.
+% The |fullwidth| environment is a list, whose start allows a page break 
+% too, so with |keepleadin| we forbid that one as well, in a group around 
+% the environment: |\@didactic@beginfullcode| and |\@didactic@endfullcode|.
+% The PythonTeX functions print them with |\csname|, since their output is 
+% read where |@| isn't a letter.
 %    \begin{macrocode}
 \RequirePackage{marginfix}
 \newcommand\@didactic@blockmargin{%
@@ -4192,12 +4236,23 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \else
     \blockmargin
   \fi}
+\newcommand\@didactic@beginfullcode{%
+  \@didactic@blockmargin
+  \begingroup
+  \if@didactic@keepleadin
+    \@beginparpenalty\@M
+  \fi
+  \begin{fullwidth}}
+\newcommand\@didactic@endfullcode{%
+  \end{fullwidth}%
+  \endgroup
+  \unblockmargin}
 \NewDocumentCommand{\lstexample}{somm}{%
-  \IfBooleanTF{#1}{\@didactic@blockmargin\begin{fullwidth}}{\relax}
+  \IfBooleanTF{#1}{\@didactic@beginfullcode}{\relax}
   \IfValueTF{#2}
     {\inputminted[escapeinside=||,#2]{#3}{#4}}
     {\inputminted[escapeinside=||]{#3}{#4}}
-  \IfBooleanTF{#1}{\end{fullwidth}\unblockmargin}{\relax}
+  \IfBooleanTF{#1}{\@didactic@endfullcode}{\relax}
 }
 %    \end{macrocode}
 % \end{macro}
@@ -5280,11 +5335,23 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % \TeX\ skips that code as a whole, so the conditionals in it must be known 
 % before.
 %    \begin{macrocode}
+\ExplSyntaxOn
+\regex_const:Nn \c__didactic_keep_blank_regex
+  { \A (?: \s | \\PYG\ \{ [^\}]* \} \{ \s* \} )* \Z }
+\cs_new_protected:Npn \@didactic@keep@ifblank #1
+  {
+    \str_set:Nn \l_tmpa_str {#1}
+    \exp_args:NNV \regex_match:NnTF
+      \c__didactic_keep_blank_regex \l_tmpa_str
+  }
+\ExplSyntaxOff
 \newif\if@didactic@keep
 \newif\if@didactic@keep@glue
 \newif\if@didactic@keep@ok
 \newif\if@didactic@keep@long
 \newif\if@didactic@keep@ltowed
+\newif\if@didactic@keep@warned
+\newif\if@didactic@keep@kept
 \@ifclassloaded{beamer}{\@didactic@keepfalse}{\@didactic@keeptrue}
 \if@didactic@keep
 %    \end{macrocode}
@@ -5319,6 +5386,15 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % We count the lines that aren't empty, in |\@didactic@keep@nb|, and note 
 % for each line whether it's empty, a |1| or a |0| in front of 
 % |\@didactic@keep@blanks|, so that the last line comes first.
+% A line of spaces or tabs shows nothing either, but it needn't be empty as a 
+% token list: \TeX\ removes the spaces at the end of a line it reads, 
+% but a line from |minted| holds what the lexer gave, for some 
+% lexers |\PYG{+w}{    }|.
+% So |\@didactic@keep@ifblank| looks at the line as a string, and takes it as 
+% empty if it holds nothing else than white space and |\PYG| around white 
+% space.
+% (A line that holds only something else invisible, like the |\label| of 
+% |escapeinside|, counts as a line: we can't tell what a command does.)
 %    \begin{macrocode}
 \newbox\@didactic@keep@box
 \newbox\@didactic@keep@line
@@ -5356,13 +5432,12 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \@didactic@keep@add{#1}}
 \def\@didactic@keep@add#1{%
   \global\advance\@didactic@keep@n\@ne
-  \def\@didactic@keep@text{#1}%
-  \ifx\@didactic@keep@text\@empty
+  \@didactic@keep@ifblank{#1}{%
     \xdef\@didactic@keep@blanks{1\@didactic@keep@blanks}%
-  \else
+  }{%
     \global\advance\@didactic@keep@nb\@ne
     \xdef\@didactic@keep@blanks{0\@didactic@keep@blanks}%
-  \fi}
+  }}
 %    \end{macrocode}
 % \end{macro}
 % \end{macro}
@@ -5382,7 +5457,16 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % empty come before it or after it, and before an empty line, so that no 
 % page starts with one; a break after an empty line, between two parts of 
 % a program, stays allowed.
+% Whatever we want, the lines we forbid to break must fit on a page.
+% So we add up the lines since the last break we allow, from the last line, 
+% in |\@didactic@keep@run|; the rules below don't guarantee it for lines that 
+% wrap, so if line~|#1| wouldn't fit with them, we allow this break, with
+% \textsf{fancyvrb}'s penalty unless that forbids it too (|samepage|), and 
+% say so.
 %    \begin{macrocode}
+\newdimen\@didactic@keep@run
+\newdimen\@didactic@keep@lineht
+\newdimen\@didactic@keep@maxrun
 \def\@didactic@keep@penalty#1{%
   \@tempcntb\interlinepenalty
   \ifnum#1=\@ne
@@ -5391,6 +5475,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \ifnum#1=\numexpr\@didactic@keep@n-\@ne\relax
     \advance\@tempcntb\widowpenalty
   \fi
+  \count@\@tempcntb
   \if@didactic@keep@long
     \ifnum\numexpr\@didactic@keep@nb-\@didactic@keep@tail\relax
         <\@didactic@keepends
@@ -5404,6 +5489,23 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \fi
   \else
     \@tempcntb\@M
+  \fi
+  \ifnum\@tempcntb<\@M
+    \global\@didactic@keep@run\z@
+  \else
+    \ifdim\dimexpr\@didactic@keep@run+\@didactic@keep@lineht\relax
+        >\@didactic@keep@maxrun
+      \@tempcntb\ifnum\count@<\@M\count@\else\z@\fi
+      \global\@didactic@keep@run\z@
+      \if@didactic@keep@warned\else
+        \global\@didactic@keep@warnedtrue
+        \PackageWarning{didactic}{%
+          A listing of \the\@didactic@keep@n\space lines can't keep lines
+          together\MessageBreak
+          as keepends asks: they don't fit on a page.\MessageBreak
+          It breaks between them, near page \the\c@page}%
+      \fi
+    \fi
   \fi
   \penalty\@tempcntb}
 %    \end{macrocode}
@@ -5452,6 +5554,42 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % \end{macro}
 % \end{macro}
 %
+% \begin{macro}{\@didactic@keep@tall}
+% A listing of at most |keeplines| lines must also fit on a page, which 
+% depends on its height, not on its lines: lines can wrap, and |keeplines| 
+% can be large.
+% If it doesn't, it counts as a long listing, whose break |keepends| rules, 
+% and we warn: if we forbade all breaks, it would run off the paper.
+% What fits is at most the text block less |\topskip|, which comes before 
+% the first line of a page.
+% We leave room for what is kept with the listing (|keepleadin|) too, which 
+% we can't measure from here: a heading and the line that leads into the 
+% listing, five lines of the text.
+% Inside a box there is no page to fit on.
+%    \begin{macrocode}
+\def\@didactic@keep@tall{%
+  \global\@didactic@keep@warnedfalse
+  \global\@didactic@keep@maxrun
+    \dimexpr\textheight-\topskip-5\normalbaselineskip\relax
+  \ifinner\else
+    \ifnum\@didactic@keep@n>\@didactic@keeplines\else
+      \ifdim\dimexpr\ht\@didactic@keep@box+\dp\@didactic@keep@box\relax
+          >\@didactic@keep@maxrun
+        \@didactic@keep@longtrue
+        \global\@didactic@keep@warnedtrue
+        \PackageWarning{didactic}{%
+          A listing of \the\@didactic@keep@n\space lines is too tall to
+          keep\MessageBreak
+          on a page, \the\dimexpr\ht\@didactic@keep@box
+          +\dp\@didactic@keep@box\relax\space high where
+          \the\@didactic@keep@maxrun\space fit.\MessageBreak
+          It may break, as a long listing does, near page \the\c@page}%
+      \fi
+    \fi
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+%
 % \begin{macro}{\@didactic@keep@flush}
 % \begin{macro}{\@didactic@keep@take}
 % \begin{macro}{\@didactic@keep@taketrail}
@@ -5477,13 +5615,29 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % \textsf{fvextra} can break after any line, even with |samepage|.)
 % If something else comes between the lines, which we can't take, like a 
 % |\write| or a |\mark|, we stop taking lines, and the lines that are left 
-% get no penalties between them; a page can break there as at any glue.
+% get no penalties between them; a page can break there as at any glue, 
+% so we warn.
+% Nothing in \textsf{fancyvrb} or \textsf{fvextra} puts such a thing there, 
+% only a redefinition of |\FV@ListProcessLine| can.
 %
 % After each line we take its note of being empty from 
 % |\@didactic@keep@blanks|, for the penalty after the line before it, and 
 % count the lines that aren't empty, in |\@didactic@keep@tail|.
 % |\unvbox| doesn't set |\prevdepth|, so we set it to the depth of the last 
 % line, for what comes after the listing.
+% With |keepleadin| a |\nobreak| goes before the lines: what the formatting 
+% of \textsf{fancyvrb} adds before the first line, like the colour of 
+% |formatcom=\color{blue}|, makes the glue before that line a place to break 
+% otherwise.
+%
+% A line that \textsf{fvextra} wraps (|breaklines|) is a box with the first 
+% row as its height and the other rows as its depth.
+% With that depth last on a page that \TeX\ has to stretch, which a page 
+% ending before a kept group of lines can be, the rows run off the paper: 
+% \TeX\ allows only |\maxdepth| below the page.
+% So we put such a line in a |\vbox| that ends in a kern, whose height is 
+% all of the line and which has no depth.
+% The line stays where it was, and the page knows how tall it is.
 %    \begin{macrocode}
 \newbox\@didactic@keep@out
 \newbox\@didactic@keep@trail
@@ -5542,21 +5696,39 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \setbox\@didactic@keep@out\box\voidb@x
   \@didactic@keep@i\@didactic@keep@n
   \@didactic@keep@tail\z@
+  \global\@didactic@keep@run\z@
+  \@didactic@keep@tall
+  \global\@didactic@keep@keptfalse
+  \if@didactic@keep@long\else
+    \ifinner\else
+      \global\@didactic@keep@kepttrue
+    \fi
+  \fi
   \loop
     \setbox\@didactic@keep@box\vbox{%
       \unvbox\@didactic@keep@box
       \@didactic@keep@take}%
     \if@didactic@keep@ok
+      \global\@didactic@keep@lineht
+        \dimexpr\ht\@didactic@keep@line+\dp\@didactic@keep@line\relax
+      \if@didactic@keep@glue
+        \global\advance\@didactic@keep@lineht\@didactic@keep@skip
+      \fi
       \setbox\@didactic@keep@out\vbox{%
         \if@didactic@keep@glue
           \vskip\@didactic@keep@skip
         \fi
-        \box\@didactic@keep@line
+        \ifdim\dp\@didactic@keep@line>\maxdepth
+          \vbox{\box\@didactic@keep@line\kern\z@}%
+        \else
+          \box\@didactic@keep@line
+        \fi
         \ifnum\@didactic@keep@i<\@didactic@keep@n
           \@didactic@keep@penalty\@didactic@keep@i
         \fi
         \unvbox\@didactic@keep@trail
         \unvbox\@didactic@keep@out}%
+      \global\advance\@didactic@keep@run\@didactic@keep@lineht
       \expandafter\@didactic@keep@pop\@didactic@keep@blanks\@nil
       \if0\@didactic@keep@nextblank
         \advance\@didactic@keep@tail\@ne
@@ -5566,10 +5738,18 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \setbox\@didactic@keep@out\vbox{%
         \unvbox\@didactic@keep@trail
         \unvbox\@didactic@keep@out}%
+      \PackageWarning{didactic}{%
+        A listing has something between its lines that\MessageBreak
+        we can't take out, so lines 1 to \the\@didactic@keep@i\space
+        of \the\@didactic@keep@n\space may break\MessageBreak
+        anywhere, near page \the\c@page}%
       \@didactic@keep@i\z@
     \fi
   \ifnum\@didactic@keep@i>\z@
   \repeat
+  \if@didactic@keepleadin
+    \nobreak
+  \fi
   \unvbox\@didactic@keep@box
   \unvbox\@didactic@keep@out
   \prevdepth\@didactic@keep@pd}
@@ -5594,6 +5774,40 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \fi
   \ifx\FV@ProcessLine\@didactic@keep@next
     \@didactic@keep@flush
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\FV@EndList}
+% \begin{macro}{\@didactic@keep@overfull}
+% What is kept with a listing can be taller than the five lines we left room 
+% for (a large box in the paragraph before it), or a float can take the top 
+% of the next page.
+% We can't take that back: the lines before the listing are on the page by 
+% then, without a place to break before the listing.
+% But we can tell: the list's end adds a penalty, |\@endparpenalty|, which 
+% is a place to break, so \TeX\ looks at the page there.
+% If the page with the listing is too full, it breaks at the last place 
+% before that it can, and the listing comes back on the next page.
+% If there is no such place, the page is overfull and ends right here, so 
+% the next page is still empty, which |\pagegoal| tells.
+% Nothing else can leave the page empty at the end of a kept listing.
+%    \begin{macrocode}
+\let\@didactic@FV@EndList\FV@EndList
+\def\FV@EndList{%
+  \@didactic@FV@EndList
+  \@didactic@keep@overfull}
+\def\@didactic@keep@overfull{%
+  \if@didactic@keep@kept
+    \global\@didactic@keep@keptfalse
+    \ifdim\pagegoal=\maxdimen
+      \PackageWarning{didactic}{%
+        A listing doesn't fit on a page with what is kept\MessageBreak
+        with it (keepleadin), so the page is overfull.\MessageBreak
+        Put a place to break before the listing, near\MessageBreak
+        page \the\c@page}%
+    \fi
   \fi}
 %    \end{macrocode}
 % \end{macro}

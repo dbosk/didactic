@@ -5,10 +5,12 @@
 % Each case starts on a new page, after a rule that leaves room for a few
 % lines only, so that without didactic the listing would break there.
 %
-% Build: see the Makefile (three runs, for the page references and case N).  The
+% Build: see the Makefile (LaTeX, PythonTeX, LaTeX until the page references
+% settle).  The
 % document checks itself: the last page lists every check with PASS or
 % FAIL, and the log has a line "didactic keep test: <check> PASS/FAIL"
-% for each; the Makefile fails on any FAIL.
+% for each, then "didactic keep test: all checks ran"; the Makefile fails
+% on any FAIL or SKIP and when that last line is missing.
 %
 % Expected in the resulting PDF, besides PASS everywhere:
 %   A  a short listing (10 lines) with room for 4: the lead-in and the
@@ -21,31 +23,50 @@
 %   I  as D, but line 28 is empty: lines 27 to 30 on the next page, so
 %      that three lines that aren't empty are there and the page doesn't
 %      start with the empty line.
+%   W  as I, but line 29 holds only spaces, in a minted listing whose lexer
+%      keeps them (bash): lines 27 to 30 on the next page.  The Makefile
+%      checks that from the PDF, since it has no labels.
 %   E  a short listing read by \inputminted (5 lines), with room for 3
 %      lines: on the next page with its lead-in.
 %   F  a code chunk woven for minted (as noweb.sty's [minted] option and
 %      the tominted weave give), with room for 2 lines: the lead-in, the
 %      header line "<hello.py>=" and the code on the next page.
-%      Skipped without noweb.sty.
+%      Without noweb.sty it is a SKIP, which fails the build.
 %   J  a pair of didacticpair (as \codebycode and \runbyrun make), 8 lines
 %      tall, with room for 2 lines: on the next page with its lead-in.
-%   L  a short listing (10 lines) with room for 8 of its lines: moving it
+%   S  a short listing over the full width by \lstexample*, with room for
+%      2 lines: on the next page with its lead-in.
+%   Y  the same by didactic_mint(fullwidth=True), through PythonTeX.
+%   N  a listing after a paragraph with an \ltnote in it, with room for 2
+%      lines: on the next page with its lead-in.  M the same with \marginpar,
+%      P with a float before the lead-in.  (Between the lead-in and the listing,
+%      on their own after a blank line, they give a place to break, which the
+%      docs state as a limit.  Taking that place away isn't right either:
+%      test-keep-chain shows paragraphs that can't part.)
+%   O  a listing with formatcom=\color{blue}: on the next page with its
+%      lead-in.
+%   K  a long listing with line 13 empty and room for 12 lines: lines 12 up
+%      on the next page, so that the page doesn't start with the empty line.
+%   L  a long listing with line 29 empty, so the last lines are 27, 28 and
+%      30: line 27 on the same page as line 30, empty lines don't count.
+%   G  a short listing in an item of a list, room for 3 lines: on the next
+%      page with the item's first line.
+%   Q  a listing that starts an item: the item's label "1." beside the
+%      first line, which the Makefile checks from the PDF.
+%   H  the depth after a listing is that of its last line, not of what came
+%      before it, so that the text after it is at the right height.  (The
+%      lead-in has a depth of 7pt, the listing's last line almost none.)
+%   T  a short listing (10 lines) with room for 8 of its lines: moving it
 %      would leave more than keepmaxgap (5) lines empty, so it breaks, with
 %      at least three lines on each side.
-%   K  a section heading followed by four lines of text, with room for it
+%   U  a section heading followed by four lines of text, with room for it
 %      and two lines: it moves to the next page with three lines
 %      (keepafterheading).
-%   M  the heading of a block (example), with room for two of its lines:
+%   V  the heading of a block (example), with room for two of its lines:
 %      the block moves to the next page.
-%   N  a section heading, a sentence and a longtable whose caption and
+%   R  a section heading, a sentence and a longtable whose caption and
 %      first row don't fit: the heading moves to the page of the table, in
 %      the run after the one that finds it (so three runs).
-%   G  a short listing in an item of a list: the item's label "1." beside
-%      its first line, as without didactic.
-%   H  the vertical space around a listing is as without didactic: the
-%      text after it starts at the same height as without (not checked
-%      automatically; compare with keeplines=0, keepends=1,
-%      keepleadin=false).
 \documentclass[a4paper]{memoir}
 \usepackage[british]{babel}
 \usepackage{amsmath,amssymb,amsthm}
@@ -74,17 +95,39 @@
   \loop
     \advance\@keeptest@i\@ne
     \ifnum\@keeptest@i=\@keeptest@blank
-      \immediate\write\@keeptest@out{}%
+      \immediate\write\@keeptest@out{\@keeptest@blankline}%
     \else
       \immediate\write\@keeptest@out{%
         line \the\@keeptest@i#3\string\label{#1L\the\@keeptest@i}#4}%
     \fi
   \ifnum\@keeptest@i<#2\repeat
   \immediate\closeout\@keeptest@out
-  \global\@keeptest@blank\z@}
-% \testblank{i}: line i of the next file is empty.
+  \global\@keeptest@blank\z@
+  \global\let\@keeptest@blankline\@empty}
+% \testplainfile{prefix}{n}: such a file of lines "<prefix>line <i>" without
+% labels, since escapeinside fails in some lexers.  The Makefile checks these
+% from the PDF.
+\newcommand\testplainfile[2]{%
+  \immediate\openout\@keeptest@out=\jobname-#1.txt
+  \@keeptest@i\z@
+  \@whilenum\@keeptest@i<#2\do{%
+    \advance\@keeptest@i\@ne
+    \ifnum\@keeptest@i=\@keeptest@blank
+      \immediate\write\@keeptest@out{\@keeptest@blankline}%
+    \else
+      \immediate\write\@keeptest@out{#1line \the\@keeptest@i}%
+    \fi}%
+  \immediate\closeout\@keeptest@out
+  \global\@keeptest@blank\z@
+  \global\let\@keeptest@blankline\@empty}
+% \testblank{i}: line i of the next file is empty; \testspaces{i}: it holds
+% only spaces.
 \newcount\@keeptest@blank
+\let\@keeptest@blankline\@empty
 \newcommand\testblank[1]{\global\@keeptest@blank=#1\relax}
+\newcommand\testspaces[1]{%
+  \testblank{#1}%
+  \gdef\@keeptest@blankline{\space\space\space\space}}
 % \testlisting{prefix}{n}: such a file as a listing of fancyvrb.
 \newcommand\testlisting[2]{%
   \testfile{#1}{#2}{}{}%
@@ -92,11 +135,15 @@
 \newwrite\@keeptest@out
 % \testcheck{name}{label1}{=|<}{label2}: are the labels on the same page (=)
 % or is the first on an earlier page (<)?
+% A label that doesn't exist has page 0: that is a FAIL, not a match.
 \newcommand\testcheck[4]{%
-  \ifnum\getpagerefnumber{#2}#3\getpagerefnumber{#4}\relax
-    \def\@keeptest@result{PASS}%
-  \else
-    \def\@keeptest@result{FAIL}%
+  \def\@keeptest@result{FAIL}%
+  \ifnum\getpagerefnumber{#2}>\z@
+    \ifnum\getpagerefnumber{#4}>\z@
+      \ifnum\getpagerefnumber{#2}#3\getpagerefnumber{#4}\relax
+        \def\@keeptest@result{PASS}%
+      \fi
+    \fi
   \fi
   \typeout{didactic keep test: #1 \@keeptest@result}%
   \item #1: \@keeptest@result\ (#2 on page \getpagerefnumber{#2}, #4 on
@@ -132,6 +179,25 @@ Lead-in I, with line 28 empty.\label{i-lead}
 \testlisting{i}{30}
 Text after I.
 
+\roomfor{13}
+Lead-in K, with line 13 empty:\label{k-lead}
+\testblank{13}%
+\testlisting{k}{30}
+Text after K.
+
+\roomfor{27}
+Lead-in L, with line 29 empty:\label{l-lead}
+\testblank{29}%
+\testlisting{l}{30}
+Text after L.
+
+\roomfor{27}
+Lead-in W, with line 29 of spaces only, in a lexer that keeps them:\label{w-lead}
+\testspaces{29}%
+\testplainfile{w}{30}%
+\inputminted{bash}{\jobname-w.txt}
+Text after W.
+
 \roomfor{3}
 Lead-in E, a file read by \verb|\inputminted|:\label{e-lead}
 \testfile{e}{5}{|}{|}%
@@ -165,42 +231,99 @@ Lead-in J, to code side by side:\label{j-lead}
 \end{didacticpair}
 Text after J.
 
+\roomfor{2}
+Lead-in S, code over the full width by \verb|\lstexample*|:\label{s-lead}
+\testfile{s}{5}{|}{|}%
+\lstexample*{text}{\jobname-s.txt}
+Text after S.
+
+\roomfor{2}
+Lead-in Y, by \verb|didactic_mint(fullwidth=True)|:\label{y-lead}
+\begin{pycode}
+didactic_mint("\n".join(f"line {i}|\\label{{yL{i}}}|" for i in range(1, 6)),
+              lang="text", minted_opts="escapeinside=||", fullwidth=True)
+\end{pycode}
+Text after Y.
+
+\roomfor{2}
+Lead-in N, with a note in its paragraph:\label{n-lead}
+\ltnote{A note in the paragraph.}
+\testlisting{n}{3}
+Text after N.
+
+\roomfor{2}
+Lead-in M, with a margin note in its paragraph:\label{m-lead}
+\marginpar{A margin note in the paragraph.}
+\testlisting{m}{3}
+Text after M.
+
+\roomfor{2}
+\begin{figure}[b]
+  \caption{A float before the lead-in.}
+\end{figure}
+Lead-in P, with a float before it:\label{p-lead}
+\testlisting{p}{3}
+Text after P.
+
+\roomfor{2}
+Lead-in O, a listing with a colour:\label{o-lead}
+\testfile{o}{3}{}{}%
+\VerbatimInput[commandchars=\\\{\},formatcom=\color{blue}]{\jobname-o.txt}
+Text after O.
+
 \roomfor{9}
-Lead-in L, to a short listing with room for eight of its ten lines.%
-\label{l-lead}
-\testlisting{l}{10}
-Text after L.
+Lead-in T, to a short listing with room for eight of its ten lines.%
+\label{t-lead}
+\testlisting{t}{10}
+Text after T.
 
 \roomfor{6}
-\section*{Heading K}\label{k-head}
-First line of K\\
+\section*{Heading U}\label{u-head}
+First line of U\\
 second line\\
-third line\label{kL3}\\
+third line\label{uL3}\\
 fourth line.
 
 \roomfor{2}
-\begin{example}[Heading M]\label{m-head}
-First line of M\label{mL1}\\
+\begin{example}[Heading V]\label{v-head}
+First line of V\label{vL1}\\
 second line\\
-third line\label{mL3}\\
+third line\label{vL3}\\
 fourth line.
 \end{example}
 
 \roomfor{4}
-\section*{Heading N}\label{n-head}
-Table N lists the rows.
+\section*{Heading R}\label{r-head}
+Table R lists the rows.
 \begin{longtable}{ll}
 \caption{A caption of several lines, several lines, several lines, several
   lines, several lines, several lines, several lines, several
-  lines.}\label{n-tab}\\
+  lines.}\label{r-tab}\\
 a & b\\ a & b\\ a & b\\ a & b\\
 \end{longtable}
 
-\roomfor{8}
+\roomfor{3}
 \begin{enumerate}
-\item Lead-in G, in an item:
+\item Lead-in G, in an item:\label{g-lead}
   \testlisting{g}{5}
 \end{enumerate}
+
+\clearpage
+\testplainfile{q}{5}%
+\begin{enumerate}
+\item
+  \VerbatimInput{\jobname-q.txt}
+\end{enumerate}
+
+\clearpage
+% A lead-in with a depth that no line of the listing has: what comes after
+% the listing must see the depth of the listing's last line.
+Lead-in H\rule[-7pt]{1pt}{1pt}
+\testlisting{h}{3}%
+\makeatletter
+\xdef\@keeptest@hdepth{\the\prevdepth}%
+\makeatother
+Text after H.
 
 \clearpage
 \section*{Results}
@@ -227,15 +350,41 @@ a & b\\ a & b\\ a & b\\ a & b\\
 \testcheck{F the whole chunk}{f-lead}{=}{fL5}
 \else
 \makeatother
+\typeout{didactic keep test: F no noweb.sty SKIP}%
+\item F: SKIP, no noweb.sty
 \fi
 \testcheck{G first and last line together}{gL1}{=}{gL5}
+\testcheck{G lead-in with the listing}{g-lead}{=}{gL1}
+\testcheck{K breaks}{kL1}{<}{kL30}
+\testcheck{K no page starts with the empty line}{kL1}{<}{kL12}
+\testcheck{K line 12 with line 14}{kL12}{=}{kL14}
+\testcheck{L breaks}{lL1}{<}{lL30}
+\testcheck{L three lines that aren't empty on the last page}{lL27}{=}{lL30}
+\makeatletter
+\ifdim\@keeptest@hdepth<\p@
+  \def\@keeptest@result{PASS}%
+\else
+  \def\@keeptest@result{FAIL}%
+\fi
+\typeout{didactic keep test: H depth after the listing \@keeptest@result}%
+\item H depth after the listing: \@keeptest@result\ (\@keeptest@hdepth)
+\makeatother
 \testcheck{J lead-in with the pair}{j-lead}{=}{j-pair}
+\testcheck{S lead-in with the listing}{s-lead}{=}{sL1}
+\testcheck{S the whole listing}{s-lead}{=}{sL5}
+\testcheck{Y lead-in with the listing}{y-lead}{=}{yL1}
+\testcheck{Y the whole listing}{y-lead}{=}{yL5}
+\testcheck{N lead-in with the listing, a note in the paragraph}{n-lead}{=}{nL1}
+\testcheck{M lead-in with the listing, a margin note in the paragraph}{m-lead}{=}{mL1}
+\testcheck{P lead-in with the listing, a float before it}{p-lead}{=}{pL1}
+\testcheck{O lead-in with the listing in colour}{o-lead}{=}{oL1}
 \item[] Limits on the empty space and headings:
-\testcheck{L breaks, rather than leave the room empty}{lL1}{<}{lL10}
-\testcheck{L lead-in with line 3}{l-lead}{=}{lL3}
-\testcheck{K heading with three lines}{k-head}{=}{kL3}
-\testcheck{M block heading with its third line}{mL1}{=}{mL3}
-\testcheck{N heading with its long table}{n-head}{=}{n-tab}
+\testcheck{T breaks, rather than leave the room empty}{tL1}{<}{tL10}
+\testcheck{T lead-in with line 3}{t-lead}{=}{tL3}
+\testcheck{U heading with three lines}{u-head}{=}{uL3}
+\testcheck{V block heading with its third line}{vL1}{=}{vL3}
+\testcheck{R heading with its long table}{r-head}{=}{r-tab}
 \end{itemize}
+\typeout{didactic keep test: all checks ran}
 
 \end{document}
