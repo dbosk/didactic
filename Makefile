@@ -9,6 +9,8 @@ TEST_FRAMETITLE_CASES=	test-frametitle-overlay test-frametitle-floats \
 			test-frametitle-template \
 			test-frametitle-template-after \
 			test-frametitle-noarticle test-frametitle-article
+TEST_KEEP_CHAPTER=	test-keep-chapter-article test-keep-chapter-memoir \
+			test-keep-chapter-book
 TEST_NOTEOVERFLOW=	test-noteoverflow test-noteoverflow-carry \
 			test-noteoverflow-draft test-noteoverflow-draftbreak \
 			test-noteoverflow-xe test-noteoverflow-old
@@ -26,7 +28,9 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-marginfloat.pdf test-marginfloat-slides.pdf \
 	test-frametitle.pdf test-frametitle-slides.pdf \
 	test-keep.pdf test-keep-tall.pdf test-keep-tall100.pdf \
-	test-keep-chain.pdf ${TEST_NOTEOVERFLOW:=.pdf} test-oldkernel.pdf \
+	test-keep-chain.pdf test-keep-heading.pdf test-keep-nogap.pdf \
+	test-keep-flush.pdf ${TEST_KEEP_CHAPTER:=.pdf} test-keep-stale.pdf \
+	${TEST_NOTEOVERFLOW:=.pdf} test-oldkernel.pdf \
 	test-margin-log.pdf test-margin-log-article.pdf \
 	${TEST_FRAMETITLE_CASES:=.pdf} \
 	test-marginfloat-cases.pdf test-marginfloat-order.pdf \
@@ -208,6 +212,42 @@ test-keep-chain.pdf: test-keep-chain.tex didactic.sty
 	test "${call count_warn,doesn.t fit}" -eq 2
 	test "${call count_word,chained}" -eq 40
 
+# a heading keeps its lines, within keepmaxgap, or warns: see the documents.
+test-keep-heading.pdf: test-keep-heading.tex didactic.sty
+	@${latex_until_settled}
+	! grep -E 'didactic heading test:.*FAIL' test-keep-heading.log
+	grep -q 'didactic heading test: all checks ran' test-keep-heading.log
+	! grep 'Overfull .vbox' test-keep-heading.log
+	test "${call count_warn,Only 1 of the 3}" -eq 1
+	test "${call count_warn,Only 2 of the 3}" -eq 2
+	test "${call count_warn,can.t break here}" -eq 1
+	test "$$(grep -c 'didactic heading test.*PASS' test-keep-heading.log)" -ge 40
+
+test-keep-nogap.pdf: test-keep-nogap.tex test-basedir/keep1/x.tex \
+		test-basedir/keep2/x.tex test-basedir/keep3.tex didactic.sty
+	@${latex_until_settled}
+	! grep -E 'didactic heading test:.*FAIL' test-keep-nogap.log
+	grep -q 'didactic heading test: all checks ran' test-keep-nogap.log
+	test "${call count_warn,The heading in test-keep-nogap}" -eq 2
+	! grep 'Overfull .vbox' test-keep-nogap.log
+
+# a heading that ends a page under \flushbottom leaves the space at the foot.
+test-keep-flush.pdf: test-keep-flush.tex didactic.sty
+	@${latex_until_settled}
+	test "$$(pdfinfo $@ | sed -n 's/^Pages: *//p')" -eq 2
+	! grep 'Underfull .vbox' test-keep-flush.log
+
+# a \chapter isn't taken for the section before it: one page in the .aux per
+# section, and an entry for a table only if a section stands in for the chapter.
+${TEST_KEEP_CHAPTER:=.pdf}: %.pdf: %.tex didactic.sty
+	@${latex_until_settled}
+	test "$$(grep -c 'keep@hpage' $*.aux)" -eq "$$(grep -c '^.section\*' $*.tex)"
+	test "$$(grep -c 'keep@tp' $*.aux)" -eq "$$(grep -c '^.section\*.After' $*.tex)"
+
+# the break before a heading doesn't go stale; see the script.
+test-keep-stale.pdf: test-keep-stale.tex test-keep-stale.sh didactic.sty
+	sh test-keep-stale.sh "${PDFLATEX} ${LATEXFLAGS}"
+
 # noteoverflow.  break needs pdfTeX or LuaTeX, so these name the engine, except
 # test-noteoverflow-xe, which is about the engine that can't.
 NOTEOVERFLOW_SRC=	test-noteoverflow-contents.tex didactic.sty
@@ -317,9 +357,11 @@ clean:
 	${RM} test-keep-tall100-?.txt
 	${RM} test-keep-chain.pdf test-keep-chain.aux test-keep-chain.log
 	${RM} test-keep-chain.unq test-keep-chain.pytxcode test-keep-chain-?.txt
-	for f in ${TEST_NOTEOVERFLOW}; do \
+	for f in test-keep-heading test-keep-nogap test-keep-flush test-keep-stale \
+			test-block-nested ${TEST_KEEP_CHAPTER} ${TEST_NOTEOVERFLOW}; do \
 		${RM} $$f.pdf $$f.aux $$f.log $$f.unq $$f.pytxcode $$f.out $$f.toc; \
 	done
+	${RM} test-keep-heading-?.txt test-keep-stale-room.tex test-keep-stale-opt.tex
 	${RM} test-oldkernel.pdf test-oldkernel.aux test-oldkernel.log
 	${RM} test-oldkernel.unq test-oldkernel.pytxcode
 	${RM} test-margin-log.pdf test-margin-log.aux test-margin-log.log

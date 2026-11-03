@@ -1,0 +1,168 @@
+% Test of the headings when keepmaxgap is off (didactic), so that a heading may
+% always move: the cases that the limit would otherwise decide.
+%
+% Build: see the Makefile.  The document checks itself, as test-keep-heading.
+%   BA  \section, \subsection, a sentence and a longtable that doesn't fit: both
+%       headings move with the table, in the next run, and the outer one isn't
+%       left at the foot of the page.
+%   BB  a heading, a paragraph of five lines running into a longtable without a
+%       blank line: the lines are there, so the heading stays.
+%   BC  a heading, two short paragraphs and a longtable: not enough lines before
+%       the table, so all move.
+%   BD  a heading of two lines, which the estimate takes for less, and a long
+%       paragraph: three lines of it with the heading.
+%   BB2 the same with three lines, which are enough too.
+%   BF  a \chapter, a \section, a sentence and a longtable with a tall row: the
+%       chapter isn't left behind by a break before the section.
+%   BG  a run-in heading, a line and a tall item that doesn't fit: the heading
+%       stays with one line, with a warning (it needs the heading's page).
+%   BH  a heading of two lines, a line and a paragraph: the next lines are chained
+%       to it, so all move.
+%   AQ  two files of the same name in different directories, and one file read
+%       twice, the second of each with less room than the first, so that a break
+%       recorded for the first would take it too.
+%   BE  such a heading, a line and a list, where \LaTeX\ offers a place to break:
+%       it takes that within the list, and a warning at the end says which heading
+%       has too few lines.
+\documentclass[a4paper]{memoir}
+\usepackage[british]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[keepmaxgap=0]{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\usepackage{refcount}
+\usepackage{longtable}
+\raggedbottom
+
+\makeatletter
+\newcommand\roomfor[1]{%
+  \clearpage
+  \noindent\rule{\linewidth}{0.4pt}\par
+  \vspace*{\dimexpr\textheight-\topskip-#1\baselineskip-\baselineskip\relax}%
+  \par}
+\newcommand\testtable[1]{%
+  \begin{longtable}{ll}
+    \caption{A caption of several lines, several lines, several lines,
+      several lines, several lines, several lines, several lines, several
+      lines, several lines.}\label{#1}\\
+    a & b\\ a & b\\ a & b\\ a & b\\
+  \end{longtable}}
+\newcommand\testcheck[4]{%
+  \ifnum\getpagerefnumber{#2}#3\getpagerefnumber{#4}\relax
+    \def\@tempa{PASS}%
+  \else
+    \def\@tempa{FAIL}%
+  \fi
+  \typeout{didactic heading test: \@tempa\space #1 (#2 on \getpagerefnumber{#2}, #4 on \getpagerefnumber{#4})}%
+  \item #1: \@tempa}
+\makeatother
+
+\begin{document}
+
+\roomfor{8}
+\section*{BA section}\label{ba-a}
+\subsection*{BA subsection}\label{ba-b}
+Table lists the rows.
+\testtable{ba-t}
+Text after BA.
+
+\roomfor{10}
+\section*{BB}\label{bb-a}
+Line one of a five line paragraph and so on and so on and so on and on and on.
+Line two of a five line paragraph and so on and so on and so on and on and on.
+Line three of a five line paragraph and so on and so on and so on and on and on.
+Line four of a five line paragraph and so on and so on and so on and on and on.
+Line five of a five line paragraph and so on and so on and so on and on and on.\label{bb-5}
+\testtable{bb-t}
+Text after BB.
+
+\roomfor{9}
+\section*{BC}\label{bc-a}
+One.
+
+Two.\label{bc-2}
+\testtable{bc-t}
+Text after BC.
+
+\roomfor{7}
+\section*{BD, a heading long enough to run over two lines of its large font,
+  indeed it is}\label{bd-a}
+First line\label{bd-1}\\
+second line\label{bd-2}\\
+third line\label{bd-3}\\
+fourth line.
+
+\roomfor{6.8}
+\section*{BE, a heading long enough to run over two lines of its large font,
+  indeed it is}\label{be-a}
+One line.
+\begin{itemize}
+\item An item, which a page may be ended before.\label{be-i}
+\item Another item.\label{be-j}
+\end{itemize}
+
+\roomfor{8}
+\section*{BB2}\label{bbb-a}
+Line one of a three line paragraph and so on and so on and on and on and on.
+Line two of a three line paragraph and so on and so on and on and on and on.
+Line three of a three line paragraph and so on and so on and on and on.\label{bbb-3}
+\testtable{bbb-t}
+Text after BB2.
+
+\clearpage
+\chapter*{BF chapter}\label{bf-a}
+\section*{BF section}\label{bf-b}
+Table lists the rows.
+\begin{longtable}{ll}
+\rule{0pt}{.85\textheight}a & b\label{bf-t}\\
+\end{longtable}
+Text after BF.
+
+\roomfor{4}\label{bg-r}
+\paragraph*{BG}\label{bg-a}
+One line.
+\begin{itemize}
+\item\rule{0pt}{5\baselineskip}A tall item.\label{bg-i}
+\end{itemize}
+
+\roomfor{6.2}
+\section*{BH, a heading long enough to run over two lines of its large font,
+  indeed it is}\label{bh-a}
+One line.
+
+First line\\
+second line\label{bh-2}\\
+third line\\
+fourth line.
+
+\newcommand\rep{q1}
+\newcommand\reproom{5}
+\input{test-basedir/keep3.tex}
+\renewcommand\rep{q2}
+\renewcommand\reproom{4.5}
+\input{test-basedir/keep3.tex}
+
+\input{test-basedir/keep1/x.tex}
+\input{test-basedir/keep2/x.tex}
+
+\clearpage
+\section*{Checks}
+\begin{itemize}
+\testcheck{BA outer heading with the inner}{ba-a}{=}{ba-b}
+\testcheck{BA headings with the table}{ba-b}{=}{ba-t}
+\testcheck{BB heading stays with its lines}{bb-a}{=}{bb-5}
+\testcheck{BB table on the next page}{bb-5}{<}{bb-t}
+\testcheck{BB2 heading stays with three lines}{bbb-a}{=}{bbb-3}
+\testcheck{BB2 table on the next page}{bbb-3}{<}{bbb-t}
+\testcheck{BF chapter with the section}{bf-a}{=}{bf-b}
+\testcheck{BG run-in heading stays}{bg-r}{=}{bg-a}
+\testcheck{BH heading with the second paragraph}{bh-a}{=}{bh-2}
+\testcheck{AQ first file: heading with the table}{p-a}{=}{p-t}
+\testcheck{AQ second file: its heading isn't moved}{p-r}{=}{p-c}
+\testcheck{AQ read twice: first with its table}{q1-a}{=}{q1-t}
+\testcheck{AQ read twice: second isn't moved}{q2-r}{=}{q2-a}
+\testcheck{BC heading with the table}{bc-a}{=}{bc-t}
+\testcheck{BD heading with its third line}{bd-a}{=}{bd-3}
+\testcheck{BE the page breaks in the list}{be-i}{<}{be-j}
+\end{itemize}
+\typeout{didactic heading test: all checks ran}
+\end{document}

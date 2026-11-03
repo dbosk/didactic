@@ -1,0 +1,344 @@
+% Test of keepafterheading and keepmaxgap (didactic): a heading keeps its lines,
+% within the limit on empty space; where it can't, a warning.  In the notes
+% (memoir + beamerarticle), with \raggedbottom, where penalties below 10000 don't
+% count.
+%
+% Build: see the Makefile (LaTeX until the references settle).  The document
+% checks itself: a line "didactic heading test: PASS/FAIL <check>" for each, then
+% "didactic heading test: all checks ran"; the Makefile fails on any FAIL and on
+% a missing last line, and counts the warnings.  Each case starts on a new page,
+% after a rule that leaves room for a few lines (\roomfor).
+%
+%   AA  \section, \subsection, a sentence and a longtable that doesn't fit, with
+%       more room than keepmaxgap: the headings stay together, the table goes to
+%       the next page, and a warning says so.  (Within the limit, so that they
+%       move: test-keep-nogap.)
+%   AB  a frame title, a sentence and such a table.  AC \paragraph*, AD a block.
+%   AE  a two-line heading, a one-line paragraph and a long one, room for all
+%       of them to be moved: three lines after the heading on its page.
+%   AF  the same with more room than keepmaxgap: it stays, with a warning.
+%       With a long paragraph, the same: it isn't moved past the limit.
+%   AS  a listing after a listing: the lead-in of the first doesn't count in
+%       what moving the second leaves empty, so it moves whole.
+%   AG  first paragraphs with a footnote, a list, a float before them and a page
+%       after them: only the first paragraph keeps its lines.
+%   AH  a heading in a \loop: all iterations run, and scratch registers set
+%       after a heading survive the start of its first paragraph.
+%   AI  a heading, a lead-in and a listing, with more room than keepmaxgap when
+%       counted from the heading: the listing breaks and the heading stays.
+%   AJ  a lead-in and two listings in a row.  With room for the first but
+%       for a few points, it breaks: nothing moves, and no page is overfull.
+%       With room for the first, the second moves alone.
+%   AK  a heading, a lead-in and a listing too short to break: it moves, more
+%       room than keepmaxgap stays empty, and a warning says so.
+%   AL  a frame title, then a block or an example: three lines after the
+%       heading of the block.
+%   AM  a heading, a one-line paragraph and a list: the estimate before the
+%       heading moves them.  AN the same for a block.
+%   AO  a paragraph at the foot of a page and at the top of the next: no first
+%       or last line alone.
+%   AP  a table at the top of a page after a heading, with room to spare.
+%   AR  a heading, a listing that takes no paragraph, then a paragraph: the
+%       first paragraph after the listing isn't kept as a first paragraph.
+\documentclass[a4paper]{memoir}
+\usepackage[british]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\usepackage{refcount}
+\usepackage{longtable}
+\usepackage{lipsum}
+\raggedbottom
+
+\makeatletter
+\newcommand\roomfor[1]{%
+  \clearpage
+  \noindent\rule{\linewidth}{0.4pt}\par
+  \vspace*{\dimexpr\textheight-\topskip-#1\baselineskip-\baselineskip\relax}%
+  \par}
+\newcommand\testtable[1]{%
+  \begin{longtable}{ll}
+    \caption{A caption of several lines, several lines, several lines,
+      several lines, several lines, several lines, several lines, several
+      lines, several lines.}\label{#1}\\
+    a & b\\ a & b\\ a & b\\ a & b\\
+  \end{longtable}}
+\newcommand\testresult[2]{%
+  \typeout{didactic heading test: #2 #1}%
+  \item #1: #2}
+% \testcheck{name}{label1}{=|<}{label2}: same page, or the first on an earlier one.
+\newcommand\testcheck[4]{%
+  \ifnum\getpagerefnumber{#2}#3\getpagerefnumber{#4}\relax
+    \testresult{#1}{PASS}%
+  \else
+    \testresult{#1 (#2 on p.\ \getpagerefnumber{#2}, #4 on p.\ \getpagerefnumber{#4})}{FAIL}%
+  \fi}
+% \testclubs{name}{n}: the number of \clubpenalties here, while the check list is
+% collected at the end.
+\newcommand\testlist{}
+\newcommand\testclubs[2]{%
+  \edef\@tempa{\the\clubpenalties 0}%
+  \ifnum\@tempa=#2\relax
+    \g@addto@macro\testlist{\testresult{#1}{PASS}}%
+  \else
+    \xdef\@gtempa{#1, n=\@tempa, not #2}%
+    \expandafter\testfail\expandafter{\@gtempa}%
+  \fi}
+\newcommand\testfail[1]{\g@addto@macro\testlist{\testresult{#1}{FAIL}}}
+% \testtrue{name}{condition}
+\newcommand\testif[2]{%
+  #2%
+    \g@addto@macro\testlist{\testresult{#1}{PASS}}%
+  \else
+    \testfail{#1}%
+  \fi}
+% \testlisting{prefix}{n}: a listing of n lines, each with a label.
+\newwrite\@test@out
+\newcount\@test@i
+\newcommand\testlisting[2]{%
+  \immediate\openout\@test@out=\jobname-#1.txt
+  \@test@i\z@
+  \loop
+    \advance\@test@i\@ne
+    \immediate\write\@test@out{line \the\@test@i\string\label{#1L\the\@test@i}}%
+  \ifnum\@test@i<#2\repeat
+  \immediate\closeout\@test@out
+  \VerbatimInput[commandchars=\\\{\}]{\jobname-#1.txt}}
+\makeatother
+\newcommand\oneline{One line.}
+\newcommand\nl{\hspace*{\fill}\break}
+\newcommand\threelines{First paragraph, with at least three lines of text in it, and on it
+  goes, and on it goes, and on it goes, and on it goes, and on it goes, and on it
+  goes, and on it goes, and on it goes, and on it goes, and on it goes.}
+\newcommand\longpara{Second paragraph, long enough to break across pages. \lipsum[2]}
+
+\begin{document}
+
+\roomfor{5}
+\section*{AA section}\label{aa-a}
+\subsection*{AA subsection}\label{aa-b}
+Table lists the rows.
+\testtable{aa-t}
+Text after AA.
+
+\mode<article>{\roomfor{4}}
+\begin{frame}{AB frame title}
+  \label{ab-a}Table lists the rows.
+  \testtable{ab-t}
+\end{frame}
+
+\roomfor{4}
+\paragraph*{AC paragraph}\label{ac-a}
+Table lists the rows.
+\testtable{ac-t}
+Text after AC.
+
+\roomfor{4}
+\begin{example}[AD]
+  \label{ad-a}Table lists the rows.
+  \testtable{ad-t}
+\end{example}
+
+\roomfor{3}
+\section*{AE, a heading long enough to run over two lines of its large font,
+  indeed it is}\label{ae-a}
+\oneline
+
+First line\label{ae-1}\\
+second line\label{ae-2}\\
+third line\\
+fourth line.
+
+\roomfor{6}
+\section*{AF, a heading long enough to run over two lines of its large font,
+  indeed it is}\label{af-a}
+\oneline
+
+\longpara
+
+\roomfor{6}\label{ag-r}
+\section*{AF, a heading long enough to run over two lines of its large font,
+  indeed it is}\label{ag-a}
+First line of a long paragraph\nl
+second line\nl
+third line\nl
+fourth line\nl
+fifth line.
+
+\roomfor{9}
+Lead\\in\\three.
+\testlisting{u}{1}
+\testlisting{v}{10}
+Text after AS.
+
+\roomfor{30}
+\section*{AG, a footnote}
+\threelines\footnote{A note.}\testclubs{AG first paragraph with a footnote}{3}
+
+Second.\testclubs{AG second paragraph after a footnote}{0}
+
+Third.\testclubs{AG third paragraph after a footnote}{0}
+
+\section*{AG, a list}
+\threelines\testclubs{AG first paragraph before a list}{3}
+\begin{itemize}\item Item.\testclubs{AG item after the first paragraph}{0}\end{itemize}
+Second.\testclubs{AG paragraph after a list}{0}
+
+\section*{AG, a float}
+\begin{figure}[t]\centering FIGURE\caption{A figure.}\end{figure}
+\threelines\testclubs{AG first paragraph after a float}{3}
+
+Second.\testclubs{AG second paragraph after a float}{0}
+
+\section*{AG, a page}
+\threelines\testclubs{AG first paragraph before a page}{3}
+
+\clearpage
+Second.\testclubs{AG second paragraph after a page}{0}
+
+Third.\testclubs{AG third paragraph after a page}{0}
+
+\section*{AG, a list first}
+\begin{itemize}
+\item \threelines\testclubs{AG a list as the first thing}{3}
+\item Second item.\testclubs{AG the second item}{0}
+\end{itemize}
+Text.\testclubs{AG paragraph after that list}{0}
+
+\clearpage
+\newcount\aliter
+\aliter=0
+\loop
+  \advance\aliter by 1
+  \section*{AH \the\aliter}
+  Iteration \the\aliter. \threelines\par
+\ifnum\aliter<3 \repeat
+\makeatletter
+\testif{AH loop ran three times}{\ifnum\aliter=3 }
+\section*{AH scratch}
+\count@=42 \dimen@=42pt \def\reserved@a{kept}%
+\threelines\par
+\testif{AH count@ survives}{\ifnum\count@=42 }
+\testif{AH dimen@ survives}{\ifdim\dimen@=42pt }
+\def\@tempa{kept}%
+\testif{AH reserved@a survives}{\ifx\reserved@a\@tempa}
+\makeatother
+
+\roomfor{7}
+\section*{AI}\label{ai-a}
+Lead-in AI.\label{ai-l}
+\testlisting{i}{10}
+Text after AI.
+
+\roomfor{10}
+Lead-in AJ.\label{aj-l}
+\testlisting{j}{10}
+\testlisting{k}{8}
+Text after AJ.
+
+\roomfor{12}
+Lead-in AJ.\label{aj2-l}
+\testlisting{s}{10}
+\testlisting{t}{8}
+Text after AJ.
+
+\roomfor{7}
+\section*{AK}\label{ak-a}
+Lead-in AK.\label{ak-l}
+\testlisting{m}{4}
+Text after AK.
+
+\mode<article>{\roomfor{4}}
+\begin{frame}{AL frame title}
+  \begin{block}{AL block}
+    First line\label{al-1}\nl
+    second line\label{al-2}\nl
+    third line\label{al-3}\nl
+    fourth line.
+  \end{block}
+\end{frame}
+
+\mode<article>{\roomfor{4}}
+\begin{frame}{AL frame title}
+  \begin{example}[AL]
+    First line\label{am-1}\nl
+    second line\label{am-2}\nl
+    third line\label{am-3}\nl
+    fourth line.
+  \end{example}
+\end{frame}
+
+\roomfor{3.7}
+\section*{AM}\label{an-a}
+\oneline
+\begin{itemize}
+\item\rule{0pt}{5\baselineskip}A tall item.\label{an-i}
+\item Another item.
+\end{itemize}
+
+\roomfor{2.5}
+\begin{example}[AN]\label{ao-a}
+  \oneline
+  \begin{itemize}
+  \item\rule{0pt}{5\baselineskip}A tall item.\label{ao-i}
+  \item Another item.
+  \end{itemize}
+\end{example}
+
+\roomfor{1}
+First line\label{ap-1}\\
+second line\label{ap-2}\\
+third line\\
+fourth line\\
+fifth line.
+
+\roomfor{3}
+First line\\
+second line\\
+third line\\
+fourth line\label{aq-4}\\
+fifth line.\label{aq-5}
+
+\clearpage
+\section*{AP}\label{ar-a}
+Table lists the rows.
+\testtable{ar-t}
+
+\clearpage
+\section*{AR}
+\testlisting{r}{2}
+\testclubs{AR listing took the state}{0}
+Paragraph after the listing.\testclubs{AR paragraph after a listing}{0}
+
+\clearpage
+\section*{Checks}
+\begin{itemize}
+\testcheck{AA outer heading with the inner one}{aa-a}{=}{aa-b}
+\testcheck{AA table on the next page}{aa-b}{<}{aa-t}
+\testcheck{AB frame title with the table}{ab-a}{=}{ab-t}
+\testcheck{AC paragraph with the table}{ac-a}{=}{ac-t}
+\testcheck{AD block with the table}{ad-a}{=}{ad-t}
+\testcheck{AE heading with its second line}{ae-a}{=}{ae-1}
+\testcheck{AE heading with its third line}{ae-a}{=}{ae-2}
+\testcheck{AF long paragraph: heading stays}{ag-r}{=}{ag-a}
+\testcheck{AS second listing whole}{vL1}{=}{vL10}
+\testcheck{AI heading with the listing's first line}{ai-a}{=}{iL1}
+\testcheck{AI lead-in with the first three lines}{ai-l}{=}{iL3}
+\testcheck{AI listing breaks}{iL1}{<}{iL10}
+\testcheck{AJ lead-in with the first three lines}{aj-l}{=}{jL3}
+\testcheck{AJ first listing breaks}{jL3}{<}{jL10}
+\testcheck{AJ first listing with its lead-in, with room}{aj2-l}{=}{sL10}
+\testcheck{AJ second listing on the next page}{sL10}{<}{tL1}
+\testcheck{AJ second listing whole}{tL1}{=}{tL8}
+\testcheck{AK heading with the listing}{ak-a}{=}{mL1}
+\testcheck{AL block's three lines (block)}{al-1}{=}{al-3}
+\testcheck{AL block's three lines (example)}{am-1}{=}{am-3}
+\testcheck{AM heading with the list}{an-a}{=}{an-i}
+\testcheck{AN block with the list}{ao-a}{=}{ao-i}
+\testcheck{AO first line not alone}{ap-1}{=}{ap-2}
+\testcheck{AO last line not alone}{aq-4}{=}{aq-5}
+\testcheck{AP heading with the table}{ar-a}{=}{ar-t}
+\testlist
+\end{itemize}
+\typeout{didactic heading test: all checks ran}
+\end{document}
