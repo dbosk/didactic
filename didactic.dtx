@@ -654,9 +654,10 @@
 % leaving more than \meta{lines} lines empty doesn't (in the next run), and 
 % its notes go to a later page, as with |carry|; the other notes called 
 % out on that page are capped with it.
-% A later page need not be the next one, and it sets the notes that its own 
-% text calls out first, so a capped note can come after a note that follows 
-% it in the text.
+% A later page need not be the next one.
+% There the carried notes come in their order, ahead of the notes called out 
+% further down that page but after one called out at its very top, so a capped 
+% note can come after a note that follows it in the text.
 % So \textsf{marginfix} warns about each such note, naming where it is called 
 % out and the two pages.
 % The cap is tried again in each run, so a new value counts in the next runs, 
