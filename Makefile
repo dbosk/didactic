@@ -116,7 +116,8 @@ test-keep.pdf: test-keep.tex didactic.sty
 # keepmaxgap's; one run per case, options:lines (0 for no limit).  Needs
 # a marginfix with \marginnoteyieldlimit (else SKIP, which fails).
 NOTEYIELD_CASES=:5 keepmaxgap=8:8 noteyieldmaxgap=3:3 \
-	keepmaxgap=8,noteyieldmaxgap=2:2 noteyieldmaxgap=0:0
+	keepmaxgap=8,noteyieldmaxgap=2:2 noteyieldmaxgap=0:0 \
+	:own noteyieldmaxgap=3:own
 .PHONY: test-noteyield
 test-noteyield: test-noteyield.tex didactic.sty
 	for c in ${NOTEYIELD_CASES}; do \

@@ -1,26 +1,34 @@
 % Test of the noteyieldmaxgap option (didactic): it sets marginfix's
 % \marginnoteyieldlimit to that many lines of the text, its default is
-% keepmaxgap, and 0 leaves marginfix's limit alone (\maxdimen).
+% keepmaxgap, 0 leaves marginfix's limit alone (\maxdimen), and a limit of
+% the document's own in the preamble wins.
 %
 % Build: see the Makefile, which runs it once per case with
 %   \def\testoptions{<options of didactic>}\def\testlines{<lines>}
-% (lines 0: expect \maxdimen).  The log has a line
+% (lines 0: expect \maxdimen; own: set a limit of 2cm in the preamble and
+% expect it).  The log has a line
 % "didactic noteyield test: <options> PASS/FAIL", and the Makefile fails on
-% any FAIL.  With a marginfix that lacks \marginnoteyieldlimit the test
-% says SKIP.
+% any FAIL and on no such line.  With a marginfix that lacks
+% \marginnoteyieldlimit the test says SKIP, which fails too.
 \documentclass[a4paper]{memoir}
 \ifdefined\testoptions\else\def\testoptions{}\def\testlines{5}\fi
 \expandafter\PassOptionsToPackage\expandafter{\testoptions}{didactic}
 \usepackage{didactic}
 \usepackage[noamsthm,notheorems]{beamerarticle}
+\makeatletter
+\def\@noteyieldtest@own{own}
+\ifx\testlines\@noteyieldtest@own\marginnoteyieldlimit{2cm}\fi
+\makeatother
 \begin{document}
 \makeatletter
 \ifdefined\marginnoteyieldlimit
-  \ifnum\testlines=\z@
+  \ifx\testlines\@noteyieldtest@own
+    \dimen@2cm\relax
+  \else\ifnum\testlines=\z@
     \dimen@\maxdimen
   \else
     \dimen@\testlines\baselineskip
-  \fi
+  \fi\fi
   \ifdim\mfx@yieldlimit=\dimen@
     \def\@noteyieldtest@result{PASS}%
   \else

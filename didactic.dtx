@@ -654,6 +654,8 @@
 % bound as for keeping a listing together; 0 turns the cap off.
 % It needs \textsf{marginfix} with |\marginnoteyieldlimit|; with an older 
 % one it does nothing.
+% A |\marginnoteyieldlimit| of your own in the preamble wins over the option 
+% (a limit of |\maxdimen| can't be told from none: for no limit, use 0).
 %
 % Outside |beamer|, \textsf{didactic} writes where the margin column is to 
 % the log, once, as |didactic-margin: odd=431.65 even=431.65 width=156.7|: 
@@ -3005,8 +3007,9 @@
 % The limit of |noteyieldmaxgap| is a number of lines, so we set it when 
 % the document starts and |\baselineskip| is that of the text.
 % With 0 we leave \textsf{marginfix}'s limit as it is: none, or your own.
-% So your own |\marginnoteyieldlimit| needs |noteyieldmaxgap=0|, or must 
-% come after |\begin{document}|.
+% We also leave it if it isn't \cs{maxdimen} by then, that is if you have set 
+% your own in the preamble, before or after |\usepackage{didactic}|: yours 
+% wins.
 %    \begin{macrocode}
 \ifnum\@didactic@noteyieldmaxgap<\z@
   \@didactic@noteyieldmaxgap=\@didactic@keepmaxgap
@@ -3014,7 +3017,9 @@
 \AtBeginDocument{%
   \ifdefined\marginnoteyieldlimit
     \ifnum\@didactic@noteyieldmaxgap>\z@
-      \marginnoteyieldlimit{\@didactic@noteyieldmaxgap\baselineskip}%
+      \ifdim\mfx@yieldlimit=\maxdimen
+        \marginnoteyieldlimit{\@didactic@noteyieldmaxgap\baselineskip}%
+      \fi
     \fi
   \fi}
 %    \end{macrocode}
