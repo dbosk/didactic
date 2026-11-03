@@ -243,4 +243,15 @@ clean:
 	${RM} test-keep.pdf test-keep.aux test-keep.log test-keep.unq
 	${RM} test-keep-?.txt test-keep.pytxcode
 	${RM} -R _minted-test-keep
+	${RM} test-noteyield.pdf test-noteyield.aux test-noteyield.log
+	${RM} test-noteyield.unq test-noteyield.pytxcode
+	${RM} test-noteyield-cap-*.pdf test-noteyield-cap-*.aux
+	${RM} test-noteyield-cap-*.log test-noteyield-cap-*.aux.old
+	${RM} test-noteyield-cap-*.unq test-noteyield-cap-*.pytxcode
+	${RM} test-biburl.pdf test-biburl.aux test-biburl.log test-biburl.unq
+	${RM} test-biburl.bcf test-biburl.run.xml test-biburl.pytxcode
+	${RM} test-biburl-bbl.pdf test-biburl-bbl.aux test-biburl-bbl.log
+	${RM} test-biburl-bbl.bbl test-biburl-bbl.bcf test-biburl-bbl.blg
+	${RM} test-biburl-bbl.run.xml test-biburl-bbl.unq
+	${RM} test-biburl-bbl.pytxcode
 	latexmk -C test.tex
