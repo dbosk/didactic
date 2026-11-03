@@ -176,6 +176,7 @@ test-biburl: test-biburl.tex test-biburl-bbl.tex test-biburl.bib didactic.sty
 	  >/dev/null
 	biber --quiet test-biburl-bbl
 	for c in :none biburlpenalty=0:some bibemergencystretch=0pt:some; do \
+	  ${RM} test-biburl-bbl.pdf; \
 	  for i in 1 2; do \
 	    ${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode \
 	      "\\def\\testoptions{$${c%:*}}\\input{test-biburl-bbl}" >/dev/null; \

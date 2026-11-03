@@ -28,6 +28,7 @@ settle() { # <job> <options>
 count() { grep -c "$1" "$2.log"; }
 spills() { grep '^marginfix-\(spill\|yield\)' "$1.log"; }
 rm -f "$job"-default.aux "$job"-off.aux "$job"-warm.aux
+rm -f "$job"-default.pdf "$job"-off.pdf "$job"-warm.pdf
 
 settle "$job-default" ""
 capped=$(count ' capped$' "$job-default")
