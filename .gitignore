@@ -18,6 +18,9 @@ test-keep.unq
 test-keep-*.txt
 test-noteyield.pdf
 test-noteyield.unq
+test-noteyield-cap-*.pdf
+test-noteyield-cap-*.unq
+test-noteyield-cap-*.aux.old
 didactic.tar.gz
 didactic.unq
 didactic.hd

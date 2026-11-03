@@ -10,7 +10,7 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-sidecap.pdf test-sidecap-off.pdf \
 	test-marginfloat.pdf test-marginfloat-slides.pdf \
 	test-frametitle.pdf test-frametitle-slides.pdf \
-	test-keep.pdf test-noteyield test-biburl
+	test-keep.pdf test-noteyield test-noteyield-cap test-biburl
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -144,6 +144,12 @@ test-noteyield: test-noteyield.tex didactic.sty
 	      test-noteyield.log || { echo "warning: $$c"; exit 1; };; \
 	  esac; \
 	done
+
+# The cap in the layout, under pdflatex whatever PDFLATEX is: under xelatex
+# the page can't end early.  Fails, saying so, with a marginfix too old for it.
+.PHONY: test-noteyield-cap
+test-noteyield-cap: test-noteyield-cap.tex test-noteyield-cap.sh didactic.sty
+	./test-noteyield-cap.sh
 
 # biburlpenalty and bibemergencystretch: biblatex's URL break penalties and
 # the bibliography's \emergencystretch, with biblatex loaded before didactic,
