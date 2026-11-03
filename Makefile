@@ -24,6 +24,7 @@ didactic.pdf: ${SRC} didactic.sty
 	${PYTHONTEX} didactic
 	${PDFLATEX} ${LATEXFLAGS} $<
 	makeindex -s gglo.ist -o didactic.gls didactic.glo
+	grep -q noteyieldmaxgap didactic.gls
 	${PDFLATEX} ${LATEXFLAGS} $<
 
 # docstrip asks before overwriting, so remove the old file first.
@@ -122,7 +123,7 @@ test-noteyield: test-noteyield.tex didactic.sty
 	  ${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode \
 	    "\\def\\testoptions{$${c%:*}}\\def\\testlines{$${c#*:}}\\input{$<}" \
 	    >/dev/null; \
-	  grep 'didactic noteyield test:' test-noteyield.log; \
+	  grep 'didactic noteyield test:' test-noteyield.log || exit 1; \
 	  ! grep -q 'didactic noteyield test:.*\(FAIL\|SKIP\)' \
 	    test-noteyield.log || exit 1; \
 	done
