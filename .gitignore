@@ -285,3 +285,15 @@ test-frametitle.pdf
 test-frametitle.unq
 test-frametitle-slides.pdf
 test-frametitle-slides.unq
+test-marginfloat-cases.pdf
+test-marginfloat-cases.unq
+test-marginfloat-order.pdf
+test-marginfloat-order.unq
+test-marginfloat-inorder.pdf
+test-marginfloat-inorder.unq
+test-marginfloat-hidden.pdf
+test-marginfloat-hidden.unq
+test-frametitle-*.pdf
+test-frametitle-*.unq
+test-marginfloat-*.pdf
+test-marginfloat-*.unq

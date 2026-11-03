@@ -1,0 +1,41 @@
+% Test of margin floats (didactic) in the notes: the cases test-marginfloat.tex
+% doesn't show, one per paragraph.  The text is set ragged, so a space between
+% words is the same width all over and test-check.py can compare them.
+%
+% Build: see the Makefile (twice, for marginfix's anchors).
+%
+% Expected in the resulting PDF:
+%   1  OFFSETFIG and OFFSETTAB, the first lines of a margin figure and a margin
+%      table, are level with the first line of the paragraph after them
+%      (PARAFIG, PARATAB), not raised.
+%   2  With the optional argument [-1.2ex], OFFSETARG is above the first line
+%      of the paragraph (PARAARG).
+%   3  GAPA GAPB: one space, with a float between them and spaces on both
+%      sides.  The \label before them leaves no space to find.
+%   4  NOSPA NOSPB: one space, with the float directly after NOSPA.  The \label
+%      before them does leave a space, which must not count as the one before
+%      the float.
+%   5  BEFA BEFB: one space, the one before the float.
+%   6  JOINAJOINB: one word, with no space on either side of the float.
+\documentclass[a4paper]{memoir}
+\usepackage{lipsum}
+\usepackage{didactic}
+\begin{document}
+\raggedright
+\begin{marginfigure}OFFSETFIG\\\rule{2cm}{2mm}\end{marginfigure}
+PARAFIG \lipsum[1][1-5]
+
+\begin{margintable}OFFSETTAB\\\rule{2cm}{2mm}\end{margintable}
+PARATAB \lipsum[2][1-5]
+
+\begin{marginfigure}[-1.2ex]OFFSETARG\\\rule{2cm}{2mm}\end{marginfigure}
+PARAARG \lipsum[3][1-5]
+
+There\label{case:nostale} GAPA \begin{marginfigure}\rule{2cm}{2mm}\end{marginfigure} GAPB. \lipsum[4][1-5]
+
+There \label{case:stale}NOSPA\begin{marginfigure}\rule{2cm}{2mm}\end{marginfigure} NOSPB. \lipsum[5][1-5]
+
+BEFA \begin{marginfigure}\rule{2cm}{2mm}\end{marginfigure}BEFB. \lipsum[6][1-5]
+
+JOINA\begin{marginfigure}\rule{2cm}{2mm}\end{marginfigure}JOINB.
+\end{document}
