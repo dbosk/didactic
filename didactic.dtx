@@ -167,10 +167,11 @@
 %   and first sentence, moves whole with its listing.
 % }
 % \changes{v2.15}{2026/10/22}{%
-%   Adds the |noteoverflow| option, passed on to \textsf{marginfix}'s 
-%   \texttt{\textbackslash marginnoteoverflow} (version 1.6 and later): with |break|, the 
-%   default, a page ends before the line of a margin note that doesn't 
-%   fit on it, instead of the note moving to the next page.
+%   Adds the \texttt{noteoverflow} option, passed on to \textsf{marginfix}'s 
+%   \texttt{\textbackslash marginnoteoverflow} (version 1.6 and later): with 
+%   \texttt{break}, the default unless \texttt{draft} is given, a page ends 
+%   before the line of a margin note that doesn't fit on it, instead of the 
+%   note moving to the next page.
 % }
 % \changes{v2.14}{2026/10/22}{%
 %   Keeps listings together across pages outside \texttt{beamer}: a listing 
@@ -614,7 +615,14 @@
 % A page that ends that early is a little shorter, but its margin is full; 
 % if its text fills less than half of it, \textsf{marginfix} warns, naming 
 % the page.
-% With |noteoverflow=carry| the notes move to the next page as before.
+% With |noteoverflow=carry| the notes move to the next page as before, which 
+% is the default with the option |draft|.
+%
+% This needs \textsf{marginfix} 1.6 or later.
+% With an older one the option, and |\marginnoteoverflow| below, do nothing and 
+% say so in a warning.
+% It also needs pdf\LaTeX\ or Lua\LaTeX: with Xe\LaTeX\ the notes are carried, and 
+% a warning names the pages of each.
 % The mode is read where a note is called out, and obeys groups, so 
 % |{\marginnoteoverflow{carry}| ...|}| lets the notes of one passage move to 
 % the next page, while the rest of the document keeps |break|.
@@ -1296,8 +1304,12 @@
 % margin must stay with its mark, and when the margin of a page can't hold 
 % the notes of its text even after |notepriority| has moved the commentary, 
 % the text has to give way.
+% That takes several runs, each moving text that the next run may have to move 
+% again, so with |draft| the default is |carry|, as with the other 
+% options that take runs; see the option |draft|, below, for where that is 
+% decided.
 %    \begin{macrocode}
-\newcommand\@didactic@noteoverflow{break}
+\newcommand\@didactic@noteoverflow{}
 \DeclareOptionX{noteoverflow}{%
   \renewcommand\@didactic@noteoverflow{#1}}
 %    \end{macrocode}
@@ -1383,6 +1395,12 @@
   \ifdefstring{\@didactic@draft}{draft}
     {\renewcommand\@didactic@fnreusemode{off}}
     {\renewcommand\@didactic@fnreusemode{compact}}}{}
+\newif\if@didactic@noteoverflowgiven
+\ifdefempty{\@didactic@noteoverflow}{%
+  \ifdefstring{\@didactic@draft}{draft}
+    {\renewcommand\@didactic@noteoverflow{carry}}
+    {\renewcommand\@didactic@noteoverflow{break}}%
+}{\@didactic@noteoverflowgiventrue}
 \newif\if@didactic@fnreuseoff
 \newcount\@didactic@fnthreshold
 \IfStrEqCase{\@didactic@fnreusemode}{%
@@ -3231,6 +3249,55 @@
   \ifdefined\marginnoteoverflow
     \expandafter\marginnoteoverflow\expandafter
       {\@didactic@noteoverflow}%
+  \else
+    \if@didactic@noteoverflowgiven
+      \PackageWarningNoLine{didactic}{%
+        The option noteoverflow needs marginfix 1.6 or later;\MessageBreak
+        it has no effect with this one}%
+    \fi
+    \@ifclassloaded{beamer}
+      {\let\marginnoteoverflow\@gobble}
+      {\let\marginnoteoverflow\@didactic@oldmarginfix}%
+  \fi}
+\def\@didactic@oldmarginfix#1{%
+  \PackageWarning{didactic}{%
+    \string\marginnoteoverflow\space needs marginfix 1.6 or
+    later;\MessageBreak
+    it has no effect with this one}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\MFX@fit@spilled}
+% |noteoverflow=break| needs |\vadjust pre|, which Xe\TeX\ doesn't have.
+% There \textsf{marginfix} carries the notes that don't fit to a later page, and 
+% says so for a note that hits the limit, but otherwise only in the log.
+% We say it for every such note: where it was called out and where it ended up.
+% The hook is \textsf{marginfix}'s macro for a note that is carried, from 
+% version~1.6; a note in the mode |carry| was meant to be.
+% If it isn't there, we say once that the mode can't work.
+%    \begin{macrocode}
+\def\@didactic@spillwarning#1{%
+  \expandafter\ifx\csname mfx@bo@#1\endcsname\MFX@break
+    \PackageWarningNoLine{didactic}{%
+      A margin note from page \csname mfx@sp@#1\endcsname\space is
+      on page \the\c@page:\MessageBreak
+      noteoverflow=break needs pdfLaTeX or LuaLaTeX}%
+  \fi
+  \@didactic@MFX@fit@spilled{#1}}
+\AtBeginDocument{%
+  \ifdefined\MFX@break
+    \ifdefined\pdftexversion\else\ifdefined\directlua\else
+      \ifdefstring{\@didactic@noteoverflow}{break}{%
+        \ifdefined\MFX@fit@spilled
+          \let\@didactic@MFX@fit@spilled\MFX@fit@spilled
+          \let\MFX@fit@spilled\@didactic@spillwarning
+        \else
+          \PackageWarningNoLine{didactic}{%
+            noteoverflow=break needs pdfLaTeX or LuaLaTeX;\MessageBreak
+            with this engine margin notes may move to a later page}%
+        \fi
+      }{}%
+    \fi\fi
   \fi}
 %    \end{macrocode}
 % \end{macro}

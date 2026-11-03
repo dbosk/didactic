@@ -9,6 +9,9 @@ TEST_FRAMETITLE_CASES=	test-frametitle-overlay test-frametitle-floats \
 			test-frametitle-template \
 			test-frametitle-template-after \
 			test-frametitle-noarticle test-frametitle-article
+TEST_NOTEOVERFLOW=	test-noteoverflow test-noteoverflow-carry \
+			test-noteoverflow-draft test-noteoverflow-draftbreak \
+			test-noteoverflow-xe test-noteoverflow-old
 # The order of float numbers, from the pages the floats end up on.
 TEST_FLOATORDER=	test-marginfloat-samepar test-marginfloat-moved \
 			test-marginfloat-chapters test-marginfloat-kinds \
@@ -23,7 +26,7 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-marginfloat.pdf test-marginfloat-slides.pdf \
 	test-frametitle.pdf test-frametitle-slides.pdf \
 	test-keep.pdf test-keep-tall.pdf test-keep-tall100.pdf \
-	test-keep-chain.pdf test-oldkernel.pdf \
+	test-keep-chain.pdf ${TEST_NOTEOVERFLOW:=.pdf} test-oldkernel.pdf \
 	test-margin-log.pdf test-margin-log-article.pdf \
 	${TEST_FRAMETITLE_CASES:=.pdf} \
 	test-marginfloat-cases.pdf test-marginfloat-order.pdf \
@@ -205,6 +208,40 @@ test-keep-chain.pdf: test-keep-chain.tex didactic.sty
 	test "${call count_warn,doesn.t fit}" -eq 2
 	test "${call count_word,chained}" -eq 40
 
+# noteoverflow.  break needs pdfTeX or LuaTeX, so these name the engine, except
+# test-noteoverflow-xe, which is about the engine that can't.
+NOTEOVERFLOW_SRC=	test-noteoverflow-contents.tex didactic.sty
+test-noteoverflow.pdf test-noteoverflow-carry.pdf test-noteoverflow-draft.pdf \
+		test-noteoverflow-draftbreak.pdf: PDFLATEX=pdflatex
+define settle_many
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do \
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $< || exit 1; \
+	grep -q 'Rerun to get' $(basename $<).log || exit 0; \
+done; echo "$<: references did not settle"; exit 1
+endef
+count_spill=$$(grep -c 'marginfix-spill.*$(1)' $(basename $@).log)
+test-noteoverflow.pdf test-noteoverflow-draftbreak.pdf: %.pdf: %.tex ${NOTEOVERFLOW_SRC}
+	@${settle_many}
+	! grep '^!' $*.log
+	test "$$(grep -c 'marginfix-spill' $*.log)" -eq 0
+	test "$$(grep -c 'mfx@yield' $*.aux)" -gt 0
+test-noteoverflow-carry.pdf test-noteoverflow-draft.pdf: %.pdf: %.tex ${NOTEOVERFLOW_SRC}
+	@${settle_many}
+	! grep '^!' $*.log
+	test "${call count_spill,intended}" -gt 0
+	test "${call count_spill,unresolved}" -eq 0
+	test "$$(grep -c 'mfx@yield' $*.aux)" -eq 0
+test-noteoverflow-xe.pdf: %.pdf: %.tex ${NOTEOVERFLOW_SRC}
+	@${settle_many}
+	! grep '^!' $*.log
+	test "${call count_spill,unresolved}" -gt 0
+	test "${call count_warn,A margin note from page}" -eq "${call count_spill,unresolved}"
+test-noteoverflow-old.pdf: test-noteoverflow-old.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	! grep '^!' test-noteoverflow-old.log
+	test "${call count_warn,option noteoverflow needs marginfix}" -eq 1
+	test "${call count_warn,marginnoteoverflow needs marginfix}" -eq 1
+
 # the place of the margin column in the log against where a note is printed.
 test-margin-log.pdf test-margin-log-article.pdf: %.pdf: %.tex test-margin-log.tex \
 		test-margin-log.sh didactic.sty
@@ -280,6 +317,9 @@ clean:
 	${RM} test-keep-tall100-?.txt
 	${RM} test-keep-chain.pdf test-keep-chain.aux test-keep-chain.log
 	${RM} test-keep-chain.unq test-keep-chain.pytxcode test-keep-chain-?.txt
+	for f in ${TEST_NOTEOVERFLOW}; do \
+		${RM} $$f.pdf $$f.aux $$f.log $$f.unq $$f.pytxcode $$f.out $$f.toc; \
+	done
 	${RM} test-oldkernel.pdf test-oldkernel.aux test-oldkernel.log
 	${RM} test-oldkernel.unq test-oldkernel.pytxcode
 	${RM} test-margin-log.pdf test-margin-log.aux test-margin-log.log
