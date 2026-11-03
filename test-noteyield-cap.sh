@@ -11,6 +11,7 @@
 # Needs marginfix with \marginnoteyieldlimit, and with the warning and the
 # records that don't outlive their reason: an older one fails, saying so.
 job=test-noteyield-cap
+mfx=https://github.com/dbosk/marginfix
 fail() { echo "didactic noteyield cap test: FAIL: $*"; exit 1; }
 settle() { # <job> <options>
   for i in 1 2 3 4 5 6 7 8; do
@@ -32,11 +33,11 @@ rm -f "$job"-default.pdf "$job"-off.pdf "$job"-warm.pdf
 
 settle "$job-default" ""
 capped=$(count ' capped$' "$job-default")
-warned=$(count 'keeps page [0-9]* from ending early' "$job-default")
+warned=$(count 'marginnoteyieldlimit keeps page [0-9]*$' "$job-default")
 [ "$capped" -gt 0 ] || fail "default: nothing is capped; is marginfix too old" \
   "to have \\marginnoteyieldlimit, or does the document no longer test the cap?"
 [ "$warned" -gt 0 ] || fail "default: $capped notes capped, no warning:" \
-  "marginfix is too old, this needs the fixes of its branch fix-68-yieldcap"
+  "marginfix is too old, this needs its integration branch, $mfx"
 [ "$warned" = "$capped" ] || fail "default: $capped capped, $warned warnings"
 [ "$(count '^marginfix-yield: page=[0-9]* before' "$job-default")" = 0 ] \
   || fail "default: a page still ends early"
@@ -56,7 +57,7 @@ cp "$job-default.aux" "$job-warm.aux"
 settle "$job-warm" "noteyieldmaxgap=0"
 [ "$(count ' capped$' "$job-warm")" = 0 ] || fail "warm: noteyieldmaxgap=0" \
   "leaves notes capped from the old .aux file: marginfix is too old, this" \
-  "needs the fixes of its branch fix-68-yieldcap"
+  "needs its integration branch, $mfx"
 [ "$(spills "$job-warm")" = "$(spills "$job-off")" ] \
   || fail "warm: not as from no .aux file"
 diff <(pdftotext -layout "$job-warm.pdf" -) <(pdftotext -layout "$job-off.pdf" -) \
