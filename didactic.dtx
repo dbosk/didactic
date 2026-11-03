@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}[2021/06/01]
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/10/22 v2.15 didactic]
+  [2026/10/23 v2.15 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -148,22 +148,25 @@
 %   regardless of load order.
 % }
 % \changes{v2.15}{2026/10/23}{%
-%   In the article mode of |beamer|, the titles of |block|, |alertblock| and 
-%   |exampleblock| are run-in headings too, like the frame titles.
+%   In the article mode of \texttt{beamer}, the titles of \texttt{block}, 
+%   \texttt{alertblock} and \texttt{exampleblock} are run-in headings too, like 
+%   the frame titles.
 % }
 % \changes{v2.15}{2026/10/22}{%
-%   Adds |keepmaxgap|: a listing kept together moves to the next page only 
-%   if that leaves at most 5 empty lines at its foot, and otherwise breaks.
-%   Adds |keepafterheading|: at least 3 lines follow a heading, of a section 
-%   or a block, on its page, or the heading moves to the next page.
+%   Adds \texttt{keepmaxgap}: a listing kept together moves to the next page 
+%   only if that leaves at most 5 empty lines at its foot, counting a heading 
+%   that moves along, and otherwise breaks.
+%   Adds \texttt{keepafterheading}: at least 3 lines follow a heading, of a 
+%   section or a block, on its page, or the heading moves to the next page, 
+%   within that limit; if it can't, a warning names the heading.
 % }
 % \changes{v2.15}{2026/10/22}{%
-%   Lowers the default of |keeplines| to 10 lines: long programs may break, 
-%   and a page is left less empty for a listing.
+%   Lowers the default of \texttt{keeplines} to 10 lines: long programs may 
+%   break, and a page is left less empty for a listing.
 % }
 % \changes{v2.15}{2026/10/22}{%
-%   With |keepleadin|, sets the club and widow penalties to 10\,000 in the 
-%   notes, so that a lead-in of a few lines, such as an exercise's heading 
+%   With \texttt{keepleadin}, sets the club and widow penalties to 10\,000 in 
+%   the notes, so that a lead-in of a few lines, such as an exercise's heading 
 %   and first sentence, moves whole with its listing.
 % }
 % \changes{v2.15}{2026/10/22}{%
@@ -499,7 +502,7 @@
 % The titles of |beamer|'s blocks (|block|, |alertblock|, |exampleblock|) 
 % are run-in headings in the notes in the same way, in the fonts that 
 % |beamer| gives them there: bold, bold italic and italic.
-% The option |noarticle| keeps |beamerarticle|'s frame titles.
+% The option |noarticle| keeps |beamerarticle|'s frame and block titles.
 % A template |frametitle| of your own in the preamble wins too, wherever it
 % stands, before or after the packages.
 % If it's |beamerarticle|'s default you want, use |noarticle|: writing
@@ -1059,7 +1062,9 @@
 % \DescribeOpt{keepleadin}
 % \begin{description}
 % \item[keeplines] A listing of at most this many lines doesn't break; it
-%   moves to the next page as a whole.
+%   moves to the next page as a whole, within the limit of |keepmaxgap|: if 
+%   moving it would leave more empty lines than that, it breaks after all, by 
+%   the rule of |keepends|.
 %   Unless it wouldn't fit on a page, with a few lines to spare for what is
 %   kept with it: lines can wrap (|breaklines|), so that is a matter of its
 %   height.
@@ -1353,9 +1358,11 @@
 % \begin{option}{keepleadin}
 % The options |keeplines|, |keepends| and |keepleadin| say how listings
 % break across pages, see \cref{KeepListings}.
-% A listing of at most |keeplines| lines doesn't break, a longer one leaves
-% at least |keepends| lines on each side of a break, and with |keepleadin|
-% no page break comes between a listing and the text that leads into it.
+% A listing of at most |keeplines| lines doesn't break, unless moving it would 
+% leave more empty lines than |keepmaxgap|; a longer one, or one that breaks 
+% for that reason, leaves at least |keepends| lines on each side of a break, 
+% and with |keepleadin| no page break comes between a listing and the text that 
+% leads into it.
 %    \begin{macrocode}
 \newcount\@didactic@keeplines
 \@didactic@keeplines=10
@@ -6345,6 +6352,11 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
         \fi\fi
       \fi
     \fi
+    \if@didactic@keep@ltowed
+      \@didactic@keep@headpage
+      \global\@didactic@keep@headstate\z@
+      \global\let\@didactic@keep@owedkey\@empty
+    \fi
   \fi}
 \def\@didactic@keep@tablepage{%
   \if@didactic@keep@ltowed
@@ -6354,11 +6366,6 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
         \string\@didactic@keep@tp{\@didactic@keep@headkey}%
           {\@didactic@keep@cpage}{\number\@didactic@keep@headroom}%
           {\if@didactic@keep@overlimit 1\else 0\fi}}%
-    \fi
-    \if@didactic@keep@ltowed
-      \@didactic@keep@headpage
-      \global\@didactic@keep@headstate\z@
-      \global\let\@didactic@keep@owedkey\@empty
     \fi
   \fi}
 %    \end{macrocode}
