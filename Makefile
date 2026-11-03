@@ -151,7 +151,7 @@ test-noteyield: test-noteyield.tex didactic.sty
 # the preamble:expected penalty:stretch set in the preamble:expected stretch.
 BIBURL_CASES=before:::9000::3em after:::9000::3em \
 	before:biburlpenalty=500::500::3em after:biburlpenalty=0::0::3em \
-	before::100:100::3em after::100:100::3em \
+	before::100:100::3em after::100:100::3em between::100:100::3em \
 	before:bibemergencystretch=1em::9000::1em \
 	after:bibemergencystretch=0pt::9000::0pt \
 	before:::9000:2em:2em after:::9000:2em:2em none:::0::

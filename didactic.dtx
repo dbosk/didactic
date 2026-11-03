@@ -423,8 +423,12 @@
 % only when the line can't break anywhere else.
 % We set \textsf{biblatex}'s counters |biburlnumpenalty|, |biburlucpenalty| 
 % and |biburllcpenalty| to it right after \textsf{biblatex} is loaded, 
-% whether that is before \textsf{didactic} or after, so your own 
-% |\setcounter| of them in the preamble wins.
+% whether that is before \textsf{didactic} or after, leaving any that isn't 0 
+% by then, so your own |\setcounter| of them in the preamble wins, wherever it 
+% is.
+% The exception is a 0 of your own between \textsf{biblatex} and 
+% \textsf{didactic}, which can't be told from \textsf{biblatex}'s default: for 
+% that, use |biburlpenalty=0|, or set it after \textsf{didactic}.
 % |biburlpenalty=0| leaves the counters as they are, which in 
 % \textsf{biblatex} means that a URL doesn't break after letters or digits.
 %
@@ -2186,7 +2190,9 @@
 % \begin{macro}{\@didactic@bibbreaks}
 % A long URL in the bibliography should break rather than run into the 
 % margin, so we set \textsf{biblatex}'s penalties for breaking after 
-% digits, upper-case and lower-case letters to |biburlpenalty|.
+% digits, upper-case and lower-case letters to |biburlpenalty|, unless they 
+% have a value already, which is the document's own if \textsf{biblatex} came 
+% first.
 % \textsf{biblatex} reads them when it typesets a URL, so they need only 
 % be set before the document's bibliography.
 % Likewise a line of long names should be set loose rather than run into 
@@ -2201,9 +2207,15 @@
 %    \begin{macrocode}
 \newcommand\@didactic@bibbreaks{%
   \ifnum\@didactic@biburlpenalty>\z@
-    \setcounter{biburlnumpenalty}{\@didactic@biburlpenalty}%
-    \setcounter{biburlucpenalty}{\@didactic@biburlpenalty}%
-    \setcounter{biburllcpenalty}{\@didactic@biburlpenalty}%
+    \ifnum\value{biburlnumpenalty}=\z@
+      \setcounter{biburlnumpenalty}{\@didactic@biburlpenalty}%
+    \fi
+    \ifnum\value{biburlucpenalty}=\z@
+      \setcounter{biburlucpenalty}{\@didactic@biburlpenalty}%
+    \fi
+    \ifnum\value{biburllcpenalty}=\z@
+      \setcounter{biburllcpenalty}{\@didactic@biburlpenalty}%
+    \fi
   \fi
   \ifdim\@didactic@bibemergencystretch>\z@
     \AtBeginBibliography{%

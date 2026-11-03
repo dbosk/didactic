@@ -2,14 +2,16 @@
 % biburlpenalty sets biblatex's biburlnumpenalty, biburlucpenalty and
 % biburllcpenalty, by default to 9000, whether biblatex is loaded before
 % didactic or after; 0 leaves them at biblatex's 0; and a \setcounter in
-% the preamble after both packages wins.  bibemergencystretch is the
+% the preamble wins, after both packages or between them.  bibemergencystretch is the
 % \emergencystretch in the bibliography, 3em by default, 0pt for none, and
 % an \emergencystretch of the document's own wins.  Without biblatex,
 % didactic must load as before.
 %
 % Build: see the Makefile, which runs it once per case with
-%   \def\testorder{before|after|none}\def\testoptions{<options of didactic>}
-%   \def\testset{<value to \setcounter after both, or empty>}
+%   \def\testorder{before|between|after|none}
+%   \def\testoptions{<options of didactic>}
+%   \def\testset{<value to \setcounter after both, or, with between, after
+%     biblatex and before didactic, or empty>}
 %   \def\testexpect{<expected value of all three counters>}
 %   \def\testsetstretch{<\emergencystretch set in the preamble, or empty>}
 %   \def\testexpectstretch{<expected \emergencystretch in the bibliography>}
@@ -18,21 +20,27 @@
 \documentclass[a4paper]{memoir}
 \makeatletter
 \def\@biburltest@before{before}
+\def\@biburltest@between{between}
 \def\@biburltest@after{after}
 \def\@biburltest@none{none}
 \ifdefined\testorder\else
   \def\testorder{before}\def\testoptions{}\def\testset{}\def\testexpect{9000}
   \def\testsetstretch{}\def\testexpectstretch{3em}
 \fi
+\def\@biburltest@set{%
+  \setcounter{biburlnumpenalty}{\testset}%
+  \setcounter{biburlucpenalty}{\testset}%
+  \setcounter{biburllcpenalty}{\testset}}
 \ifx\testorder\@biburltest@before\usepackage{biblatex}\fi
+\ifx\testorder\@biburltest@between
+  \usepackage{biblatex}\@biburltest@set
+\fi
 \expandafter\PassOptionsToPackage\expandafter{\testoptions}{didactic}
 \usepackage{didactic}
 \ifx\testorder\@biburltest@after\usepackage{biblatex}\fi
 \usepackage[noamsthm,notheorems]{beamerarticle}
-\ifx\testset\empty\else
-  \setcounter{biburlnumpenalty}{\testset}%
-  \setcounter{biburlucpenalty}{\testset}%
-  \setcounter{biburllcpenalty}{\testset}%
+\ifx\testorder\@biburltest@between\else
+  \ifx\testset\empty\else\@biburltest@set\fi
 \fi
 \ifx\testsetstretch\empty\else
   \setlength\emergencystretch{\testsetstretch}%
