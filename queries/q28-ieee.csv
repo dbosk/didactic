@@ -1,0 +1,8 @@
+# Query: ("code listing" OR "source code" OR "program listing") AND (book OR textbook OR "style guide" OR publisher) AND ("page break" OR "page layout" OR pagination OR "line numbers")
+# Provider: ieee
+# Timestamp: 2026-11-04T09:54:51.262328
+# Results: 1
+
+title	authors	year	doi	venue	url
+Discovering a strategy for professional communication with new frontiers through classroom presentation	M. Kato; Chia-Tien Dan Lo	2004	10.1109/IPCC.2004.1375302	International Professional Communication Conference, 2004. IPCC 2004. Proceedings.	https://ieeexplore.ieee.org/document/1375302/
+

@@ -17,8 +17,8 @@
 %   AE  a two-line heading, a one-line paragraph and a long one, room for all
 %       of them to be moved: three lines after the heading on its page, when that
 %       is what the option asks.
-%   AF  the same with more room than keepmaxgap: it stays, with a warning.
-%       With a long paragraph, the same: it isn't moved past the limit.
+%   AF  the same with more room than keepmaxgap: it stays, and at keepafterheading=3
+%       with a warning.  With a long paragraph, the same: it isn't moved past the limit.
 %   AS  a listing after a listing: the lead-in of the first doesn't count in
 %       what moving the second leaves empty, so it moves whole.
 %   AG  first paragraphs with a footnote, a list, a float before them and a page
@@ -36,10 +36,12 @@
 %   AL  a frame title, then a block or an example: keepafterheading lines after
 %       the heading of the block.
 %   AM  a heading, a one-line paragraph and a list: the estimate before the
-%       heading moves them.  AN the same for a block.
-%   AO  a paragraph at the foot of a page and at the top of the next: no last
-%       line alone at the top; a first line may stay alone at the foot, the club
-%       penalty being 1000.
+%       heading moves them.  AN the same for a block.  AN2 with room for the block's
+%       heading and that line: the list doesn't start the next page without its lead-in
+%       (L1), so all move, within the limit.
+%   AO  a paragraph at the foot of a page and at the top of the next: a first line
+%       may stay alone at the foot, and a last line alone at the top, the penalties
+%       being memoir's, on a page with no stretch to count them.
 %   AP  a table at the top of a page after a heading, with room to spare.
 %   AR  a heading, a listing that takes no paragraph, then a paragraph: the
 %       first paragraph after the listing isn't kept as a first paragraph.
@@ -211,7 +213,7 @@ Third.\testclubs{AG third paragraph after a page}{0}
 
 \section*{AG, a list first}
 \begin{itemize}
-\item \threelines\testclubs{AG a list as the first thing}{\testk}
+\item \threelines\testclubs{AG a list as the first thing, as LaTeX has it}{0}
 \item Second item.\testclubs{AG the second item}{0}
 \end{itemize}
 Text.\testclubs{AG paragraph after that list}{0}
@@ -253,10 +255,10 @@ Lead-in AJ.\label{aj2-l}
 \testlisting{t}{8}
 Text after AJ.
 
-\roomfor{7}
+\roomfor{5}
 \section*{AK}\label{ak-a}
 Lead-in AK.\label{ak-l}
-\testlisting{m}{4}
+\testlisting{m}{3}
 Text after AK.
 
 \mode<article>{\roomfor{4}}
@@ -292,6 +294,15 @@ Text after AK.
   \oneline
   \begin{itemize}
   \item\rule{0pt}{5\baselineskip}A tall item.\label{ao-i}
+  \item Another item.
+  \end{itemize}
+\end{example}
+
+\roomfor{\ifnum\testk=2 1.6\else 2.6\fi}\label{ao2-r}
+\begin{example}[AN2]\label{ao2-a}
+  \oneline
+  \begin{itemize}
+  \item\rule{0pt}{5\baselineskip}A tall item.\label{ao2-i}
   \item Another item.
   \end{itemize}
 \end{example}
@@ -336,22 +347,24 @@ Paragraph after the listing.\testclubs{AR paragraph after a listing}{0}
 \testcheck{AF long paragraph: heading stays}{ag-r}{=}{ag-a}
 \testcheck{AS second listing whole}{vL1}{=}{vL10}
 \testcheck{AI heading with the listing's first line}{ai-a}{=}{iL1}
-\testcheck{AI lead-in with the first three lines}{ai-l}{=}{iL3}
+\testcheck{AI lead-in with the first two lines}{ai-l}{=}{iL2}
 \testcheck{AI listing breaks}{iL1}{<}{iL10}
-\testcheck{AJ lead-in with the first three lines}{aj-l}{=}{jL3}
-\testcheck{AJ first listing breaks}{jL3}{<}{jL10}
+\testcheck{AJ lead-in with the first two lines}{aj-l}{=}{jL2}
+\testcheck{AJ first listing breaks}{jL2}{<}{jL10}
 \testcheck{AJ first listing with its lead-in, with room}{aj2-l}{=}{sL10}
 \testcheck{AJ second listing on the next page}{sL10}{<}{tL1}
 \testcheck{AJ second listing whole}{tL1}{=}{tL8}
 \testcheck{AK heading stays with its lead-in}{ak-a}{=}{ak-l}
 \testcheck{AK listing on the next page}{ak-l}{<}{mL1}
-\testcheck{AK listing whole}{mL1}{=}{mL4}
+\testcheck{AK listing whole}{mL1}{=}{mL3}
 \testcheck{AL block's lines (block)}{al-1}{=}{al-\testk}
 \testcheck{AL block's lines (example)}{am-1}{=}{am-\testk}
 \testcheck{AM heading with the list}{an-a}{=}{an-i}
 \testcheck{AN block with the list}{ao-a}{=}{ao-i}
+\testcheck{AN2 block moves with its list}{ao2-r}{<}{ao2-a}
+\testcheck{AN2 the list with its lead-in}{ao2-a}{=}{ao2-i}
 \testcheck{AO first line alone at the foot}{ap-1}{<}{ap-2}
-\testcheck{AO last line not alone}{aq-4}{=}{aq-5}
+\testcheck{AO last line alone on the next page}{aq-4}{<}{aq-5}
 \testcheck{AP heading with the table}{ar-a}{=}{ar-t}
 \testlist
 \end{itemize}

@@ -1,0 +1,8 @@
+# Query: ("code listing" OR "program listing" OR "source code listing") AND ("page break" OR "across pages" OR pagination OR "page turn" OR split) AND (comprehension OR reading OR experiment OR empirical OR evidence OR criticism)
+# Provider: ieee
+# Timestamp: 2026-11-04T09:57:46.896687
+# Results: 1
+
+title	authors	year	doi	venue	url
+ISO/IEC/IEEE International Standard - Systems and software engineering -- Vocabulary		2010	10.1109/IEEESTD.2010.5733835	ISO/IEC/IEEE 24765:2010(E)	https://ieeexplore.ieee.org/document/5733835/
+

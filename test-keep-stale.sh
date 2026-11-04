@@ -6,7 +6,7 @@ LATEX="$1"
 doc=test-keep-stale
 fails=0
 page() { sed -n "s/^.newlabel{$1}{{[^}]*}{\([0-9]*\)}.*/\1/p" $doc.aux; }
-breaks() { grep -c 'keep@hb' $doc.aux; }
+breaks() { grep -c '^.@didactic@keep@hb' $doc.aux; }
 run() {
 	for i in 1 2 3 4 5 6; do
 		$LATEX -shell-escape -interaction=nonstopmode $doc.tex >/dev/null ||

@@ -14,8 +14,8 @@
 %   BB2 the same with three lines, which are enough too.
 %   BF  a \chapter, a \section, a sentence and a longtable with a tall row: the
 %       chapter isn't left behind by a break before the section.
-%   BG  a run-in heading, a line and a tall item that doesn't fit: the heading
-%       stays with one line, with a warning (it needs the heading's page).
+%   BG  a run-in heading, a line and a tall item that doesn't fit: the list doesn't
+%       start the next page without what leads into it (L1), so all move.
 %   BH  a heading of two lines, a line and a paragraph, with room for the line
 %       and the paragraph's first line: they stay, which is two lines, and when
 %       the option asks three, all move.  (A first line at the foot of a page is
@@ -176,7 +176,8 @@ fourth line.
 \testcheck{BB2 heading stays with three lines}{bbb-a}{=}{bbb-3}
 \testcheck{BB2 table on the next page}{bbb-3}{<}{bbb-t}
 \testcheck{BF chapter with the section}{bf-a}{=}{bf-b}
-\testcheck{BG run-in heading stays}{bg-r}{=}{bg-a}
+\testcheck{BG run-in heading moves with its list}{bg-r}{<}{bg-a}
+\testcheck{BG the list with its lead-in}{bg-a}{=}{bg-i}
 \testcheck{BH heading with the first line of the paragraph}{bh-a}{=}{bh-1}
 \ifnum\testk>2
 \testcheck{BH heading with the second line of the paragraph}{bh-a}{=}{bh-2}

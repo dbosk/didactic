@@ -1,0 +1,8 @@
+# Query: TITLE-ABS-KEY(("one page" OR "single page" OR "one screen" OR screenful) AND (function OR subroutine OR routine OR module OR "source code") AND (length OR size) AND (criticism OR "no effect" OR "no significant" OR myth OR empirical))
+# Provider: scopus
+# Timestamp: 2026-11-04T10:01:50.584819
+# Results: 1
+
+title	authors	year	doi	venue	url
+A cuckoo hashing variant with improved memory utilization and insertion time	E. Porat	2012	10.1109/DCC.2012.41	Data Compression Conference Proceedings	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=84862080049&origin=inward
+

@@ -1,0 +1,33 @@
+% Test that a listing that starts a column apart from its lead-in warns (didactic):
+% no page is shipped out between the columns, and only \outputpenalty knows the break.
+%
+% Build: see the Makefile; test-check.py checks the warnings.
+%   M  A lead-in at the foot of the first column, a note, and a listing: the listing
+%      starts the second column, and warns.
+%   C  Control: a lead-in and a listing with nothing between: they go along.
+\documentclass[a4paper,twocolumn]{memoir}
+\usepackage[british]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\newcommand\case[1]{\typeout{twocol case #1 line \the\inputlineno}}
+\begin{document}
+\noindent\rule{1pt}{\dimexpr\textheight-\topskip-3\baselineskip\relax}\par
+LEADM in.
+
+\marginpar{note M}
+\case{m}\begin{Verbatim}
+LISTM
+line 2
+line 3
+\end{Verbatim}
+\clearpage
+\noindent\rule{1pt}{\dimexpr\textheight-\topskip-3\baselineskip\relax}\par
+LEADC in.
+
+\case{c}\begin{Verbatim}
+LISTC
+line 2
+line 3
+\end{Verbatim}
+\end{document}

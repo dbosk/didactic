@@ -24,6 +24,7 @@
 %       a redefined \FV@ListProcessLine): warns "something between", all lines
 %       stay.
 %       8 times "marked".
+%   T7  As T1, in a box: no warning, and it's not in the PDF.
 % test-keep-tall100.tex, keeplines=100:
 %   T2  90 lines: warns "too tall".  90 times "unit".  It follows the rule of
 %       keepends, not just what fits: it starts on the half page it can,
@@ -38,7 +39,7 @@
 \else
   \PassOptionsToPackage{keeplines=20}{didactic}
 \fi
-\usepackage{didactic}
+\usepackage[keepends=3]{didactic}
 \usepackage[noamsthm,notheorems]{beamerarticle}
 \makeatletter
 \newwrite\@talltest@out
@@ -114,5 +115,12 @@ Lead-in to a listing with something between its lines:
 \VerbatimInput{\jobname-e.txt}
 \endgroup
 Text after T5.
+
+\clearpage
+\section{T7}
+A listing as tall as T1, in a box, which has no page to fit on: no warning.
+\talltest{g}{20}{80}{boxed}%
+\setbox0\vbox{\VerbatimInput[breaklines]{\jobname-g.txt}}%
+Text after T7.
 \fi
 \end{document}

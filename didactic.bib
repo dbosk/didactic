@@ -959,7 +959,7 @@
 %   window condition. Splitting sentences across screens also caused readers to return to
 %   the previous page to reread text significantly more."
 % VERIFIED: abstract only. Screens and sentences, 1990; it does not test headings or print.
-% COUNTER: None found, and no replication seen.
+% COUNTER: None found, and no replication seen. Also used in the listings chapter, as prose only.
 % DATE: 2026-11-03
 @article{dillon1990splitting,
   author  = {Dillon, Andrew and Richardson, John and McKnight, Cliff},
@@ -1119,4 +1119,324 @@
   date    = {2026},
   url     = {https://github.com/dbosk/scholar},
   urldate = {2026-11-03},
+}
+
+% === provenance: vanzandt2025fancyvrb ===
+% CLAIM: fancyvrb breaks a verbatim across pages by default and keeps it whole only by an option.
+% FOUND-VIA: Known item, texdoc fancyvrb, TeX Live 2025.
+% PICKED: The package under minted and under this package's listings.
+% QUOTE (§4.1.16): "in very special circumstances, we may want to make sure that a verbatim
+%   environment is not broken, even if it does not fit on the current page."
+% VERIFIED: full-text of §4.1.16 read; default false. States no reason about readers.
+% COUNTER: None; a description of a tool.
+% DATE: 2026-11-04
+@manual{vanzandt2025fancyvrb,
+  author  = {Van Zandt, Timothy and Girou, Denis and Rahtz, Sebastian and Vo{\ss}, Herbert},
+  title   = {The fancyvrb package: Fancy Verbatims in {\LaTeX}},
+  date    = {2025-07-28},
+  url     = {https://ctan.org/pkg/fancyvrb},
+  urldate = {2026-11-04},
+}
+
+% === provenance: poore2025minted ===
+% CLAIM: minted's samepage option is off by default and listing floats do not break.
+% FOUND-VIA: Known item, texdoc minted, TeX Live 2025.
+% PICKED: Named in the brief; the weave most decks use.
+% QUOTE (options, samepage): "Forces the whole listing to appear on the same page, even if it
+%   doesn't fit."
+% VERIFIED: option and FAQ entry read. The manual gives no reason about readers.
+% COUNTER: None.
+% DATE: 2026-11-04
+@manual{poore2025minted,
+  author  = {Poore, Geoffrey M.},
+  title   = {The minted package: Highlighted source code in {\LaTeX}},
+  version = {3.7.0},
+  date    = {2025-05-14},
+  url     = {https://ctan.org/pkg/minted},
+  urldate = {2026-11-04},
+}
+
+% === provenance: heinz2024listings ===
+% CLAIM: listings lets a listing cross pages and offers no key for keeping one whole short of a float.
+% FOUND-VIA: Known item, texdoc listings, TeX Live 2025.
+% PICKED: Named in the brief.
+% QUOTE (How to get closed frames on each page): "The package supports closed frames only for
+%   listings which don't cross pages."
+% VERIFIED: passage read; rest of the manual searched by keyword for page breaks, so absence of a key
+%   rests on that search.
+% COUNTER: None.
+% DATE: 2026-11-04
+@manual{heinz2024listings,
+  author  = {Heinz, Carsten and Moses, Brooks and Hoffmann, Jobst},
+  title   = {The Listings Package},
+  version = {1.10c},
+  date    = {2024-09-23},
+  url     = {https://ctan.org/pkg/listings},
+  urldate = {2026-11-04},
+}
+
+% === provenance: sturm2025tcolorbox ===
+% CLAIM: A tcolorbox is unbreakable unless asked; when breakable it places at least two lines before
+%   a break by default.
+% FOUND-VIA: Known item, texdoc tcolorbox, TeX Live 2025.
+% PICKED: Named in the brief; the only tool read with a line count at a break.
+% QUOTE (p. 411): "Assures that the given <number> of lines of the upper box part or the lower box
+%   part are placed before a break happens."
+% QUOTE (p. 410): "/tcb/breakable=true|false|unlimited (default true, initially false)"
+% VERIFIED: full-text of the keys read; "initially 2" for lines before break. It concerns boxes in
+%   general, not code, and only the part before the break.
+% COUNTER: None.
+% DATE: 2026-11-04
+@manual{sturm2025tcolorbox,
+  author  = {Sturm, Thomas F.},
+  title   = {Manual for the tcolorbox package},
+  version = {6.8.0},
+  date    = {2025-09-09},
+  url     = {https://ctan.org/pkg/tcolorbox},
+  urldate = {2026-11-04},
+}
+
+% === provenance: ramsey2026noweb ===
+% CLAIM: noweb's LaTeX style keeps a code chunk on one page by default, and its breakcode option
+%   trades that for less white space.
+% FOUND-VIA: Known item, noweb.sty and the nowebstyle manual page in the user's installation.
+% PICKED: Named in the brief; a literate-programming tool with an explicit default.
+% QUOTE (noweb.sty): "\def\nwendcode{\endtrivlist \endgroup \filbreak} % keeps code on 1 page"
+% QUOTE (nowebstyle manual page, breakcode): "Make noweb use less vertical white space, at the cost of
+%   breaking up code chunks."
+% VERIFIED: code and manual page read. \filbreak's meaning from knuth1986texbook p. 111. The source
+%   gives no reason about readers beyond this comment.
+% COUNTER: None.
+% DATE: 2026-11-04
+@software{ramsey2026noweb,
+  author  = {Ramsey, Norman},
+  title   = {noweb: noweb.sty and the nowebstyle manual page},
+  url     = {https://www.cs.tufts.edu/~nr/noweb/},
+  urldate = {2026-11-04},
+}
+
+% === provenance: knuth2025cweb ===
+% CLAIM: CWEB asks for code parts of about a dozen lines, for comprehension, and its macros offer a
+%   filled page break before each section.
+% FOUND-VIA: Known item, texdoc cwebman and cwebmac.tex, TeX Live 2025.
+% PICKED: Named in the brief; the original literate tools.
+% QUOTE (manual, sections): "This C code should ideally be about a dozen lines long, so that it is
+%   easily comprehensible as a unit and so that its structure is readily perceived."
+% QUOTE (cwebmac.tex, \M): "\vfil\penalty-100\vfilneg % beginning of section"
+% VERIFIED: passages read. The dozen lines concern program structure, not page breaks; that the macro
+%   prefers a break between sections is a reading of the code, with \filbreak in knuth1986texbook p. 111.
+% COUNTER: None.
+% DATE: 2026-11-04
+@manual{knuth2025cweb,
+  author  = {Knuth, Donald E. and Levy, Silvio},
+  title   = {The {CWEB} System of Structured Documentation},
+  version = {4.12.1},
+  date    = {2025-01},
+  url     = {https://ctan.org/pkg/cweb},
+  urldate = {2026-11-04},
+}
+
+% === provenance: gnu2026standards ===
+% CLAIM: The GNU standards ask for page divisions in source files not within a function, on logical pages.
+% FOUND-VIA: Known item; curl of https://www.gnu.org/prep/standards/standards.txt
+% PICKED: A named coding standard that mentions pages at all.
+% QUOTE (§5.1): "Please use formfeed characters (control-L) to divide the program into pages at logical
+%   places (but not within a function). It does not matter just how long the pages are, since they do not
+%   have to fit on a printed page."
+% VERIFIED: full-text of the section read. Concerns source files, not typeset listings; no reason given.
+% COUNTER: linux2026style and vanrossum2001pep8 speak of screens or logical sections.
+% DATE: 2026-11-04
+@online{gnu2026standards,
+  author  = {{Free Software Foundation}},
+  title   = {{GNU} Coding Standards},
+  date    = {2026-04-27},
+  url     = {https://www.gnu.org/prep/standards/standards.txt},
+  urldate = {2026-11-04},
+}
+
+% === provenance: linux2026style ===
+% CLAIM: The Linux kernel style wants functions to fit one or two screens.
+% FOUND-VIA: Known item; curl of the URL below.
+% PICKED: Corroboration; a widely used standard.
+% QUOTE (§6): "They should fit on one or two screenfuls of text"
+% VERIFIED: full-text of the section read. Screens, not pages; no evidence given.
+% COUNTER: tempero2024decomposition finds the benefit of small functions inconclusive.
+% DATE: 2026-11-04
+@online{linux2026style,
+  author  = {{The Linux kernel community}},
+  title   = {Linux kernel coding style},
+  url     = {https://docs.kernel.org/process/coding-style.html},
+  urldate = {2026-11-04},
+}
+
+% === provenance: vanrossum2001pep8 ===
+% CLAIM: PEP 8 allows form feeds to separate pages of related sections.
+% FOUND-VIA: Known item; curl of the URL below.
+% PICKED: Corroboration.
+% QUOTE (Blank Lines): "many tools treat these characters as page separators, so you may use them to
+%   separate pages of related sections of your file."
+% VERIFIED: full-text of the section read. No rule on printing.
+% COUNTER: None.
+% DATE: 2026-11-04
+@online{vanrossum2001pep8,
+  author  = {van Rossum, Guido and Warsaw, Barry and Coghlan, Alyssa},
+  title   = {{PEP} 8: Style Guide for {Python} Code},
+  date    = {2001},
+  url     = {https://peps.python.org/pep-0008/},
+  urldate = {2026-11-04},
+}
+
+% === provenance: ndsu2026listings ===
+% CLAIM: A thesis guide accepts listings over several pages and suggests an appendix for those.
+% FOUND-VIA: WebSearch "code listing should not break across pages book style guide publisher \"code
+%   listing\" page break guideline authors"; curl of the URL below.
+% PICKED: The only style guide read with a rule on listings across pages.
+% QUOTE (Multiple-page listings): "If a listing cannot fit on a single page, you should consider placing
+%   it in an appendix."
+% VERIFIED: full-text of the page read. One university's thesis office.
+% COUNTER: None.
+% DATE: 2026-11-04
+@online{ndsu2026listings,
+  author  = {{North Dakota State University, Center for Writers}},
+  title   = {Listings \& Code},
+  url     = {https://www.ndsu.edu/cfwriters/disquisitions/dqkb/listings-and-code},
+  urldate = {2026-11-04},
+}
+
+% === provenance: greywolve2019golang ===
+% CLAIM: One reader finds code split across pages hard to read, mainly for large blocks.
+% FOUND-VIA: WebSearch "technical book author guidelines publisher code listings \"page break\" OR \"across
+%   pages\" long listing split annotated O'Reilly Manning No Starch style guide code examples length"; curl.
+% PICKED: The only first-hand statement of the harm found; an anecdote.
+% QUOTE (comment of Sep 3, 2019): "It's not desirable (to me) because it makes reading large blocks of code
+%   more difficult."
+% QUOTE (same comment): "Personally this change is much more about large blocks of code than smaller blocks
+%   anyway."
+% VERIFIED: issue read. One person's view of printed web pages.
+% COUNTER: Sets no rule.
+% DATE: 2026-11-04
+@online{greywolve2019golang,
+  author  = {{greywolve}},
+  title   = {x/website: better {HTML} printing, don't page break inside code blocks},
+  date    = {2019-08-29},
+  organization = {golang/go issue 33933},
+  url     = {https://github.com/golang/go/issues/33933},
+  urldate = {2026-11-04},
+}
+
+% === provenance: oman1990typographic ===
+% CLAIM: Experiments support typographic style for program comprehension; the abstract does not mention
+%   page breaks.
+% FOUND-VIA: Reviewer's pointer, after the topic queries; WebSearch "Oman Cook typographic style is more than
+%   cosmetic CACM 1990 program comprehension experiment book format page"; OpenAlex works/doi lookup; CERIAS record.
+% PICKED: The classic study on program typography.
+% QUOTE (abstract): "Four experiments demonstrate that the typographic style principles embodied in the book
+%   format significantly aid program comprehension and reduce maintenance effort."
+% VERIFIED: abstract only; the publisher's page stopped at a bot check. It may treat pages in full text.
+% COUNTER: gellenbeck1991signaling finds modest effects for signaling.
+% DATE: 2026-11-04
+@article{oman1990typographic,
+  author  = {Oman, Paul W. and Cook, Curtis R.},
+  title   = {Typographic style is more than cosmetic},
+  journal = {Communications of the ACM},
+  volume  = {33},
+  number  = {5},
+  pages   = {506--520},
+  date    = {1990},
+  doi     = {10.1145/78607.78611},
+}
+
+% === provenance: oman1990book ===
+% CLAIM: The book paradigm of program formatting claims organizational benefits from two experiments; the
+%   abstract does not mention page breaks.
+% FOUND-VIA: OpenAlex title search, known item from oman1990typographic.
+% PICKED: The same authors' account of the book format.
+% QUOTE (abstract): "high-level organizational clues about the code; low-level organization chunks and beacons"
+% VERIFIED: abstract only.
+% COUNTER: As for oman1990typographic.
+% DATE: 2026-11-04
+@article{oman1990book,
+  author  = {Oman, P. W. and Cook, C. R.},
+  title   = {The book paradigm for improved maintenance},
+  journal = {IEEE Software},
+  volume  = {7},
+  number  = {1},
+  pages   = {39--45},
+  date    = {1990},
+  doi     = {10.1109/52.43048},
+}
+
+% === provenance: gellenbeck1991signaling ===
+% CLAIM: A controlled experiment found typographic signaling of limited help on a 913-line program.
+% FOUND-VIA: Reviewer's pointer, after the topic queries; OpenAlex title search (W12190031).
+% PICKED: The reviewer named it; closest experiment on formatting of source listings.
+% QUOTE (abstract): "little evidence exists to show that this type of formatting makes programs easier to read
+%   and understand."
+% QUOTE (abstract): "only modest improvements in comprehension when typographic signaling was used with header
+%   comments and mnemonic names."
+% VERIFIED: abstract only; venue not confirmed by the record, so none is given. No mention of pages.
+% COUNTER: oman1990typographic reports stronger effects for its book format.
+% DATE: 2026-11-04
+@misc{gellenbeck1991signaling,
+  author       = {Gellenbeck, Edward M. and Cook, Curtis R.},
+  title        = {Does Signaling Help Professional Programmers Read and Understand Computer Programs},
+  date         = {1991},
+  howpublished = {Abstract in OpenAlex, record W12190031},
+}
+
+% === provenance: tempero2024decomposition ===
+% CLAIM: A controlled experiment found the effect of functional decomposition on understanding inconclusive.
+% FOUND-VIA: WebSearch "function length one page or one screen readability empirical evidence program comprehension
+%   \"fit on one\" screen page routine size study criticism"; curl of the conference page; Crossref bibliographic query.
+% PICKED: A recent negative result, on the unit a listing is said to cut in two.
+% QUOTE (abstract): "the influence of function decomposition on code understanding is inconclusive"
+% VERIFIED: abstract only. It concerns how code is divided into functions, not pages.
+% COUNTER: linux2026style assumes the benefit.
+% DATE: 2026-11-04
+@inproceedings{tempero2024decomposition,
+  author    = {Tempero, Ewan and Denny, Paul and Finnie-Ansley, James and Luxton-Reilly, Andrew and Kirk, Diana and Leinonen, Juho and Shakil, Asma and Sheehan, Robert and Tizard, James and Tu, Yu-Cheng and W{\"u}nsche, Burkhard},
+  title     = {On the comprehensibility of functional decomposition: An empirical study},
+  booktitle = {Proceedings of the 32nd IEEE/ACM International Conference on Program Comprehension},
+  date      = {2024},
+  doi       = {10.1145/3643916.3644432},
+}
+
+% === provenance: ribeiro2018attributes ===
+% CLAIM: Coding guidelines contradict each other on layout style and code size; the matter is unsettled.
+% FOUND-VIA: scholar queries S13-S17, C14-C18 (session heading-foot-of-page); fetch_pdf.py --text.
+% PICKED: A review with an empirical study, on what the guidelines for code layout rest on.
+% QUOTE (abstract): "five attributes (code size, semantic complexity, internal documentation, layout style, and
+%   identifier length) out of 13 presented contradictions regarding their influence"
+% QUOTE (abstract): "Coding guidelines contradictions still demand further investigation"
+% VERIFIED: abstract read; full text searched by keyword: no mention of page breaks.
+% COUNTER: oman1990typographic reports effects of its book format.
+% DATE: 2026-11-04
+@article{ribeiro2018attributes,
+  author  = {Ribeiro, Talita Vieira and Travassos, Guilherme Horta},
+  title   = {Attributes Influencing the Reading and Comprehension of Source Code -- Discussing Contradictory Evidence},
+  journal = {CLEI Electronic Journal},
+  volume  = {21},
+  number  = {1},
+  date    = {2018},
+  doi     = {10.19153/cleiej.21.1.5},
+}
+
+% === provenance: shneiderman1986display ===
+% CLAIM: Larger displays can help comprehension if used for better presentation; this is about displays.
+% FOUND-VIA: scholar query C15 (session heading-foot-of-page, IEEE and others).
+% PICKED: The nearest reader work on how much code is visible at once that could be read at all.
+% QUOTE (abstract): "The new, larger display screens can improve program comprehension-if the added space is used
+%   for mome effective presentation, not just more code or larger type."
+% VERIFIED: abstract only; "mome" is the record's spelling.
+% COUNTER: None read. Reisel and Shneiderman 1987 found and not read.
+% DATE: 2026-11-04
+@article{shneiderman1986display,
+  author  = {Shneiderman, Ben and Shafer, Philip and Simon, Roland and Weldon, Linda},
+  title   = {Display Strategies for Program Browsing: Concepts and Experiment},
+  journal = {IEEE Software},
+  volume  = {3},
+  number  = {3},
+  pages   = {7--15},
+  date    = {1986},
+  doi     = {10.1109/MS.1986.233405},
 }

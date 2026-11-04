@@ -1,0 +1,67 @@
+# Query: (LaTeX OR TeX OR noweb OR CWEB OR "literate programming") AND ("code listing" OR listings OR verbatim OR "code chunk") AND ("page break" OR "across pages" OR typesetting)
+# Provider: openalex
+# Timestamp: 2026-11-04T09:53:27.431473
+# Results: 60
+
+title	authors	year	doi	venue	url
+Typesetting structural formulae with the text formatter TeX/LaTeX	Shinsaku Fujita	1994	10.1016/0097-8485(94)85004-6	Computers & Chemistry	https://openalex.org/W2027823756
+The WEB to CWEB conversion of TeX	Martin Ruckert	2021	10.47397/tb/42-2/tb131ruckert-cweb	TUGboat	https://openalex.org/W3204540497
+Modern TEX and Its Applications	Michael Vulis	1992			https://openalex.org/W384918731
+The Computer Science Of Tex And Latex	Victor L. Eijkhout	2004	10.5281/zenodo.49901	Zenodo (CERN European Organization for Nuclear Research)	https://openalex.org/W2470989218
+Appendix B. Summary of TEX and LATEX Symbols	Nicolas J. Higham	2019	10.1137/1.9781611976106.appb		https://openalex.org/W4214683972
+LATEX: A high quality document preparation system for scientific and technical literature	K. P. Sanjailal	2012		CFTRI Institutional Repository	https://openalex.org/W158319773
+TeX, LaTeX, etc. questions et réponses	Bobby Bodenheimer	1992	10.5802/cg.132	Cahiers GUTenberg	https://openalex.org/W2331727136
+Converting LaTeX to MathML: the Tralics algorithms	José Grimm	2007		HAL	https://openalex.org/W2284446954
+To Err is Human		2007	10.1007/978-0-387-22436-7_11	Springer eBooks	https://openalex.org/W4210834131
+The 'fancyvrb' package Fancy Verbatims in L A T E X	Timothy Van Zandt	1998			https://openalex.org/W95156552
+Science and mathematics books	Judith Butcher; Caroline Drake; Maureen Leach	2006	10.1017/cbo9780511482106.017	Cambridge University Press eBooks	https://openalex.org/W1530167327
+Introdução ao LaTeX	Eric Batista Ferreira	2012	10.29327/2520355.1.1-14	Sigmae	https://openalex.org/W582065062
+4TeX — LaTeX — Slovenčina	Igor Podlubný	1997	10.5300/1997-1-2/20	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2332103496
+Typesetting SGML documents using TeX	Andrew E. Dobrowolski	1991	10.5802/cg.97	Cahiers GUTenberg	https://openalex.org/W2329159205
+	Takeo Azuma	2003	10.3169/itej.57.952	The Journal of The Institute of Image Information and Television Engineers	https://openalex.org/W46578975
+LaTeX news, issue 36, November 2022	LaTeX Project Team	2022	10.47397/tb/43-3/tb135ltnews36	TUGboat	https://openalex.org/W4312797556
+L’avenir de TeX... c’est Word[Perfect] ! Une ébauche : RTFLaTeX	D. Taupin	1994	10.5802/cg.145	Cahiers GUTenberg	https://openalex.org/W2320821580
+TeX, LaTeX and math	Enrico Gregorio	2020	10.47397/tb/41-1/tb127gregorio-math	TUGboat	https://openalex.org/W4412124611
+Should I Install LaTeX , MiKTeX or TexStudio?	Abiodun Christian Ibiloye	2024	10.31730/osf.io/43xmw		https://openalex.org/W4391573638
+Formatting information: A beginner's introduction to typesetting with LATEX	Peter Flynn	2002		Cork Open Research Archive (University College Cork, Ireland)	https://openalex.org/W2231431194
+TeX in a Nutshell	Petr Olšák	2021	10.5300/2021-1-4/9	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W4288479161
+Handling of LaTeX-ETDs and TeX-Conversion	Günter Törner; Sebastian Pokutta; Thorsten Bahne	2003	10.18452/1159	edoc Publication server (Humboldt University of Berlin)	https://openalex.org/W2269349602
+Inconsistencies in TeX-Produced Documents	J. Tan; Manuel Rigger	2024	10.1145/3650212.3680370	ACM SIGSOFT International Symposium on Software Testing and Analysis (ISSTA)	https://openalex.org/W4402457502
+Experience from typesetting the Bulletin of the Czechoslovak TeX Users Group	Zdeněk Wagner	2000	10.5300/2000-4/113	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2326786382
+Tokens, Category Codes, Verbatim Modes	Stephan von Bechtolsheim	1993	10.1007/978-1-4612-2724-3_1	Monographs in visual communication	https://openalex.org/W846287323
+Token Registers, TEX List Processing	Stephan von Bechtolsheim	1993	10.1007/978-1-4612-2724-3_3	Monographs in visual communication	https://openalex.org/W815026651
+An Introduction to LaTeX	Clayton Hayes	2016		Human Biology	https://openalex.org/W2339997753
+Présentation du projet \varepsilon -TeX	Philip Taylor	1997	10.5802/cg.212	Cahiers GUTenberg	https://openalex.org/W2313820476
+A Primer for TEX Users	Judi Jones	1982		DSpace@MIT (Massachusetts Institute of Technology)	https://openalex.org/W1608475971
+LaTeX for Technical Writing	Victoria Baramidze	2014	10.31578/jtst.v2i2.63	Journal of Technical Science and Technologies	https://openalex.org/W4392028351
+tikzDevice: R Graphics Output in LaTeX Format	Charlie Sharpsteen; Cameron Bracken	2009	10.32614/cran.package.tikzdevice		https://openalex.org/W4399568612
+LaTeX typesetting training in ﬁnancial mathematics at “Angel Kanchev” University of Ruse	Stefka Karakoleva	2020		Mathematics and Education in Mathematics	https://openalex.org/W7131985109
+tinytex: Helper Functions to Install and Maintain TeX Live, and Compile LaTeX Documents	Yihui Xie	2017	10.32614/cran.package.tinytex		https://openalex.org/W4399637395
+Documents preparation for typesetting	Vít Zýka	2008	10.5300/2008-4/178	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2332050765
+Guide TeX it: Uneasy beginnings of typesetters from the perspective of non-typesetters	Libor Sarga	2011	10.5802/cg.364	Cahiers GUTenberg	https://openalex.org/W2318024664
+LaTeXová kuchařka/3	Zdeněk Wagner	1997	10.5300/1997-3/140	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2915879407
+Personnaliser les listes LaTeX	M. Goossens	1994	10.5802/cg.146	Cahiers GUTenberg	https://openalex.org/W2329017272
+LaTeXová kuchařka/2	Zdeněk Wagner	1996	10.5300/1996-4/269	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2916968770
+Article by ConTeXt: Tutorial	Vít Zýka	2008	10.5300/2008-4/200	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2329322725
+upquote { upright-quote and grave-accent glyphs in verbatim	Michael A. Covington; Frank G. Mittelbach; Markus Kuhn	2012			https://openalex.org/W2590573252
+Another look at LaTeX to SGML conversion	Sebastian Rahtz	1995		TUGboat	https://openalex.org/W2908837615
+Lapses in TeX—a look backward	Barbara Beeton	2021	10.47397/tb/42-1/tb130beeton-lapses	TUGboat	https://openalex.org/W3164392808
+LaTeX for Agricultural and Biological Engineers	Cannayen Igathinathane	2011	10.13031/2013.38487	2011 Louisville, Kentucky, August 7 - August 10, 2011	https://openalex.org/W1983513676
+TeX and PDF	Vít Zýka	2002	10.5300/2002-3-4/140	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2332117976
+The Local Guide to Fonts in TeX	Roger Germundsson	1992			https://openalex.org/W576793902
+Preparing Horizon Europe proposals in LaTeX with heria	Tristan Miller	2024	10.47397/tb/45-1/tb139miller-horizon	TUGboat	https://openalex.org/W4396691338
+Aesthetics of XML documents with TeX and tagged PDF enabled	Rishikesan Nair T; CV Rajagopal; Apu V	2025	10.47397/tb/46-2/tb143rishi-xml-aesthetics	TUGboat	https://openalex.org/W4414367447
+TeX and Typography	Jiří Rybička	2008	10.5300/2008-3/104	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2326969626
+An annotated bibliography of literate programming	Lisa M. C. Smith; Mansur H. Samadzadeh	1991	10.1145/122203.122204	ACM SIGPLAN Notices	https://openalex.org/W1977626599
+Usingknitrand LaTeX for literate laboratory notes	Boris A. Veytsman	2022	10.47397/tb/43-2/tb134veytsman-labnotes	TUGboat	https://openalex.org/W4295159914
+TeX and SGML	Kees van der Laan	1990	10.5802/cg.60	Cahiers GUTenberg	https://openalex.org/W2320424665
+TeX and graphics : The State of the Problem	Nelson H. F. Beebe	1989	10.5802/cg.22	Cahiers GUTenberg	https://openalex.org/W1976662275
+Voyage au centre de TeX : composition, paragraphage, césure	Yannis Haralambous	2004	10.5802/cg.317	Cahiers GUTenberg	https://openalex.org/W1967783373
+Presentations in TeX	Luboš Prchal; Pavel Schlesinger	2008	10.5300/2008-1-2/56	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2332232939
+TeX pro pragmatiky	Petr Olšák	2014	10.5300/2014-1-4/1	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W4233183447
+TeX a grafika	Oldřich Ulrych	1991	10.5300/1991-2/33	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2317034276
+TeX Reference Manual	David Bausum	2002	10.1007/978-1-4615-0941-7	Springer eBooks	https://openalex.org/W603328389
+Oceano TeX	Víctor Hugo; Bernard Beauzamy; Anna Fučíková; Arnold Santus	1992	10.5300/1992-3/150	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W4255220739
+Typesetting the Holy Bible in Hebrew, with TEX	Yannis Haralarnbous	1994			https://openalex.org/W2979019048
+Text spaces in TeX	Josef Tkadlec	2002	10.5300/2002-1/21	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2328334674
+

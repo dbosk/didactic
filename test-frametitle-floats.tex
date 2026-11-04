@@ -11,6 +11,9 @@
 %   5  FLOATPROSE, a \paragraph in prose outside the frames, runs in with
 %      PROSEAFTER although a figure [h] stands between them: only frames
 %      change.
+%   6  TITLESTARFIG above FIGSTAR, a figure* [h], which in one column is set
+%      here like a figure, and TITLESTARTAB above TABSTAR, a table* [h], on a
+%      second page, for room.
 \documentclass[a4paper]{memoir}
 \usepackage{amsmath,amssymb,amsthm}
 \usepackage{float}
@@ -49,4 +52,18 @@
   \caption{FIGPROSE}
 \end{figure}
 PROSEAFTER, text after the figure.
+
+\clearpage
+\begin{frame}{TITLESTARFIG}
+  \begin{figure*}[h]
+    \centering\rule{4cm}{1mm}
+    \caption{FIGSTAR}
+  \end{figure*}
+\end{frame}
+\begin{frame}{TITLESTARTAB}
+  \begin{table*}[h]
+    \centering\rule{4cm}{1mm}
+    \caption{TABSTAR}
+  \end{table*}
+\end{frame}
 \end{document}

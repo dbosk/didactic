@@ -1,0 +1,295 @@
+% The cases of test-keep-leadin.tex and test-keep-leadin-off.tex.
+\makeatletter
+% \roomfor{n}: a new page, filled with a rule so that n lines of text fit under it.
+\newcommand\roomfor[1]{%
+  \clearpage
+  \noindent\rule{1pt}{\dimexpr\textheight-\topskip-#1\baselineskip-\baselineskip\relax}\par}
+\newwrite\@leadtest@out
+\newcount\@leadtest@i
+% \testlisting{name}{n}: a listing of n lines, the first with the label <name>L.
+\newcommand\testfile[4]{%
+  \immediate\openout\@leadtest@out=\jobname-#1.txt
+  \@leadtest@i\z@
+  \@whilenum\@leadtest@i<#2\do{\advance\@leadtest@i\@ne
+    \immediate\write\@leadtest@out{%
+      line \the\@leadtest@i#3\ifnum\@leadtest@i=\@ne\string\label{#1L}\fi#4}}%
+  \immediate\closeout\@leadtest@out}
+\newcommand\testlisting[2]{%
+  \testfile{#1}{#2}{}{}%
+  \VerbatimInput[commandchars=\\\{\}]{\jobname-#1.txt}}
+% \case{name}: the line of a case, on the line of what it is about, for the log.
+\newcommand\case[1]{\typeout{leadin case #1 line \the\inputlineno}}
+% \results{name}: the pages of the lead-in, <name>, and the first line, <name>L.
+\newcommand\results[1]{\typeout{leadin result #1 lead=\getpagerefnumber{#1}
+    first=\getpagerefnumber{#1L}}}
+\makeatother
+
+\begin{document}
+
+\roomfor{2}
+Lead-in M.\label{m}
+
+\marginpar{note M}
+\case{m}\testlisting{m}{3}
+Text.
+
+\roomfor{2}
+Lead-in N.\label{n}
+
+\ltnote{note N}
+\case{n}\testlisting{n}{3}
+Text.
+
+\roomfor{2}
+Lead-in F.\label{f}
+
+\begin{figure}[b]\rule{1pt}{1pt}\caption{float F}\end{figure}
+\case{f}\testlisting{f}{3}
+Text.
+
+\roomfor{2}
+Lead-in H.\label{h}
+
+\begin{figure}[h]\rule{1pt}{1pt}\caption{float H}\end{figure}
+\case{h}\testlisting{h}{3}
+Text.
+
+\roomfor{2}
+Lead-in S.\label{s}
+\vspace{2pt}
+\case{s}\testlisting{s}{3}
+Text.
+
+\roomfor{2}
+Lead-in B, by bigskip.\label{b}
+\bigskip
+\case{b}\testlisting{b}{3}
+Text.
+
+\roomfor{2}
+Lead-in R.\label{r}\begin{figure}[b]\rule{1pt}{1pt}\caption{float R in para}\end{figure}
+\case{r}\testlisting{r}{3}
+Text.
+
+\roomfor{2}
+Lead-in U.\label{u}\begin{figure}[h]\rule{1pt}{1pt}\caption{float U in para}\end{figure}
+\case{u}\testlisting{u}{3}
+Text.
+
+% A listing that breaks: what counts is where it starts.  Its first keepends lines
+% don't fit under the lead-in.
+\roomfor{1}
+Lead-in L, a long listing.\label{l}
+
+\marginpar{note L}
+\case{l}\testlisting{l}{30}
+Text.
+
+% Through minted, whose lines come from a file of its own, over the full width.
+\roomfor{2}
+Lead-in I, by lstexample*.\label{i}
+
+\marginpar{note I}
+\testfile{i}{3}{|}{|}%
+\case{i}\lstexample*{text}{\jobname-i.txt}
+Text.
+
+\roomfor{2}
+Lead-in J, a note and a minted listing.\label{j}
+
+\marginpar{note J}
+\testfile{j}{3}{|}{|}%
+\case{j}\inputminted[escapeinside=||]{text}{\jobname-j.txt}
+Text.
+
+\roomfor{2}
+Lead-in P, to code side by side.\label{p}
+
+\marginpar{note P}
+\case{p}\begin{didacticpair}{2}
+  \rule{1pt}{8\baselineskip}\label{pL} & right
+\end{didacticpair}
+Text.
+
+\roomfor{2}
+Lead-in W, to code side by side, by vspace.\label{w}
+\vspace{2pt}
+\case{w}\begin{didacticpair}{2}
+  \rule{1pt}{8\baselineskip}\label{wL} & right
+\end{didacticpair}
+Text.
+
+% A pair of listings, as \codebycode makes: a listing in a cell is in a box.
+\roomfor{2}
+Lead-in PC, to listings side by side.\label{pc}
+
+\marginpar{note PC}
+\testfile{pcx}{9}{}{}%
+\case{pc}\begin{didacticpair}{2}
+  \VerbatimInput{\jobname-pcx.txt} & \label{pcL}\VerbatimInput{\jobname-pcx.txt}
+\end{didacticpair}
+Text.
+
+% A chunk of noweb, woven for minted: its header line comes first.
+\makeatletter
+\ifdefined\nwbegincode
+\makeatother
+\roomfor{2}
+Lead-in K, a code chunk.\label{k}
+
+\marginpar{note K}
+\case{k}\nwbegincode{1}\moddef{hello.py}\endmoddef\nwstartdeflinemarkup\nwenddeflinemarkup
+\catcode37=14\relax\catcode126=13\relax\catcode36=3\relax\catcode38=4\relax\catcode35=6\relax\catcode94=7\relax\catcode95=8\relax\catcode13=5\relax\partopsep=0pt\relax\begin{minted}[xleftmargin=\codemargin,vspace=0pt,escapeinside=||]{python}
+def main():|\label{kL}|
+    print("Hello, world!")
+\end{minted}
+\nwendcode{}\nwbegindocs{2}\nwdocspar
+Text.
+\nwenddocs{}
+\else
+\makeatother
+\fi
+
+% With a frame, which comes before the first line.
+\roomfor{2}
+Lead-in Y2, to a listing in a frame.\label{fr}
+
+\marginpar{note Y2}
+\testfile{fr}{3}{}{}%
+\case{fr}\VerbatimInput[commandchars=\\\{\},frame=lines]{\jobname-fr.txt}
+Text.
+
+% The page ended before the first line even comes, and a note on the empty page.
+\roomfor{2}
+Lead-in E2, and then more space than fits.\label{ee}
+
+\vspace{700pt}\penalty0
+\marginpar{note E2}
+\case{ee}\testlisting{ee}{3}
+Text.
+
+% Controls: the lead-in stays with the listing.
+% A lead-in of one line alone above a listing with no space before it: the page holds
+% the least that there can be more than the listing, one line.
+\roomfor{2}
+Lead-in VZ, no space.\label{vz}
+\testfile{vz}{3}{}{}%
+\case{vz}\VerbatimInput[commandchars=\\\{\},vspace=0pt]{\jobname-vz.txt}
+Text.
+
+\roomfor{2}
+Lead-in C, a blank line only.\label{c}
+
+\case{c}\testlisting{c}{3}
+Text.
+
+\roomfor{2}
+Lead-in Y3, to a listing in a frame.\label{fs}
+\testfile{fs}{3}{}{}%
+\case{fs}\VerbatimInput[commandchars=\\\{\},frame=lines]{\jobname-fs.txt}
+Text.
+
+\roomfor{2}
+Lead-in A, with a note in the paragraph.\label{a}\marginpar{note A}
+\case{a}\testlisting{a}{3}
+Text.
+
+\roomfor{2}
+Lead-in D, with a footnote.\label{d}\footnote{a footnote}
+\case{d}\testlisting{d}{3}
+Text.
+
+\roomfor{3}
+\section*{Heading Q\label{q}}
+\marginpar{note Q}
+\case{q}\testlisting{q}{3}
+Text.
+
+\roomfor{12}
+Lead-in V, to code side by side, in room.\label{v}
+\case{v}\begin{didacticpair}{2}
+  \rule{1pt}{8\baselineskip}\label{vL} & right
+\end{didacticpair}
+Text.
+
+\roomfor{12}
+Lead-in Q2, a note and code side by side, in room.\label{q2}
+
+\marginpar{note Q2}
+\case{qb}\begin{didacticpair}{2}
+  \rule{1pt}{8\baselineskip}\label{q2L} & right
+\end{didacticpair}
+Text.
+
+% A longer paragraph that breaks: its last lines go along.
+\roomfor{2}
+Lead-in E, of several lines, which breaks within the paragraph, so that at least
+its last line goes to the next page with the listing, and we have nothing to warn
+about, since the listing still follows the end of its paragraph on one and the
+same page, which is all that the option asks.\label{e}
+\case{e}\testlisting{e}{3}
+Text.
+
+% On a page begun by a paragraph that broke, a heading and a listing.
+\roomfor{1}
+Lead-in H2, a paragraph of a few lines, which goes over to the next page, where a
+heading follows it, with nothing in the way of the listing under the heading,
+which is the last thing on this page for a long way and doesn't start it, whatever
+the page looks like before it has taken in the listing.
+\section*{Heading H2\label{hh}}
+\case{hh}\testlisting{hh}{3}
+Text.
+
+% A listing that fits, after a note: no page break at all.
+\clearpage
+Lead-in Z, on a page with room.\label{z}
+
+\marginpar{note Z}
+\case{z}\testlisting{z}{3}
+Text.
+
+% The break is asked for, so no warning, though they are on different pages.
+\roomfor{2}
+Lead-in G, by goodbreak.\label{g}
+\goodbreak
+\case{g}\testlisting{g}{3}
+Text.
+
+\roomfor{2}
+Lead-in X, by pagebreak with an argument.\label{x}
+\pagebreak[2]
+\case{x}\testlisting{x}{3}
+Text.
+
+\roomfor{2}
+Lead-in Y, by clearpage.\label{y}
+\clearpage
+\case{y}\testlisting{y}{3}
+Text.
+
+% No lead-in: the end of a list is a place to break, so these are on their own.
+\roomfor{2}
+\begin{itemize}\item An item.\label{t}\end{itemize}
+\case{t}\testlisting{t}{3}
+Text.
+
+\roomfor{3}
+Listing O, with one after it.\label{o}
+\testlisting{o1}{2}
+\case{o}\testlisting{o}{3}
+Text.
+
+\clearpage
+\typeout{leadin results follow}
+\results{m}\results{n}\results{f}\results{h}\results{s}\results{b}\results{r}
+\results{u}\results{l}\results{i}\results{j}\results{p}\results{w}
+\makeatletter
+\ifdefined\nwbegincode\results{k}\fi
+\results{fr}\results{ee}\results{pc}
+\makeatother
+\results{c}\results{a}\results{d}\results{q}\results{e}\results{z}\results{g}
+\results{v}\results{fs}\results{hh}\results{vz}\typeout{leadin result qb lead=\getpagerefnumber{q2}
+    first=\getpagerefnumber{q2L}}
+\results{x}\results{y}\results{t}\results{o}
+\typeout{leadin results end}
+\end{document}

@@ -1,0 +1,8 @@
+# Query: TS=(("one page" OR "single page" OR "one screen" OR screenful) AND (function OR subroutine OR routine OR module OR "source code") AND (length OR size) AND (criticism OR "no effect" OR "no significant" OR myth OR empirical))
+# Provider: wos
+# Timestamp: 2026-11-04T10:01:45.077835
+# Results: 1
+
+title	authors	year	doi	venue	url
+A CUCKOO HASHING VARIANT WITH IMPROVED MEMORY UTILIZATION AND INSERTION TIME	Porat, Ely; Shalem, Bar	2012	10.1109/DCC.2012.41	2012 DATA COMPRESSION CONFERENCE (DCC)	https://www.webofscience.com/wos/woscc/full-record/WOS:000309003700036
+

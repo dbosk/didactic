@@ -1,0 +1,43 @@
+% Test of what counts as an empty line of a listing (didactic), on the strings
+% themselves: the layout tests see only a few of them.  What a line holds as tokens
+% decides: white space, and \PYG with white space, is empty.
+%
+% Build: see the Makefile, which fails on a line with WRONG and when the last line
+% of the checks is missing.
+\documentclass{article}
+\usepackage{didactic}
+\makeatletter
+\newcommand\testblank[2]{%
+  \@didactic@keep@ifblank{#2}{\def\@tempa{1}}{\def\@tempa{0}}%
+  \typeout{didactic blank test: \if\@tempa#1right\else WRONG\fi:
+    \detokenize{#2}}}
+\makeatother
+\catcode9=12
+\begin{document}
+\testblank1{}
+\testblank1{   }
+\testblank1{^^I  ^^I}
+\testblank1{\PYG{+w}{    }}
+\testblank1{\PYG{x}{}}
+\testblank1{\PYG{x}{}\PYG{y}{ }  }
+\testblank1{\PYG{a}{ }\PYG{b}{ }\PYG{c}{ }\PYG{d}{ }}
+\testblank1{\PYG{+w}{^^I}}
+\testblank0{a}
+\testblank0{   a}
+\testblank0{^^I a}
+\testblank0{\foo}
+\testblank0{\PYG}
+\testblank0{\PYG{x}}
+\testblank0{\PYG{n}{import}}
+\testblank0{\PYG{+w}{    }\PYG{k}{return}}
+\testblank0{\PYG{x}{ } b}
+\testblank0{\PYG{x}{ }\PYG}
+\testblank0{\PYG{n}{\PYGZbs{}}}
+\testblank0{\PYGZbs{}}
+\testblank0{PYG {}{}}
+\testblank0{\PYG{a}{ }\PYG{b}{ }\PYG{c}{ }\PYG{d}{e}}
+\testblank0{\#}
+\testblank0{\}}
+\testblank0{\{}
+\typeout{didactic blank test: all ran}
+\end{document}

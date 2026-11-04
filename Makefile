@@ -3,6 +3,9 @@ PDFLATEX?=xelatex -pdf
 LATEXFLAGS=-shell-escape
 PYTHONTEX=python3 $(shell which pythontex) --interpreter python:python3
 
+# A failed check leaves no PDF, so that the next make doesn't call it up to date.
+.DELETE_ON_ERROR:
+
 # The cases of frame titles, one file per kind; see the header of each file.
 TEST_FRAMETITLE_CASES=	test-frametitle-overlay test-frametitle-floats \
 			test-frametitle-boxes test-frametitle-end \
@@ -13,6 +16,9 @@ TEST_KEEP_CHAPTER=	test-keep-chapter-article test-keep-chapter-memoir \
 			test-keep-chapter-book
 TEST_KEEP_NOWEB=	test-keep-filbreak test-keep-breakcode \
 			test-keep-breakcode-late test-keep-filbreak-nogap
+TEST_KEEP_SMALL=	test-keep-style test-keep-columns test-keep-guard \
+			test-keep-pagereset test-keep-nofiles test-keep-box \
+			test-keep-addvspace test-keep-club test-keep-club-article
 TEST_NOTEOVERFLOW=	test-noteoverflow test-noteoverflow-carry \
 			test-noteoverflow-cap \
 			test-noteoverflow-draft test-noteoverflow-draftbreak \
@@ -21,7 +27,12 @@ TEST_NOTEOVERFLOW=	test-noteoverflow test-noteoverflow-carry \
 TEST_FLOATORDER=	test-marginfloat-samepar test-marginfloat-moved \
 			test-marginfloat-chapters test-marginfloat-kinds \
 			test-marginfloat-article
-.DELETE_ON_ERROR:
+# The same with \includeonly, from the .aux files of the whole document.
+TEST_INCLUDE=		test-marginfloat-include-all test-marginfloat-include
+# Warnings from where listings ended up.
+TEST_KEEPCHECK=		test-keep-leadin test-keep-leadin-off test-keep-overfull \
+			test-keep-multicol test-keep-twocol test-keep-noweb \
+			test-keep-noweb-break test-keep-once
 
 .PHONY: all
 all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
@@ -31,16 +42,18 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-marginfloat.pdf test-marginfloat-slides.pdf \
 	test-frametitle.pdf test-frametitle-slides.pdf \
 	test-keep.pdf test-keep-tall.pdf test-keep-tall100.pdf \
-	test-keep-chain.pdf test-keep-heading.pdf test-keep-heading3.pdf \
+	test-keep-chain.pdf test-keep-huge.pdf test-keep-blank.pdf \
+		test-keep-heading.pdf test-keep-heading3.pdf \
 		test-keep-nogap.pdf test-keep-nogap3.pdf test-keep-sweep \
-		${TEST_KEEP_NOWEB:=.pdf} \
+		${TEST_KEEP_NOWEB:=.pdf} ${TEST_KEEP_SMALL:=.pdf} \
 	test-keep-flush.pdf ${TEST_KEEP_CHAPTER:=.pdf} test-keep-stale.pdf \
 	${TEST_NOTEOVERFLOW:=.pdf} test-oldkernel.pdf \
 	test-margin-log.pdf test-margin-log-article.pdf \
 	${TEST_FRAMETITLE_CASES:=.pdf} \
 	test-marginfloat-cases.pdf test-marginfloat-order.pdf \
 	test-marginfloat-inorder.pdf test-marginfloat-hidden.pdf \
-	${TEST_FLOATORDER:=.pdf} check \
+	${TEST_FLOATORDER:=.pdf} test-marginfloat-include.pdf \
+	test-format.pdf check \
 	test-noteyield test-noteyield-cap test-yieldkeep test-biburl
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
@@ -49,8 +62,12 @@ SRC+=	hello.py ask.py askmany.py greet.py filter.py pairgreet1.py pairgreet2.py
 SRC+=	pairwrite.py pairread.py
 # The review behind the decisions on page breaks: the appendix and its sources, and
 # what it was made from, which isn't read in the build (a record of the searches).
-SRC+=	appendix.tex appendix-hitlist.tex didactic.bib
-LIT_RECORD=	heading-foot-of-page.csv $(wildcard queries/*.csv)
+SRC+=	appendix.tex appendix-measure.tex appendix-hitlist.tex didactic.bib
+LIT_RECORD=	heading-foot-of-page.csv $(wildcard queries/*.csv) \
+		queries/t-pen.py queries/t-pen-memoir.py queries/pen.py \
+		queries/pen-results.txt $(wildcard measure-flow/*) \
+		$(wildcard measure-real/*.py) measure-real/README.md \
+		measure-real/measure-real.conf.example
 
 # The change history (\PrintChanges) needs makeindex on the .glo file; that
 # also checks that every \changes entry can be written and typeset.
@@ -65,7 +82,8 @@ didactic.pdf: ${SRC} didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} $<
 	! grep -E 'Empty bibliography|Citation .*undefined|could not be found' didactic.log
 	! grep -E 'WARN|ERROR' didactic.blg
-	! grep -E "Reference .app:.*undefined|Reference .PageBreakDecisions.*undefined" didactic.log
+	! grep -E 'Reference .*undefined' didactic.log
+	pdftotext didactic.pdf - | tr -d '\f' | grep -q '^References$$'
 
 # docstrip asks before overwriting, so remove the old file first.
 didactic.sty: didactic.ins didactic.dtx
@@ -136,6 +154,20 @@ test-marginfloat-order.pdf test-marginfloat-inorder.pdf: %.pdf: %.tex \
 	${PDFLATEX} ${LATEXFLAGS} $<
 ${TEST_FLOATORDER:=.pdf}: %.pdf: %.tex didactic.sty
 	@${latex_until_settled}
+# The whole document first: the .aux files of the chapters that the second one
+# leaves out are its input as much as its sources.  Three runs of the second: its
+# first has no main .aux yet, so it can't take over the left out chapter's counters.
+test-marginfloat-include-all.pdf: test-marginfloat-include-all.tex \
+		test-marginfloat-include-a.tex test-marginfloat-include-b.tex \
+		didactic.sty
+	${RM} test-marginfloat-include-a.aux test-marginfloat-include-b.aux
+	${PDFLATEX} ${LATEXFLAGS} $<
+	${PDFLATEX} ${LATEXFLAGS} $<
+test-marginfloat-include.pdf: test-marginfloat-include.tex \
+		test-marginfloat-include-all.pdf
+	${PDFLATEX} ${LATEXFLAGS} $<
+	${PDFLATEX} ${LATEXFLAGS} $<
+	${PDFLATEX} ${LATEXFLAGS} $<
 
 # What the headers of the tests expect, from the PDFs and logs: building a test
 # only shows that LaTeX didn't stop.  Phony, so that it runs every time, also
@@ -143,10 +175,23 @@ ${TEST_FLOATORDER:=.pdf}: %.pdf: %.tex didactic.sty
 CHECKED_TESTS=	test-marginfloat test-marginfloat-slides test-marginfloat-cases \
 		test-marginfloat-order test-marginfloat-inorder \
 		test-marginfloat-hidden test-frametitle test-frametitle-slides \
-		test-block-nested ${TEST_FRAMETITLE_CASES} ${TEST_FLOATORDER}
+		test-block-nested ${TEST_FRAMETITLE_CASES} ${TEST_FLOATORDER} ${TEST_INCLUDE} \
+		${TEST_KEEPCHECK}
+# Deliberate breaks of the source, and which tests catch them: see test-mutants.txt.
+# Not part of all: it takes hours.
+.PHONY: mutants
+mutants: test-mutants.py test-mutants.txt
+	python3 test-mutants.py ${MUTANTS}
+
 .PHONY: check
 check: test-check.py ${CHECKED_TESTS:=.pdf}
 	python3 test-check.py ${CHECKED_TESTS}
+
+# a format from before the hooks we use: the warning from didactic itself, so
+# right after the log opens the file, since other packages ask for releases too.
+test-format.pdf: test-format.tex didactic.sty
+	-${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	grep -A2 'didactic.sty$$' test-format.log | grep -q 'You have requested release'
 
 # frame titles, in the notes and on the slides, from one source; twice, since
 # beamer asks for a rerun for its outline.
@@ -190,6 +235,7 @@ test-keep.pdf: test-keep.tex didactic.sty
 	@${latex_until_settled}
 	! grep -E 'didactic keep test:.*(FAIL|SKIP)' test-keep.log
 	grep -q 'didactic keep test: all checks ran' test-keep.log
+	! grep 'Overfull .vbox' test-keep.log
 	pdftotext -layout test-keep.pdf - | grep -Eq '^ *1\. +qline 1$$'
 	test "$$(pdftotext test-keep.pdf - | awk -v RS='\f' '/wline 1\n/ && /wline 30/ {n++} /wline 27/ && /wline 30/ {m++} END {print n+0, m+0}')" = "0 1"
 
@@ -226,6 +272,30 @@ test-keep-chain.pdf: test-keep-chain.tex didactic.sty
 	grep -q 'Overfull .vbox' test-keep-chain.log
 	test "${call count_warn,doesn.t fit}" -eq 2
 	test "${call count_word,chained}" -eq 40
+	test "${call count_word,boxed}" -eq 0
+
+# warnings from where things ended up, checked by test-check.py; see the documents.
+test-keep-noweb.pdf test-keep-noweb-break.pdf: %.pdf: %.tex \
+		test-keep-noweb-body.tex didactic.sty
+	@${latex_until_settled}
+test-keep-leadin.pdf test-keep-leadin-off.pdf: %.pdf: %.tex \
+		test-keep-leadin-body.tex didactic.sty
+	@${latex_until_settled}
+test-keep-once.pdf test-keep-overfull.pdf test-keep-multicol.pdf test-keep-twocol.pdf: %.pdf: %.tex didactic.sty
+	@${latex_until_settled}
+
+test-keep-blank.pdf: test-keep-blank.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	! grep 'didactic blank test: WRONG' test-keep-blank.log
+	test "$$(grep -c 'didactic blank test: right' test-keep-blank.log)" -eq 25
+	grep -q 'didactic blank test: all ran' test-keep-blank.log
+
+test-keep-huge.pdf: test-keep-huge.tex didactic.sty
+	@${latex_until_settled}
+	grep -q 'Package didactic Warning: Line 1 of a listing .*taller than a page' test-keep-huge.log
+	grep -A3 'taller than a page' test-keep-huge.log | grep -q 'is lost'
+	grep -A3 'taller than a page' test-keep-huge.log | grep -q 'input line 23'
+	! grep 'may break\|between its lines' test-keep-huge.log
 
 # a heading keeps its lines, within keepmaxgap, or warns: see the documents.
 # Each document also runs with keepafterheading=3 (the files ending in 3 only set
@@ -238,10 +308,10 @@ test-keep-heading.pdf test-keep-heading3.pdf: %.pdf: %.tex test-keep-heading.tex
 	! grep 'Overfull .vbox' $*.log
 	test "$$(grep -c 'Package didactic Warning: .*Only 1 of' $*.log)" -eq 0
 	test "$$(grep -c 'Package didactic Warning: .*Only 2 of' $*.log)" -eq ${ONLY2}
-	test "${call count_warn,can.t break here}" -eq 1
+	test "${call count_warn,What starts at}" -eq 1
 	test "$$(grep -c 'didactic heading test.*PASS' $*.log)" -ge 40
 test-keep-heading.pdf: ONLY2=0
-test-keep-heading3.pdf: ONLY2=2
+test-keep-heading3.pdf: ONLY2=3
 
 test-keep-nogap.pdf test-keep-nogap3.pdf: %.pdf: %.tex test-keep-nogap.tex \
 		test-basedir/keep1/x.tex test-basedir/keep2/x.tex \
@@ -251,29 +321,74 @@ test-keep-nogap.pdf test-keep-nogap3.pdf: %.pdf: %.tex test-keep-nogap.tex \
 	grep -q 'didactic heading test: all checks ran' $*.log
 	test "$$(grep -c 'Package didactic Warning: The heading in test-keep-nogap' $*.log)" -eq ${NOGAP_HEADINGS}
 	! grep 'Overfull .vbox' $*.log
-test-keep-nogap.pdf: NOGAP_HEADINGS=1
-test-keep-nogap3.pdf: NOGAP_HEADINGS=2
+test-keep-nogap.pdf: NOGAP_HEADINGS=0
+test-keep-nogap3.pdf: NOGAP_HEADINGS=1
 
 # page breaks around headings and listings, room by room, against plain LaTeX with
 # the same fonts and margins: see test-keep-sweep.py.  pdflatex, for those fonts.
-SWEEP=m a s s3
-SWEEP_ALL=${SWEEP} mp ap sp
+SWEEP=m a s s3 e
+SWEEP_ALL=${SWEEP} mp ap sp ep
 ${SWEEP_ALL:%=test-keep-sweep-%.tex}: test-keep-sweep-%.tex: test-keep-sweep.py
 	python3 $< gen $* > $@
 ${SWEEP_ALL:%=test-keep-sweep-%.pdf}: PDFLATEX=pdflatex
 ${SWEEP_ALL:%=test-keep-sweep-%.pdf}: %.pdf: %.tex didactic.sty
 	@${latex_until_settled}
+	! grep 'Overfull .vbox' $*.log
 .PHONY: test-keep-sweep
 test-keep-sweep: test-keep-sweep.py ${SWEEP_ALL:%=test-keep-sweep-%.pdf}
-	for v in ${SWEEP}; do python3 $< check $$v || exit 1; done
+	rc=0; for v in ${SWEEP}; do python3 $< check $$v || rc=1; done; exit $$rc
 
 # noweb without breakcode warns, once; with breakcode, however it is set, it doesn't.
 ${TEST_KEEP_NOWEB:=.pdf}: %.pdf: %.tex didactic.sty
 	@${latex_until_settled}
 	test "${call count_warn,Code chunks of noweb}" -eq "${FILBREAK_WARNINGS}"
+	test -z "${LATE_CHECK}" || grep -q 'didactic late test: PASS' $*.log
+test-keep-breakcode-late.pdf: LATE_CHECK=yes
 test-keep-filbreak.pdf: FILBREAK_WARNINGS=1
 test-keep-breakcode.pdf test-keep-breakcode-late.pdf test-keep-filbreak-nogap.pdf: \
 		FILBREAK_WARNINGS=0
+
+# the keep options in small documents; see each of them.  The first runs at each
+# keepafterheading.
+test-keep-style.pdf: test-keep-style.tex didactic.sty
+	for k in 0 2 3; do \
+		${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode \
+			"\def\testk{$$k}\input{test-keep-style}" || exit 1; \
+		! grep -E 'didactic style test:.*FAIL' test-keep-style.log || exit 1; \
+		grep -q 'didactic style test: all checks ran' test-keep-style.log || exit 1; \
+		test "$$(grep -c 'didactic style ran' test-keep-style.log)" -eq 1 || exit 1; \
+		! grep '^!' test-keep-style.log || exit 1; \
+	done
+test-keep-columns.pdf: test-keep-columns.tex didactic.sty
+	@${latex_until_settled}
+	test "${call count_warn,In columns}" -eq 1
+test-keep-guard.pdf: test-keep-guard.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	for m in hpage tp hb hm after pp; do \
+		grep -q "providecommand.@didactic@keep@$$m" test-keep-guard.aux || exit 1; \
+	done
+	sed -i '/providecommand/d' test-keep-guard.aux
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode \
+		"\def\testbeamer{}\input{test-keep-guard}"
+	! grep '^!' test-keep-guard.log
+test-keep-pagereset.pdf: test-keep-pagereset.tex didactic.sty
+	@${latex_until_settled}
+	test "$$(grep -c 'keepafterheading): it moves' test-keep-pagereset.log)" -eq 2
+	! grep "heading in test-keep-pagereset, line $$(grep -n 'Stays, number raised' test-keep-pagereset.tex | cut -d: -f1)" test-keep-pagereset.log
+test-keep-nofiles.pdf: test-keep-nofiles.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	test "${call count_warn,With .nofiles}" -eq 1
+test-keep-box.pdf test-keep-club.pdf test-keep-club-article.pdf: %.pdf: %.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	! grep -E 'didactic (box|club) test:.*FAIL' $*.log
+	grep -Eq 'didactic (box|club) test: all checks ran' $*.log
+test-keep-club-article.pdf: test-keep-club.tex
+test-keep-addvspace.pdf: test-keep-addvspace.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode "\def\testk{0}\input{test-keep-addvspace}"
+	sed -n 's/^didactic addvspace: //p' test-keep-addvspace.log > test-keep-addvspace.k0
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode "\def\testk{2}\input{test-keep-addvspace}"
+	sed -n 's/^didactic addvspace: //p' test-keep-addvspace.log | cmp - test-keep-addvspace.k0
+	test -s test-keep-addvspace.k0
 
 # a heading that ends a page under \flushbottom leaves the space at the foot.
 test-keep-flush.pdf: test-keep-flush.tex didactic.sty
@@ -285,8 +400,8 @@ test-keep-flush.pdf: test-keep-flush.tex didactic.sty
 # section, and an entry for a table only if a section stands in for the chapter.
 ${TEST_KEEP_CHAPTER:=.pdf}: %.pdf: %.tex didactic.sty
 	@${latex_until_settled}
-	test "$$(grep -c 'keep@hpage' $*.aux)" -eq "$$(grep -c '^.section\*' $*.tex)"
-	test "$$(grep -c 'keep@tp' $*.aux)" -eq "$$(grep -c '^.section\*.After' $*.tex)"
+	test "$$(grep -c '^.@didactic@keep@hpage' $*.aux)" -eq "$$(grep -c '^.section\*' $*.tex)"
+	test "$$(grep -c '^.@didactic@keep@tp' $*.aux)" -eq "$$(grep -c '^.section\*.After' $*.tex)"
 
 # the break before a heading doesn't go stale; see the script.
 test-keep-stale.pdf: test-keep-stale.tex test-keep-stale.sh didactic.sty
@@ -496,11 +611,21 @@ clean:
 	${RM} ${SWEEP_ALL:%=test-keep-sweep-%.tex}
 	for f in test-keep-heading test-keep-heading3 test-keep-nogap test-keep-nogap3 \
 			${SWEEP_ALL:%=test-keep-sweep-%} ${TEST_KEEP_NOWEB} \
+			${TEST_KEEP_SMALL} \
 			test-keep-flush test-keep-stale \
 			test-block-nested ${TEST_KEEP_CHAPTER} ${TEST_NOTEOVERFLOW}; do \
 		${RM} $$f.pdf $$f.aux $$f.log $$f.unq $$f.pytxcode $$f.out $$f.toc; \
 	done
 	${RM} test-keep-heading-?.txt test-keep-heading3-?.txt test-keep-stale-room.tex test-keep-stale-opt.tex
+	${RM} ${TEST_KEEPCHECK:=.pdf} ${TEST_KEEPCHECK:=.aux} ${TEST_KEEPCHECK:=.log}
+	${RM} ${TEST_KEEPCHECK:=.unq} ${TEST_KEEPCHECK:=.out}
+	${RM} ${TEST_KEEPCHECK:=.pytxcode} ${TEST_KEEPCHECK:=-?.txt}
+	${RM} test-keep-leadin-*.txt test-keep-leadin-off-*.txt
+	${RM} test-keep-once-m.txt test-keep-once-g.stdout
+	${RM} test-keep-huge.pdf test-keep-huge.aux test-keep-huge.log
+	${RM} test-keep-huge.unq test-keep-huge.pytxcode test-keep-huge-h.txt
+	${RM} test-keep-blank.pdf test-keep-blank.aux test-keep-blank.log
+	${RM} test-keep-blank.unq test-keep-blank.pytxcode
 	${RM} test-oldkernel.pdf test-oldkernel.aux test-oldkernel.log
 	${RM} test-oldkernel.unq test-oldkernel.pytxcode
 	${RM} test-margin-log.pdf test-margin-log.aux test-margin-log.log
@@ -522,6 +647,7 @@ clean:
 	${RM} test-biburl-bbl.bbl test-biburl-bbl.bcf test-biburl-bbl.blg
 	${RM} test-biburl-bbl.run.xml test-biburl-bbl.unq
 	${RM} test-biburl-bbl.pytxcode
+	${RM} _minted/*.minted
 	${RM} ${TEST_FRAMETITLE_CASES:=.pdf} ${TEST_FRAMETITLE_CASES:=.aux}
 	${RM} ${TEST_FRAMETITLE_CASES:=.log} ${TEST_FRAMETITLE_CASES:=.toc}
 	${RM} ${TEST_FRAMETITLE_CASES:=.lof} ${TEST_FRAMETITLE_CASES:=.lot}
@@ -549,4 +675,9 @@ clean:
 	${RM} ${TEST_FLOATORDER:=.toc} ${TEST_FLOATORDER:=.unq}
 	${RM} ${TEST_FLOATORDER:=.pytxcode}
 	${RM} _minted/*.minted
+	${RM} ${TEST_INCLUDE:=.pdf} ${TEST_INCLUDE:=.aux} ${TEST_INCLUDE:=.log}
+	${RM} ${TEST_INCLUDE:=.out} ${TEST_INCLUDE:=.unq} ${TEST_INCLUDE:=.pytxcode}
+	${RM} test-marginfloat-include-a.aux test-marginfloat-include-b.aux
+	${RM} test-format.pdf test-format.aux test-format.log test-format.unq
+	${RM} test-format.pytxcode
 	latexmk -C test.tex

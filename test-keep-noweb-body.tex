@@ -1,0 +1,177 @@
+% The cases of test-keep-noweb.tex and test-keep-noweb-break.tex, as noweave writes
+% them, without minted: noweb sets these chunks itself, one paragraph per line.
+\makeatletter
+\newcommand\roomfor[1]{%
+  \clearpage
+  \noindent\rule{1pt}{\dimexpr\textheight-\topskip-#1\baselineskip-\baselineskip\relax}\par}
+\newcommand\case[1]{\typeout{noweb case #1 line \the\inputlineno}}
+\makeatother
+\begin{document}
+
+% On two pages, so a warning.
+\roomfor{0}
+LEADM in.
+
+\marginpar{note M}
+\case{m}\nwbegincode{1}\moddef{M}\endmoddef\nwstartdeflinemarkup\nwenddeflinemarkup
+CODEM one
+code two
+code three
+\nwendcode{}\nwbegindocs{2}\nwdocspar
+Text after M.
+\nwenddocs{}
+
+\roomfor{0}
+LEADN in.
+
+\ltnote{note N}
+\case{n}\nwbegincode{3}\moddef{N}\endmoddef\nwstartdeflinemarkup\nwenddeflinemarkup
+CODEN one
+code two
+code three
+\nwendcode{}\nwbegindocs{4}\nwdocspar
+Text after N.
+\nwenddocs{}
+
+\roomfor{0}
+LEADF in.
+
+\begin{figure}[b]\rule{1pt}{1pt}\caption{float F}\end{figure}
+\case{f}\nwbegincode{5}\moddef{F}\endmoddef\nwstartdeflinemarkup\nwenddeflinemarkup
+CODEF one
+code two
+code three
+\nwendcode{}\nwbegindocs{6}\nwdocspar
+Text after F.
+\nwenddocs{}
+
+\roomfor{0}
+LEADS in.
+\vspace{2pt}
+\case{s}\nwbegincode{7}\moddef{S}\endmoddef\nwstartdeflinemarkup\nwenddeflinemarkup
+CODES one
+code two
+code three
+\nwendcode{}\nwbegindocs{8}\nwdocspar
+Text after S.
+\nwenddocs{}
+
+\roomfor{0}
+LEADU in.\begin{figure}[h]\rule{1pt}{1pt}\caption{float U}\end{figure}
+\case{u}\nwbegincode{9}\moddef{U}\endmoddef\nwstartdeflinemarkup\nwenddeflinemarkup
+CODEU one
+code two
+code three
+\nwendcode{}\nwbegindocs{10}\nwdocspar
+Text after U.
+\nwenddocs{}
+
+% The page ended before the chunk even comes.
+\roomfor{0}
+LEADH in.
+
+\vspace{700pt}\penalty0
+\marginpar{note H}
+\case{h}\nwbegincode{27}\moddef{H}\endmoddef\nwstartdeflinemarkup\nwenddeflinemarkup
+CODEH one
+code two
+code three
+\nwendcode{}\nwbegindocs{28}\nwdocspar
+Text after H.
+\nwenddocs{}
+
+% Nothing between them, so they go together.
+\roomfor{0}
+LEADQ in, no note.
+\case{q}\nwbegincode{11}\moddef{Q}\endmoddef\nwstartdeflinemarkup\nwenddeflinemarkup
+CODEQ one
+code two
+code three
+\nwendcode{}\nwbegindocs{12}\nwdocspar
+Text after Q.
+\nwenddocs{}
+
+\roomfor{0}
+LEADA in, with a note in the paragraph.\marginpar{note A}
+\case{a}\nwbegincode{13}\moddef{A}\endmoddef\nwstartdeflinemarkup\nwenddeflinemarkup
+CODEA one
+code two
+code three
+\nwendcode{}\nwbegindocs{14}\nwdocspar
+Text after A.
+\nwenddocs{}
+
+\roomfor{8}
+LEADR in, with room.
+
+\marginpar{note R}
+\case{r}\nwbegincode{15}\moddef{R}\endmoddef\nwstartdeflinemarkup\nwenddeflinemarkup
+CODER one
+code two
+code three
+\nwendcode{}\nwbegindocs{16}\nwdocspar
+Text after R.
+\nwenddocs{}
+
+\roomfor{0}
+A paragraph of several lines, which breaks within the paragraph, so that at
+least its last line goes to the next page with the chunk, and we have nothing to
+warn about, since the chunk still follows the end of its paragraph on one and the
+same page, which is all that the option asks of it, however long it takes: LEADE
+\case{e}\nwbegincode{17}\moddef{E}\endmoddef\nwstartdeflinemarkup\nwenddeflinemarkup
+CODEE one
+code two
+code three
+\nwendcode{}\nwbegindocs{18}\nwdocspar
+Text after E.
+\nwenddocs{}
+
+% The break is asked for: on two pages, no warning.
+\roomfor{0}
+LEADG in.
+\goodbreak
+\case{g}\nwbegincode{19}\moddef{G}\endmoddef\nwstartdeflinemarkup\nwenddeflinemarkup
+CODEG one
+code two
+code three
+\nwendcode{}\nwbegindocs{20}\nwdocspar
+Text after G.
+\nwenddocs{}
+
+\roomfor{0}
+LEADY in.
+\clearpage
+\case{y}\nwbegincode{21}\moddef{Y}\endmoddef\nwstartdeflinemarkup\nwenddeflinemarkup
+CODEY one
+code two
+code three
+\nwendcode{}\nwbegindocs{22}\nwdocspar
+Text after Y.
+\nwenddocs{}
+
+% A page full of what can't part: it says so.
+\clearpage
+LEADT in. \rule{1pt}{0.97\textheight}
+\case{t}\nwbegincode{23}\moddef{T}\endmoddef\nwstartdeflinemarkup\nwenddeflinemarkup
+CODET one
+code two
+code three
+\nwendcode{}\nwbegindocs{24}\nwdocspar
+Text after T.
+\nwenddocs{}
+
+% In multicols it says that it isn't tied.
+\clearpage
+\begin{multicols}{2}
+
+LEADC in.
+\case{c}\nwbegincode{29}\moddef{C}\endmoddef\nwstartdeflinemarkup\nwenddeflinemarkup
+CODEC one
+code two
+code three
+\nwendcode{}\nwbegindocs{30}\nwdocspar
+Text after C.
+\nwenddocs{}
+
+\end{multicols}
+\end{document}
