@@ -165,9 +165,10 @@
 %   break, and a page is left less empty for a listing.
 % }
 % \changes{v2.15}{2026/10/22}{%
-%   With \texttt{keepleadin}, sets the club and widow penalties to 10\,000 in 
-%   the notes, so that a lead-in of a few lines, such as an exercise's heading 
-%   and first sentence, moves whole with its listing.
+%   With \texttt{keepleadin}, sets the widow penalty to 10\,000 and the club 
+%   penalty to 1\,000 for every paragraph in the notes, so that a lead-in of 
+%   a line or two moves whole with its listing, and a longer one leaves at 
+%   least two lines with it.
 % }
 % \changes{v2.15}{2026/10/22}{%
 %   Adds the \texttt{noteoverflow} option, passed on to \textsf{marginfix}'s 
@@ -1090,10 +1091,13 @@
 %   listing, without a blank line, and a float before that paragraph.
 %   The header line of a code chunk of \textsf{noweb} stays with its code
 %   too.
-%   For that, no paragraph in the notes leaves its first or last line alone
-%   at the foot or the top of a page: a lead-in of up to three lines, an
-%   exercise's heading included, moves whole with the listing, and a longer
-%   one leaves at least two lines with it.
+%   For that, the widow penalty is 10\,000 and the club penalty 1\,000, for
+%   every paragraph of the notes: no page starts with the last line of a
+%   paragraph, and a first line can stay at the foot of a page, which
+%   \textsf{memoir} allows at the same cost.
+%   A lead-in of one or two lines moves whole with the listing, and a longer
+%   one leaves at least two lines with it, the lines of an exercise's heading
+%   included.
 %   The default is |true|.
 % \item[keepmaxgap] A listing of at most |keeplines| lines moves to the next 
 %   page only if that leaves at most this many empty lines at the foot of 
@@ -6000,25 +6004,34 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % That keeps only the last line of the paragraph with the listing: the 
 % paragraph is on the page before the listing starts, and the breaks 
 % within it are settled.
-% So the heading of an |exercise| with its first line could still end a 
-% page, with the rest of the lead-in and the code on the next.
-% Its club and widow penalties should prevent that, but with a ragged 
-% bottom (\textsf{noweb} sets one) a page that ends short of its height 
-% costs the same wherever it ends, and \TeX\ ends it as late as it can, 
-% whatever the penalties below 10\,000.
-% So with |keepleadin| we make them 10\,000, everywhere in the notes: no 
-% paragraph leaves its first line at the foot of a page or its last line at 
-% the top of the next.
-% A lead-in of up to three lines then moves whole with its listing, and a 
-% longer one leaves at least two lines with it.
+% So a last line could stay with the listing and leave the rest of its 
+% paragraph on the page before, or the heading of an |exercise| with its first 
+% line end a page, with the rest of the lead-in and the code on the next.
+% The penalties of a paragraph can't always prevent that.
+% \TeX's cost of a break is the badness of the page plus the penalty, but a page 
+% that falls short with too little stretch to fill it has the highest badness, 
+% and from then on every break costs the same, whatever the penalty below 
+% 10\,000, and \TeX\ takes the last one.
+% It is the stretch of the page that decides this: \cs{flushbottom} and 
+% \cs{raggedbottom} break in the same places.
+%
+% So with |keepleadin| the widow penalty is 10\,000 and the club penalty 1\,000, 
+% for every paragraph of the notes, not only those before a listing 
+% (\cref{PageBreakDecisions} says why): a page never starts with the last line 
+% of a paragraph, and it may end with a first line, at a cost that counts where 
+% the page has stretch.
+% What goes along with a listing is then its lead-in if that has one or two 
+% lines, and otherwise at least its last two lines.
+% The first paragraph after a heading is another matter: \LaTeX's 
+% |\@afterheading| forbids the break after its first line.
 % \LaTeX\ keeps the club penalty in |\@clubpenalty| too, to restore it 
 % after headings and lists, so we set both, at the beginning of the 
 % document, after \LaTeX\ has copied it.
 %    \begin{macrocode}
 \AtBeginDocument{%
   \if@didactic@keepleadin
-    \clubpenalty\@M
-    \@clubpenalty\@M
+    \clubpenalty\@m
+    \@clubpenalty\@m
     \widowpenalty\@M
   \fi}
 %    \end{macrocode}

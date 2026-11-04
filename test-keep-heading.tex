@@ -36,8 +36,9 @@
 %       the heading of the block.
 %   AM  a heading, a one-line paragraph and a list: the estimate before the
 %       heading moves them.  AN the same for a block.
-%   AO  a paragraph at the foot of a page and at the top of the next: no first
-%       or last line alone.
+%   AO  a paragraph at the foot of a page and at the top of the next: no last
+%       line alone at the top; a first line may stay alone at the foot, the club
+%       penalty being 1000.
 %   AP  a table at the top of a page after a heading, with room to spare.
 %   AR  a heading, a listing that takes no paragraph, then a paragraph: the
 %       first paragraph after the listing isn't kept as a first paragraph.
@@ -294,7 +295,7 @@ Text after AK.
   \end{itemize}
 \end{example}
 
-\roomfor{1}
+\roomfor{0}
 First line\label{ap-1}\\
 second line\label{ap-2}\\
 third line\\
@@ -346,7 +347,7 @@ Paragraph after the listing.\testclubs{AR paragraph after a listing}{0}
 \testcheck{AL block's lines (example)}{am-1}{=}{am-\testk}
 \testcheck{AM heading with the list}{an-a}{=}{an-i}
 \testcheck{AN block with the list}{ao-a}{=}{ao-i}
-\testcheck{AO first line not alone}{ap-1}{=}{ap-2}
+\testcheck{AO first line alone at the foot}{ap-1}{<}{ap-2}
 \testcheck{AO last line not alone}{aq-4}{=}{aq-5}
 \testcheck{AP heading with the table}{ar-a}{=}{ar-t}
 \testlist

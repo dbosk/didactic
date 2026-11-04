@@ -16,8 +16,12 @@
 %       chapter isn't left behind by a break before the section.
 %   BG  a run-in heading, a line and a tall item that doesn't fit: the heading
 %       stays with one line, with a warning (it needs the heading's page).
-%   BH  a heading of two lines, a line and a paragraph: the next lines are chained
-%       to it, so all move.
+%   BH  a heading of two lines, a line and a paragraph, with room for the line
+%       and the paragraph's first line: they stay, which is two lines, and when
+%       the option asks three, all move.  (A first line at the foot of a page is
+%       allowed: the club penalty is 1000.)
+%   BI  the same with room for the line only: the first line of the paragraph is
+%       chained to it, so all move.
 %   AQ  two files of the same name in different directories, and one file read
 %       twice, the second of each with less room than the first, so that a break
 %       recorded for the first would take it too.
@@ -137,8 +141,18 @@ One line.
   indeed it is}\label{bh-a}
 One line.
 
-First line\\
+First line\label{bh-1}\\
 second line\label{bh-2}\\
+third line\\
+fourth line.
+
+\roomfor{5.4}\label{bi-r}
+\section*{BI, a heading long enough to run over two lines of its large font,
+  indeed it is}\label{bi-a}
+One line.
+
+First line\label{bi-1}\\
+second line\\
 third line\\
 fourth line.
 
@@ -163,7 +177,14 @@ fourth line.
 \testcheck{BB2 table on the next page}{bbb-3}{<}{bbb-t}
 \testcheck{BF chapter with the section}{bf-a}{=}{bf-b}
 \testcheck{BG run-in heading stays}{bg-r}{=}{bg-a}
-\testcheck{BH heading with the second paragraph}{bh-a}{=}{bh-2}
+\testcheck{BH heading with the first line of the paragraph}{bh-a}{=}{bh-1}
+\ifnum\testk>2
+\testcheck{BH heading with the second line of the paragraph}{bh-a}{=}{bh-2}
+\else
+\testcheck{BH first line at the foot of the page}{bh-1}{<}{bh-2}
+\fi
+\testcheck{BI heading with the first line of the paragraph}{bi-a}{=}{bi-1}
+\testcheck{BI all move}{bi-r}{<}{bi-a}
 \testcheck{AQ first file: heading with the table}{p-a}{=}{p-t}
 \testcheck{AQ second file: its heading isn't moved}{p-r}{=}{p-c}
 \testcheck{AQ read twice: first with its table}{q1-a}{=}{q1-t}
