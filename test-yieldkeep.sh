@@ -27,6 +27,7 @@ settle() { # <job> <case> <room> <options>
 #   yield       the page ends early for the note, no warning about a line;
 #   hold:<word> it doesn't, the note is capped, and didactic's warning has <word>.
 #   parted      the page ends right under the heading;
+#   clean       it settles with no errors, and a note was split;
 #   warnlone:<word> the page ends early, and a warning has <word>.
 check() {
   name=$1; j=$job-$name
@@ -53,6 +54,8 @@ check() {
         [ "$yields" -gt 0 ] && [ "$capped$told" = 00 ] && ok=yes;;
       parted)
         [ "$yields" -gt 0 ] && [ "$head1" -gt 0 ] && [ "$first1" = 0 ] && ok=yes;;
+      clean)
+        grep -q 'split at the end of page' "$j.log" && ok=yes;;
       warnlone:*)
         grep -q "${5#warnlone:}" "$j.log" && [ "$yields" -gt 0 ] && ok=yes;;
     esac
@@ -85,4 +88,5 @@ check club club 4 '' "hold:$first"
 check widow widow 7 '' "hold:$last"
 check clubzero club 4 'noteyieldmaxgap=0' "warnlone:$first"
 check middle middle 9 '' yield
+check split split 4 '' clean
 exit $status

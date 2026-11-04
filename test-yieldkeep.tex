@@ -20,12 +20,25 @@
 \def\middle{middle}
 \def\theoremcase{theorem}\def\headlist{headlist}\def\withother{withother}
 \def\tallheading{tallheading}\def\tallclub{tallclub}\def\tallwidow{tallwidow}
-\def\tallmiddle{tallmiddle}
+\def\tallmiddle{tallmiddle}\def\split{split}
 \newcommand\tall{\rule{0pt}{4\baselineskip}}
 \newtheorem{thmx}{THMX}
 \begin{document}
+\ifx\testcase\split
+  % The rest of a split note has a box with no key of a callout: it must not
+  % stop us.  A long instructor's note is in the way of the note after it.
+  \noindent x\ltnote{SPLITNOTE \filler\ \filler\ \filler\ \filler\ \filler\ \filler
+    \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler
+    \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler
+    \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler}
+  text
+  \par\noindent\rule{1cm}{.7\textheight}\par
+  \noindent x\marginpar{ORDINARY} text
+  \par\noindent\rule{1cm}{.1\textheight}\par
+\else
 \noindent x\marginpar{TALL\par\rule{1pt}{.97\textheight}} text
 \par\noindent\rule{1cm}{\dimexpr\textheight-\testroom\baselineskip-1\baselineskip}\par
+\fi
 \ifx\testcase\heading
   \section{HEADINGX}
   FIRSTLINE\yieldnote{} \filler\ \filler

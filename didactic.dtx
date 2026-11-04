@@ -3692,6 +3692,7 @@
 % \cs{MFX@fit@capwhy} we give the reason, since the limit it would name isn't the
 % reason here; the same goes for the other notes of that page, which are capped
 % with it.
+% The rest of a split note has a box with no key (\cs{@didactic@fit@key}).
 % The fix for a note held back or a lone line is in the text: a shorter note, or
 % moving the mark.
 %    \begin{macrocode}
@@ -3851,6 +3852,10 @@
   \else
     \@didactic@MFX@fit@callout
   \fi}
+\def\@didactic@fit@key#1{%
+  \expandafter\ifx\csname mfx@bk@#1\endcsname\relax\else
+    \csname mfx@bk@#1\endcsname
+  \fi}
 \def\@didactic@fit@why#1{%
   \if#1c%
     leave\MessageBreak the first line alone at the foot of the page%
@@ -3862,15 +3867,15 @@
 \def\@didactic@fit@iscapped#1{%
   \expandafter\ifx\csname mfx@sp@\number#1\endcsname\relax
     \expandafter\ifx
-        \csname @didactic@fh@\csname mfx@bk@\number#1\endcsname\endcsname\relax
+        \csname @didactic@fh@\@didactic@fit@key{\number#1}\endcsname\relax
     \else
       \expandafter\xdef\csname @didactic@fp@\the\c@page\endcsname{%
-        \csname @didactic@fh@\csname mfx@bk@\number#1\endcsname\endcsname}%
+        \csname @didactic@fh@\@didactic@fit@key{\number#1}\endcsname}%
     \fi
   \fi
   \@didactic@MFX@fit@iscapped{#1}}
 \def\@didactic@fit@capwhy#1{%
-  \expandafter\ifx\csname @didactic@fh@\csname mfx@bk@#1\endcsname\endcsname\relax
+  \expandafter\ifx\csname @didactic@fh@\@didactic@fit@key{#1}\endcsname\relax
     \expandafter\ifx\csname @didactic@fp@\csname mfx@sp@#1\endcsname\endcsname\relax
       \@didactic@MFX@fit@capwhy{#1}%
     \else
@@ -3879,7 +3884,7 @@
     \fi
   \else
     ending its page early would
-    \@didactic@fit@why{\csname @didactic@fh@\csname mfx@bk@#1\endcsname\endcsname}%
+    \@didactic@fit@why{\csname @didactic@fh@\@didactic@fit@key{#1}\endcsname}%
   \fi}
 \def\@didactic@fit@setup{%
   \let\@didactic@MFX@fit@callout\MFX@fit@callout
