@@ -51,7 +51,8 @@ SRC+=	pairwrite.py pairread.py
 # The review behind the decisions on page breaks: the appendix and its sources, and
 # what it was made from, which isn't read in the build (a record of the searches).
 SRC+=	appendix.tex appendix-hitlist.tex didactic.bib
-LIT_RECORD=	heading-foot-of-page.csv $(wildcard queries/*.csv)
+LIT_RECORD=	heading-foot-of-page.csv $(wildcard queries/*.csv) \
+		$(wildcard measure-flow/*)
 
 # The change history (\PrintChanges) needs makeindex on the .glo file; that
 # also checks that every \changes entry can be written and typeset.
@@ -65,7 +66,8 @@ didactic.pdf: ${SRC} didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} $<
 	! grep -E 'Empty bibliography|Citation .*undefined|could not be found' didactic.log
 	! grep -E 'WARN|ERROR' didactic.blg
-	! grep -E "Reference .app:.*undefined|Reference .PageBreakDecisions.*undefined" didactic.log
+	! grep -E 'Reference .*undefined' didactic.log
+	pdftotext didactic.pdf - | grep -q '^References$$'
 
 # docstrip asks before overwriting, so remove the old file first.
 didactic.sty: didactic.ins didactic.dtx

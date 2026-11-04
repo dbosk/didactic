@@ -1065,6 +1065,11 @@
 % listing of |minted|: |\lstexample|, |\inputminted|, the |minted|
 % environment, the output of |\runpython| and |\runshell|, and the code
 % chunks of a literate program woven for |minted|.
+% It doesn't hold for chunks that \textsf{noweb} sets itself, without |minted|:
+% |keeplines| and |keepends| don't reach those, and an 8-line chunk breaks as it does
+% without this package, with one line of code at the foot of a page if that is what
+% fits, and no warning.
+% Only |keepleadin| and |keepmaxgap| hold for them.
 % \DescribeOpt{keeplines}
 % \DescribeOpt{keepends}
 % \DescribeOpt{keepleadin}
@@ -1146,15 +1151,20 @@
 %   Moving a heading must also stay within |keepmaxgap|, which wins: then the
 %   heading has what \LaTeX\ would give it, the lines that fit if it has more
 %   room than this option asks, or the table starts on the next page.
-%   It never has fewer lines than without this option: a heading is never parted
-%   from its first paragraph, and if the first two lines of that don't fit, or
-%   what comes first can't break, it moves whatever the limit, as \LaTeX\ moves it.
-%   Whenever a heading has too few lines, or moves past the limit, a warning
-%   names the heading and says what the page did.
+%   A heading is never parted from what follows it, also not a run-in heading from
+%   a list or a block, and if the first two lines of that don't fit, or what comes
+%   first can't break, it moves whatever the limit, as \LaTeX\ moves it.
+%   A listing right under a heading breaks past the limit, with at least two lines
+%   on each side, if it has them.
+%   Whenever a heading has too few lines, or moves past the limit, a warning gives
+%   the file and the line of the heading and says what the page did.
+%   That comes from the pages, so it takes the |.aux| file: with |\nofiles| a warning
+%   says that nothing can be told, and in columns one says that a move to the next
+%   column can't be.
 %   Nothing else keeps a heading from these lines, except a page you end
 %   yourself, or a place to break that \LaTeX\ offers between short paragraphs
 %   and a list.
-%   The default is 3; 0 turns it off.
+%   The default is 2; 0 turns it off.
 % \end{description}
 % A line counts as empty when it holds nothing but spaces and tabs.
 % One that holds only something else that prints nothing, like a |\label| by
@@ -1214,19 +1224,25 @@
 % notes with this package are mostly made of.
 % It is a measure of practice, since no other is to be had: no study was found of
 % how readers fare with the number of lines under a heading, with short pages, with
-% a lead-in parted from its list, or with lone lines in print.\footnote{%
+% a lead-in parted from its list, or with lone lines in print, and none was
+% read.\footnote{%
 %   See the discussion in \cref{app:pb-lines,app:pb-gap,app:pb-lists} and the
 %   reader evidence in \cref{app:pb-penalties}.}
-% So all of it is craft, and where it is one publisher's habit we say so.
+% The nearest, second hand and with the book unread, points against the costliest of
+% our rules: a blog reports of Wheildon's reader tests that \enquote{no readers said
+% they were offended by -- or even aware of -- widows}.\cite{harrison2020widows}
+% So all of it is craft, and where it is one publisher's sample we say so.
 %
 % \paragraph{Two lines after a heading (\texttt{keepafterheading}).}
 % The University of Chicago Press's sample house style, in the 16th edition of
 % its \emph{Manual}, says: \enquote{The minimum number of lines of text below a
 % subhead at the bottom of a page is two.}\cite[fig.~A.3]{chicago2010manual}
 % It is a labelled sample of what a publisher tells its typesetters, not a rule of
-% the \emph{Manual}, whose running text in the 16th to 18th editions has no number.
-% Thesis manuals say two as well; only a W3C draft goes higher, with
-% \enquote{two or three}, and gives no source for
+% the \emph{Manual}, and nothing shows it was applied; it is two editions old, and
+% whether it survives in the 17th and 18th wasn't established.
+% The running text, in what was read of the 16th to 18th editions, has no number.
+% Thesis manuals say two as well; of what was read, only a W3C draft goes higher,
+% with \enquote{two or three}, and gives no source for
 % it.\footnote{\Cref{app:pb-lines} has who states what.}
 % Plain \LaTeX\ reaches two for a paragraph of two lines or more, and
 % \textsf{memoir} is the same.
@@ -1240,31 +1256,39 @@
 % We don't break that for anything, not for the limit on empty space either.
 %
 % \paragraph{At most five empty lines (\texttt{keepmaxgap}).}
-% The same sample of the Press is the only source with a limit for this very case:
+% The same sample of the Press is the only source read with a limit for this very
+% case, and one handbook was read:
 % \enquote{The text page may be up to four lines short if there is no room for a
 % subhead at the bottom of a page.}\cite[fig.~A.3]{chicago2010manual}
 % So our five is a line more than the only number there is, and that is a choice,
-% with a reason: in the fonts of the notes a heading with its two lines takes about
-% five lines, and \LaTeX\ moves one with less room than that, so at a limit of four
-% a heading with room for four and a half lines could neither keep its two lines
-% nor move within the limit.
-% For other adjustments the Press allows one line, on both facing pages, and books
+% with a reason that holds for the fonts of the notes, \textsf{memoir} at 10\,pt: a
+% |\section| with its two lines fits from a room of 5.25 lines there, a |\subsection|
+% from 5.0, and with \textsf{memoir} at 11\,pt from 5.5, with |article| at 10\,pt from
+% 5.75.
+% Below that a single heading moves in plain \LaTeX\ too, so between four and five
+% our limit changes a warning, not the page.
+% It changes the page only for a heading over a one-line paragraph or a list, which
+% we move, within the limit, and \LaTeX\ doesn't.
+% For other adjustments the sample allows one line, on both facing pages, and books
 % with facing pages may well want less than we do; thesis manuals set no limit.
 % The support is moderate that the heading moves, and limited for the
 % amount.\footnote{\Cref{app:pb-gap} has the numbers, which measure different
 %   things.}
 %
-% \paragraph{Never fewer lines than \LaTeX\ keeps.}
+% \paragraph{No fewer lines than \LaTeX\ keeps, but for two reasons.}
 % Staying within the limit could mean keeping one line under a heading where
 % \LaTeX\ keeps two or moves it.
 % No source read argues, as a principle, for fewer lines to avoid white
 % space.\footnote{See \cref{app:pb-gap}.}
 % So past the limit we follow \LaTeX, and warn.
-% Three things can still leave a line less than plain \LaTeX\ has, each for a
-% decision of its own: a last line that \LaTeX\ would leave alone at the top of the
-% next page, a first line alone at the foot where the page has enough stretch for
-% our club penalty to count, and the header of a chunk of \textsf{noweb} alone at
-% the foot.
+% Two things can still leave a line less than plain \LaTeX\ has, each for a
+% decision of its own: \LaTeX\ would leave a last line alone at the top of the next
+% page, which our widow penalty forbids, or a first line alone at the foot where the
+% page has enough stretch for our club penalty to count.
+% And where \LaTeX\ has the header of a chunk of \textsf{noweb} alone at the foot, as
+% a line under a heading, we move the header to its code.
+% A listing kept whole has fewer lines than \LaTeX\ gives it, too, which is what
+% |keeplines| is for.
 %
 % \paragraph{Club penalty 1000, widow penalty 10000 (with \texttt{keepleadin}).}
 % This goes for every paragraph of the notes, not only for those before a listing.
@@ -1276,16 +1300,26 @@
 %   \Cref{app:pb-penalties} has them and the \TeX\ behind the numbers.}
 % The sources speak of the outcome and not of penalties, so they say nothing of
 % the number.
+% The pair is ours, derived from Chicago's sentence: every \LaTeX\ source read is
+% symmetric, 150 and 150 in the kernel, 1000 and 1000 in \textsf{memoir}, 10000 and
+% 10000 in many journal classes.
 % We are stricter than Chicago on one point: \TeX\ can't tell that a last line is
 % full measure, so no last line starts a page.
 % The first line costs 1000, \textsf{memoir}'s value, whose only stated reason is
 % \enquote{we want stronger discouragement}.\cite{wilson2025memoirsrc}
-% It counts only on a page with some stretch to spare: the \TeX\ FAQ finds finite
-% values all alike,\cite{texfaq2026widows} and in the review's own small test 150 and
-% 1000 differ only in a narrow band of stretch.\footnote{See
-%   \cref{app:pb-penalties}.}
+% It counts only on a page with some stretch to spare, and the \TeX\ FAQ finds
+% finite values all alike,\cite{texfaq2026widows} but it is not nothing: in six
+% generated documents of about 315 pages, with headings every eight paragraphs and a
+% widow penalty of 10000, 150 leaves 38 first lines alone at the foot under
+% \textsf{memoir} and 40 under |article|, 1000 leaves 15 and 6, and 10000 none.
+% See also \cref{app:pb-penalties}.
 % The price of 10000 is what \textcite[p.~250]{mittelbach2018forlorn} says it is,
-% \enquote{partly empty pages}.
+% \enquote{partly empty pages}, and it goes on: \enquote{Thus you are better off
+% allowing widows and orphans (by changing the parameter values) and manually
+% correcting them in one way or another}, if space is at a premium.
+% The manual of \textsf{memoir} says that 10000 \enquote{may well result in some odd
+% looking pages, especially if \cs{raggedbottom} is not
+% used}.\cite[§3.5]{wilson2025memoir}
 %
 % \paragraph{The lead-in stays with its listing (\texttt{keepleadin}), within the limit.}
 % The manual of \textsf{memoir} says, of lists, that \enquote{it can be annoying
@@ -1311,12 +1345,18 @@
 % \paragraph{\textsf{noweb}.}
 % Under |breakcode| we drop the break that \textsf{noweb} offers after a chunk with
 % |\nwdocspar|.
-% In twelve generated documents with the mix of chunk lengths of real ones, that
-% takes the most empty lines from 7.6 to 5.6 and the pages with three or more from 34
-% to 21, for 19 more breaks inside chunks; plain \textsf{noweb} with |breakcode|
-% reaches 6.2.
+% We measured that on twelve generated documents, in \textsf{memoir}'s |article|, with
+% the mix of chunk lengths of real ones, of about 198 pages.
+% With the chunks that \textsf{noweb} sets, dropping it takes the most empty lines from
+% 7.6 to 5.6, which is one page, the pages with three or more from 34 to 21, and those
+% with five or more from 4 to 1, for 19 more breaks inside chunks; plain \textsf{noweb}
+% with |breakcode| has 6.2 and 31.
+% With the chunks woven for |minted|, which most decks are, plain has a mean of 0.96
+% empty lines a page, 28 pages with three or more and at most 6.2, and we have 1.09, 30
+% and 5.3.
 % The same documents without |breakcode| leave up to 41 lines empty, which is why
 % we warn about that.
+% \texttt{measure-flow} in the sources has the generator.
 % ^^A Native chunks; test-keep-sweep.py keeps the rules, not these numbers, which come
 % ^^A from a generator that isn't part of this repository.
 %
