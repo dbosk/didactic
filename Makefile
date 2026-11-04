@@ -60,10 +60,12 @@ SRC+=	hello.py ask.py askmany.py greet.py filter.py pairgreet1.py pairgreet2.py
 SRC+=	pairwrite.py pairread.py
 # The review behind the decisions on page breaks: the appendix and its sources, and
 # what it was made from, which isn't read in the build (a record of the searches).
-SRC+=	appendix.tex appendix-hitlist.tex didactic.bib
+SRC+=	appendix.tex appendix-measure.tex appendix-hitlist.tex didactic.bib
 LIT_RECORD=	heading-foot-of-page.csv $(wildcard queries/*.csv) \
 		queries/t-pen.py queries/t-pen-memoir.py queries/pen.py \
-		queries/pen-results.txt $(wildcard measure-flow/*)
+		queries/pen-results.txt $(wildcard measure-flow/*) \
+		$(wildcard measure-real/*.py) measure-real/README.md \
+		measure-real/measure-real.conf.example
 
 # The change history (\PrintChanges) needs makeindex on the .glo file; that
 # also checks that every \changes entry can be written and typeset.
