@@ -22,11 +22,13 @@ page breaks around headings and listings:
       page, which the widow penalty of 10000 forbids, or with a first line alone at
       the foot, at a cost lower than our 1000 (article's own club penalty is 150).
   D6  A listing's lead-in goes along only within keepmaxgap; parted, there's a warning.
-      What it leaves empty on the page is the room less the lines that stay.
+      What it leaves empty on the page, measured in the output routine, is within
+      the limit when the lead-in moves, and parted is only what would otherwise
+      leave more than that.
   D8  Every warning says what the page does, and no move past the limit is silent:
       a heading that moves with more room than the limit warns, and no other does;
       "only n of its lines" is the number of lines on the page; a listing that
-      "starts the next page" does.
+      "goes to the next page" does.
 """
 import re
 import sys
@@ -79,9 +81,10 @@ HEADER = r"\nwenddocs{}\nwbegincode{2}\moddef{name}\endmoddef\nwstartdeflinemark
 END = r"\nwnotused{name}\nwendcode{}\nwbegindocs{3}\nwdocspar"
 
 
-def chunk(k):
+def chunk(k, n=5, name="C"):
     "A native chunk."
-    return "\n".join([HEADER] + [rf"code{i}\label{{C{i}X{k}}}" for i in range(1, 6)] + [END])
+    return "\n".join([HEADER] + [rf"code{i}\label{{{name}{i}X{k}}}" for i in range(1, n + 1)]
+                     + [END])
 
 
 def wovenchunk(k):
@@ -101,6 +104,12 @@ def heading(k):
 
 
 TAIL = "\n\nAfter.\n"
+
+
+def CW(k):
+    return chunk(k, 2, "A") + "\n" + para(k, 1, "P") + "\n\n" + wovenchunk(k) + TAIL
+
+
 CASES = {
     # heading + paragraphs, directly
     "s": lambda k: heading(k) + "\n" + para(k, 16) + TAIL,
@@ -126,9 +135,15 @@ CASES = {
     "hn1": lambda k: heading(k) + "\n" + para(k, 1, "P") + "\n\n" + chunk(k) + TAIL,
     "hn3": lambda k: heading(k) + "\n" + para(k, 3, "P") + "\n\n" + chunk(k) + TAIL,
     "n3": lambda k: para(k, 3, "P") + "\n\n" + chunk(k) + TAIL,
+    # a lead-in after a chunk: the glue between them goes if the page breaks there.
+    # Five of them, a tenth of a line apart (OFFSET), to hit the limit within that glue.
+    "cw0": CW, "cw1": CW, "cw2": CW, "cw3": CW, "cw4": CW,
+    "n6": lambda k: para(k, 6, "P") + "\n\n" + chunk(k) + TAIL,
     "hw1": lambda k: heading(k) + "\n" + para(k, 1, "P") + "\n\n" + wovenchunk(k) + TAIL,
     "hw3": lambda k: heading(k) + "\n" + para(k, 3, "P") + "\n\n" + wovenchunk(k) + TAIL,
     "w3": lambda k: para(k, 3, "P") + "\n\n" + wovenchunk(k) + TAIL,
+    "w6": lambda k: para(k, 6, "P") + "\n\n" + wovenchunk(k) + TAIL,
+    "v6": lambda k: para(k, 6, "P") + "\n\n" + verbatim(k) + TAIL,
     # code side by side, with didactic only
     "hj1": lambda k: heading(k) + "\n" + para(k, 1, "P") + "\n\n" + pair(k) + TAIL,
     "j3": lambda k: para(k, 3, "P") + "\n\n" + pair(k) + TAIL,
@@ -137,12 +152,22 @@ CASES = {
     "hw": lambda k: heading(k) + "\n" + wovenchunk(k) + TAIL,
 }
 LISTINGS = {"hv1", "hv2", "hv3", "v1", "v3", "v8", "hn1", "hn3", "n3", "hw1", "hw3", "w3",
-            "hj1", "j3"}
-NOHEADING = {"v1", "v3", "v8", "n3", "w3", "j3"}
+            "hj1", "j3", "n6", "w6", "v6", "cw0", "cw1", "cw2", "cw3", "cw4"}
+NOHEADING = {"v1", "v3", "v8", "n3", "w3", "j3", "n6", "w6", "v6",
+             "cw0", "cw1", "cw2", "cw3", "cw4"}
+AFTERCHUNK = {"cw0", "cw1", "cw2", "cw3", "cw4"}
 
 
 def gen(variant):
-    out = [VARIANTS[variant], r"\makeatletter", r"""\newcommand\roomfor[3]{%
+    out = [VARIANTS[variant], r"\makeatletter", r"""\AtBeginDocument{%
+  \output\expandafter{\expandafter\sweepmeasure\the\output}}
+\newcommand\sweepmeasure{%
+  \ifnum\outputpenalty>-10001
+    {\setbox0\vbox{\unvcopy255}%
+     \typeout{PAGE \the\c@page\space\the\ht255\space
+       \the\dimexpr\ht0+\dp0\relax\space\the\baselineskip}}%
+  \fi}
+\newcommand\roomfor[3]{%
   \clearpage\typeout{CASE #1}%
   \noindent\mbox{}R\label{RX#1}\par
   \vspace*{\dimexpr\pagegoal-\pagetotal-#2\baselineskip\relax}\par
@@ -152,7 +177,8 @@ def gen(variant):
         for r in ROOMS:
             k = f"{name}Q{int(2 * r)}"
             out.append(f"% CASE {k}")
-            out.append(rf"\roomfor{{{k}}}{{{r:g}}}{{}}")
+            extra = int(name[-1]) / 10 if name in AFTERCHUNK else 0
+            out.append(rf"\roomfor{{{k}}}{{{r + extra:g}}}{{}}")
             if variant.endswith("p") and name in ("hj1", "j3"):
                 continue    # no such thing without didactic
             out.append(body(k))
@@ -204,6 +230,8 @@ class Pages:
         lines = case_lines(base)
         self.room = {m[1]: float(m[2]) / float(m[3]) for m in re.finditer(
             r"^ROOM (\S+) ([\d.]+)pt ([\d.]+)pt", log, re.M)}
+        self.empty = {int(m[1]): (float(m[2]) - float(m[3])) / float(m[4]) for m in re.finditer(
+            r"^PAGE (\d+) ([\d.]+)pt\s*([\d.]+)pt\s*([\d.]+)pt", log, re.M)}
         self.warn = {}
         for m in re.finditer(
                 r"Package didactic Warning: (.*(?:\n\(didactic\).*)*)", log):
@@ -320,21 +348,27 @@ def check_case(p, ref, name, case, K):
     # D6
     if name in LISTINGS:
         lead_first = p.on("P1", case)
-        n = 1 if name == "v8" else int(name[-1])
+        n = 1 if name == "v8" or name in AFTERCHUNK else int(name[-1])
         lead_last = p.on(f"P{n}", case)
         code = p.on("C1", case)
         parted = lead_last < code
-        says = [w for w in warns if "starts the next page" in w
+        says = [w for w in warns if "goes to the next page" in w
                 or "can't break here" in w]
         if parted and not says:
             fail(case, f"D6: lead-in on {lead_last}, code on {code}, no warning")
-        if says and not parted:
-            fail(case, f"D8: {says[0][:50]}, but the lead-in is with the code")
-        if parted and room <= LIMIT - n and name in NOHEADING:
+        if name in AFTERCHUNK and p.on("A1", case) > r:
+            return  # the first chunk moved, and what warns is about that
+        if says and code <= r:
+            fail(case, f"D8: {says[0][:50]}, but it stays")
+        moving = n if n <= 3 else 2
+        if parted and room - n + moving <= LIMIT - 0.3 and name in NOHEADING \
+                and name not in AFTERCHUNK:
             fail(case, f"D6: parted at room {room:.1f}, within the limit")
-        if name in NOHEADING and lead_first > r and over:
+        if name in NOHEADING and lead_first > r and over and name not in AFTERCHUNK:
             fail(case, f"D6: lead-in moved at room {room:.1f}")
-        if name in NOHEADING and lead_first == r and lead_last > r:
+        if name in NOHEADING and lead_first > r and p.empty.get(r, 0) > LIMIT + 0.01:
+            fail(case, f"D6: lead-in moved, {p.empty[r]:.1f} lines empty")
+        if name in NOHEADING and lead_first == r and lead_last > r and name not in AFTERCHUNK:
             stay = sum(1 for i in range(1, n + 1) if p.on(f"P{i}", case) == r)
             if room - stay > LIMIT + 0.01:
                 fail(case, f"D6: lead-in parted, {stay} lines stay at room {room:.1f}")
