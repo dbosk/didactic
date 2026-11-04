@@ -1,0 +1,7 @@
+# Query: TS=(("one page" OR "single page" OR "one screen" OR screenful) AND (function OR subroutine OR routine OR module OR "source code") AND (length OR size) AND (readability OR comprehension OR maintainability))
+# Provider: wos
+# Timestamp: 2026-11-04T09:56:20.154279
+# Results: 0
+
+title	authors	year	doi	venue	url
+

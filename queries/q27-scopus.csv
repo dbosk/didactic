@@ -1,0 +1,8 @@
+# Query: TITLE-ABS-KEY((LaTeX OR TeX OR noweb OR CWEB OR "literate programming") AND ("code listing" OR listings OR verbatim OR "code chunk") AND ("page break" OR "across pages" OR typesetting))
+# Provider: scopus
+# Timestamp: 2026-11-04T09:54:32.336729
+# Results: 1
+
+title	authors	year	doi	venue	url
+Rapid Evaluation using Multiple Choice Tests and TEX	P. Sojka	2003	10.1145/961626.961628	Proceedings of the Annual SIGCSE Conference on Innovation and Technology in Computer Science Education Itisce	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=1542287535&origin=inward
+

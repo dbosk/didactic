@@ -1,0 +1,7 @@
+# Query: TITLE-ABS-KEY(("code listing" OR "source code" OR "program listing") AND (book OR textbook OR "style guide" OR publisher) AND ("page break" OR "page layout" OR pagination OR "line numbers"))
+# Provider: scopus
+# Timestamp: 2026-11-04T09:55:31.386834
+# Results: 0
+
+title	authors	year	doi	venue	url
+

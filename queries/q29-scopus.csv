@@ -1,0 +1,8 @@
+# Query: TITLE-ABS-KEY(("one page" OR "single page" OR "one screen" OR screenful) AND (function OR subroutine OR routine OR module OR "source code") AND (length OR size) AND (readability OR comprehension OR maintainability))
+# Provider: scopus
+# Timestamp: 2026-11-04T09:56:27.701012
+# Results: 1
+
+title	authors	year	doi	venue	url
+Facilitating enrollment in a cancer registry through modified consen t procedures: A pilot study	S. Mazanec	2012	10.1525/jer.2012.7.5.71	Journal of Empirical Research on Human Research Ethics	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=84872691287&origin=inward
+
