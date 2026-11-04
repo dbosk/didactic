@@ -35,4 +35,10 @@ cfg['nG']=dict(pre=ART+NW+dd(',keepmaxgap=0')+BC)
 cfg['nn']=dict(pre=ART+NW+dd())
 cfg['nG']=dict(pre=ART+NW+dd(',keepmaxgap=0')+BC)
 cfg['nn']=dict(pre=ART+NW+dd())
+# The pair of club and widow penalties, on both kinds of chunk.  1001 tells a last line
+# from a first one, for counting; its breaks are those of 1000.
+PAIR=r"\AtBeginDocument{\clubpenalty=%d \csname @clubpenalty\endcsname=%d \widowpenalty=%d\relax}"
+for s,(c,w) in {'A':(1000,10000),'B':(10000,10000),'W':(1000,1001)}.items():
+    cfg['n'+s]=dict(pre=ART+NW+dd()+BC+PAIR%(c,c,w))
+    cfg['m'+s]=dict(pre=ART+dd()+MINTNW+PAIR%(c,c,w),minted=True)
 json.dump(cfg,open('cfg.json','w'))

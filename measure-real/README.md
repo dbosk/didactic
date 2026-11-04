@@ -95,5 +95,9 @@ needs no documents of yours:
     ./run.sh none no; ./run.sh bc no; ./run.sh mintp no           # plain
     ./run.sh n current; ./run.sh nn current; ./run.sh m current   # the package
     python3 stats.py none bc mintp n nn m
+    python3 pages.py none bc mintp n nn m                         # pages per document
 
 The names are in `cfgmake.py`: `n` is breakcode, `nn` no option, `m` minted chunks.
+`nA`, `nB`, `nW`, and `mA`, `mB`, `mW` are the pairs 1000/10000, 10000/10000 and
+1000/1001, which tells lone last lines from first ones. `queries/pen.py` is the same
+comparison with no package: `python3 queries/pen.py EMPTYDIR 300`.
