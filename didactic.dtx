@@ -5631,6 +5631,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \newif\if@didactic@keep@chunkwarned
 \newif\if@didactic@keep@hmdue
 \newif\if@didactic@keep@pairdue
+\newif\if@didactic@keep@titleonly
 \@didactic@keep@movabletrue
 \let\@didactic@keep@tie\relax
 \@ifclassloaded{beamer}{\@didactic@keepfalse}{\@didactic@keeptrue}
@@ -5872,7 +5873,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \@didactic@keep@longfalse
   \ifnum\@didactic@keep@n>\@didactic@keeplines
     \@didactic@keep@longtrue
-  \else\ifnum\@didactic@keepmaxgap>\z@
+  \fi
+  \ifnum\@didactic@keepmaxgap>\z@
     \ifvmode\ifinner\else
     \begingroup\@@par\endgroup
     \ifdim\pagegoal<\maxdimen
@@ -5884,7 +5886,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
         \fi
       \fi
     \fi\fi\fi
-  \fi\fi
+  \fi
 }
 \def\@didactic@keep@ifchained{%
   \@tempswafalse
@@ -5918,6 +5920,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \protected@write\@auxout{\let\@didactic@keep@cpage\relax}{%
         \string\@didactic@keep@pp{\@didactic@keep@pairpage}%
           {\@didactic@keep@cpage}{\@didactic@keep@pairline}}%
+      \ifvmode\nobreak\fi
     \fi
   \fi}
 \def\@didactic@keep@pp#1#2#3{%
@@ -6388,7 +6391,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \fi}
 \def\@didactic@keep@startsection#1#2#3#4#5#6{%
   \ifnum#2>\z@
-    \if@didactic@keep@inbox\else
+    \if@didactic@keep@inbox\else\ifinner\else
       \if@noskipsec
         \@tempskipa\@didactic@keep@L
       \else
@@ -6411,15 +6414,36 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
         \advance\@didactic@keep@tmpb\pagedepth
         \@didactic@keep@room{\@tempskipa-\glueshrink\@tempskipa
           +\@didactic@keep@tmpb+\@tempskipb-\glueshrink\@tempskipb}%
+        \@didactic@keep@forcetitle{#4}%
         \global\@didactic@keep@headstate\z@
         \global\@didactic@keep@ownlinetrue
       \else
         \@didactic@keep@room{\@tempskipa-\glueshrink\@tempskipa}%
+        \@didactic@keep@forcetitle{#4}%
         \@didactic@keep@headwaits
       \fi
-    \fi
+    \fi\fi
   \fi
   \@didactic@startsection{#1}{#2}{#3}{#4}{#5}{#6}}
+\def\@didactic@keep@forcetitle#1{%
+  \if@noskipsec
+    \global\@didactic@keep@titleonlytrue
+    \leavevmode\par
+    \@tempskipb#1\relax
+    \ifdim\@tempskipb<\z@ \@tempskipb-\@tempskipb \fi
+    \addvspace\@tempskipb
+    \@nobreaktrue
+  \fi}
+\def\@didactic@keep@thmhead#1{%
+  \@didactic@deferred@thm@head{#1}%
+  \@nobreaktrue}
+\def\@didactic@keep@titlewaits{%
+  \if@noskipsec
+    \if@didactic@keep@inbox\else\ifinner\else
+      \global\@didactic@keep@titleonlytrue
+      \@beginparpenalty\@M
+    \fi\fi
+  \fi}
 \AtBeginDocument{%
   \let\@didactic@startsection\@startsection
   \let\@startsection\@didactic@keep@startsection
@@ -6427,7 +6451,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \let\@didactic@thm\@thm
     \def\@thm{%
       \ifhmode\unskip\unskip\par\fi
-      \if@didactic@keep@inbox\else
+      \if@didactic@keep@inbox\else\ifinner\else
         \@didactic@keep@headrecord
         \if@noskipsec
           \@didactic@keep@room{\topsep-\glueshrink\topsep+\@didactic@keep@L}%
@@ -6435,9 +6459,18 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
           \@didactic@keep@room{\topsep-\glueshrink\topsep}%
         \fi
         \@didactic@keep@headwaits
-      \fi
+        \aftergroup\@didactic@keep@blockend
+      \fi\fi
       \@didactic@thm}%
   \fi
+  \ifdefined\deferred@thm@head
+    \let\@didactic@deferred@thm@head\deferred@thm@head
+    \let\deferred@thm@head\@didactic@keep@thmhead
+  \fi
+  \let\@didactic@trivlist\@trivlist
+  \def\@trivlist{\@didactic@keep@titlewaits\@didactic@trivlist}%
+  \let\@didactic@FV@LeaveVMode\FV@LeaveVMode
+  \def\FV@LeaveVMode{\@didactic@keep@titlewaits\@didactic@FV@LeaveVMode}%
   \g@addto@macro\@afterheading{\@didactic@keep@afterheading}%
   \ifdefined\LT@start
     \let\@didactic@LT@start\LT@start
@@ -6659,7 +6692,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \fi
   \fi}
 \def\@didactic@keep@afterheading{%
-  \if@didactic@keep@inbox\else
+  \if@didactic@keep@inbox\else\ifinner\else
     \if@didactic@keep@ownline
       \global\@didactic@keep@ownlinefalse
       \ifnum\@didactic@keepafterheading>\z@
@@ -6673,7 +6706,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \global\@didactic@keep@headstate\z@
       \global\let\@didactic@keep@owedkey\@empty
     \fi
-  \fi}
+  \fi\fi}
 \def\@didactic@keep@tableowed{%
   \global\@didactic@keep@ltowedfalse
   \if@didactic@keep@inbox\else
@@ -6818,6 +6851,10 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \fi
   \fi
   \global\@didactic@keep@asked\@didactic@keep@owed}
+\def\@didactic@keep@blockend{%
+  \global\@didactic@keep@headstate\z@
+  \global\clubpenalties\z@
+  \global\let\@didactic@keep@owedkey\@empty}
 \def\@didactic@keep@parabefore{%
   \ifcase\currentgrouptype
   \or\or\or\or
@@ -6843,7 +6880,12 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \ifcase\@didactic@keep@headstate
     \or
       \@didactic@keep@movecheck
-      \@didactic@keep@measure
+      \if@didactic@keep@titleonly\else
+        \@didactic@keep@measure
+        \if@nobreak\else\if@noskipsec\else
+          \@didactic@keep@parted
+        \fi\fi
+      \fi
       \global\@didactic@keep@ptotal\pagetotal
     \or
       \global\clubpenalties\z@
@@ -6857,6 +6899,15 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \@didactic@keep@movecheck
     \or
       \global\@didactic@keep@headstate\z@
+    \fi
+  \fi}
+\def\@didactic@keep@parted{%
+  \if@filesw
+    \ifx\@didactic@keep@headkey\@empty\else
+      \protected@write\@auxout{\let\@didactic@keep@cpage\relax}{%
+        \string\@didactic@keep@after{\@didactic@keep@headkey}%
+          {\@didactic@keep@cpage}{0}}%
+      \nobreak
     \fi
   \fi}
 \def\@didactic@keep@parabegin{%
@@ -6883,7 +6934,15 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \def\@didactic@keep@paraafter{%
   \if@didactic@keep@inbox\else
     \global\@didactic@keep@pend\dimexpr\pagetotal+\pagedepth\relax
-    \ifnum\@didactic@keep@headstate=\tw@
+    \if@didactic@keep@titleonly
+      \global\@didactic@keep@titleonlyfalse
+      \global\clubpenalties\z@
+      \ifnum\@didactic@keep@headstate>\z@
+        \global\@didactic@keep@headstate\@ne
+      \fi
+      \@didactic@keep@headpage
+      \nobreak
+    \else\ifnum\@didactic@keep@headstate=\tw@
       \@didactic@keep@tmpc\prevgraf
       \ifdim\pagetotal>\@didactic@keep@ptotal
         \@didactic@keep@tmp\dimexpr\pagetotal-\@didactic@keep@ptotal\relax
@@ -6910,7 +6969,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \fi
     \else\ifnum\@didactic@keep@headstate=4
       \global\@didactic@keep@headstate\@ne
-    \fi\fi
+    \fi\fi\fi
   \fi}
 \def\@didactic@keep@after#1#2#3{%
   \@ifundefined{@didactic@hp@#1}{}{%
@@ -6918,7 +6977,10 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \ifx\@newl@bel\@testdef
         \@ifundefined{@didactic@ha@#1}{%
           \global\@namedef{@didactic@ha@#1}{}%
-          \@didactic@keep@tellhead{#1}{only #3 of its lines are on its page}%
+          \@didactic@keep@tellhead{#1}{\ifcase#3\relax its first paragraph
+            starts on the next page\or only 1 line follows it on
+            its\MessageBreak page\else only #3 lines follow it on
+            its\MessageBreak page\fi}%
         }{}%
       \fi
     \fi}}
