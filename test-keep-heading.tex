@@ -30,8 +30,9 @@
 %   AJ  a lead-in and two listings in a row.  With room for the first but
 %       for a few points, it breaks: nothing moves, and no page is overfull.
 %       With room for the first, the second moves alone.
-%   AK  a heading, a lead-in and a listing too short to break: it moves, more
-%       room than keepmaxgap stays empty, and a warning says so.
+%   AK  a heading, a lead-in and a listing too short to break, with more room
+%       than keepmaxgap at the heading: the tie to the lead-in is released, the
+%       listing starts the next page, and a warning says so.
 %   AL  a frame title, then a block or an example: keepafterheading lines after
 %       the heading of the block.
 %   AM  a heading, a one-line paragraph and a list: the estimate before the
@@ -175,7 +176,7 @@ third line\nl
 fourth line\nl
 fifth line.
 
-\roomfor{9}
+\roomfor{8.5}
 Lead\\in\\three.
 \testlisting{u}{1}
 \testlisting{v}{10}
@@ -342,7 +343,9 @@ Paragraph after the listing.\testclubs{AR paragraph after a listing}{0}
 \testcheck{AJ first listing with its lead-in, with room}{aj2-l}{=}{sL10}
 \testcheck{AJ second listing on the next page}{sL10}{<}{tL1}
 \testcheck{AJ second listing whole}{tL1}{=}{tL8}
-\testcheck{AK heading with the listing}{ak-a}{=}{mL1}
+\testcheck{AK heading stays with its lead-in}{ak-a}{=}{ak-l}
+\testcheck{AK listing on the next page}{ak-l}{<}{mL1}
+\testcheck{AK listing whole}{mL1}{=}{mL4}
 \testcheck{AL block's lines (block)}{al-1}{=}{al-\testk}
 \testcheck{AL block's lines (example)}{am-1}{=}{am-\testk}
 \testcheck{AM heading with the list}{an-a}{=}{an-i}

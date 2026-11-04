@@ -38,6 +38,8 @@
 %   S  a short listing over the full width by \lstexample*, with room for
 %      2 lines: on the next page with its lead-in.
 %   Y  the same by didactic_mint(fullwidth=True), through PythonTeX.
+%   S2 as S with room for 5.5 lines and a lead-in of three, where moving them
+%      would leave more than keepmaxgap: the listing starts the next page, alone.
 %   N  a listing after a paragraph with an \ltnote in it, with room for 2
 %      lines: on the next page with its lead-in.  M the same with \marginpar,
 %      P with a float before the lead-in.  (Between the lead-in and the listing,
@@ -244,6 +246,14 @@ Lead-in S, code over the full width by \verb|\lstexample*|:\label{s-lead}
 \lstexample*{text}{\jobname-s.txt}
 Text after S.
 
+\roomfor{4.5}
+Lead-in S2,\\
+over three lines,\\
+code over the full width:\label{s2-lead}
+\testfile{z}{5}{|}{|}%
+\lstexample*{text}{\jobname-z.txt}
+Text after S2.
+
 \roomfor{2}
 Lead-in Y, by \verb|didactic_mint(fullwidth=True)|:\label{y-lead}
 \begin{pycode}
@@ -395,6 +405,7 @@ Text after H.
 \item H depth after the listing: \@keeptest@result\ (\@keeptest@hdepth)
 \makeatother
 \testcheck{J lead-in with the pair}{j-lead}{=}{j-pair}
+\testcheck{S2 listing on the next page, alone}{s2-lead}{<}{zL1}
 \testcheck{S lead-in with the listing}{s-lead}{=}{sL1}
 \testcheck{S the whole listing}{s-lead}{=}{sL5}
 \testcheck{Y lead-in with the listing}{y-lead}{=}{yL1}
