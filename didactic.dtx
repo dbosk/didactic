@@ -669,7 +669,7 @@
 % paragraph dense with citations, whose footnotes are in the margin too.
 % Then a note moves to the next page, away from its mark.
 % With |noteoverflow=break|, the default, the text gives way instead: the 
-% page ends before the line that calls out the first note that doesn't fit,
+% page ends before the line that calls out the first note that doesn't fit, 
 % in the next run, so that line and its note start the next page.
 % It does so only as far as |noteyieldmaxgap| below allows, so on a page where
 % that line is high up, the notes still move, with a warning for each.
@@ -3635,8 +3635,8 @@
 % The limit of |noteyieldmaxgap| is a number of lines, so we set it when 
 % the document starts and |\baselineskip| is that of the text.
 % With 0 we leave \textsf{marginfix}'s limit as it is: none, or your own.
-% We also leave it if it isn't \cs{maxdimen} by then, that is if you have set
-% your own in the preamble, before or after |\usepackage{didactic}|: yours
+% We also leave it if it isn't \cs{maxdimen} by then, that is if you have set 
+% your own in the preamble, before or after |\usepackage{didactic}|: yours 
 % wins.
 % And we leave it with an engine where no page can end early for a note, as
 % with Xe\LaTeX: a limit would have \textsf{marginfix} say of each carried note
@@ -3657,7 +3657,7 @@
       \fi
     \fi
   \else
-\if@didactic@noteyieldgiven
+    \if@didactic@noteyieldgiven
       \ifnum\@didactic@noteyieldmaxgap>\z@
         \PackageWarningNoLine{didactic}{The option noteyieldmaxgap does
           nothing here:\MessageBreak
