@@ -29,7 +29,7 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-marginfloat.pdf test-marginfloat-slides.pdf \
 	test-frametitle.pdf test-frametitle-slides.pdf \
 	test-keep.pdf test-keep-tall.pdf test-keep-tall100.pdf \
-	test-keep-chain.pdf test-oldkernel.pdf \
+	test-keep-chain.pdf test-keep-huge.pdf test-oldkernel.pdf \
 	test-margin-log.pdf test-margin-log-article.pdf \
 	${TEST_FRAMETITLE_CASES:=.pdf} \
 	test-marginfloat-cases.pdf test-marginfloat-order.pdf \
@@ -240,6 +240,13 @@ test-keep-leadin.pdf test-keep-leadin-off.pdf: %.pdf: %.tex \
 test-keep-overfull.pdf: %.pdf: %.tex didactic.sty
 	@${latex_until_settled}
 
+test-keep-huge.pdf: test-keep-huge.tex didactic.sty
+	@${latex_until_settled}
+	grep -q 'Package didactic Warning: Line 1 of a listing .*taller than a page' test-keep-huge.log
+	grep -A3 'taller than a page' test-keep-huge.log | grep -q 'is lost'
+	grep -A3 'taller than a page' test-keep-huge.log | grep -q 'input line 23'
+	! grep 'may break' test-keep-huge.log
+
 # the place of the margin column in the log against where a note is printed.
 test-margin-log.pdf test-margin-log-article.pdf: %.pdf: %.tex test-margin-log.tex \
 		test-margin-log.sh didactic.sty
@@ -319,6 +326,8 @@ clean:
 	${RM} ${TEST_KEEPCHECK:=.unq} ${TEST_KEEPCHECK:=.out}
 	${RM} ${TEST_KEEPCHECK:=.pytxcode} ${TEST_KEEPCHECK:=-?.txt}
 	${RM} test-keep-leadin-o1.txt test-keep-leadin-off-o1.txt
+	${RM} test-keep-huge.pdf test-keep-huge.aux test-keep-huge.log
+	${RM} test-keep-huge.unq test-keep-huge.pytxcode test-keep-huge-h.txt
 	${RM} test-oldkernel.pdf test-oldkernel.aux test-oldkernel.log
 	${RM} test-oldkernel.unq test-oldkernel.pytxcode
 	${RM} test-margin-log.pdf test-margin-log.aux test-margin-log.log

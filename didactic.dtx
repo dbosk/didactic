@@ -5498,6 +5498,10 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % rest, and its penalty to |\@didactic@keep@headpen|.
 % The list of the page gets the same things in the same order as before.
 %
+% A line taller than a page can't be kept from losing what doesn't fit: a page
+% can't break within a line.
+% We say so.
+%
 % A line that \textsf{fvextra} wraps (|breaklines|) is a box with the first 
 % row as its height and the other rows as its depth.
 % With that depth last on a page that \TeX\ has to stretch, which a page 
@@ -5589,6 +5593,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \if@didactic@keep@glue
         \global\advance\@didactic@keep@lineht\@didactic@keep@skip
       \fi
+      \@didactic@keep@taller
       \global\@didactic@keep@firstht\ht\@didactic@keep@line
       \global\@didactic@keep@pen\@M
       \ifnum\@didactic@keep@i<\@didactic@keep@n
@@ -5662,6 +5667,16 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \global\@didactic@keep@duetrue
   \fi
   \prevdepth\@didactic@keep@pd}
+\def\@didactic@keep@taller{%
+  \if@didactic@keep@watch
+    \ifdim\@didactic@keep@lineht>\dimexpr\textheight-\topskip\relax
+      \PackageWarningNoLine{didactic}{%
+        Line \the\@didactic@keep@i\space of a listing of
+        \the\@didactic@keep@n\space lines is taller than a page.\MessageBreak
+        A page can't break within a line, so what doesn't\MessageBreak
+        fit is lost, \@didactic@keep@place}%
+    \fi
+  \fi}
 %    \end{macrocode}
 % \end{macro}
 % \end{macro}
