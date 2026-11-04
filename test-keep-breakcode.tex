@@ -1,0 +1,18 @@
+% noweb's \filbreak and keepmaxgap (didactic): with breakcode: no warning.
+% The Makefile counts the warnings.
+\documentclass[a4paper]{memoir}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{noweb}
+\noweboptions{breakcode}
+\usepackage{didactic}
+\begin{document}
+
+Text before the chunks.
+\nwenddocs{}\nwbegincode{1}\moddef{one}\endmoddef\nwstartdeflinemarkup\nwenddeflinemarkup
+line
+\nwnotused{one}\nwendcode{}\nwbegindocs{2}\nwdocspar
+Text between them.
+\nwenddocs{}\nwbegincode{3}\moddef{two}\endmoddef\nwstartdeflinemarkup\nwenddeflinemarkup
+line
+\nwnotused{two}\nwendcode{}\nwbegindocs{4}\nwdocspar
+\end{document}

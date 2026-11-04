@@ -30,6 +30,7 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-keep.pdf test-keep-tall.pdf test-keep-tall100.pdf \
 	test-keep-chain.pdf test-keep-heading.pdf test-keep-heading3.pdf \
 		test-keep-nogap.pdf test-keep-nogap3.pdf \
+		${TEST_KEEP_NOWEB:=.pdf} \
 	test-keep-flush.pdf ${TEST_KEEP_CHAPTER:=.pdf} test-keep-stale.pdf \
 	${TEST_NOTEOVERFLOW:=.pdf} test-oldkernel.pdf \
 	test-margin-log.pdf test-margin-log-article.pdf \
@@ -239,6 +240,16 @@ test-keep-nogap.pdf test-keep-nogap3.pdf: %.pdf: %.tex test-keep-nogap.tex \
 test-keep-nogap.pdf: NOGAP_HEADINGS=1
 test-keep-nogap3.pdf: NOGAP_HEADINGS=2
 
+# noweb without breakcode warns, once; with breakcode, however it is set, it doesn't.
+TEST_KEEP_NOWEB=test-keep-filbreak test-keep-breakcode test-keep-breakcode-late \
+		test-keep-filbreak-nogap
+${TEST_KEEP_NOWEB:=.pdf}: %.pdf: %.tex didactic.sty
+	@${latex_until_settled}
+	test "${call count_warn,Code chunks of noweb}" -eq "${FILBREAK_WARNINGS}"
+test-keep-filbreak.pdf: FILBREAK_WARNINGS=1
+test-keep-breakcode.pdf test-keep-breakcode-late.pdf test-keep-filbreak-nogap.pdf: \
+		FILBREAK_WARNINGS=0
+
 # a heading that ends a page under \flushbottom leaves the space at the foot.
 test-keep-flush.pdf: test-keep-flush.tex didactic.sty
 	@${latex_until_settled}
@@ -366,6 +377,7 @@ clean:
 	${RM} test-keep-chain.pdf test-keep-chain.aux test-keep-chain.log
 	${RM} test-keep-chain.unq test-keep-chain.pytxcode test-keep-chain-?.txt
 	for f in test-keep-heading test-keep-heading3 test-keep-nogap test-keep-nogap3 \
+			${TEST_KEEP_NOWEB} \
 			test-keep-flush test-keep-stale \
 			test-block-nested ${TEST_KEEP_CHAPTER} ${TEST_NOTEOVERFLOW}; do \
 		${RM} $$f.pdf $$f.aux $$f.log $$f.unq $$f.pytxcode $$f.out $$f.toc; \

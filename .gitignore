@@ -319,6 +319,14 @@ test-keep-heading3.unq
 test-keep-heading3-?.txt
 test-keep-nogap3.pdf
 test-keep-nogap3.unq
+test-keep-filbreak.pdf
+test-keep-filbreak.unq
+test-keep-filbreak-nogap.pdf
+test-keep-filbreak-nogap.unq
+test-keep-breakcode.pdf
+test-keep-breakcode.unq
+test-keep-breakcode-late.pdf
+test-keep-breakcode-late.unq
 test-keep-flush.pdf
 test-keep-flush.unq
 test-keep-chapter-*.pdf

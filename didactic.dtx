@@ -6805,6 +6805,12 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % |breakcode| a penalty of $-200$ with 0.2\,in of stretch, which in the 
 % notes ends pages right after a chunk with several lines empty.
 % With a |keepmaxgap| we leave the breaks to the rules above and drop it.
+% The |\filbreak| that \textsf{noweb} has at the end of a chunk without 
+% |breakcode| we can't drop as well as honour what the writer may want of it, and 
+% it ends a page wherever the next chunk doesn't fit whole, so |keepmaxgap| can't 
+% bound what that leaves empty.
+% We say so once, at the first chunk, since |\noweboptions| can come as late as 
+% the first text of the document.
 % \textsf{noweb} is usually loaded after us, so we patch it at the beginning 
 % of the document, if it's loaded.
 % |\patchcmd| reads the patched macro anew with the category codes of the 
@@ -6813,8 +6819,44 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 %    \begin{macrocode}
 \let\@didactic@nwfirstpenalty\relax
 \def\@didactic@nwkeep{%
+  \@didactic@nwfilbreak
+  \@didactic@keep@inchunktrue
+  \@didactic@keep@chunkwarnedfalse
   \if@didactic@keepleadin
     \def\@didactic@nwfirstpenalty{\@M}%
+  \fi}
+\def\@didactic@nwtie{%
+  \if@didactic@keep@inchunk
+  \@didactic@keep@tie
+  \if@didactic@keepleadin
+    \if@didactic@keep@movable
+      \@beginparpenalty\@M
+    \else
+      \if@nobreak\else
+        \setbox\@tempboxa\vbox{\nowebsize\global\dimen@\baselineskip}%
+        \ifdim\dimexpr\pagegoal-\pagetotal+\pageshrink\relax
+            <\dimexpr\@topsep-\glueshrink\@topsep+2\dimen@\relax
+          \@didactic@keep@chunkwarnedtrue
+          \PackageWarning{didactic}{%
+            A code chunk starts the next page, apart from what\MessageBreak
+            leads into it: moving that too would leave more\MessageBreak
+            than keepmaxgap lines empty, near page \the\c@page}%
+        \fi
+      \fi
+    \fi
+  \fi
+  \fi}
+\def\@didactic@nwfilbreak{%
+  \global\let\@didactic@nwfilbreak\relax
+  \ifnum\@didactic@keepmaxgap>\z@
+    \expandafter\in@\expandafter\filbreak\expandafter{\nwendcode}%
+    \ifin@
+      \PackageWarningNoLine{didactic}{%
+        Code chunks of noweb end with \string\filbreak, which can\MessageBreak
+        leave most of a page empty, whatever keepmaxgap\MessageBreak
+        says. Use \string\noweboptions{breakcode}; the option\MessageBreak
+        \string\usepackage[breakcode]{noweb} has no effect}%
+    \fi
   \fi}
 \def\@didactic@nwkeepwarning{%
   \PackageWarningNoLine{didactic}{%
