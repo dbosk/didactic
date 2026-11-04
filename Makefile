@@ -32,6 +32,7 @@ didactic.pdf: ${SRC} didactic.sty
 	${PYTHONTEX} didactic
 	${PDFLATEX} ${LATEXFLAGS} $<
 	makeindex -s gglo.ist -o didactic.gls didactic.glo
+	grep -q 'work in a source shared' didactic.gls
 	${PDFLATEX} ${LATEXFLAGS} $<
 
 # docstrip asks before overwriting, so remove the old file first.
