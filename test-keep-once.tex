@@ -14,7 +14,7 @@
 %      a heading the club penalty is still 10000 there, and the list still can't stay.
 % The space before a list stays what it is, when the tie is released and what is
 % written to the .aux comes between that space and the list.
-%   A  Plenty of room, the tie holds: nothing is written there.
+%   A  Without keepleadin: nothing is written there.
 %   B  Past the limit, and the first item fits.
 %
 % Build: see the Makefile; test-check.py compares the warnings with the words' pages.
@@ -115,10 +115,12 @@ LEADA in\hspace*{\fill}\break and on.
 
 \total{a0}
 \addvspace{20pt}
+\begingroup\csname @didactic@keepleadinfalse\endcsname
 \begin{itemize}
 \item ITEMA one.\par\total{a1}
 \item two.
 \end{itemize}
+\endgroup
 
 \roomfor{9.5}
 Above.

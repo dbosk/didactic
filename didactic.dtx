@@ -6140,7 +6140,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \global\@didactic@keep@relduetrue
   \xdef\@didactic@keep@relline{\@didactic@keep@where}%
   \xdef\@didactic@keep@tiepage{\number\numexpr\ReadonlyShipoutCounter+\@ne\relax}%
-  \let\@didactic@keep@relpageis\@didactic@keep@tiepage
+  \global\let\@didactic@keep@relpageis\@didactic@keep@tiepage
   \if@filesw
     \ifnum\lastnodetype=11 \else
       \count@\lastpenalty
