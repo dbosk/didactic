@@ -172,10 +172,8 @@
 %   break, and a page is left less empty for a listing.
 % }
 % \changes{v2.15}{2026/10/22}{%
-%   With \texttt{keepleadin}, sets the widow penalty to 10\,000 and the club 
-%   penalty to 1\,000 for every paragraph in the notes, so that a lead-in of 
-%   a line or two moves whole with its listing, and a longer one leaves at
-%   least two lines with it, within \texttt{keepmaxgap}.
+%   Leaves the club and widow penalties as the class has them, for fewer pages:
+%   an earlier version of this set them to 10\,000.
 % }
 % \changes{v2.15}{2026/10/22}{%
 %   Adds the \texttt{noteoverflow} option, passed on to \textsf{marginfix}'s 
@@ -1106,13 +1104,9 @@
 %   listing, without a blank line, and a float before that paragraph.
 %   The header line of a code chunk of \textsf{noweb} stays with its code
 %   too.
-%   For that, the widow penalty is 10\,000 and the club penalty 1\,000, for
-%   every paragraph of the notes: no page starts with the last line of a
-%   paragraph, and a first line can stay at the foot of a page, which
-%   \textsf{memoir} allows at the same cost.
-%   A lead-in of one or two lines moves whole with the listing, and a longer
-%   one leaves at least two lines with it, the lines of an exercise's heading
-%   included.
+%   What moves with the listing is at least the last line of that paragraph,
+%   which can then stand alone above the listing, since the club and widow
+%   penalties stay as the class has them.
 %   All this within |keepmaxgap|: if moving them would leave more empty lines
 %   than that, the listing can start the next page by itself, as without this
 %   option, and if it does a warning says so.
@@ -1285,50 +1279,45 @@
 % amount.\footnote{\Cref{app:pb-gap} has the numbers, which measure different
 %   things.}
 %
-% \paragraph{No fewer lines than \LaTeX\ keeps, but for two reasons.}
+% \paragraph{No fewer lines than \LaTeX\ keeps, but for two things.}
 % Staying within the limit could mean keeping one line under a heading where
 % \LaTeX\ keeps two or moves it.
 % No source read argues, as a principle, for fewer lines to avoid white
 % space.\footnote{See \cref{app:pb-gap}.}
 % So past the limit we follow \LaTeX, and warn.
-% Two things can still leave a line less than plain \LaTeX\ has, each for a
-% decision of its own: \LaTeX\ would leave a last line alone at the top of the next
-% page, which our widow penalty forbids, or a first line alone at the foot where the
-% page has enough stretch for our club penalty to count.
-% And where \LaTeX\ has the header of a chunk of \textsf{noweb} alone at the foot, as
+% Where \LaTeX\ has the header of a chunk of \textsf{noweb} alone at the foot, as
 % a line under a heading, we move the header to its code.
 % A listing kept whole has fewer lines than \LaTeX\ gives it, too, which is what
 % |keeplines| is for.
 %
-% \paragraph{Club penalty 1000, widow penalty 10000 (with \texttt{keepleadin}).}
-% This goes for every paragraph of the notes, not only for those before a listing.
-% \emph{The Chicago Manual of Style} says, in three editions, that a page should
-% not \enquote{begin with the last line of a paragraph unless it is full measure},
-% while \enquote{A page can, however, end with the first line of a new
+% \paragraph{Club and widow penalties as the class has them.}
+% We set neither: 1000 and 1000 under \textsf{memoir}, 150 and 150 under |article|.
+% The rule is the maintainer's: fewer pages, then fewer changes from the defaults.
+% On eight real documents, 804 pages, 1000 and 1000 gave the same pages as 1000 and
+% 10000, document by document; in generated documents of about 2430 pages it was 4
+% pages shorter.
+% Under |article|, lifting 150 to 1000 costs pages in generated text, 607 against
+% 610 for six documents of each kind, so we don't do that either.
+% The price is stated too: on those real documents 10 last lines alone at the top of a
+% page, against none at a widow penalty of 10000, and 3 first lines alone at the foot,
+% against 5.
+% \emph{The Chicago Manual of Style} says more: in three editions, a page should not
+% \enquote{begin with the last line of a paragraph unless it is full measure}, while
+% \enquote{A page can, however, end with the first line of a new
 % paragraph}.\cite[§2.121]{chicago2024manual}
+% That stronger rule on last lines we don't follow.
 % Many of those read treat the two the same way, as craft.\footnote{%
 %   \Cref{app:pb-penalties} has them and the \TeX\ behind the numbers.}
 % The sources speak of the outcome and not of penalties, so they say nothing of
 % the number.
-% The pair is ours, derived from Chicago's sentence: every \LaTeX\ source read is
-% symmetric, 150 and 150 in the kernel, 1000 and 1000 in \textsf{memoir}, 10000 and
-% 10000 in many journal classes.
-% We are stricter than Chicago on one point: \TeX\ can't tell that a last line is
-% full measure, so no last line starts a page.
-% The first line costs 1000, \textsf{memoir}'s value, whose only stated reason is
-% \enquote{we want stronger discouragement}.\cite{wilson2025memoirsrc}
-% It counts only on a page with some stretch to spare, and the \TeX\ FAQ finds finite
-% values all alike.\cite{texfaq2026widows}
-% In generated text, without lists or floats, that held for 150 and 500 in three sets
-% of four, but 1000 left clearly fewer lone first lines than 150 in all four, and 10000
-% none: at 150, 1000 and 10000 and a widow penalty of 10000, with headings 38, 15, 0
-% under \textsf{memoir} and 40, 6, 0 under |article|, without headings 26, 18, 0 and
-% 38, 24, 0.\footnote{\Cref{app:pb-penalties}.}
-% The price of 10000 is what \textcite[p.~250]{mittelbach2018forlorn} says it is,
-% \enquote{partly empty pages}, and it goes on: \enquote{Thus you are better off
+% The remedy for a lone line that bothers you is the one that
+% \textcite[p.~250]{mittelbach2018forlorn} gives: \enquote{Thus you are better off
 % allowing widows and orphans (by changing the parameter values) and manually
-% correcting them in one way or another}, if space is at a premium.
-% The manual of \textsf{memoir} says that 10000 \enquote{may well result in some odd
+% correcting them in one way or another}.
+% The value of 1000 is \textsf{memoir}'s, whose only stated reason is
+% \enquote{we want stronger discouragement}.\cite{wilson2025memoirsrc}
+% A penalty of 10000 would remove them, at the price of \enquote{partly empty pages},
+% and the manual of \textsf{memoir} says that it \enquote{may well result in some odd
 % looking pages, especially if \cs{raggedbottom} is not
 % used}.\cite[§3.5]{wilson2025memoir}
 %
@@ -5908,9 +5897,11 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % list has ended the paragraph, so |\pagegoal| less |\pagetotal| and |\pagedepth| 
 % is the room left (unless the page is still empty, when |\pagegoal| is 
 % |\maxdimen|, or already holds more than the page, when we can't tell).
-% With |keepleadin| the paragraph before goes along: at least two lines, by its 
-% widow penalty, and all of it if it has up to three lines (|\prevgraf|), for then
-% \TeX\ would rather break above it than leave its first line alone.
+% With |keepleadin| the paragraph before goes along.
+% At least its last line does, and on a page with stretch \TeX\ may well take more,
+% so to hold the limit we count on the most it would take: two lines, and all of it
+% if it has up to three lines (|\prevgraf|), for then it would rather break above it
+% than leave its first line alone.
 % With them goes the space above the paragraph, which \TeX\ discards if it breaks
 % there: |\@didactic@keep@pstart| is where the paragraph before it ended
 % (|\@didactic@keep@pend|), or the listing, if that is less than a line above, and
@@ -6395,44 +6386,21 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\clubpenalty}
-% \begin{macro}{\widowpenalty}
-% That keeps only the last line of the paragraph with the listing: the 
-% paragraph is on the page before the listing starts, and the breaks 
+% That keeps only the last line of the paragraph with the listing: the
+% paragraph is on the page before the listing starts, and the breaks
 % within it are settled.
-% So a last line could stay with the listing and leave the rest of its 
-% paragraph on the page before, or the heading of an |exercise| with its first 
-% line end a page, with the rest of the lead-in and the code on the next.
-% The penalties of a paragraph can't always prevent that.
-% \TeX's cost of a break is the badness of the page plus the penalty, but a page 
-% that falls short with too little stretch to fill it has the highest badness, 
-% and from then on every break costs the same, whatever the penalty below 
+% So a last line can stand alone above a listing, with the rest of its paragraph
+% on the page before, and the penalties of the paragraph are as the class has them:
+% \cref{PageBreakDecisions} says why.
+% They wouldn't always prevent it anyway.
+% \TeX's cost of a break is the badness of the page plus the penalty, but a page
+% that falls short with too little stretch to fill it has the highest badness,
+% and from then on every break costs the same, whatever the penalty below
 % 10\,000, and \TeX\ takes the last one.
-% It is the stretch of the page that decides this: \cs{flushbottom} and 
+% It is the stretch of the page that decides this: \cs{flushbottom} and
 % \cs{raggedbottom} break in the same places.
-%
-% So with |keepleadin| the widow penalty is 10\,000 and the club penalty 1\,000, 
-% for every paragraph of the notes, not only those before a listing 
-% (\cref{PageBreakDecisions} says why): a page never starts with the last line 
-% of a paragraph, and it may end with a first line, at a cost that counts where 
-% the page has stretch.
-% What goes along with a listing is then its lead-in if that has one or two 
-% lines, and otherwise at least its last two lines.
-% The first paragraph after a heading is another matter: \LaTeX's 
+% The first paragraph after a heading is another matter: \LaTeX's
 % |\@afterheading| forbids the break after its first line.
-% \LaTeX\ keeps the club penalty in |\@clubpenalty| too, to restore it 
-% after headings and lists, so we set both, at the beginning of the 
-% document, after \LaTeX\ has copied it.
-%    \begin{macrocode}
-\AtBeginDocument{%
-  \if@didactic@keepleadin
-    \clubpenalty\@m
-    \@clubpenalty\@m
-    \widowpenalty\@M
-  \fi}
-%    \end{macrocode}
-% \end{macro}
-% \end{macro}
 %
 % \begin{macro}{\@didactic@keep@room}
 % \begin{macro}{\@startsection}

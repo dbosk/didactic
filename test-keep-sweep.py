@@ -18,9 +18,7 @@ page breaks around headings and listings:
   D2  A heading is never parted from its first paragraph.
   D4  Under a heading that stays there are never fewer lines than plain LaTeX keeps,
       and a heading that plain LaTeX keeps with two lines or more doesn't move.
-      Unless plain LaTeX does it by leaving a last line alone at the top of the next
-      page, which the widow penalty of 10000 forbids, or with a first line alone at
-      the foot, at a cost lower than our 1000 (article's own club penalty is 150).
+      The penalties are the class's own, so nothing excuses a difference here.
   D6  A listing's lead-in goes along only within keepmaxgap; parted, there's a warning.
       What it leaves empty on the page, measured in the output routine, is within
       the limit when the lead-in moves, and parted is only what would otherwise
@@ -359,29 +357,6 @@ class Pages:
         return count
 
 
-    def widow(self, case):
-        "Does a paragraph of this case leave its last line alone on the next page?"
-        for lab, page in self.page.items():
-            m = re.fullmatch(r"(P|L|N|I\d+x)(\d+)X" + case, lab)
-            if m and int(m[2]) > 1:
-                before = self.page.get(f"{m[1]}{int(m[2]) - 1}X{case}")
-                after = self.page.get(f"{m[1]}{int(m[2]) + 1}X{case}")
-                if after is None and before is not None and before < page:
-                    return True
-        return False
-
-
-    def club(self, case):
-        "Does a paragraph of this case leave its first line alone on the page?"
-        for lab, page in self.page.items():
-            m = re.fullmatch(r"(.*?)1X" + case, lab)
-            if m:
-                after = self.page.get(f"{m[1]}2X{case}")
-                if after is not None and after > page:
-                    return True
-        return False
-
-
 FAILS = []
 
 
@@ -465,16 +440,13 @@ def check_case(p, ref, name, case, K):
             elif pm and not moved and count < 2 and name in ("s", "ss", "L"):
                 bad = True
                 text = f"D4: {count} line under the heading, plain LaTeX moves it"
-            if bad and not ref.widow(case) and not ref.club(case):
+            if bad:
                 fail(case, text)
     # L1 leaves the breaks between items alone, and other lists than item lists
     if name == "qq3" and p.on("Q1", case) is not None and ref.on("Q1", case) is not None \
             and (p.on("Q1", case) - p.on("R", case)) != (ref.on("Q1", case) - ref.on("R", case)) \
             and p.on("P3", case) == p.on("R", case) and ref.on("P3", case) == ref.on("R", case):
         fail(case, "L1: a quote is no item list, and breaks as plain LaTeX")
-    # D5
-    if p.widow(case):
-        fail(case, "D5: a last line alone on the next page")
     # D6
     if name in LISTINGS:
         lead_first = p.on("P1", case)

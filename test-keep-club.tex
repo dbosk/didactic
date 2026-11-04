@@ -1,13 +1,13 @@
-% The club penalty is 1000 and the widow penalty 10000 in every paragraph
-% (didactic), also after a heading and a list, where LaTeX restores it from
-% \@clubpenalty.  The file test-keep-club-article reads this with article.
-\ifdefined\testclass\else\def\testclass{memoir}\fi
+% The club and widow penalties stay as the class has them (didactic), after a heading
+% and a list too, the maintainer's decision: 1000 under memoir, and 150 under article,
+% which test-keep-club-article reads this with.
+\ifdefined\testclass\else\def\testclass{memoir}\def\testpen{1000}\fi
 \documentclass[a4paper]{\testclass}
 \usepackage{amsmath,amssymb,amsthm}
 \usepackage{didactic}
 \makeatletter
 \newcommand\checkpen[1]{%
-  \ifnum\clubpenalty=1000 \ifnum\widowpenalty=10000
+  \ifnum\clubpenalty=\testpen\relax \ifnum\widowpenalty=\testpen\relax
     \typeout{didactic club test: PASS #1}%
   \else\typeout{didactic club test: FAIL #1, widow \the\widowpenalty}\fi
   \else\typeout{didactic club test: FAIL #1, club \the\clubpenalty}\fi}
