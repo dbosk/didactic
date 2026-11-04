@@ -11,6 +11,8 @@ TEST_FRAMETITLE_CASES=	test-frametitle-overlay test-frametitle-floats \
 			test-frametitle-noarticle test-frametitle-article
 TEST_KEEP_CHAPTER=	test-keep-chapter-article test-keep-chapter-memoir \
 			test-keep-chapter-book
+TEST_KEEP_NOWEB=	test-keep-filbreak test-keep-breakcode \
+			test-keep-breakcode-late test-keep-filbreak-nogap
 TEST_NOTEOVERFLOW=	test-noteoverflow test-noteoverflow-carry \
 			test-noteoverflow-draft test-noteoverflow-draftbreak \
 			test-noteoverflow-xe test-noteoverflow-old
@@ -263,8 +265,6 @@ test-keep-sweep: test-keep-sweep.py ${SWEEP_ALL:%=test-keep-sweep-%.pdf}
 	for v in ${SWEEP}; do python3 $< check $$v || exit 1; done
 
 # noweb without breakcode warns, once; with breakcode, however it is set, it doesn't.
-TEST_KEEP_NOWEB=test-keep-filbreak test-keep-breakcode test-keep-breakcode-late \
-		test-keep-filbreak-nogap
 ${TEST_KEEP_NOWEB:=.pdf}: %.pdf: %.tex didactic.sty
 	@${latex_until_settled}
 	test "${call count_warn,Code chunks of noweb}" -eq "${FILBREAK_WARNINGS}"
