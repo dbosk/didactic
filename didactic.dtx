@@ -5689,7 +5689,6 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \@didactic@keep@check{A listing}%
     \unvbox\@didactic@keep@rest
   \else
-    \ifinner\else\begingroup\@@par\endgroup\fi
     \global\@didactic@keep@duetrue
   \fi
   \prevdepth\@didactic@keep@pd}
@@ -5831,8 +5830,6 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % \TeX\ looks at the page at the first place to break after the first line: the 
 % first penalty that allows it, if the listing has one, else the penalty at the end 
 % of the list, so we look there too.
-% (|\par| in vertical mode makes \TeX\ take in what has come so far first, without 
-% adding anything to the page; without a place to break it doesn't end the page.)
 % \begin{itemize}
 % \item If the page is overfull, it has ended right here, for it had no earlier place 
 %   to break, so the next page is still empty, which |\pagegoal| tells.

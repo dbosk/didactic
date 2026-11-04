@@ -311,7 +311,7 @@ def keep_leadin(c):
         c.ok(pages[n][0] < pages[n][1], f"case {n} is on two pages: {pages[n]}")
     for n in asked:
         c.ok(pages[n][0] < pages[n][1], f"case {n} is on two pages: {pages[n]}")
-    for n in ("c", "a", "d", "q", "e", "z", "v", "qb", "fs", "hh"):
+    for n in ("c", "a", "d", "q", "e", "z", "v", "qb", "fs", "hh", "vz"):
         c.ok(pages[n][0] == pages[n][1], f"case {n} is on one page: {pages[n]}")
     found = {}
     for w in warnings(c):
@@ -359,6 +359,16 @@ def keep_overfull(c):
     # A pair's page can run off the paper without TeX's message, so at least.
     n = len(re.findall(r"Overfull \\vbox", c.log))
     c.ok(n >= 4 and n <= len(found), f"{n} overfull pages, {len(found)} warnings")
+
+
+def keep_twocol(c):
+    """test-keep-twocol.tex; a page isn't shipped out after the first column."""
+    lines = keep_results(c, "twocol")
+    w = [x for x in warnings(c) if "apart from what leads" in x]
+    c.ok(any(f"input line {lines['m']}" in x for x in w), f"case m warns: {w}")
+    c.ok(not any(f"input line {lines['c']}" in x for x in w), "case c doesn't")
+    c.ok(c.one("LEADM")["xmin"] < 200 and c.one("LISTM")["xmin"] > 200,
+         "LISTM starts the second column, away from LEADM")
 
 
 def keep_multicol(c):
@@ -551,6 +561,7 @@ CHECKS = {
     "test-keep-leadin-off": keep_leadin_off,
     "test-keep-overfull": keep_overfull,
     "test-keep-multicol": keep_multicol,
+    "test-keep-twocol": keep_twocol,
     "test-frametitle": frametitle,
     "test-frametitle-slides": frametitle_slides,
     "test-frametitle-overlay": frametitle_overlay,

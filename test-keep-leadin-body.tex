@@ -168,6 +168,14 @@ Lead-in E2, and then more space than fits.\label{ee}
 Text.
 
 % Controls: the lead-in stays with the listing.
+% A lead-in of one line alone above a listing with no space before it: the page holds
+% the least that there can be more than the listing, one line.
+\roomfor{2}
+Lead-in VZ, no space.\label{vz}
+\testfile{vz}{3}{}{}%
+\case{vz}\VerbatimInput[commandchars=\\\{\},vspace=0pt]{\jobname-vz.txt}
+Text.
+
 \roomfor{2}
 Lead-in C, a blank line only.\label{c}
 
@@ -221,8 +229,7 @@ same page, which is all that the option asks.\label{e}
 \case{e}\testlisting{e}{3}
 Text.
 
-% On a page begun by a paragraph that broke, a heading and a listing, which adds no
-% place to break at the end of its list.
+% On a page begun by a paragraph that broke, a heading and a listing.
 \roomfor{1}
 Lead-in H2, a paragraph of a few lines, which goes over to the next page, where a
 heading follows it, with nothing in the way of the listing under the heading,
@@ -280,7 +287,7 @@ Text.
 \results{fr}\results{ee}\results{pc}
 \makeatother
 \results{c}\results{a}\results{d}\results{q}\results{e}\results{z}\results{g}
-\results{v}\results{fs}\results{hh}\typeout{leadin result qb lead=\getpagerefnumber{q2}
+\results{v}\results{fs}\results{hh}\results{vz}\typeout{leadin result qb lead=\getpagerefnumber{q2}
     first=\getpagerefnumber{q2L}}
 \results{x}\results{y}\results{t}\results{o}
 \typeout{leadin results end}
