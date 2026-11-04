@@ -5927,7 +5927,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \fi}
 \def\@didactic@keep@pairstart{%
   \global\@didactic@keep@pairduetrue
-  \xdef\@didactic@keep@pairpage{\number\c@page}%
+  \xdef\@didactic@keep@pairpage{\number\numexpr\ReadonlyShipoutCounter+\@ne\relax}%
   \xdef\@didactic@keep@pairline{\the\inputlineno}}
 \def\@didactic@keep@pairend{%
   \if@didactic@keep@pairdue
@@ -6716,7 +6716,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \fi\fi
   \global\@didactic@keep@overlimitfalse
   \global\@didactic@keep@hmduetrue
-  \xdef\@didactic@keep@headstart{\number\c@page}%
+  \xdef\@didactic@keep@headstart{\number\numexpr\ReadonlyShipoutCounter+\@ne\relax}%
   \global\@didactic@keep@headroom-\p@
   \ifvmode\ifinner\else\ifdim\pagegoal<\maxdimen
     \ifdim\pagetotal>\pagegoal\else
@@ -6727,10 +6727,26 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
         \ifdim\dimexpr\@didactic@keep@headroom-\pagedepth\relax
             >\@didactic@keepmaxgap\@didactic@keep@L
           \global\@didactic@keep@overlimittrue
+          \@didactic@keep@columns
         \fi
       \fi
     \fi
   \fi\fi\fi}
+\def\@didactic@keep@columns{%
+  \if@didactic@keep@columnswarned\else
+    \@tempswafalse
+    \if@twocolumn \@tempswatrue \fi
+    \ifdefined\col@number
+      \ifnum\col@number>\@ne \@tempswatrue \fi
+    \fi
+    \if@tempswa
+      \global\@didactic@keep@columnswarnedtrue
+      \PackageWarningNoLine{didactic}{%
+        In columns, we can't tell if a heading moves to the\MessageBreak
+        next column and leaves more than keepmaxgap lines\MessageBreak
+        empty there, so no warning says so}%
+    \fi
+  \fi}
 \def\@didactic@keep@recordedbreak{%
   \@ifundefined{@didactic@hb@\@didactic@keep@headkey}{}{%
     \@didactic@keep@dobreakfalse
