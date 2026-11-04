@@ -5735,6 +5735,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \newcommand\@didactic@keep@hm[3]{}
 \newcommand\@didactic@keep@after[3]{}
 \newcommand\@didactic@keep@pp[3]{}
+\newcommand\@didactic@keep@bua[1]{}
+\newcommand\@didactic@keep@bub[3]{}
 \newcommand\@didactic@keep@headbreak[1]{}
 \newcommand\@didactic@keep@tpage[2]{}
 \@ifclassloaded{beamer}{\@didactic@keepfalse}{\@didactic@keeptrue}
@@ -5941,6 +5943,10 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % If the listing then can't break after all, since |keepends| asks for more
 % lines than it has or than fit, it goes to the next page, not tied to what leads
 % into it, and we warn, from the pages, at the end of the run.
+% A listing right under a heading says so if it breaks, the same way, with the pages
+% of its first and last lines (|\@didactic@keep@breakwrite|).
+% The first write is a whatsit, and glue after a whatsit is a legal break, so a
+% |\nobreak| follows it; after the last line a break was legal anyway.
 % |\@didactic@keep@pairstart| notes the page, when the tie is released, and
 % |\@didactic@keep@pairend| writes it to the |.aux| file, with the page that the
 % first line ended up on, whatever comes first: a listing, the header of a chunk,
@@ -5991,7 +5997,6 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \ifdim\ht\@didactic@keep@box>\dimexpr\dimen@+\pageshrink\relax
         \if@didactic@keep@movable\else
           \@didactic@keep@longtrue
-          \@didactic@keep@cantbreak
         \fi
       \fi
     \fi\fi\fi
@@ -6041,31 +6046,25 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
         more than keepmaxgap lines empty}%
     \fi
   \fi}
-\def\@didactic@keep@cantbreak{%
-  \if@didactic@keep@direct
-    \@tempcnta\@didactic@keepends
-    \multiply\@tempcnta\tw@
-    \@tempswatrue
-    \ifnum\@didactic@keep@nb<\@tempcnta
-      \@tempswafalse
-    \else
-      \@tempdimb\dimexpr\ht\@didactic@keep@box+\dp\@didactic@keep@box\relax
-      \divide\@tempdimb\@didactic@keep@n
-      \multiply\@tempdimb\@didactic@keepends
-      \ifdim\dimexpr\dimen@+\pageshrink\relax<\@tempdimb
-        \@tempswafalse
-      \fi
-    \fi
-    \if@tempswa
-      \ifnum\@didactic@keep@n>\@didactic@keeplines\else
-        \PackageWarning{didactic}{%
-          A listing of \the\@didactic@keep@n\space lines breaks under its
-          heading, by\MessageBreak
-          keepends: moving them would leave more than\MessageBreak
-          keepmaxgap lines empty, near page \the\c@page}%
-      \fi
+\def\@didactic@keep@bua#1{\gdef\@didactic@keep@bupage{#1}}
+\def\@didactic@keep@bub#1#2#3{%
+  \ifnum#1>\@didactic@keep@bupage\relax
+    \ifx\@newl@bel\@testdef
+      \PackageWarningNoLine{didactic}{%
+        The listing of #2 lines at line #3 breaks under its\MessageBreak
+        heading, by keepends: moving them would leave more\MessageBreak
+        than keepmaxgap lines empty}%
     \fi
   \fi}
+\def\@didactic@keep@breakwrite#1#2{%
+  \if@didactic@keep@direct\if@didactic@keep@movable\else
+    \ifnum\@didactic@keep@n>\@didactic@keeplines\else
+      \ifinner\else\if@filesw
+        \protected@write\@auxout{\let\@didactic@keep@cpage\relax}{#1}%
+        #2%
+      \fi\fi
+    \fi
+  \fi\fi}
 %    \end{macrocode}
 % \end{macro}
 % \end{macro}
@@ -6276,8 +6275,13 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \nobreak
     \fi\fi\fi
   \fi
+  \@didactic@keep@breakwrite{%
+    \string\@didactic@keep@bua{\@didactic@keep@cpage}}{\nobreak}%
   \unvbox\@didactic@keep@box
   \unvbox\@didactic@keep@out
+  \@didactic@keep@breakwrite{%
+    \string\@didactic@keep@bub{\@didactic@keep@cpage}{\the\@didactic@keep@n}%
+      {\the\inputlineno}}{}%
   \prevdepth\@didactic@keep@pd
   \ifinner\else
     \begingroup\@@par\endgroup
@@ -6720,7 +6724,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \string\providecommand\string\@didactic@keep@hb[2]{}%
       \string\providecommand\string\@didactic@keep@hm[3]{}%
       \string\providecommand\string\@didactic@keep@after[3]{}%
-      \string\providecommand\string\@didactic@keep@pp[3]{}}%
+      \string\providecommand\string\@didactic@keep@pp[3]{}%
+      \string\providecommand\string\@didactic@keep@bua[1]{}%
+      \string\providecommand\string\@didactic@keep@bub[3]{}}%
   \else
     \ifnum\@didactic@keepafterheading>\z@
       \PackageWarningNoLine{didactic}{%

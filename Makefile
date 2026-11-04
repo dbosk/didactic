@@ -300,6 +300,7 @@ test-keep-guard.pdf: test-keep-guard.tex didactic.sty
 	for m in hpage tp hb hm after pp; do \
 		grep -q "providecommand.@didactic@keep@$$m" test-keep-guard.aux || exit 1; \
 	done
+	sed -i '/providecommand/d' test-keep-guard.aux
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode \
 		"\def\testbeamer{}\input{test-keep-guard}"
 	! grep '^!' test-keep-guard.log

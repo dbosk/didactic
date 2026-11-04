@@ -119,7 +119,8 @@ def pair(k):
 
 
 def heading(k):
-    return rf"\section{{Head}}\label{{HX{k}}}"
+    # Unnumbered, as an old-style 3 in a number has a depth that shifts the page.
+    return rf"\section*{{Head}}\label{{HX{k}}}"
 
 
 def runin(k):
@@ -145,7 +146,7 @@ def CW(k):
 CASES = {
     # heading + paragraphs, directly
     "s": lambda k: heading(k) + "\n" + para(k, 16) + TAIL,
-    "ss": lambda k: heading(k) + rf"\subsection{{Sub}}\label{{BX{k}}}" + "\n" + para(k, 16) + TAIL,
+    "ss": lambda k: heading(k) + rf"\subsection*{{Sub}}\label{{BX{k}}}" + "\n" + para(k, 16) + TAIL,
     "p": lambda k: heading(k) + "\n" + para(k, 1, "P") + "\n\n" + para(k, 16) + TAIL,
     # lists
     "pl": lambda k: heading(k) + "\n" + para(k, 1, "P") + "\n" + items(k, 8, 1) + TAIL,
@@ -405,6 +406,14 @@ def check_case(p, ref, name, case, K):
                 fail(case, f"D8: {w}")
             if m and name in ("s", "ss") and int(m[1]) != count:
                 fail(case, f"D8: says only {m[1]} fit, {count} there")
+        # R9: past the limit a short listing breaks under its heading, and says so
+        if name in ("hv", "hw", "hv8") and over and not moved:
+            last = p.on("C8" if name == "hv8" else "C5", case)
+            says_breaks = [w for w in warns if "breaks under" in w]
+            if p.on("C1", case) == h and last > h and not says_breaks:
+                fail(case, "D8: a short listing breaks under its heading, no warning")
+            if says_breaks and last == h:
+                fail(case, "D8: says it breaks, and it doesn't")
         tall = name in ("t", "c", "hj1", "cp", "d")
         if name == "cp" and K <= 2 and [w for w in warns if "only" in w]:
             fail(case, f"D8: a tall box is lines enough: {warns[0][:50]}")
