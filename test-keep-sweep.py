@@ -60,6 +60,8 @@ VARIANTS = {
     "sp": MEMOIR + MIMIC + PLAIN + NOWEB + BREAKCODE + r"\usepackage{fancyvrb}" + SLOPPY,
     "s3": MEMOIR + NOWEB + DIDACTIC.replace("outer", "outer,keepafterheading=3")
           + BEAMER + BREAKCODE + SLOPPY,
+    "e": MEMOIR + NOWEB + DIDACTIC + BEAMER + BREAKCODE + r"\usepackage{enumitem}",
+    "ep": MEMOIR + MIMIC + PLAIN + NOWEB + BREAKCODE + r"\usepackage{fancyvrb}\usepackage{enumitem}",
 }
 
 def para(k, n, name="L"):
@@ -73,6 +75,21 @@ def items(k, n, lines):
         out.append(r"\item " + para(k, lines, f"I{i}x"))
     out.append(r"\end{itemize}")
     return "\n".join(out)
+
+
+def listof(k, env, n, lines):
+    "A list of another kind."
+    out = [rf"\begin{{{env}}}"]
+    for i in range(n):
+        out.append((r"\item[x] " if env == "description" else r"\item ") + para(k, lines, f"I{i}x"))
+    out.append(rf"\end{{{env}}}")
+    return "\n".join(out)
+
+
+def nested(k, n):
+    "A paragraph of n lines in an item, and a list in that item, which is what it leads into."
+    return "\n".join([r"\begin{itemize}", r"\item " + para(k, n, "P"),
+                      items(k, 8, 1), r"\item Outer again.", r"\end{itemize}"])
 
 
 def verbatim(k, n=5):
@@ -172,6 +189,20 @@ CASES = {
     "hn": lambda k: heading(k) + "\n" + chunk(k) + TAIL,
     "hv8": lambda k: heading(k) + "\n" + verbatim(k, 8) + TAIL,
     "hv3l": lambda k: heading(k) + "\n" + verbatim(k, 3) + TAIL,
+    # L1: a list stays with what leads into it
+    "ll1": lambda k: para(k, 1, "P") + "\n" + items(k, 8, 1) + TAIL,
+    "ll2": lambda k: para(k, 2, "P") + "\n" + items(k, 8, 1) + TAIL,
+    "ll3": lambda k: para(k, 3, "P") + "\n" + items(k, 8, 1) + TAIL,
+    "ll6": lambda k: para(k, 6, "P") + "\n" + items(k, 8, 1) + TAIL,
+    "lL1": lambda k: para(k, 1, "P") + "\n" + items(k, 5, 3) + TAIL,
+    "lL3": lambda k: para(k, 3, "P") + "\n" + items(k, 5, 3) + TAIL,
+    "lE2": lambda k: para(k, 2, "P") + "\n" + listof(k, "enumerate", 8, 1) + TAIL,
+    "lD2": lambda k: para(k, 2, "P") + "\n" + listof(k, "description", 8, 1) + TAIL,
+    "nN2": lambda k: nested(k, 2) + TAIL,
+    "nN3": lambda k: nested(k, 3) + TAIL,
+    "fl1": lambda k: frame(k) + "\n" + para(k, 1, "P") + "\n" + items(k, 8, 1) + r"\end{frame}" + TAIL,
+    "fl3": lambda k: frame(k) + "\n" + para(k, 3, "P") + "\n" + items(k, 8, 1) + r"\end{frame}" + TAIL,
+    "qq3": lambda k: para(k, 3, "P") + "\n" + r"\begin{quote}" + para(k, 8, "Q") + r"\end{quote}" + TAIL,
     # a heading with a figure that lands right here
     "f": lambda k: heading(k) + "\n" + r"\begin{figure}[h]\rule{1pt}{2\baselineskip}\end{figure}"
         + "\n" + para(k, 16) + TAIL,
@@ -200,21 +231,31 @@ CASES = {
     "cp": lambda k: heading(k) + "\n" + r"\begin{center}\parbox{.8\linewidth}{\rule{0pt}{3\baselineskip}"
         + rf"T1\label{{T1X{k}}}" + r"}\end{center}" + "\n" + para(k, 16, "N") + TAIL,
 }
-FINE = {"d", "wL1", "hv", "hw", "hn", "hv8", "hv3l", "f", "r", "rr", "ri", "re", "rv", "fp", "fe", "fx", "fi", "fI",
+FINE = {"ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3", "qq3",
+        "d", "wL1", "hv", "hw", "hn", "hv8", "hv3l", "f", "r", "rr", "ri", "re", "rv", "fp", "fe", "fx", "fi", "fI",
         "e", "ei", "eI", "se", "e1", "cp"}
 # Without didactic these don't exist, or frames set their titles another way.
-DIDACTIC_ONLY = {"hj1", "j3", "fp", "fe", "fx", "fi", "fI"}
+DIDACTIC_ONLY = {"hj1", "j3", "fp", "fe", "fx", "fi", "fI", "fl1", "fl3"}
 # What comes under a block's heading isn't compared with plain: its style is didactic's.
 NOT_COMPARED = DIDACTIC_ONLY | {"e", "ei", "eI", "se", "e1", "cp", "f"}
 LISTINGS = {"hv1", "hv2", "hv3", "v1", "v3", "v8", "hn1", "hn3", "n3", "hw1", "hw3", "w3",
-            "hj1", "j3", "n6", "w6", "v6", "wL1", "cw0", "cw1", "cw2", "cw3", "cw4"}
+            "hj1", "j3", "n6", "w6", "v6", "wL1", "cw0", "cw1", "cw2", "cw3", "cw4",
+            "ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3"}
+ITEMLISTS = {"ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3"}
+# L2: a list right under a heading follows LaTeX, so a line is enough.
+DIRECTLISTS = {"l", "L", "ri", "fi", "fI", "ei", "eI"}
 NOHEADING = {"v1", "v3", "v8", "n3", "w3", "j3", "n6", "w6", "v6", "wL1",
+             "ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "qq3",
              "cw0", "cw1", "cw2", "cw3", "cw4"}
 AFTERCHUNK = {"cw0", "cw1", "cw2", "cw3", "cw4"}
+# Enough to test lists under enumitem.
+ENUMITEM_CASES = ITEMLISTS | {"l", "L", "pl", "pL"}
 
 
-def all_cases():
+def all_cases(variant="m"):
     for name in CASES:
+        if variant[0] == "e" and name not in ENUMITEM_CASES:
+            continue
         for r in (FINEROOMS if name in FINE else ROOMS):
             yield name, f"{name}Q{int(4 * r)}", r
 
@@ -236,7 +277,7 @@ def gen(variant):
   \noindent And another, as what is kept with a listing can be the one before.\par
   \typeout{ROOM #1 \the\dimexpr\pagegoal-\pagetotal-\pagedepth\relax\space\the\baselineskip}}""",
            r"\makeatother", r"\begin{document}"]
-    for name, k, r in all_cases():
+    for name, k, r in all_cases(variant):
         out.append(f"% CASE {k}")
         extra = int(name[-1]) / 10 if name in AFTERCHUNK else 0
         out.append(rf"\roomfor{{{k}}}{{{r + extra:g}}}{{}}")
@@ -398,7 +439,8 @@ def check_case(p, ref, name, case, K):
                 and (name == "p"):
             fail(case, f"D1: {count} lines under the heading within the limit")
         if not moved and not tall and name != "e1" and count < K and not warns \
-                and name not in ("hv", "hw", "hn", "hv8", "hv3l", "rv"):
+                and name not in ("hv", "hw", "hn", "hv8", "hv3l", "rv") \
+                and name not in DIRECTLISTS:
             fail(case, f"D8: {count} lines under the heading, no warning")
         # D4: never fewer than plain LaTeX
         # A lead-in and a listing are left out: the listing is kept whole by
@@ -425,15 +467,20 @@ def check_case(p, ref, name, case, K):
                 text = f"D4: {count} line under the heading, plain LaTeX moves it"
             if bad and not ref.widow(case) and not ref.club(case):
                 fail(case, text)
+    # L1 leaves the breaks between items alone, and other lists than item lists
+    if name == "qq3" and p.on("Q1", case) is not None and ref.on("Q1", case) is not None \
+            and (p.on("Q1", case) - p.on("R", case)) != (ref.on("Q1", case) - ref.on("R", case)) \
+            and p.on("P3", case) == p.on("R", case) and ref.on("P3", case) == ref.on("R", case):
+        fail(case, "L1: a quote is no item list, and breaks as plain LaTeX")
     # D5
     if p.widow(case):
         fail(case, "D5: a last line alone on the next page")
     # D6
     if name in LISTINGS:
         lead_first = p.on("P1", case)
-        n = 1 if name == "v8" or name in AFTERCHUNK else int(name[-1])
+        n = 1 if name == "v8" or name in AFTERCHUNK or name == "wL1" else int(name[-1])
         lead_last = p.on(f"P{n}", case)
-        code = p.on("C1", case)
+        code = p.on("I0x1" if name in ITEMLISTS else "C1", case)
         parted = lead_last < code
         says = [w for w in warns if "goes to the next page" in w]
         if parted and not says:
@@ -443,7 +490,7 @@ def check_case(p, ref, name, case, K):
         if says and code <= r:
             fail(case, f"D8: {says[0][:50]}, but it stays")
         moving = n if n <= 3 else 2
-        if parted and room - n + moving <= LIMIT - 0.3 and name in NOHEADING \
+        if parted and room - n + moving <= LIMIT - 0.3 and name in NOHEADING | {"fl1", "fl3"} \
                 and name not in AFTERCHUNK:
             fail(case, f"D6: parted at room {room:.1f}, within the limit")
         if name in NOHEADING and lead_first > r and over and name not in AFTERCHUNK:
@@ -461,15 +508,21 @@ def check(variant):
     ref = Pages(variant[0] + "p")
     K = 3 if variant.endswith("3") else 2
     n = 0
-    for name, case, r in all_cases():
+    for name, case, r in all_cases(variant):
         n += 1
         check_case(p, ref, name, case, K)
+    # keepends: a listing that breaks leaves two lines at each end
+    twos = sum(1 for name, case, r in all_cases(variant) if name == "wL1"
+               and p.on("C2", case) == p.on("R", case) and p.on("C3", case) != p.on("R", case))
+    if variant[0] != "e" and not twos:
+        print("FAIL: no listing of 15 lines breaks after two")
+        FAILS.append("keepends")
     for line in FAILS:
         print(line)
     for w in p.warn.get(None, []):
         print("FAIL: a warning with no place:", w)
         FAILS.append(w)
-    want = sum(1 for _ in all_cases())
+    want = sum(1 for _ in all_cases(variant))
     if n != want or not p.page:
         print(f"FAIL: {n} cases of {want}")
         return 1

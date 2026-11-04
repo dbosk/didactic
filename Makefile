@@ -241,10 +241,10 @@ test-keep-heading.pdf test-keep-heading3.pdf: %.pdf: %.tex test-keep-heading.tex
 	! grep 'Overfull .vbox' $*.log
 	test "$$(grep -c 'Package didactic Warning: .*Only 1 of' $*.log)" -eq 0
 	test "$$(grep -c 'Package didactic Warning: .*Only 2 of' $*.log)" -eq ${ONLY2}
-	test "${call count_warn,The code at line}" -eq 1
+	test "${call count_warn,What starts at line}" -eq 1
 	test "$$(grep -c 'didactic heading test.*PASS' $*.log)" -ge 40
 test-keep-heading.pdf: ONLY2=0
-test-keep-heading3.pdf: ONLY2=2
+test-keep-heading3.pdf: ONLY2=3
 
 test-keep-nogap.pdf test-keep-nogap3.pdf: %.pdf: %.tex test-keep-nogap.tex \
 		test-basedir/keep1/x.tex test-basedir/keep2/x.tex \
@@ -254,13 +254,13 @@ test-keep-nogap.pdf test-keep-nogap3.pdf: %.pdf: %.tex test-keep-nogap.tex \
 	grep -q 'didactic heading test: all checks ran' $*.log
 	test "$$(grep -c 'Package didactic Warning: The heading in test-keep-nogap' $*.log)" -eq ${NOGAP_HEADINGS}
 	! grep 'Overfull .vbox' $*.log
-test-keep-nogap.pdf: NOGAP_HEADINGS=1
-test-keep-nogap3.pdf: NOGAP_HEADINGS=2
+test-keep-nogap.pdf: NOGAP_HEADINGS=0
+test-keep-nogap3.pdf: NOGAP_HEADINGS=1
 
 # page breaks around headings and listings, room by room, against plain LaTeX with
 # the same fonts and margins: see test-keep-sweep.py.  pdflatex, for those fonts.
-SWEEP=m a s s3
-SWEEP_ALL=${SWEEP} mp ap sp
+SWEEP=m a s s3 e
+SWEEP_ALL=${SWEEP} mp ap sp ep
 ${SWEEP_ALL:%=test-keep-sweep-%.tex}: test-keep-sweep-%.tex: test-keep-sweep.py
 	python3 $< gen $* > $@
 ${SWEEP_ALL:%=test-keep-sweep-%.pdf}: PDFLATEX=pdflatex
@@ -269,7 +269,7 @@ ${SWEEP_ALL:%=test-keep-sweep-%.pdf}: %.pdf: %.tex didactic.sty
 	! grep 'Overfull .vbox' $*.log
 .PHONY: test-keep-sweep
 test-keep-sweep: test-keep-sweep.py ${SWEEP_ALL:%=test-keep-sweep-%.pdf}
-	for v in ${SWEEP}; do python3 $< check $$v || exit 1; done
+	rc=0; for v in ${SWEEP}; do python3 $< check $$v || rc=1; done; exit $$rc
 
 # noweb without breakcode warns, once; with breakcode, however it is set, it doesn't.
 ${TEST_KEEP_NOWEB:=.pdf}: %.pdf: %.tex didactic.sty

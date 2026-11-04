@@ -1,7 +1,8 @@
 % Test of keeping listings together (didactic): in the notes (memoir +
 % beamerarticle), a listing of at most keeplines lines doesn't break across
 % pages, a longer one leaves at least keepends lines on each side of a
-% break, and the paragraph that leads into a listing stays with it.
+% break, and the paragraph that leads into a listing stays with it.  This document
+% pins keepends=3; the default of 2 is in test-keep-heading and test-keep-sweep.
 % Each case starts on a new page, after a rule that leaves room for a few
 % lines only, so that without didactic the listing would break there.
 %
@@ -79,7 +80,7 @@
 \documentclass[a4paper]{memoir}
 \usepackage[british]{babel}
 \usepackage{amsmath,amssymb,amsthm}
-\usepackage{didactic}
+\usepackage[keepends=3]{didactic}
 \usepackage[noamsthm,notheorems]{beamerarticle}
 \usepackage{refcount}
 \usepackage{longtable}
