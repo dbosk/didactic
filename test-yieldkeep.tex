@@ -18,7 +18,10 @@
 \def\heading{heading}\def\stacked{stacked}\def\second{second}\def\vertical{vertical}
 \def\runin{runin}\def\runintwo{runintwo}\def\club{club}\def\widow{widow}
 \def\middle{middle}
-\def\theoremcase{theorem}\def\headlist{headlist}
+\def\theoremcase{theorem}\def\headlist{headlist}\def\withother{withother}
+\def\tallheading{tallheading}\def\tallclub{tallclub}\def\tallwidow{tallwidow}
+\def\tallmiddle{tallmiddle}
+\newcommand\tall{\rule{0pt}{4\baselineskip}}
 \newtheorem{thmx}{THMX}
 \begin{document}
 \noindent x\marginpar{TALL\par\rule{1pt}{.97\textheight}} text
@@ -42,6 +45,25 @@
   \section{HEADINGX}
   \yieldnote{}
   FIRSTLINE \filler\ \filler
+\fi
+\ifx\testcase\withother
+  \section{HEADINGX}
+  FIRSTLINE\yieldnote{} \oneline\ more words\marginpar{NOTEZ} \filler
+\fi
+% A tall line must not change the count of lines around the break.
+\ifx\testcase\tallheading
+  \section{HEADINGX}
+  \tall FIRSTLINE\yieldnote{} \filler\ \filler
+\fi
+\ifx\testcase\tallclub
+  FIRSTLINE \oneline\ more words\yieldnote{} \filler\tall\ \filler
+\fi
+\ifx\testcase\tallwidow
+  FIRSTLINE \filler\ Now the last line of the paragraph, with its
+  note\yieldnote{}\tall.
+\fi
+\ifx\testcase\tallmiddle
+  FIRSTLINE \filler\ \filler\yieldnote{} \filler\tall\ \filler\tall\ \filler
 \fi
 \ifx\testcase\headlist
   \section{HEADINGX}

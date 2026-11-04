@@ -6,6 +6,9 @@
 # its .aux file stops changing and the last run asks for no other.
 job=test-yieldkeep
 status=0
+grep -q 'MFX@fit@capwhy' "$(kpsewhich marginfix.sty)" || {
+  echo "didactic yieldkeep test: FAIL: marginfix is too old, this needs its" \
+    "integration branch, https://github.com/dbosk/marginfix"; exit 1; }
 settle() { # <job> <case> <room> <options>
   rm -f "$1.aux" "$1.pdf"
   for i in 1 2 3 4 5 6 7 8; do
@@ -32,19 +35,20 @@ check() {
   yields=$(grep -c '^marginfix-yield: page=[0-9]* before' "$j.log")
   capped=$(grep -c '^marginfix-spill: .* capped$' "$j.log")
   unresolved=$(grep -c '^marginfix-spill: .* unresolved$' "$j.log")
-  told=$(grep -c '^Package didactic Warning: The margin note called out' "$j.log")
+  told=$(grep -c 'its page early would\|early for another note' "$j.log")
+  limit=$(grep -c 'marginnoteyieldlimit keeps page' "$j.log")
   p1=$(pdftotext -f 1 -l 1 "$j.pdf" - 2>/dev/null)
   head1=$(printf '%s\n' "$p1" | grep -c 'HEADINGX')
   first1=$(printf '%s\n' "$p1" | grep -c 'FIRSTLINE')
   state="settled: $settled, errors: $errors, early ends: $yields, capped: $capped,"
-  state="$state unresolved: $unresolved, told: $told, heading on p1: $head1,"
+  state="$state unresolved: $unresolved, told: $told, limit: $limit, heading on p1: $head1,"
   state="$state first line on p1: $first1"
   ok=no
   if [ "$settled$errors$unresolved" = yes00 ]; then
     case $5 in
       hold:*)
         grep -q "${5#hold:}" "$j.log" && [ "$yields" = 0 ] && [ "$capped" -gt 0 ] \
-          && [ "$first1" -gt 0 ] && ok=yes;;
+          && [ "$first1" -gt 0 ] && [ "$limit" = 0 ] && ok=yes;;
       yield)
         [ "$yields" -gt 0 ] && [ "$capped$told" = 00 ] && ok=yes;;
       parted)
@@ -65,6 +69,11 @@ last='last line alone'
 check heading heading 7 '' "hold:$parted"
 check stacked stacked 9 '' "hold:$parted"
 check headlist headlist 7 '' "hold:$parted"
+check withother withother 8 '' "hold:another note"
+check tallheading tallheading 11 '' "hold:$parted"
+check tallclub tallclub 4 '' "hold:$first"
+check tallwidow tallwidow 9 '' "hold:$last"
+check tallmiddle tallmiddle 9 '' yield
 check second second 9 '' "hold:$parted"
 check vertical vertical 7 '' "hold:$parted"
 check headingzero heading 7 'noteyieldmaxgap=0' "hold:$parted"

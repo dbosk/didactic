@@ -3660,20 +3660,23 @@
 % While a paragraph that counts for a heading is read, we note what it owes
 % (|para/begin|, which is after \cs{@didactic@keep@parabegin}).
 % For a page built during the paragraph, \cs{MFX@fit@page} tells us if it ended
-% for a note, and we count the lines of the pages begun in the paragraph, from
-% the height of the text.
+% for a note, and we count this paragraph's lines at the foot of that page, from
+% a copy of the text: a line, then the glue between lines, up to the two glues
+% in a row where the paragraph starts (|\parskip| and the glue to its first
+% line).
+% So a tall line counts as one line.
 % A note that may end its page has us ask \TeX\ to build the page at the end of
 % the paragraph, with a |\par| in vertical mode; other paragraphs are left alone.
-% At the end of the paragraph (|para/after|) we know its lines from |\prevgraf|,
-% those on the last page from |\pagetotal|, and so those on the page where it
-% started.
+% At the end of the paragraph (|para/after|) |\prevgraf| gives its lines, and so
+% we have those on its last page as well.
 % A break after fewer than the heading is owed parts the heading from them; after
 % just one line leaves the first line alone; and just one line after the last
 % break leaves the last line alone at the top of the next page.
 % A run-in title or the head of a theorem is in the paragraph's first line, so
 % a break before that line parts nothing, unless a heading of its own line came
 % just before it (|\if@nobreak| is still true then).
-% The count is by lines of the text, so a much taller line can make it one off.
+% Something in the list between two lines that isn't a line, like a |\mark|, ends
+% the count there, so that we hold back too much rather than too little.
 %
 % We hold the note by its key, in the |.aux| file (\cs{@didactic@fit@held}), and
 % as long as the callout keeps its key, for the same reason as \textsf{marginfix}'s
@@ -3685,6 +3688,10 @@
 % since that asks for each note to stay by its mark, but we warn.
 % A note called out in vertical mode while a heading's lines are due can't end
 % its page either, and for that we need no earlier run.
+% \textsf{marginfix} warns about each note that is capped, and through
+% \cs{MFX@fit@capwhy} we give the reason, since the limit it would name isn't the
+% reason here; the same goes for the other notes of that page, which are capped
+% with it.
 % The fix for a note held back or a lone line is in the text: a shorter note, or
 % moving the mark.
 %    \begin{macrocode}
@@ -3699,9 +3706,32 @@
 \newcount\@didactic@fit@owed
 \newcount\@didactic@fit@pages
 \newcount\@didactic@fit@rest
+\newcount\@didactic@fit@above
+\newcount\@didactic@fit@n
 \newcount\@didactic@fit@yields
-\def\@didactic@fit@lines#1{%
-  \numexpr\dimexpr#1-\topskip\relax/\@didactic@keep@L+1\relax}
+\def\@didactic@fit@walk{%
+  \global\@didactic@fit@n\z@
+  \ifnum\lastnodetype=12
+    \unkern\unkern
+  \else
+    \unskip\unpenalty\unskip
+  \fi
+  \@didactic@fit@walkon}
+\def\@didactic@fit@walkon{%
+  \let\reserved@b\relax
+  \ifnum\lastnodetype=13 \unpenalty\fi
+  \@tempswafalse
+  \ifnum\lastnodetype=\@ne\@tempswatrue\fi
+  \ifnum\lastnodetype=\tw@\@tempswatrue\fi
+  \if@tempswa
+    \setbox\z@\lastbox
+    \global\advance\@didactic@fit@n\@ne
+    \ifnum\lastnodetype=11 \unskip\fi
+    \ifnum\lastnodetype=11 \else
+      \let\reserved@b\@didactic@fit@walkon
+    \fi
+  \fi
+  \reserved@b}
 \def\@didactic@fit@hold#1#2{%
   \if#2h\else
     \ifdim\mfx@yieldlimit=\maxdimen
@@ -3751,10 +3781,12 @@
     \ifnum\mfx@fit@lastkern>\MFX@yield@base\relax
       \edef\reserved@a{\the\numexpr\mfx@fit@lastkern-\MFX@yield@base\relax}%
     \fi
+    \setbox\z@\vbox{\unvcopy\@tempboxa\@didactic@fit@walk}%
     \ifnum\@didactic@fit@pages=\z@
       \global\let\@didactic@fit@first\reserved@a
+      \global\@didactic@fit@above\@didactic@fit@n
     \else
-      \global\advance\@didactic@fit@rest\@didactic@fit@lines{\ht\@tempboxa}%
+      \global\advance\@didactic@fit@rest\@didactic@fit@n
     \fi
     \global\let\@didactic@fit@last\reserved@a
     \global\advance\@didactic@fit@pages\@ne
@@ -3766,8 +3798,8 @@
     \fi
     \global\@didactic@fit@inparfalse
     \ifnum\@didactic@fit@pages>\z@
-      \@tempcnta\@didactic@fit@lines{\pagetotal}%
-      \@tempcntb\numexpr\prevgraf-\@didactic@fit@rest-\@tempcnta\relax
+      \@tempcntb\@didactic@fit@above
+      \@tempcnta\numexpr\prevgraf-\@didactic@fit@rest-\@tempcntb\relax
       \ifx\@didactic@fit@first\@empty\else
         \ifnum\@tempcntb<\@didactic@fit@owed
           \if@didactic@fit@title
@@ -3819,33 +3851,48 @@
   \else
     \@didactic@MFX@fit@callout
   \fi}
-\def\@didactic@fit@spilled#1{%
-  \expandafter\ifx\csname @didactic@fh@\csname mfx@bk@#1\endcsname\endcsname\relax
+\def\@didactic@fit@why#1{%
+  \if#1c%
+    leave\MessageBreak the first line alone at the foot of the page%
+  \else\if#1w%
+    leave\MessageBreak the last line alone at the top of the next page%
   \else
-    \PackageWarningNoLine{didactic}{The margin note called out at\MessageBreak
-      \MFX@loc{#1}\MessageBreak
-      is carried from page \csname mfx@sp@#1\endcsname\space to page
-      \the\c@page:\MessageBreak
-      ending its page early would \if
-        \csname @didactic@fh@\csname mfx@bk@#1\endcsname\endcsname c%
-        leave\MessageBreak the first line alone at the foot of the page%
-      \else\if\csname @didactic@fh@\csname mfx@bk@#1\endcsname\endcsname w%
-        leave\MessageBreak the last line alone at the top of the next page%
-      \else
-        part\MessageBreak a heading from its lines%
-      \fi\fi}%
+    part\MessageBreak a heading from its lines%
+  \fi\fi}
+\def\@didactic@fit@iscapped#1{%
+  \expandafter\ifx\csname mfx@sp@\number#1\endcsname\relax
+    \expandafter\ifx
+        \csname @didactic@fh@\csname mfx@bk@\number#1\endcsname\endcsname\relax
+    \else
+      \expandafter\xdef\csname @didactic@fp@\the\c@page\endcsname{%
+        \csname @didactic@fh@\csname mfx@bk@\number#1\endcsname\endcsname}%
+    \fi
   \fi
-  \@didactic@MFX@fit@spilled{#1}}
+  \@didactic@MFX@fit@iscapped{#1}}
+\def\@didactic@fit@capwhy#1{%
+  \expandafter\ifx\csname @didactic@fh@\csname mfx@bk@#1\endcsname\endcsname\relax
+    \expandafter\ifx\csname @didactic@fp@\csname mfx@sp@#1\endcsname\endcsname\relax
+      \@didactic@MFX@fit@capwhy{#1}%
+    \else
+      ending that page early for another note\MessageBreak would
+      \@didactic@fit@why{\csname @didactic@fp@\csname mfx@sp@#1\endcsname\endcsname}%
+    \fi
+  \else
+    ending its page early would
+    \@didactic@fit@why{\csname @didactic@fh@\csname mfx@bk@#1\endcsname\endcsname}%
+  \fi}
 \def\@didactic@fit@setup{%
   \let\@didactic@MFX@fit@callout\MFX@fit@callout
   \let\MFX@fit@callout\@didactic@fit@callout
-  \let\@didactic@MFX@fit@spilled\MFX@fit@spilled
-  \let\MFX@fit@spilled\@didactic@fit@spilled
+  \let\@didactic@MFX@fit@iscapped\MFX@fit@iscapped
+  \let\MFX@fit@iscapped\@didactic@fit@iscapped
+  \let\@didactic@MFX@fit@capwhy\MFX@fit@capwhy
+  \let\MFX@fit@capwhy\@didactic@fit@capwhy
   \g@addto@macro\MFX@fit@page{\@didactic@fit@page}%
   \AddToHook{para/begin}{\@didactic@fit@parabegin}%
   \AddToHook{para/after}{\@didactic@fit@paraafter}}
 \AtBeginDocument{%
-  \ifdefined\mfx@yieldlimit
+  \ifdefined\MFX@fit@capwhy
     \ifdefined\pdftexversion
       \@didactic@fit@setup
     \else\ifdefined\directlua
