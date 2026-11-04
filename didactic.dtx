@@ -187,7 +187,7 @@
 % \changes{v2.14}{2026/10/22}{%
 %   Keeps listings together across pages outside \texttt{beamer}: a listing 
 %   of at most \texttt{keeplines} lines (20) doesn't break, a longer one 
-%   leaves at least \texttt{keepends} lines (3) that aren't empty on each 
+%   leaves at least \texttt{keepends} lines (2) that aren't empty on each
 %   side of a break and starts no page with an empty line, and with 
 %   \texttt{keepleadin} the paragraph before a listing or a pair of 
 %   \texttt{didacticpair}, and the header line of a \textsf{noweb} chunk, 
@@ -1088,7 +1088,7 @@
 %   The default is 10.
 % \item[keepends] A longer listing may break, but leaves at least this many
 %   lines on each side of the break, not counting empty lines.
-%   The default is 3.
+%   The default is 2.
 %   If those lines don't fit on a page, for they wrap, they break too, with
 %   a warning.
 %   Nor does a page start with an empty line of a longer listing: it breaks
@@ -1116,6 +1116,9 @@
 %   All this within |keepmaxgap|: if moving them would leave more empty lines
 %   than that, the listing can start the next page by itself, as without this
 %   option, and if it does a warning says so.
+%   The same goes for a list (|itemize|, |enumerate|, |description|, with
+%   \textsf{enumitem} too): it doesn't start the next page with what leads into it
+%   at the foot of this one, though it may break between its items as ever.
 %   The default is |true|.
 % \item[keepmaxgap] What moves to the next page to stay together may leave at
 %   most this many empty lines at the foot of the page.
@@ -1156,8 +1159,10 @@
 %   A heading is never parted from what follows it, also not a run-in heading from
 %   a list or a block, and if the first two lines of that don't fit, or what comes
 %   first can't break, it moves whatever the limit, as \LaTeX\ moves it.
-%   A listing right under a heading breaks past the limit, with at least two lines
-%   on each side, if it has them.
+%   A listing right under a heading breaks past the limit, by the rule of
+%   |keepends|, if it has the lines for that.
+%   A list right under a heading has what \LaTeX\ gives it: its first item, also
+%   of one line.
 %   Whenever a heading has too few lines, or moves past the limit, a warning gives
 %   the file and the line of the heading and says what the page did.
 %   That comes from the pages, so it takes the |.aux| file: with |\nofiles| a warning
@@ -1354,22 +1359,36 @@
 % \textsf{tcolorbox} doesn't break unless asked.\footnote{\Cref{app:pb-listings} has
 %   these and what they say.}
 %
-% \paragraph{Three lines at each end (\texttt{keepends}).}
+% \paragraph{Two lines at each end (\texttt{keepends}).}
 % Two counts were read and both are two: the same sample of the Press, two lines of
 % \enquote{a separate text element}, which it doesn't say of code, and
 % \textsf{tcolorbox}'s |lines before break|, for a box and not for
 % code.\cite[fig.~A.3]{chicago2010manual}\cite{sturm2025tcolorbox}
-% So 3 is stricter than any source read, and it is ours.
+% So we say two, by analogy, as the maintainer's choice: neither is about code.
 %
 % \paragraph{A listing right under a heading, past the limit.}
 % A heading stays with what follows it, and the limit holds too, so the heading stays
-% and the listing breaks, with a warning, if two lines stay on each side.
-% The two has the same backing as above, and the same caveat, and with a |keepends| of
-% two this rule and that one would be the same.
+% and the listing breaks, with a warning, by the same rule of two lines at each end.
 % Below that all moves, as \LaTeX\ moves it when nothing can part from the heading.
 % So a listing of three lines moves, and leaves up to about six lines empty, with a
 % warning, where plain \LaTeX\ keeps two of its lines and leaves one alone at the top
-% of the next page.
+% of the next page: a lone line of code is what the rule is there to avoid.
+%
+% \paragraph{A list stays with what leads into it, against \LaTeX.}
+% We forbid the break before the first item, under |keepleadin| and within
+% |keepmaxgap|; \cs{@beginparpenalty} is $-51$ in the standard classes and
+% \textsf{memoir}, a bonus for that very break.\footnote{\Cref{app:pb-lists}.}
+% The manual of \textsf{memoir} calls the break annoying while its own penalty
+% encourages it, and offers |\noprelistbreak| for one list at a time; the evidence
+% is thin, and the choice is the maintainer's: rather have the first item or two on
+% this page and break in the middle.
+% So only that break changes, and between the items a page breaks as ever.
+%
+% \paragraph{A list right under a heading follows \LaTeX.}
+% Its first item stays under the heading even when one line fits.
+% That is fewer than the sample's two lines, and goes against the two-line rule, which
+% stays for a heading over a paragraph.
+% It is the maintainer's choice, for fewer pages and for leaving a default where it is.
 %
 % \paragraph{Reckoning as \TeX\ does, and warnings.}
 % These are ours, not from the sources.
@@ -1597,7 +1616,7 @@
 \newcount\@didactic@keeplines
 \@didactic@keeplines=10
 \newcount\@didactic@keepends
-\@didactic@keepends=3
+\@didactic@keepends=2
 \newif\if@didactic@keepleadin
 \@didactic@keepleadintrue
 \DeclareOptionX{keeplines}{\@didactic@keeplines=#1\relax}
@@ -5709,6 +5728,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \newif\if@didactic@keep@titleonly
 \newif\if@didactic@keep@direct
 \newif\if@didactic@keep@columnswarned
+\newif\if@didactic@keep@itemlist
 \@didactic@keep@movabletrue
 \let\@didactic@keep@tie\relax
 \newcommand\@didactic@keep@hpage[2]{}
@@ -5971,9 +5991,6 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \ifdim\ht\@didactic@keep@box>\dimexpr\dimen@+\pageshrink\relax
         \if@didactic@keep@movable\else
           \@didactic@keep@longtrue
-          \if@didactic@keep@direct
-            \ifnum\@didactic@keepends>\tw@ \@didactic@keepends\tw@ \fi
-          \fi
           \@didactic@keep@cantbreak
         \fi
       \fi
@@ -6019,7 +6036,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \ifnum#2>#1\relax
     \ifx\@newl@bel\@testdef
       \PackageWarningNoLine{didactic}{%
-        The code at line #3 goes to the next page, not tied\MessageBreak
+        What starts at line #3 goes to the next page, not tied\MessageBreak
         to what leads into it: moving that too would leave\MessageBreak
         more than keepmaxgap lines empty}%
     \fi
@@ -6043,10 +6060,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \ifnum\@didactic@keep@n>\@didactic@keeplines\else
         \PackageWarning{didactic}{%
           A listing of \the\@didactic@keep@n\space lines breaks under its
-          heading, at\MessageBreak
-          two lines or more on each side: moving them would\MessageBreak
-          leave more than keepmaxgap lines empty, near page\MessageBreak
-          \the\c@page}%
+          heading, by\MessageBreak
+          keepends: moving them would leave more than\MessageBreak
+          keepmaxgap lines empty, near page \the\c@page}%
       \fi
     \fi
   \fi}
@@ -6344,8 +6360,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % A listing right under a heading has nothing to be released from, and a heading
 % is never parted from what follows it (|\if@didactic@keep@direct|).
 % But the limit holds here too: past |keepmaxgap| the heading stays and the listing
-% breaks, with a warning, with at least two lines on each side, so also one of at
-% most |keeplines| lines and one where |keepends| asks for more.
+% breaks, with a warning, by the rule of |keepends|, so also one of at most
+% |keeplines| lines.
 % If that doesn't fit, or the listing has too few lines, all moves as \LaTeX\ moves
 % it, and the pages say so at the end of the run.
 %    \begin{macrocode}
@@ -6428,9 +6444,12 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % (here); and a look at the outcome, which warns when neither did it (below).
 %
 % Before a heading we can only estimate, from the room left on the page, like 
-% \textsf{needspace} does: |\@didactic@keep@room|\{\meta{height}\} ends the 
-% page here if less than \meta{height} plus that many lines of the text are 
-% left.
+% \textsf{needspace} does: |\@didactic@keep@room|\{\meta{height}\} ends the
+% page here if less than \meta{height} plus a line of the text are left.
+% One line, for we don't know yet what comes: a list right under a heading has what
+% \LaTeX\ gives it.
+% The other lines of |keepafterheading| are for the chain, which moves the heading
+% with \LaTeX's own place to break.
 % We estimate as \TeX\ will decide: a break fits if the page less all that it can 
 % shrink fits, so the room counts |\pageshrink|, which includes what 
 % \textsf{memoir}'s |\sloppybottom| gives to |\topskip|, and \meta{height} is 
@@ -6479,6 +6498,16 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % heading would have had, and tell \LaTeX\ that we are after a heading,
 % |\@didactic@keep@forcetitle|.
 % That line holds no line of the text, |\if@didactic@keep@titleonly|.
+%
+% Item lists are for |keepleadin|: |itemize|, |enumerate|, |description| and what
+% \textsf{enumitem} calls lists start with a mark, |\if@didactic@keep@itemlist|, and
+% |\@didactic@keep@listtie|, right after |\@trivlist| has ended the paragraph before,
+% forbids the place to break at the start of the list, if moving what leads into it
+% stays within |keepmaxgap|, as for a listing.
+% Only that penalty changes: between the items \LaTeX\ goes on as ever.
+% And right under a heading, a list has what \LaTeX\ gives it: its first item stays
+% with the heading, also with one line, and we ask no more, so there is nothing to
+% warn about either.
 % Between the heading of a block and its paragraph can come what writes to a file, 
 % such as its entry in a list of examples, and the glue of the paragraph after that 
 % is a place to break too.
@@ -6505,8 +6534,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \ifvmode\ifinner\else\ifdim\pagegoal<\maxdimen
         \ifdim\pagetotal>\pagegoal\else
           \@didactic@keep@tmp\dimexpr\pagegoal-\pagetotal\relax
-          \ifdim\dimexpr\@didactic@keep@tmp+\pageshrink\relax<\dimexpr#1
-              +\@didactic@keepafterheading\@didactic@keep@L\relax
+          \ifdim\dimexpr\@didactic@keep@tmp+\pageshrink\relax
+              <\dimexpr#1+\@didactic@keep@L\relax
             \ifnum\@didactic@keepmaxgap>\z@
               \ifdim\dimexpr\@didactic@keep@tmp-\pagedepth\relax
                   >\@didactic@keepmaxgap\@didactic@keep@L
@@ -6563,6 +6592,34 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \addvspace\@tempskipb
     \@nobreaktrue
   \fi}
+\def\@didactic@keep@listtie{%
+  \if@didactic@keep@itemlist
+    \@didactic@keep@itemlistfalse
+    \if@didactic@keep@inbox\else\ifinner\else
+      \ifnum\@didactic@keep@headstate=\@ne
+        \global\@didactic@keep@headstate\z@
+      \else
+        \if@didactic@keepleadin
+          \@didactic@keep@tie
+          \if@didactic@keep@movable
+            \@beginparpenalty\@M
+          \else
+            \@didactic@keep@pairstart
+          \fi
+        \fi
+      \fi
+    \fi\fi
+  \fi}
+\def\@didactic@keep@itemlistbegin{\@didactic@keep@itemlisttrue}
+\AddToHook{env/itemize/begin}{\@didactic@keep@itemlistbegin}
+\AddToHook{env/enumerate/begin}{\@didactic@keep@itemlistbegin}
+\AddToHook{env/description/begin}{\@didactic@keep@itemlistbegin}
+\def\@didactic@keep@newlist#1#2#3{%
+  \@didactic@enit@newlist{#1}{#2}{#3}%
+  \AddToHook{env/#1/begin}{\@didactic@keep@itemlistbegin}}
+\AddToHook{package/enumitem/after}{%
+  \let\@didactic@enit@newlist\newlist
+  \let\newlist\@didactic@keep@newlist}
 \def\@didactic@keep@thmhead#1{%
   \@didactic@deferred@thm@head{#1}%
   \@nobreaktrue}
@@ -6593,7 +6650,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \let\deferred@thm@head\@didactic@keep@thmhead
   \fi
   \let\@didactic@trivlist\@trivlist
-  \def\@trivlist{\@didactic@keep@titlewaits\@didactic@trivlist}%
+  \def\@trivlist{%
+    \@didactic@keep@titlewaits\@didactic@trivlist\@didactic@keep@listtie}%
   \let\@didactic@FV@LeaveVMode\FV@LeaveVMode
   \def\FV@LeaveVMode{\@didactic@keep@titlewaits\@didactic@FV@LeaveVMode}%
   \g@addto@macro\@afterheading{\@didactic@keep@afterheading}%
@@ -7085,6 +7143,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \fi}
 \def\@didactic@keep@parabegin{%
   \if@didactic@keep@inbox\else
+    \@didactic@keep@pairend
     \ifcase\@didactic@keep@headstate
     \or
       \@didactic@keep@setclubs
@@ -7268,7 +7327,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
         \patchcmd{\@begincode}{\trivlist}
           {\trivlist\@didactic@nwtie}{}{\@didactic@nwkeepwarning}%
         \patchcmd{\@begincode}{\@@par\penalty\nwcodepenalty}
-          {\@@par\@didactic@keep@pairend\penalty\@didactic@nwfirstpenalty
+          {\@@par\penalty\@didactic@nwfirstpenalty
             \let\@didactic@nwfirstpenalty\nwcodepenalty}{}{}%
       }{\@didactic@nwkeepwarning}%
     }{\@didactic@nwkeepwarning}%
