@@ -1,0 +1,12 @@
+% Test of the didactic-margin line in the log: the place it gives for the margin
+% column must be where a margin note is printed.  The Makefile compares the x
+% of the words NOTEODD and NOTEEVEN from pdftotext -bbox with the line.
+% test-margin-log-article.tex is the same with another class.
+\ifdefined\MARGINCLASS\else\def\MARGINCLASS{memoir}\fi
+\documentclass[a4paper,twoside]{\MARGINCLASS}
+\usepackage{didactic}
+\begin{document}
+Text on the odd page.\marginpar{\noindent NOTEODD}
+\newpage
+Text on the even page.\marginpar{\noindent NOTEEVEN}
+\end{document}

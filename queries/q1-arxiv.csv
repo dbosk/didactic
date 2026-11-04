@@ -1,0 +1,8 @@
+# Query: "widows and orphans" AND (typography OR typesetting OR "page layout")
+# Provider: arxiv
+# Timestamp: 2026-11-03T20:03:26.560210
+# Results: 1
+
+title	authors	year	doi	venue	url
+PaperFit: Vision-in-the-Loop Typesetting Optimization for Scientific Documents	Bihui Yu; Xinglong Xu; Junjie Jiang; Jiabei Cheng; Caijun Jia; Siyuan Li; Conghui He; Jingxuan Wei; Cheng Tan	2026	10.48550/arXiv.2605.10341	cs.AI	http://arxiv.org/abs/2605.10341v1
+

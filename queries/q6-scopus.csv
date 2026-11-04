@@ -1,0 +1,10 @@
+# Query: TITLE-ABS-KEY(("widow line" OR "orphan line" OR "club line" OR Hurenkind OR Schusterjunge))
+# Provider: scopus
+# Timestamp: 2026-11-03T20:06:08.995582
+# Results: 3
+
+title	authors	year	doi	venue	url
+New Method of Electronic Control of Model Railroad Track	J. Horácek	2024	10.37394/23209.2024.21.1	Wseas Transactions on Information Science and Applications	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=85184470826&origin=inward
+The Barassi Line: MAPPING AUSTRALIA’S COMMUNITY FOOTBALL CLUBS	H. Fujak	2022		Sporting Traditions	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=85144674891&origin=inward
+Orphan Lines and Orphan Songs: Poetics and Pragmatics of Kmhmu Parallel Verse	F. Proschan	2022	10.5406/15351882.135.538.02	Journal of American Folklore	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=85148355855&origin=inward
+

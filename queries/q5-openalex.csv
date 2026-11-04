@@ -1,0 +1,67 @@
+# Query: "page breaking" AND (TeX OR LaTeX)
+# Provider: openalex
+# Timestamp: 2026-11-03T20:05:28.471863
+# Results: 60
+
+title	authors	year	doi	venue	url
+The Computer Science Of Tex And Latex	Victor L. Eijkhout	2004	10.5281/zenodo.49901	Zenodo (CERN European Organization for Nuclear Research)	https://openalex.org/W2470989218
+Inconsistencies in TeX-Produced Documents	J. Tan; Manuel Rigger	2024	10.1145/3650212.3680370	ACM SIGSOFT International Symposium on Software Testing and Analysis (ISSTA)	https://openalex.org/W4402457502
+Preparing Horizon Europe proposals in LaTeX with heria	Tristan Miller	2024	10.47397/tb/45-1/tb139miller-horizon	TUGboat	https://openalex.org/W4396691338
+LaTeX news, issue 40, November 2024	LaTeX Project Team	2025	10.47397/tb/46-1/tb142ltnews40	TUGboat	https://openalex.org/W4410154456
+Čo je možné nájsť v knihe "Math Into LaTeX", 2000 (3.vydanie) od George Grätzera	Jana Chlebíková	2001	10.5300/2001-4/195	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2323981548
+The Page Breaking Algorithm	Stephan von Bechtolsheim	1993	10.1007/978-1-4613-9142-5_1	Monographs in visual communication	https://openalex.org/W266495483
+Line & Page Breaks	David Salomon	1995	10.1007/978-1-4612-4256-7_14	Springer eBooks	https://openalex.org/W2138901913
+Modern TEX and Its Applications	Michael Vulis	1992			https://openalex.org/W384918731
+Math into LATEX		2000	10.1007/978-1-4612-2134-0	Birkhäuser Boston eBooks	https://openalex.org/W4250592791
+TeX in a Nutshell	Petr Olšák	2021	10.5300/2021-1-4/9	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W4288479161
+A Primer for TEX Users	Judi Jones	1982		DSpace@MIT (Massachusetts Institute of Technology)	https://openalex.org/W1608475971
+How (LA)TEX changed the face od Mathematics. An E-Interview with Leslie Lamport, the author of LATEX		2000	10.1515/dmvm-2000-0020	Mitteilungen der Deutschen Mathematiker-Vereinigung	https://openalex.org/W4235053667
+TeX and graphics : The State of the Problem	Nelson H. F. Beebe	1989	10.5802/cg.22	Cahiers GUTenberg	https://openalex.org/W1976662275
+More on the Core		2007	10.1007/978-0-387-22436-7_6	Springer eBooks	https://openalex.org/W2474267902
+Typesetting SGML documents using TeX	Andrew E. Dobrowolski	1991	10.5802/cg.97	Cahiers GUTenberg	https://openalex.org/W2329159205
+Blender Add-on for Typesetting of 3D Text Using LaTeX Code	Katarína Strenková	2026		Brno University of Technology Digital Library (Brno University of Technology)	https://openalex.org/W7166502107
+TeX in Schools? Just Say Yes: the Use Case of TeX Usage at theFaculty of Informatics, Masaryk University	Petr Sojka; Vít Starý Novotný	2017		Veřejné služby Informačního systému (Masarykiana Brunensis Universitas)	https://openalex.org/W2622408235
+Jak TeX k fontům ze Střešovic přišel	Petr Olšák	2001	10.5300/2001-4/153	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2329734332
+Improving Efficiency and Consistency of Student Learning Assessments: A New Framework Using LaTeX	Ira Harkness; Justin Watson	2024	10.18260/1-2--47590	ASEE Annual Conference & Exposition	https://openalex.org/W4401313723
+Breaking up	Malcolm Clark	1992	10.1093/oso/9780198537847.003.0021		https://openalex.org/W4388250763
+Delays and deferments	Malcolm Clark	1992	10.1093/oso/9780198537847.003.0022		https://openalex.org/W4388250483
+T sub E Xnical typesetting: A guide through the TEX typesetting program	Stan Ketterer	1989	10.2172/5291546		https://openalex.org/W4232509801
+Creating LaTeX Documents from within Stata using Texdoc	Ben Jann	2016	10.1177/1536867x1601600201	The Stata Journal Promoting communications on statistics and Stata	https://openalex.org/W2210440641
+New Interfaces for LaTeX Class Design	Frank G. Mittelbach; David P. Carlisle; Chris Rowley	2000	10.5802/cg.277	Cahiers GUTenberg	https://openalex.org/W2328273353
+Formatting information: A beginner's introduction to typesetting with LATEX	Peter Flynn	2002		Cork Open Research Archive (University College Cork, Ireland)	https://openalex.org/W2231431194
+Merging Illustrations and Printing on Big Paper	Gerald Roylance	1987		DSpace@MIT (Massachusetts Institute of Technology)	https://openalex.org/W2232370867
+Selected Problems from the Book Typesetting: The Case of Stageplay Typesetting	Pavel Stříž	2009	10.5300/2009-1-2/37	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2327264113
+Axessibility: creating PDF documents with accessible formulae	Dragan Ahmetovic; Tiziana Armano; Michele Berra; Cristian Bernareggi; Anna Capietto; Sandro Coriasco; Nadir Murru; Alice Ruighi	2018		Institutional Research Information System University of Turin (University of Turin)	https://openalex.org/W2911778149
+A generic comparison process for documentation files	Michelle Timmons	1997		Dublin City University Open Access Institutional Repository (Dublin City University)	https://openalex.org/W124632626
+A document manipulation system based on natural semantics	Dennis S. Arnon; Isabelle Attali; Paul Franchi-Zannettacci	1997	10.1016/s0895-7177(97)00023-x	Mathematical and Computer Modelling	https://openalex.org/W2084293120
+PaperFit: Vision-in-the-Loop Typesetting Optimization for Scientific Documents	Bihui Yu; Xinglong Xu; Junjie Jiang; Jiabei Cheng; Caijun Jia; Siyuan Li; Conghui He; Jingxuan Wei; Cheng Tan	2026	10.48550/arxiv.2605.10341	arXiv (Cornell University)	https://openalex.org/W7160958579
+tabular: Render Tables, Listings, and Figures for Clinical Submissions	Vignesh Thanikachalam	2026	10.32614/cran.package.tabular		https://openalex.org/W7164354677
+Zvýraznění bloků textu s možností stránkového zlomu	Vít Zýka	1999	10.5300/1999-3/146	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2314023370
+Development of a database for managing social service students using MATLAB	Edgar Alfredo González-Galindo; Héctor Nathán Luna-Alanís; Alberto González-Ledesma; Joseph Kevin Castro-Pérez	2024	10.35429/ejs.2024.21.11.8.20	ECORFAN Journal Spain	https://openalex.org/W4403158506
+Substituting outline fonts for bitmap fonts in archived PDF files	Steve Probets; David F. Brailsford	2003		Repository@Nottingham (University of Nottingham)	https://openalex.org/W7222386146
+Reflections on \globaldefs	Udo Wermuth	2023	10.47397/tb/44-1/tb136wermuth-globaldefs	TUGboat	https://openalex.org/W4377000660
+Institutional Membership		1985	10.1111/j.1467-8659.1985.tb00233.x	Computer Graphics Forum	https://openalex.org/W4205308725
+TrueType-fonty v TeXu	Vladimír Koutný	1999	10.5300/1999-3/159	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2334932064
+Some NTS thoughts	Hans Hagen	1999	10.5300/1999-3/109	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2314187929
+MkIV Hybrid Technology	Hans Hagen	2011	10.5300/2011-2-4/182	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W4239090026
+Historical review of TeX3	Peter Flynn	2020	10.47397/tb/41-3/tb129flynn-tex3	TUGboat	https://openalex.org/W3126279442
+LaT/sub E/X memos and letters	S. J. Sydoriak	1989		University of North Texas Digital Library (University of North Texas)	https://openalex.org/W2037399087
+bib2gls: selection, cross-references and locations	Nicola L. C. Talbot	2020	10.47397/tb/41-3/tb129talbot-bib2gls-more	TUGboat	https://openalex.org/W3127924702
+Absolute positioning with textpos	Norman Gray	2002		ENLIGHTEN (Jurnal Bimbingan dan Konseling Islam)	https://openalex.org/W417063624
+The T/sub T/X report macro package	K. Barry; S. Ketterer; R. W. McGaffey	1989	10.2172/5871780		https://openalex.org/W49230622
+The glossaries package: Getting started	Nicola L. C. Talbot	2025	10.47397/tb/46-1/tb142talbot-glossaries-intro	TUGboat	https://openalex.org/W4410155363
+Digital archiving of Malayalam content II	CV Radhakrishnan; KV Rajeesh	2026	10.47397/tb/47-2/tb146radhakrishnan-malayalam-archiving	TUGboat	https://openalex.org/W7204693043
+Nový štandard textových editorov pre Windows? – II	Igor Podlubný; Katarina Kassayova	1999	10.5300/1999-3/132	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2334100110
+It Might Work XII	Peter Wilson	2022	10.5300/2022-1-4/77	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W4312991869
+Lexique anglo-français du Companion	Jacques André; Jean-Côme Charpentier	2007	10.5802/cg.336	Cahiers GUTenberg	https://openalex.org/W2331947001
+N T S: a New Typesetting System	Karel Skoup	1998			https://openalex.org/W2338736811
+Fast regression testing of TeX packages: Multiprocessing and batching	Vít Starý Novotný; Marei Peischl	2024	10.47397/tb/45-1/tb139starynovotny-testing	TUGboat	https://openalex.org/W4396691334
+Document Layout Optimization with Automated Paraphrasing	Yusuke Kido; Hikaru Yokono; Goran Topić; Akiko Aizawa	2015	10.1145/2682571.2797095	ACM Symposium on Document Engineering (DocEng)	https://openalex.org/W2021562739
+Boxenv.sty : a LATEX style file for formatting BOX expressions	Jonge, Merijn	1999		Centrum Wiskunde & Informatica (CWI), the national research institute for mathematics and computer science in the Netherlands	https://openalex.org/W2508496830
+Instructions for S&P authors using LATEX 2ε	Kai von Fintel; Christopher Potts; Chung-chieh Shan	2007	10.3765/sp.0.2	Semantics and Pragmatics	https://openalex.org/W2147741537
+simPDF: Fast Multi-Page PDF Report Layout on the Graphics Device	Kyun‐Seop Bae	2026	10.32614/cran.package.simpdf		https://openalex.org/W7171773862
+KTBox: A Modular LaTeX Framework for Semantic Color, Structured Highlighting, and Scholarly Communication	Bhaskar Mangal; Ashutosh Bhatia; Yashvardhan Sharma; Kamlesh Tiwari; Rashmi Verma	2025	10.48550/arxiv.2510.01961	arXiv (Cornell University)	https://openalex.org/W4414819823
+Modular Multimodal Machine Learning for Extraction of Theorems and Proofs in Long Scientific Documents (Extended Version)	Shrey Mishra; Antoine Gauquier; Pierre P. Senellart	2023	10.48550/arxiv.2307.09047	HAL	https://openalex.org/W4384807976
+tinytable: Simple and Configurable Tables in 'HTML', 'LaTeX', 'Markdown', 'Word', 'PNG', 'PDF', and 'Typst' Formats	Vincent Arel‐Bundock	2024	10.32614/cran.package.tinytable		https://openalex.org/W4399636886
+Extraction multimodale de preuves et de théorèmes à partir de la littérature scientifique	Shrey Mishra	2024		HAL	https://openalex.org/W4401159148
+

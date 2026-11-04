@@ -1,0 +1,7 @@
+# Query: ("bulleted list" OR "list items" OR "lead-in") AND ("page break" OR pagination) AND (reading OR comprehension OR typography)
+# Provider: hal
+# Timestamp: 2026-11-03T20:13:39.090396
+# Results: 0
+
+title	authors	year	doi	venue	url
+

@@ -1,0 +1,7 @@
+# Query: (list OR "bulleted list" OR "list items" OR "lead-in") AND ("page break" OR pagination) AND (criticism OR empirical OR experiment OR evidence)
+# Provider: hal
+# Timestamp: 2026-11-03T21:06:46.721492
+# Results: 0
+
+title	authors	year	doi	venue	url
+

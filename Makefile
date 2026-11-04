@@ -3,6 +3,25 @@ PDFLATEX?=xelatex -pdf
 LATEXFLAGS=-shell-escape
 PYTHONTEX=python3 $(shell which pythontex) --interpreter python:python3
 
+# The cases of frame titles, one file per kind; see the header of each file.
+TEST_FRAMETITLE_CASES=	test-frametitle-overlay test-frametitle-floats \
+			test-frametitle-boxes test-frametitle-end \
+			test-frametitle-template \
+			test-frametitle-template-after \
+			test-frametitle-noarticle test-frametitle-article
+TEST_KEEP_CHAPTER=	test-keep-chapter-article test-keep-chapter-memoir \
+			test-keep-chapter-book
+TEST_KEEP_NOWEB=	test-keep-filbreak test-keep-breakcode \
+			test-keep-breakcode-late test-keep-filbreak-nogap
+TEST_NOTEOVERFLOW=	test-noteoverflow test-noteoverflow-carry \
+			test-noteoverflow-draft test-noteoverflow-draftbreak \
+			test-noteoverflow-xe test-noteoverflow-old
+# The order of float numbers, from the pages the floats end up on.
+TEST_FLOATORDER=	test-marginfloat-samepar test-marginfloat-moved \
+			test-marginfloat-chapters test-marginfloat-kinds \
+			test-marginfloat-article
+.DELETE_ON_ERROR:
+
 .PHONY: all
 all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-footcite-twoside.pdf test-footcite-memoir.pdf test-run.pdf \
@@ -10,29 +29,49 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-sidecap.pdf test-sidecap-off.pdf \
 	test-marginfloat.pdf test-marginfloat-slides.pdf \
 	test-frametitle.pdf test-frametitle-slides.pdf \
-	test-keep.pdf test-noteyield test-noteyield-cap test-biburl
+	test-keep.pdf test-keep-tall.pdf test-keep-tall100.pdf \
+	test-keep-chain.pdf test-keep-heading.pdf test-keep-heading3.pdf \
+		test-keep-nogap.pdf test-keep-nogap3.pdf test-keep-sweep \
+		${TEST_KEEP_NOWEB:=.pdf} \
+	test-keep-flush.pdf ${TEST_KEEP_CHAPTER:=.pdf} test-keep-stale.pdf \
+	${TEST_NOTEOVERFLOW:=.pdf} test-oldkernel.pdf \
+	test-margin-log.pdf test-margin-log-article.pdf \
+	${TEST_FRAMETITLE_CASES:=.pdf} \
+	test-marginfloat-cases.pdf test-marginfloat-order.pdf \
+	test-marginfloat-inorder.pdf test-marginfloat-hidden.pdf \
+	${TEST_FLOATORDER:=.pdf} check \
+	test-noteyield test-noteyield-cap test-biburl
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
 SRC+=	hello.py ask.py askmany.py greet.py filter.py pairgreet1.py pairgreet2.py
 SRC+=	pairwrite.py pairread.py
+# The review behind the decisions on page breaks: the appendix and its sources, and
+# what it was made from, which isn't read in the build (a record of the searches).
+SRC+=	appendix.tex appendix-hitlist.tex didactic.bib
+LIT_RECORD=	heading-foot-of-page.csv $(wildcard queries/*.csv)
 
 # The change history (\PrintChanges) needs makeindex on the .glo file; that
 # also checks that every \changes entry can be written and typeset.
 didactic.pdf: ${SRC} didactic.sty
 	-${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	${PYTHONTEX} didactic
+	biber didactic
 	${PDFLATEX} ${LATEXFLAGS} $<
 	makeindex -s gglo.ist -o didactic.gls didactic.glo
 	grep -q noteyieldmaxgap didactic.gls
 	${PDFLATEX} ${LATEXFLAGS} $<
+	${PDFLATEX} ${LATEXFLAGS} $<
+	! grep -E 'Empty bibliography|Citation .*undefined|could not be found' didactic.log
+	! grep -E 'WARN|ERROR' didactic.blg
+	! grep -E "Reference .app:.*undefined|Reference .PageBreakDecisions.*undefined" didactic.log
 
 # docstrip asks before overwriting, so remove the old file first.
 didactic.sty: didactic.ins didactic.dtx
 	${RM} $@
 	${LATEX} ${LATEXFLAGS} $<
 
-didactic.tar.gz: ${SRC} didactic.ins LICENSE Makefile README.md didactic.pdf
+didactic.tar.gz: ${SRC} ${LIT_RECORD} didactic.ins LICENSE Makefile README.md didactic.pdf
 	tar -czf $@ --transform "s|^|didactic/|" $^
 
 test.pdf: test.tex didactic.sty
@@ -87,10 +126,35 @@ test-marginfloat.pdf test-marginfloat-slides.pdf: %.pdf: %.tex didactic.sty \
 		${TEST_MARGINFLOAT_SRC}
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
+test-marginfloat-cases.pdf test-marginfloat-hidden.pdf: %.pdf: %.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} $<
+	${PDFLATEX} ${LATEXFLAGS} $<
+test-marginfloat-order.pdf test-marginfloat-inorder.pdf: %.pdf: %.tex \
+		test-marginfloat-order.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} $<
+	${PDFLATEX} ${LATEXFLAGS} $<
+${TEST_FLOATORDER:=.pdf}: %.pdf: %.tex didactic.sty
+	@${latex_until_settled}
 
-# frame titles, in the notes and on the slides, from one source.
+# What the headers of the tests expect, from the PDFs and logs: building a test
+# only shows that LaTeX didn't stop.  Phony, so that it runs every time, also
+# on PDFs that are up to date.
+CHECKED_TESTS=	test-marginfloat test-marginfloat-slides test-marginfloat-cases \
+		test-marginfloat-order test-marginfloat-inorder \
+		test-marginfloat-hidden test-frametitle test-frametitle-slides \
+		test-block-nested ${TEST_FRAMETITLE_CASES} ${TEST_FLOATORDER}
+.PHONY: check
+check: test-check.py ${CHECKED_TESTS:=.pdf}
+	python3 test-check.py ${CHECKED_TESTS}
+
+# frame titles, in the notes and on the slides, from one source; twice, since
+# beamer asks for a rerun for its outline.
 test-frametitle.pdf test-frametitle-slides.pdf: %.pdf: %.tex didactic.sty \
 		test-frametitle-contents.tex
+	${PDFLATEX} ${LATEXFLAGS} $<
+	${PDFLATEX} ${LATEXFLAGS} $<
+test-block-nested.pdf ${TEST_FRAMETITLE_CASES:=.pdf}: %.pdf: %.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
 
 # code side by side, in the notes and on the slides; minted needs
@@ -103,14 +167,175 @@ test-pair.pdf test-pair-slides.pdf: %.pdf: %.tex didactic.sty ${TEST_PAIR_EXAMPL
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
 
-# listings kept together across pages; three times, for the page references
-# and the heading before a long table, which moves in the run after.  The
-# document checks its pages itself and logs PASS or FAIL for each check.
+# Run LaTeX on $< until the references settle.  Without a cache minted sets its
+# listings as plain text in the first pass, with no labels, so on a fresh checkout
+# the page references take three passes, later builds two.  At least two, for
+# that plain text.  Fail if they never settle.
+define latex_until_settled
+${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $< || exit 1; \
+for i in 1 2 3 4 5; do \
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $< || exit 1; \
+	grep -q 'Rerun to get' $(basename $<).log || exit 0; \
+done; echo "$<: references did not settle"; exit 1
+endef
+
+# listings kept together across pages.  The document checks its pages itself
+# and logs PASS or FAIL for each check, and a last line if it got there.  A
+# failed test leaves no PDF, only the log (.DELETE_ON_ERROR), so that the next
+# make doesn't call it up to date.
 test-keep.pdf: test-keep.tex didactic.sty
+	-${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	${PYTHONTEX} test-keep
+	@${latex_until_settled}
+	! grep -E 'didactic keep test:.*(FAIL|SKIP)' test-keep.log
+	grep -q 'didactic keep test: all checks ran' test-keep.log
+	pdftotext -layout test-keep.pdf - | grep -Eq '^ *1\. +qline 1$$'
+	test "$$(pdftotext test-keep.pdf - | awk -v RS='\f' '/wline 1\n/ && /wline 30/ {n++} /wline 27/ && /wline 30/ {m++} END {print n+0, m+0}')" = "0 1"
+
+# listings too tall for a page, and what warns when one can't be kept: see the
+# documents.  Words that are off the paper aren't in pdftotext's output.
+count_word=$$(pdftotext $@ - | grep -o $(1) | wc -l)
+count_warn=$$(grep -c 'Package didactic Warning: .*$(1)' $(basename $@).log)
+
+test-keep-tall.pdf: test-keep-tall.tex didactic.sty
+	@${latex_until_settled}
+	! grep 'Overfull .vbox' test-keep-tall.log
+	test "${call count_word,word}" -eq 1600
+	test "${call count_word,third}" -eq 2041
+	test "${call count_word,long}" -eq 8161
+	test "${call count_warn,too tall}" -eq 2
+	test "${call count_warn,can.t keep}" -eq 1
+	test "${call count_warn,something between}" -eq 1
+	test "${call count_word,marked}" -eq 8
+	test "${call count_warn,doesn.t fit}" -eq 0
+
+test-keep-tall100.pdf: test-keep-tall100.tex test-keep-tall.tex didactic.sty
+	@${latex_until_settled}
+	! grep 'Overfull .vbox' test-keep-tall100.log
+	test "${call count_word,unit}" -eq 90
+	test "$$(pdftotext $@ - | awk -v RS='\f' '/Half a page/ && /unit 10\n/ {n++} /unit 88\n/ && /unit 90\n/ {m++} END {print n+0, m+0}')" = "1 1"
+	test "${call count_word,fitting}" -eq "$$(wc -l < test-keep-tall100-f.txt)"
+	test "${call count_warn,too tall}" -eq 2
+	test "${call count_warn,doesn.t fit}" -eq 0
+
+# what is kept with a listing makes the page overfull: that can't be undone,
+# so it must warn.
+test-keep-chain.pdf: test-keep-chain.tex didactic.sty
+	@${latex_until_settled}
+	grep -q 'Overfull .vbox' test-keep-chain.log
+	test "${call count_warn,doesn.t fit}" -eq 2
+	test "${call count_word,chained}" -eq 40
+
+# a heading keeps its lines, within keepmaxgap, or warns: see the documents.
+# Each document also runs with keepafterheading=3 (the files ending in 3 only set
+# that), where more is asked of the chain and the estimate.
+test-keep-heading.pdf test-keep-heading3.pdf: %.pdf: %.tex test-keep-heading.tex \
+		didactic.sty
+	@${latex_until_settled}
+	! grep -E 'didactic heading test:.*FAIL' $*.log
+	grep -q 'didactic heading test: all checks ran' $*.log
+	! grep 'Overfull .vbox' $*.log
+	test "$$(grep -c 'Package didactic Warning: .*Only 1 of' $*.log)" -eq 0
+	test "$$(grep -c 'Package didactic Warning: .*Only 2 of' $*.log)" -eq ${ONLY2}
+	test "${call count_warn,can.t break here}" -eq 1
+	test "$$(grep -c 'didactic heading test.*PASS' $*.log)" -ge 40
+test-keep-heading.pdf: ONLY2=0
+test-keep-heading3.pdf: ONLY2=2
+
+test-keep-nogap.pdf test-keep-nogap3.pdf: %.pdf: %.tex test-keep-nogap.tex \
+		test-basedir/keep1/x.tex test-basedir/keep2/x.tex \
+		test-basedir/keep3.tex didactic.sty
+	@${latex_until_settled}
+	! grep -E 'didactic heading test:.*FAIL' $*.log
+	grep -q 'didactic heading test: all checks ran' $*.log
+	test "$$(grep -c 'Package didactic Warning: The heading in test-keep-nogap' $*.log)" -eq ${NOGAP_HEADINGS}
+	! grep 'Overfull .vbox' $*.log
+test-keep-nogap.pdf: NOGAP_HEADINGS=1
+test-keep-nogap3.pdf: NOGAP_HEADINGS=2
+
+# page breaks around headings and listings, room by room, against plain LaTeX with
+# the same fonts and margins: see test-keep-sweep.py.  pdflatex, for those fonts.
+SWEEP=m a s s3
+SWEEP_ALL=${SWEEP} mp ap sp
+${SWEEP_ALL:%=test-keep-sweep-%.tex}: test-keep-sweep-%.tex: test-keep-sweep.py
+	python3 $< gen $* > $@
+${SWEEP_ALL:%=test-keep-sweep-%.pdf}: PDFLATEX=pdflatex
+${SWEEP_ALL:%=test-keep-sweep-%.pdf}: %.pdf: %.tex didactic.sty
+	@${latex_until_settled}
+.PHONY: test-keep-sweep
+test-keep-sweep: test-keep-sweep.py ${SWEEP_ALL:%=test-keep-sweep-%.pdf}
+	for v in ${SWEEP}; do python3 $< check $$v || exit 1; done
+
+# noweb without breakcode warns, once; with breakcode, however it is set, it doesn't.
+${TEST_KEEP_NOWEB:=.pdf}: %.pdf: %.tex didactic.sty
+	@${latex_until_settled}
+	test "${call count_warn,Code chunks of noweb}" -eq "${FILBREAK_WARNINGS}"
+test-keep-filbreak.pdf: FILBREAK_WARNINGS=1
+test-keep-breakcode.pdf test-keep-breakcode-late.pdf test-keep-filbreak-nogap.pdf: \
+		FILBREAK_WARNINGS=0
+
+# a heading that ends a page under \flushbottom leaves the space at the foot.
+test-keep-flush.pdf: test-keep-flush.tex didactic.sty
+	@${latex_until_settled}
+	test "$$(pdfinfo $@ | sed -n 's/^Pages: *//p')" -eq 2
+	! grep 'Underfull .vbox' test-keep-flush.log
+
+# a \chapter isn't taken for the section before it: one page in the .aux per
+# section, and an entry for a table only if a section stands in for the chapter.
+${TEST_KEEP_CHAPTER:=.pdf}: %.pdf: %.tex didactic.sty
+	@${latex_until_settled}
+	test "$$(grep -c 'keep@hpage' $*.aux)" -eq "$$(grep -c '^.section\*' $*.tex)"
+	test "$$(grep -c 'keep@tp' $*.aux)" -eq "$$(grep -c '^.section\*.After' $*.tex)"
+
+# the break before a heading doesn't go stale; see the script.
+test-keep-stale.pdf: test-keep-stale.tex test-keep-stale.sh didactic.sty
+	sh test-keep-stale.sh "${PDFLATEX} ${LATEXFLAGS}"
+
+# noteoverflow.  break needs pdfTeX or LuaTeX, so these name the engine, except
+# test-noteoverflow-xe, which is about the engine that can't.
+NOTEOVERFLOW_SRC=	test-noteoverflow-contents.tex didactic.sty
+test-noteoverflow.pdf test-noteoverflow-carry.pdf test-noteoverflow-draft.pdf \
+		test-noteoverflow-draftbreak.pdf: PDFLATEX=pdflatex
+define settle_many
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do \
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $< || exit 1; \
+	grep -q 'Rerun to get' $(basename $<).log || exit 0; \
+done; echo "$<: references did not settle"; exit 1
+endef
+count_spill=$$(grep -c 'marginfix-spill.*$(1)' $(basename $@).log)
+test-noteoverflow.pdf test-noteoverflow-draftbreak.pdf: %.pdf: %.tex ${NOTEOVERFLOW_SRC}
+	@${settle_many}
+	! grep '^!' $*.log
+	test "$$(grep -c 'marginfix-spill' $*.log)" -eq 0
+	test "$$(grep -c 'mfx@yield' $*.aux)" -gt 0
+test-noteoverflow-carry.pdf test-noteoverflow-draft.pdf: %.pdf: %.tex ${NOTEOVERFLOW_SRC}
+	@${settle_many}
+	! grep '^!' $*.log
+	test "${call count_spill,intended}" -gt 0
+	test "${call count_spill,unresolved}" -eq 0
+	test "$$(grep -c 'mfx@yield' $*.aux)" -eq 0
+test-noteoverflow-xe.pdf: %.pdf: %.tex ${NOTEOVERFLOW_SRC}
+	@${settle_many}
+	! grep '^!' $*.log
+	test "${call count_spill,unresolved}" -gt 0
+	test "${call count_warn,A margin note from page}" -eq "${call count_spill,unresolved}"
+test-noteoverflow-old.pdf: test-noteoverflow-old.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	! grep '^!' test-noteoverflow-old.log
+	test "${call count_warn,option noteoverflow needs marginfix}" -eq 1
+	test "${call count_warn,marginnoteoverflow needs marginfix}" -eq 1
+
+# the place of the margin column in the log against where a note is printed.
+test-margin-log.pdf test-margin-log-article.pdf: %.pdf: %.tex test-margin-log.tex \
+		test-margin-log.sh didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	./test-margin-log.sh $*
+
+# a kernel from before \fpeval; see the document.
+test-oldkernel.pdf: test-oldkernel.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
-	! grep 'didactic keep test:.*FAIL' test-keep.log
+	grep -q 'didactic-margin: odd=[0-9.]* even=[0-9.]* width=[0-9.]*' test-oldkernel.log
 
 # noteyieldmaxgap: marginfix's \marginnoteyieldlimit in lines, by default
 # keepmaxgap's; one run per case, options:lines (0 for no limit).  Needs
@@ -203,7 +428,7 @@ clean:
 	${RM} didactic.out didactic.pdf
 	${RM} didactic.pytxcode didactic.pytxmcr didactic.pytxpyg
 	${RM} didactic.tar.gz didactic.toc didactic.unq
-	${RM} didactic.hd
+	${RM} didactic.hd didactic.bbl didactic.bcf didactic.blg didactic.run.xml
 	${RM} pythontex_data.pkl
 	${RM} -R _minted-didactic _minted-test pythontex_data.pkl
 	${RM} $(wildcard py_default_default_*.stdout)
@@ -242,7 +467,30 @@ clean:
 	${RM} test-frametitle-slides.snm test-frametitle-slides.toc
 	${RM} test-frametitle-slides.out test-frametitle-slides.unq
 	${RM} test-keep.pdf test-keep.aux test-keep.log test-keep.unq
-	${RM} test-keep-?.txt test-keep.pytxcode
+	${RM} test-keep-?.txt test-keep.pytxcode test-keep.pytxmcr test-keep.pytxpyg
+	${RM} -R pythontex-files-test-keep
+	${RM} test-keep-tall.pdf test-keep-tall.aux test-keep-tall.log
+	${RM} test-keep-tall.unq test-keep-tall.pytxcode test-keep-tall-?.txt
+	${RM} test-keep-tall100.pdf test-keep-tall100.aux test-keep-tall100.log
+	${RM} test-keep-tall100.unq test-keep-tall100.pytxcode
+	${RM} test-keep-tall100-?.txt
+	${RM} test-keep-chain.pdf test-keep-chain.aux test-keep-chain.log
+	${RM} test-keep-chain.unq test-keep-chain.pytxcode test-keep-chain-?.txt
+	${RM} ${SWEEP_ALL:%=test-keep-sweep-%.tex}
+	for f in test-keep-heading test-keep-heading3 test-keep-nogap test-keep-nogap3 \
+			${SWEEP_ALL:%=test-keep-sweep-%} ${TEST_KEEP_NOWEB} \
+			test-keep-flush test-keep-stale \
+			test-block-nested ${TEST_KEEP_CHAPTER} ${TEST_NOTEOVERFLOW}; do \
+		${RM} $$f.pdf $$f.aux $$f.log $$f.unq $$f.pytxcode $$f.out $$f.toc; \
+	done
+	${RM} test-keep-heading-?.txt test-keep-heading3-?.txt test-keep-stale-room.tex test-keep-stale-opt.tex
+	${RM} test-oldkernel.pdf test-oldkernel.aux test-oldkernel.log
+	${RM} test-oldkernel.unq test-oldkernel.pytxcode
+	${RM} test-margin-log.pdf test-margin-log.aux test-margin-log.log
+	${RM} test-margin-log.unq test-margin-log.pytxcode
+	${RM} test-margin-log-article.pdf test-margin-log-article.aux
+	${RM} test-margin-log-article.log test-margin-log-article.unq
+	${RM} test-margin-log-article.pytxcode
 	${RM} -R _minted-test-keep
 	${RM} test-noteyield.pdf test-noteyield.aux test-noteyield.log
 	${RM} test-noteyield.unq test-noteyield.pytxcode
@@ -255,4 +503,31 @@ clean:
 	${RM} test-biburl-bbl.bbl test-biburl-bbl.bcf test-biburl-bbl.blg
 	${RM} test-biburl-bbl.run.xml test-biburl-bbl.unq
 	${RM} test-biburl-bbl.pytxcode
+	${RM} ${TEST_FRAMETITLE_CASES:=.pdf} ${TEST_FRAMETITLE_CASES:=.aux}
+	${RM} ${TEST_FRAMETITLE_CASES:=.log} ${TEST_FRAMETITLE_CASES:=.toc}
+	${RM} ${TEST_FRAMETITLE_CASES:=.lof} ${TEST_FRAMETITLE_CASES:=.lot}
+	${RM} ${TEST_FRAMETITLE_CASES:=.unq} ${TEST_FRAMETITLE_CASES:=.out}
+	${RM} ${TEST_FRAMETITLE_CASES:=.pytxcode} test-frametitle.pytxcode
+	${RM} test-frametitle-slides.pytxcode
+	${RM} test-marginfloat-cases.pdf test-marginfloat-cases.aux
+	${RM} test-marginfloat-cases.log test-marginfloat-cases.out
+	${RM} test-marginfloat-cases.unq
+	${RM} test-marginfloat-order.pdf test-marginfloat-order.aux
+	${RM} test-marginfloat-order.log test-marginfloat-order.out
+	${RM} test-marginfloat-order.unq
+	${RM} test-marginfloat-inorder.pdf test-marginfloat-inorder.aux
+	${RM} test-marginfloat-inorder.log test-marginfloat-inorder.out
+	${RM} test-marginfloat-inorder.unq
+	${RM} test-marginfloat-hidden.pdf test-marginfloat-hidden.aux
+	${RM} test-marginfloat-hidden.log test-marginfloat-hidden.out
+	${RM} test-marginfloat-hidden.unq
+	${RM} test-marginfloat.pytxcode test-marginfloat-slides.pytxcode
+	${RM} test-marginfloat-cases.pytxcode test-marginfloat-order.pytxcode
+	${RM} test-marginfloat-inorder.pytxcode test-marginfloat-hidden.pytxcode
+	${RM} ${TEST_FLOATORDER:=.pdf} ${TEST_FLOATORDER:=.aux}
+	${RM} ${TEST_FLOATORDER:=.log} ${TEST_FLOATORDER:=.out}
+	${RM} ${TEST_FLOATORDER:=.lof} ${TEST_FLOATORDER:=.lot}
+	${RM} ${TEST_FLOATORDER:=.toc} ${TEST_FLOATORDER:=.unq}
+	${RM} ${TEST_FLOATORDER:=.pytxcode}
+	${RM} _minted/*.minted
 	latexmk -C test.tex

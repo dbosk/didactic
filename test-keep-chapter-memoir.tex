@@ -1,0 +1,17 @@
+% Test that a \chapter isn't taken for the section before it (didactic): the
+% .aux has one page for each section and nothing from the table about the section
+% before the chapter.  The Makefile checks the .aux.  Article has no \chapter, so
+% a section stands in: the same counts must hold, with the table's entry.
+\documentclass[a4paper]{memoir}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{longtable}
+\usepackage{didactic}
+\begin{document}
+\section*{Before}
+Text of it.
+\chapter*{Chap}
+One line.
+\begin{longtable}{ll}
+\rule{0pt}{.8\textheight}a & b\\
+\end{longtable}
+\end{document}

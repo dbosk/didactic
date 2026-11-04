@@ -1,0 +1,9 @@
+# Query: TS=((list OR "bulleted list" OR "list items" OR "lead-in") AND ("page break" OR pagination) AND (criticism OR empirical OR experiment OR evidence))
+# Provider: wos
+# Timestamp: 2026-11-03T21:07:19.562582
+# Results: 2
+
+title	authors	year	doi	venue	url
+SDC: Structured Data Collection by Yourself	Ohshima, Takuya; Toyama, Motomichi	2018	10.1145/3200842.3200849	ICIST '18: PROCEEDINGS OF THE 8TH INTERNATIONAL CONFERENCE ON INFORMATION SYSTEMS AND TECHNOLOGIES	https://www.webofscience.com/wos/woscc/full-record/WOS:000476689200003
+Using Information Scent and Need for Cognition to Understand Online Search Behavior	Wu, Wan-Ching; Kelly, Diane; Sud, Avneesh	2014	10.1145/2600428.2609626	SIGIR'14: PROCEEDINGS OF THE 37TH INTERNATIONAL ACM SIGIR CONFERENCE ON RESEARCH AND DEVELOPMENT IN INFORMATION RETRIEVAL	https://www.webofscience.com/wos/woscc/full-record/WOS:000450717600058
+

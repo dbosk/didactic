@@ -1,0 +1,8 @@
+# Query: TS=(("page break" OR "page turn" OR "page boundary") AND (sentence OR paragraph) AND (reading OR memory OR recall))
+# Provider: wos
+# Timestamp: 2026-11-03T20:13:15.649782
+# Results: 1
+
+title	authors	year	doi	venue	url
+Annotate Once, Appear Anywhere: Collective Foraging for Snippets of Interest Using Paragraph Fingerprinting	Hong, Lichan; Chi, Ed H.	2009		CHI2009: PROCEEDINGS OF THE 27TH ANNUAL CHI CONFERENCE ON HUMAN FACTORS IN COMPUTING SYSTEMS, VOLS 1-4	https://www.webofscience.com/wos/woscc/full-record/WOS:000265679301075
+

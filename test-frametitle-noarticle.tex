@@ -1,0 +1,17 @@
+% Test of frame titles (didactic): the option noarticle keeps beamer's titles.
+%
+% Expected in the resulting PDF:
+%   TITLENOA on a line of its own and TEXTNOA under it; TITLESUB and SUBNOA on
+%   a line each, without a dash.
+\documentclass[a4paper]{memoir}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[noarticle]{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\begin{document}
+\begin{frame}{TITLENOA}
+  TEXTNOA is under the title.
+\end{frame}
+\begin{frame}{TITLESUB}{SUBNOA}
+  TEXTSUB is under the subtitle.
+\end{frame}
+\end{document}

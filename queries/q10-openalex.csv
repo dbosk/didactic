@@ -1,0 +1,67 @@
+# Query: (heading OR "widows and orphans" OR "page break") AND typesetting AND (criticism OR overrated OR "trade-off" OR "white space")
+# Provider: openalex
+# Timestamp: 2026-11-03T20:08:11.058439
+# Results: 60
+
+title	authors	year	doi	venue	url
+Output routines extending \plainoutput	Udo Wermuth	2025	10.47397/tb/46-1/tb142wermuth-widow	TUGboat	https://openalex.org/W4410155527
+Beyond The Page-Break: Towards Better Tools for Remediation of Born-Digital Documents	Mark W. R. Anderson	2024	10.1145/3648188.3678215	ACM Conference on Hypertext and Social Media (HT)	https://openalex.org/W4401983365
+A handlist of films showing printing & typesetting	Rob Banham	2008		CentAUR (University of Reading)	https://openalex.org/W147576260
+Formatting information: A beginner's introduction to typesetting with LATEX	Peter Flynn	2002		Cork Open Research Archive (University College Cork, Ireland)	https://openalex.org/W2231431194
+Cuts and Tears as Justified and Unjustified Typesetting: From Bayer to the Kindle	F Muggeridge	2026		Leeds Beckett Repository (Leeds Beckett University)	https://openalex.org/W7221838888
+The Contributions of Linn Boyd Benton and Morris Fuller Benton to the technology of typesetting and typeface design	Patricia Cost	1986		RIT Scholar Works (Rochester Institute of Technology)	https://openalex.org/W627380077
+Quantum boundaries for last line adjustments	Didier Verna	2026	10.47397/tb/47-2/tb146verna-lastline	TUGboat	https://openalex.org/W7204721741
+Zvýraznění bloků textu s možností stránkového zlomu	Vít Zýka	1999	10.5300/1999-3/146	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2314023370
+Evaluating the visual design of science publications—a quantitative approach comparing legitimate and predatory journal papers	Andreas Sieß	2025	10.1007/s11192-025-05411-1	Scientometrics	https://openalex.org/W4413640972
+Automatically Removing Widows and Orphans with lua-widow-control	Max Chernoff	2022	10.5300/2022-1-4/49	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W4312367526
+Preparing PNNL Reports with LaTeX	Scott R. Waichler	2005	10.2172/15016481		https://openalex.org/W2095698512
+PaperFit: Vision-in-the-Loop Typesetting Optimization for Scientific Documents	Bihui Yu; Xinglong Xu; Junjie Jiang; Jiabei Cheng; Caijun Jia; Siyuan Li; Conghui He; Jingxuan Wei; Cheng Tan	2026	10.48550/arxiv.2605.10341	arXiv (Cornell University)	https://openalex.org/W7160958579
+The theory and practice of book imposition : using the system of groups-of-four as originally introduced by the author ... a treatise	Charles Joseph Schott	1910	10.5479/sil.523943.39088008462160		https://openalex.org/W3005794130
+Візуально-комунікативний аспект використання шрифтових гарнітур у друкованих ЗМІ	Вікторія Галудзіна‐Горобець	2022	10.31866/2616-7948.1(9).2022.257167	Український інформаційний простір	https://openalex.org/W4293061478
+Cancer: A disease at the crossroads of trade‐offs	Camille M. Jacqueline; Peter A. Biro; Christa Beckmann; Anders Pape Møller; François Renaud A; Gabriele Sorci; Aurélie Tasiemski; Beáta Újvári; Frédéric Thomas A	2016	10.1111/eva.12444	Evolutionary Applications	https://openalex.org/W2552643283
+Information for Contributors	The Condor	1996		Digital Commons - University of South Florida (University of South Florida)	https://openalex.org/W7153419051
+Standard layout for scientific CWI-publications	Han Noot	1985		Centrum Wiskunde & Informatica (CWI), the national research institute for mathematics and computer science in the Netherlands	https://openalex.org/W1535806634
+The Computer Science Of Tex And Latex	Victor L. Eijkhout	2004	10.5281/zenodo.49901	Zenodo (CERN European Organization for Nuclear Research)	https://openalex.org/W2470989218
+Genesis of a TeX-based markup metalanguage	Alan E. Wittbecker	1986	10.1145/324239.324238	ACM SIGUCCS Conference on User Services (SIGUCCS)	https://openalex.org/W2016544543
+Reflowable documents composed from pre-rendered atomic components	Alexander J. Pinkney; Steven R. Bagley; David F. Brailsford	2011		Repository@Nottingham (University of Nottingham)	https://openalex.org/W7222375417
+Reviews	Stephen Richards; PHILIP G. BARKER; Ian D. Benest; Martin Reynolds; Betty A. Collis; Gabriel Jacobs	1994	10.1080/0968776940020110	ALT-J	https://openalex.org/W2743608756
+Text-editing and photocomposing APL publications	Arlene E. Azzarello	1981	10.1145/800142.805328	International Conference on APL (APL)	https://openalex.org/W4233259043
+Lexique anglo-français du Companion	Jacques André; Jean-Côme Charpentier	2007	10.5802/cg.336	Cahiers GUTenberg	https://openalex.org/W2331947001
+Some NTS thoughts	Hans Hagen	1999	10.5300/1999-3/109	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2314187929
+AN INTEGRATED APPROACH TO FORMATTED DOCUMENT PRODUCTION	Richard Ilson	1981		DSpace@MIT (Massachusetts Institute of Technology)	https://openalex.org/W1526404094
+TrueType-fonty v TeXu	Vladimír Koutný	1999	10.5300/1999-3/159	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2334932064
+The Design and implementation of a system for processing documents described in generalized markup languages	Frank Cost	1987		RIT Scholar Works (Rochester Institute of Technology)	https://openalex.org/W588433940
+ConTeXt for 'Zines	Timothy Eyre	2011	10.5300/2011-2-4/170	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W4245845413
+ConTeXt for 'Zines	Timothy Eyre	2011	10.5300/2010-4cm-3te/161		https://openalex.org/W2315569248
+Preface	James Boswell; Thomas F. Bonnell	2012	10.1515/9780748628544-005	Edinburgh University Press eBooks	https://openalex.org/W4303074922
+Electronic composition in printing :	Richard W. Lee; Roy W Worral	1968	10.6028/nbs.sp.295		https://openalex.org/W625469028
+Manuale Typographicum: A 'Special' Typographic Manual	Aranya Sengupta	2025	10.56975/ijrar.v12i3.330074	INTERNATIONAL JOURNAL OF RESEARCH AND ANALYTICAL REVIEWS	https://openalex.org/W7140330901
+LaTeXTrans Structure-Aware Translation of Complex LaTeX Documents	Ziming Zhu; Chenglong Wang; Haosong Xu; Shunjie Xing; Yifu Huo; Fengning Tian; Quan Du; Di Yang; Chunliang Zhang; Tong Xiao; JingBo Zhu	2026	10.18653/2026.docinsights-1.23		https://openalex.org/W7224434929
+Ortotipografia: Sobre práticas e convenções tipográficas para o contexto editorial	Jorge Miguel da Silva Araújo	2022		Portuguese National Funding Agency for Science, Research and Technology (RCAAP Project by FCT)	https://openalex.org/W7115010253
+Automatic typographic-quality typesetting techniques :	Mary Elizabeth Stevens; John L. Little	1967	10.6028/nbs.mono.99		https://openalex.org/W1835326534
+The Trade-off between inflation and economic activity in Brazil	Alexis Maka; Fernando de Holanda Barbosa	2017		Econstor (Econstor)	https://openalex.org/W2778187788
+LARCMACS: A TEX macro set for typesetting NASA reports	Linda H. Woessner; Mary K. McCaskill	1988		NASA STI Repository (National Aeronautics and Space Administration)	https://openalex.org/W789340350
+Vivliostyle - Web browser based CSS typesetting engine	Johannes Wilm; Shinyu Murakami	2015	10.14337/xmllondon15.wilm01	XML London Conference	https://openalex.org/W2247016680
+Relationships Between Agri-food Systems and Cities: Exploring Synergies and Trade-offs	Hamid El Bilali	2025	10.14744/planlama.2024.85866	Journal of Planning	https://openalex.org/W4414059068
+A system for interactive viewing of structured documents	Ian H. Witten; Bob Bramwell	1985	10.1145/3166.3169	Communications of the ACM	https://openalex.org/W2041085781
+A highly readable book	A. Meneghetti	2010	10.1093/jiplp/jpq132	Journal of Intellectual Property Law & Practice	https://openalex.org/W1970814466
+Attempts of Adding Meanings to the Memorization of the Qurʾān: Evaluation of the work Hâfiz: Lafzın Hâmili, Mananın Âmili	Ahmed Ürkmez	2019	10.5281/zenodo.3456854	DergiPark (Istanbul University)	https://openalex.org/W2991398608
+Caught Between Jazz and Pop: The Contested Origins, Criticism, Performance Practice, and Reception of Smooth Jazz.	Aaron J. West	2008	10.12794/metadc9722		https://openalex.org/W1804060858
+William Wheatley: A Retrospective	Melissa K. Kaup	1999		RIT Scholar Works (Rochester Institute of Technology)	https://openalex.org/W807781289
+Should I Install LaTeX , MiKTeX or TexStudio?	Abiodun Christian Ibiloye	2024	10.31730/osf.io/43xmw		https://openalex.org/W4391573638
+Deforestation, development, and government policy in the Brazilian Amazon: an econometric analysis	Lykke E. Andersen; Eustáquio J. Reis	2015		RePEc: Research Papers in Economics	https://openalex.org/W1500334299
+Linguistic data models: presentation and representation	Dave Penton	2006		Minerva Access (University of Melbourne)	https://openalex.org/W581150488
+Computer photocomposition of technical text	Franz L. Alt; Judith Yuni Kirk	1973	10.1145/362248.362279	Communications of the ACM	https://openalex.org/W1983359550
+Presenting results well to reach a wide audience	Patrick Dunleavy; Timothy Monteath	2026	10.31389/lsepress.dos.n	LSE Press eBooks	https://openalex.org/W7160932050
+Making a digital library	Richard Entlich; Jan Kennedy Olsen; Lorrin R. Garson; Michael Lesk; Lorraine F. Normore; Stuart L. Weibel	1997	10.1145/248625.248627	ACM Transactions on Information Systems	https://openalex.org/W2061858109
+The Bible Against American Slavery: Anglophone Transatlantic Evangelical Abolitionists' Use of Biblical Arguments, 1776-1865	Richard Rodríguez	2017	10.25148/etd.fidc004052		https://openalex.org/W2801808409
+Relationships between insecure attachment, mediators and depression	Matthew Rosen Marsh	2013		Create (Canterbury Christ Church University)	https://openalex.org/W1662434227
+Storyboarding	T. F. Carney	1992	10.1145/142350.142358	ACM SIGDOC Asterisk Journal of Computer Documentation	https://openalex.org/W2040534356
+Editors’ Preface	Wout Dillen; Elli Bleeker; Laura Esteban‐Segura; Stefano Rosignoli	2021	10.4000/variants.1239	Variants	https://openalex.org/W4240864102
+Geometric algorithms and experiments for automated document structuring	Daniela L. Rus; K. Summers	1997	10.1016/s0895-7177(97)00104-0	Mathematical and Computer Modelling	https://openalex.org/W2092981524
+Towards a new Math Font Encoding for (La)TeX	Matthias Clasen; Ulrik Vieth	1998	10.5802/cg.225	Cahiers GUTenberg	https://openalex.org/W2023841489
+Environmental sustainability of food production and consumption in the Nordic and Baltic region – a scoping review for Nordic Nutrition Recommendations 2023	Helen Harwatt; Tim G. Benton; Jan Bengtsson; Bryndís Eva Birgisdóttir; Kerry A. Brown; Corné van Dooren; Maijaliisa Erkkola; Morten Graversgaard; Thorhallur Ingi Halldorsson; Michael Zwicky Hauschild; Anne Høyer-Lund; Jelena M. Meinilä; Bob van Oort; Merja Saarinen; Hanna L. Tuomisto; Ellen Trolle; Ólafur Ögmundarson; Rune Blomhoff	2024	10.29219/fnr.v68.10539	Food & Nutrition Research	https://openalex.org/W4396921391
+Review of The Cambridge Companion to English Literature	Joanne Shattock	2011		Lincoln (University of Nebraska)	https://openalex.org/W2909967572
+Imagery and the self in social phobia	Jennifer Wild	2009	10.4324/9780203878644-9	Routledge eBooks	https://openalex.org/W3030716913
+Looking at Novels: Typography, Punctuation, & Spelling in Some Contemporary Fiction	Francis Leahy	2020		Trinity's Access to Research Output (TARA) (Trinity College Dublin)	https://openalex.org/W3036618047
+

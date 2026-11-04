@@ -1,0 +1,8 @@
+# Query: TITLE-ABS-KEY("widows and orphans" AND (typography OR typesetting OR "page layout"))
+# Provider: scopus
+# Timestamp: 2026-11-03T20:03:37.772105
+# Results: 1
+
+title	authors	year	doi	venue	url
+Globally optimal page breaking with column balancing – A case study	M. Woliński	2019	10.1145/3342558.3345405	Proceedings of the ACM Symposium on Document Engineering Doceng 2019	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=85073372756&origin=inward
+

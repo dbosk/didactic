@@ -1,0 +1,67 @@
+# Query: ("page breaking" OR pagination) AND (TeX OR LaTeX) AND (criticism OR limitations OR empirical OR evaluation OR "white space")
+# Provider: openalex
+# Timestamp: 2026-11-03T21:08:01.047906
+# Results: 60
+
+title	authors	year	doi	venue	url
+Optimal pagination techniques for automatic typesetting systems	Michael F. Plass	1981			https://openalex.org/W1523509647
+The Computer Science Of Tex And Latex	Victor L. Eijkhout	2004	10.5281/zenodo.49901	Zenodo (CERN European Organization for Nuclear Research)	https://openalex.org/W2470989218
+LaTeX as an Archiving Format: Benefits and Problems	Thomas Fischer	2003	10.18452/1187	edoc Publication server (Humboldt University of Berlin)	https://openalex.org/W2725140250
+Inconsistencies in TeX-Produced Documents	J. Tan; Manuel Rigger	2024	10.1145/3650212.3680370	ACM SIGSOFT International Symposium on Software Testing and Analysis (ISSTA)	https://openalex.org/W4402457502
+tabular: Render Tables, Listings, and Figures for Clinical Submissions	Vignesh Thanikachalam	2026	10.32614/cran.package.tabular		https://openalex.org/W7164354677
+Preparing Horizon Europe proposals in LaTeX with heria	Tristan Miller	2024	10.47397/tb/45-1/tb139miller-horizon	TUGboat	https://openalex.org/W4396691338
+LaTeX news, issue 40, November 2024	LaTeX Project Team	2025	10.47397/tb/46-1/tb142ltnews40	TUGboat	https://openalex.org/W4410154456
+A general framework for globally optimized pagination	Frank G. Mittelbach	2018	10.1111/coin.12165	Computational Intelligence	https://openalex.org/W2790465532
+TeX in a Nutshell	Petr Olšák	2021	10.5300/2021-1-4/9	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W4288479161
+TeX and graphics : The State of the Problem	Nelson H. F. Beebe	1989	10.5802/cg.22	Cahiers GUTenberg	https://openalex.org/W1976662275
+TeX in Schools? Just Say Yes: the Use Case of TeX Usage at theFaculty of Informatics, Masaryk University	Petr Sojka; Vít Starý Novotný	2017		Veřejné služby Informačního systému (Masarykiana Brunensis Universitas)	https://openalex.org/W2622408235
+Improving Efficiency and Consistency of Student Learning Assessments: A New Framework Using LaTeX	Ira Harkness; Justin Watson	2024	10.18260/1-2--47590	ASEE Annual Conference & Exposition	https://openalex.org/W4401313723
+Blender Add-on for Typesetting of 3D Text Using LaTeX Code	Katarína Strenková	2026		Brno University of Technology Digital Library (Brno University of Technology)	https://openalex.org/W7166502107
+XSL FOs and TeX : some data	Chris Rowley	2001	10.5802/cg.302	Cahiers GUTenberg	https://openalex.org/W2324318194
+.tmu: A Low-Entropy Tree-Structured Representation for LLM-Assisted Scientific Writing	Tianyou Liu; Ziqiang Li; Yansong Li; Yu Wu; Yansong Li	2026	10.18653/2026.emnlp-industry.8	Conference on Empirical Methods in Natural Language Processing (EMNLP)	https://openalex.org/W7133516581
+Creating LaTeX Documents from within Stata using Texdoc	Ben Jann	2016	10.1177/1536867x1601600201	The Stata Journal Promoting communications on statistics and Stata	https://openalex.org/W2210440641
+Xe)LaTeX appliqué aux sciences humaines	Maïeul Rouquette	2012		SERVAL (Université de Lausanne)	https://openalex.org/W2620032232
+Formatting information: A beginner's introduction to typesetting with LATEX	Peter Flynn	2002		Cork Open Research Archive (University College Cork, Ireland)	https://openalex.org/W2231431194
+LaTeX tutorial for the standardization and automation of population analysis reports	Thomas Frank; Silke Gastine; Klaus Lindauer; Heiner Speth; Ashley Strougo; Andreas Kovar	2021	10.1002/psp4.12705	CPT Pharmacometrics & Systems Pharmacology	https://openalex.org/W3198176887
+Merging Illustrations and Printing on Big Paper	Gerald Roylance	1987		DSpace@MIT (Massachusetts Institute of Technology)	https://openalex.org/W2232370867
+An automated method based on LATEX for the realization of accessible PDF documents containing formulae	Sandro Coriasco; Dragan Ahmetovic; Tiziana Armano; Cristian Bernareggi; Michele Berra; Anna Capietto; Nadir Murru; Alice Ruighi; Eugenia Taranto	2018		Institutional Research Information System University of Turin (University of Turin)	https://openalex.org/W3022223704
+Selected Problems from the Book Typesetting: The Case of Stageplay Typesetting	Pavel Stříž	2009	10.5300/2009-1-2/37	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2327264113
+A generic comparison process for documentation files	Michelle Timmons	1997		Dublin City University Open Access Institutional Repository (Dublin City University)	https://openalex.org/W124632626
+Axessibility: creating PDF documents with accessible formulae	Dragan Ahmetovic; Tiziana Armano; Michele Berra; Cristian Bernareggi; Anna Capietto; Sandro Coriasco; Nadir Murru; Alice Ruighi	2018		Institutional Research Information System University of Turin (University of Turin)	https://openalex.org/W2911778149
+htmlTable: Advanced Tables for Markdown/HTML	Max Gordon; Stephen Gragg; Peter Konings	2014	10.32614/cran.package.htmltable		https://openalex.org/W4399569639
+A document manipulation system based on natural semantics	Dennis S. Arnon; Isabelle Attali; Paul Franchi-Zannettacci	1997	10.1016/s0895-7177(97)00023-x	Mathematical and Computer Modelling	https://openalex.org/W2084293120
+PaperFit: Vision-in-the-Loop Typesetting Optimization for Scientific Documents	Bihui Yu; Xinglong Xu; Junjie Jiang; Jiabei Cheng; Caijun Jia; Siyuan Li; Conghui He; Jingxuan Wei; Cheng Tan	2026	10.48550/arxiv.2605.10341	arXiv (Cornell University)	https://openalex.org/W7160958579
+Development of a database for managing social service students using MATLAB	Edgar Alfredo González-Galindo; Héctor Nathán Luna-Alanís; Alberto González-Ledesma; Joseph Kevin Castro-Pérez	2024	10.35429/ejs.2024.21.11.8.20	ECORFAN Journal Spain	https://openalex.org/W4403158506
+Zvýraznění bloků textu s možností stránkového zlomu	Vít Zýka	1999	10.5300/1999-3/146	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2314023370
+Substituting outline fonts for bitmap fonts in archived PDF files	Steve Probets; David F. Brailsford	2003		Repository@Nottingham (University of Nottingham)	https://openalex.org/W7222386146
+Reflections on \globaldefs	Udo Wermuth	2023	10.47397/tb/44-1/tb136wermuth-globaldefs	TUGboat	https://openalex.org/W4377000660
+Institutional Membership		1985	10.1111/j.1467-8659.1985.tb00233.x	Computer Graphics Forum	https://openalex.org/W4205308725
+Some NTS thoughts	Hans Hagen	1999	10.5300/1999-3/109	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2314187929
+TrueType-fonty v TeXu	Vladimír Koutný	1999	10.5300/1999-3/159	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2334932064
+Digital archiving of Malayalam content II	CV Radhakrishnan; KV Rajeesh	2026	10.47397/tb/47-2/tb146radhakrishnan-malayalam-archiving	TUGboat	https://openalex.org/W7204693043
+bib2gls: selection, cross-references and locations	Nicola L. C. Talbot	2020	10.47397/tb/41-3/tb129talbot-bib2gls-more	TUGboat	https://openalex.org/W3127924702
+The glossaries package: Getting started	Nicola L. C. Talbot	2025	10.47397/tb/46-1/tb142talbot-glossaries-intro	TUGboat	https://openalex.org/W4410155363
+Production de métadonnées MathML pour des articles de recherche en mathématiques : l’expérience du CEDRAM	Thierry Bouche	2008	10.5802/cg.343	Cahiers GUTenberg	https://openalex.org/W2317771968
+Nový štandard textových editorov pre Windows? – II	Igor Podlubný; Katarina Kassayova	1999	10.5300/1999-3/132	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2334100110
+Lexique anglo-français du Companion	Jacques André; Jean-Côme Charpentier	2007	10.5802/cg.336	Cahiers GUTenberg	https://openalex.org/W2331947001
+New Leaves: Riffling the History of Digital Pagination	Martin Paul Eve	2022	10.1353/bh.2022.0017	Book history	https://openalex.org/W4313061775
+Adapting the LodView RDF Browser for Navigation over the Multilingual Linguistic Linked Open Data Cloud	Alexander Kirillovich; Konstantin Sergeevich Nikolaev	2022	10.1109/setit54465.2022.9875628	International Conference on Sciences of Electronics, Technologies of Information and Telecommunications	https://openalex.org/W4295036350
+Fast regression testing of TeX packages: Multiprocessing and batching	Vít Starý Novotný; Marei Peischl	2024	10.47397/tb/45-1/tb139starynovotny-testing	TUGboat	https://openalex.org/W4396691334
+Boxenv.sty : a LATEX style file for formatting BOX expressions	Jonge, Merijn	1999		Centrum Wiskunde & Informatica (CWI), the national research institute for mathematics and computer science in the Netherlands	https://openalex.org/W2508496830
+simPDF: Fast Multi-Page PDF Report Layout on the Graphics Device	Kyun‐Seop Bae	2026	10.32614/cran.package.simpdf		https://openalex.org/W7171773862
+Detecting and Localizing Generated Segments in French-Language Hybrid Texts through Within-Document Variance of Linguistic Features	Jérémie MASIKOTI	2026	10.5281/zenodo.22937727	Zenodo (CERN European Organization for Nuclear Research)	https://openalex.org/W7214147556
+Instructions for S&P authors using LATEX 2ε	Kai von Fintel; Christopher Potts; Chung-chieh Shan	2007	10.3765/sp.0.2	Semantics and Pragmatics	https://openalex.org/W2147741537
+Euler E365: Euler letter extracts and d'Alembert's responses | English translation | OMH v1.0	Vaibhav Shakya	2026	10.5281/zenodo.23332312	Zenodo (CERN European Organization for Nuclear Research)	https://openalex.org/W7222803574
+Evaluation of the Allelopathic Potential of Leaf Extracts from Dischidia imbricata (Blume) Steud. on the Seedling Growth of Six Test Plants	Ramida Krumsri; Sutjaritpan Boonmee; Hisashi Kato‐Noguchi	2019	10.15835/nbha47411598	Notulae Botanicae Horti Agrobotanici Cluj-Napoca	https://openalex.org/W2998042878
+Évaluation multidimensionnelle des séquelles dues à l'asthme professionnel	Mona‐Rita Yacoub	2006	10.71781/31040		https://openalex.org/W2742245935
+Advancements and challenges in bloodstain pattern analysis: Addressing limitations for enhanced forensic reliability	Mayur Sudhir Balbudhe; B. Suresh Kumar Shetty; Riya Render; Nayanatara Arun Kumar	2026	10.1007/s00414-026-03817-x	International Journal of Legal Medicine	https://openalex.org/W7155681637
+tinytable: Simple and Configurable Tables in 'HTML', 'LaTeX', 'Markdown', 'Word', 'PNG', 'PDF', and 'Typst' Formats	Vincent Arel‐Bundock	2024	10.32614/cran.package.tinytable		https://openalex.org/W4399636886
+Exploring clinical psychologists’ understandings and experiences of how they use reflective practice in their clinical work: an interpretative phenomenological analysis.	Kirsty Carmichael	2018		UEA Digital Repository (University of East Anglia)	https://openalex.org/W2903548735
+Modular Multimodal Machine Learning for Extraction of Theorems and Proofs in Long Scientific Documents (Extended Version)	Shrey Mishra; Antoine Gauquier; Pierre P. Senellart	2023	10.48550/arxiv.2307.09047	HAL	https://openalex.org/W4384807976
+KTBox: A Modular LaTeX Framework for Semantic Color, Structured Highlighting, and Scholarly Communication	Bhaskar Mangal; Ashutosh Bhatia; Yashvardhan Sharma; Kamlesh Tiwari; Rashmi Verma	2025	10.48550/arxiv.2510.01961	arXiv (Cornell University)	https://openalex.org/W4414819823
+Imagerie par résonance magnétique de l'ostéoarthrose métacarpo-phalangienne équine : évaluation des paramètres non-cartilagineux	Julien Olive	2008	10.71781/3428		https://openalex.org/W598020422
+Multi-Lingual Development & Programming Languages Interoperability: An Empirical Study	Tsvi Cherny-Shahar; Amiram Yehudai	2024	10.48550/arxiv.2411.08388	arXiv (Cornell University)	https://openalex.org/W4404407447
+Évaluation et gestion du risque associé à la présence de Salmonella spp. chez le porc à l'abattoir	N Rheault	2005	10.71781/4058		https://openalex.org/W2339291619
+Bibliometric Indexes - Advantages and Limitations in Practical Application, for the Scientific Validity of Authors and Their Scientific Contents - Stanford Bibliometric List: Truths and Misconceptions	Izet Mašić	2024	10.5455/aim.2024.32.160-176	Acta Informatica Medica	https://openalex.org/W4407567263
+OCR dataset och modell fine-tuning för det svenska språket : En allsidig OCR-modell för svenska dokument	Berg, William	2025		KTH Publication Database DiVA (KTH Royal Institute of Technology)	https://openalex.org/W7113565550
+

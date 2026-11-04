@@ -1,0 +1,83 @@
+% Test of a listing that fits on a page, but not with what is kept with it
+% (didactic): the page can't be saved, as the lines before the listing are on
+% it already, so the page is overfull, and didactic must say so.
+%
+% Build: see the Makefile, which checks the log for "Overfull \vbox" and the
+% warning "doesn't fit", once per case, and that the words are in the PDF.
+%   C1  A paragraph with a tall box, as a lead-in.
+%   C2  A top float takes room that the kept listing then needs.
+%   C3  Control: the same listing with room to spare: no warning.
+% With the limit of keepmaxgap, the default, the listings of C1 and C2 would
+% break instead of moving, as the room left is more than 5 lines: so this test
+% turns the limit off, to reach the case it is about.
+\documentclass[a4paper,oneside]{memoir}
+\usepackage[british]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\PassOptionsToPackage{keeplines=20,keepleadin=true,keepmaxgap=0}{didactic}
+\usepackage{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\begin{document}
+Tall lead-in: \rule{1pt}{0.8\textheight}
+\begin{Verbatim}
+chained
+chained
+chained
+chained
+chained
+chained
+chained
+chained
+chained
+chained
+chained
+chained
+chained
+chained
+chained
+chained
+chained
+chained
+chained
+chained
+\end{Verbatim}
+Text after C1.
+
+\clearpage
+\rule{1pt}{0.85\textheight}
+
+\begin{figure}[t]
+  \rule{1pt}{0.65\textheight}
+  \caption{A float that takes most of the next page.}
+\end{figure}
+Lead-in C2.
+\begin{Verbatim}
+chained
+chained
+chained
+chained
+chained
+chained
+chained
+chained
+chained
+chained
+chained
+chained
+chained
+chained
+chained
+chained
+chained
+chained
+chained
+chained
+\end{Verbatim}
+Text after C2.
+
+\clearpage
+Lead-in C3, room to spare.
+\begin{Verbatim}
+spare
+\end{Verbatim}
+Text after C3.
+\end{document}

@@ -1,0 +1,20 @@
+% Test of the order of float numbers (didactic): a margin figure in the same
+% paragraph as an ordinary figure that must wait.  When the margin float starts,
+% LaTeX hasn't seen the ordinary one yet, since TeX only hands it over when the
+% paragraph ends, so only the pages it ends up on can tell.
+%
+% Build: see the Makefile.
+%
+% Expected in the resulting PDF and log:
+%   ORDINARY (Figure 0.1) on page 2, MARGINAL (Figure 0.2) on page 1, and one
+%   warning from didactic that names both numbers and both pages.
+\documentclass{memoir}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{didactic}
+\begin{document}
+Text before.
+\begin{figure}[p]\centering BIGFIG\caption{ORDINARY}\end{figure}
+Text \begin{marginfigure}\caption{MARGINAL}\end{marginfigure} after.
+\clearpage
+More text.
+\end{document}
