@@ -17,8 +17,8 @@
 %   AE  a two-line heading, a one-line paragraph and a long one, room for all
 %       of them to be moved: three lines after the heading on its page, when that
 %       is what the option asks.
-%   AF  the same with more room than keepmaxgap: it stays, with a warning.
-%       With a long paragraph, the same: it isn't moved past the limit.
+%   AF  the same with more room than keepmaxgap: it stays, and at keepafterheading=3
+%       with a warning.  With a long paragraph, the same: it isn't moved past the limit.
 %   AS  a listing after a listing: the lead-in of the first doesn't count in
 %       what moving the second leaves empty, so it moves whole.
 %   AG  first paragraphs with a footnote, a list, a float before them and a page
@@ -36,7 +36,8 @@
 %   AL  a frame title, then a block or an example: keepafterheading lines after
 %       the heading of the block.
 %   AM  a heading, a one-line paragraph and a list: the estimate before the
-%       heading moves them.  AN the same for a block.
+%       heading moves them.  AN the same for a block.  AN2 with room for the block's
+%       heading and that line, by the estimate: it stays and the list goes, warned.
 %   AO  a paragraph at the foot of a page and at the top of the next: no last
 %       line alone at the top; a first line may stay alone at the foot, the club
 %       penalty being 1000.
@@ -296,6 +297,15 @@ Text after AK.
   \end{itemize}
 \end{example}
 
+\roomfor{\ifnum\testk=2 1.6\else 2.6\fi}\label{ao2-r}
+\begin{example}[AN2]\label{ao2-a}
+  \oneline
+  \begin{itemize}
+  \item\rule{0pt}{5\baselineskip}A tall item.\label{ao2-i}
+  \item Another item.
+  \end{itemize}
+\end{example}
+
 \roomfor{0}
 First line\label{ap-1}\\
 second line\label{ap-2}\\
@@ -350,6 +360,8 @@ Paragraph after the listing.\testclubs{AR paragraph after a listing}{0}
 \testcheck{AL block's lines (example)}{am-1}{=}{am-\testk}
 \testcheck{AM heading with the list}{an-a}{=}{an-i}
 \testcheck{AN block with the list}{ao-a}{=}{ao-i}
+\testcheck{AN2 block stays with its line}{ao2-r}{=}{ao2-a}
+\testcheck{AN2 the list on the next page}{ao2-a}{<}{ao2-i}
 \testcheck{AO first line alone at the foot}{ap-1}{<}{ap-2}
 \testcheck{AO last line not alone}{aq-4}{=}{aq-5}
 \testcheck{AP heading with the table}{ar-a}{=}{ar-t}

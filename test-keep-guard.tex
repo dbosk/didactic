@@ -1,0 +1,21 @@
+% The macros in the .aux are defined by the .aux itself and in the slides
+% (didactic): the Makefile runs this in article, then with the same jobname as
+% beamer, and greps the .aux for the guards.  Text under a heading with room to
+% spare writes all that a heading can.
+\ifdefined\testbeamer
+  \documentclass{beamer}
+\else
+  \documentclass[a4paper]{article}
+\fi
+\usepackage{didactic}
+\begin{document}
+\ifdefined\testbeamer
+\begin{frame}{A frame}Text.\end{frame}
+\else
+\section{One}
+Text.
+
+\section{Two}
+Text.
+\fi
+\end{document}

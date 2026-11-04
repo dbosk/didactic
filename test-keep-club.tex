@@ -1,0 +1,26 @@
+% The club penalty is 1000 and the widow penalty 10000 in every paragraph
+% (didactic), also after a heading and a list, where LaTeX restores it from
+% \@clubpenalty.  The file test-keep-club-article reads this with article.
+\ifdefined\testclass\else\def\testclass{memoir}\fi
+\documentclass[a4paper]{\testclass}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{didactic}
+\makeatletter
+\newcommand\checkpen[1]{%
+  \ifnum\clubpenalty=1000 \ifnum\widowpenalty=10000
+    \typeout{didactic club test: PASS #1}%
+  \else\typeout{didactic club test: FAIL #1, widow \the\widowpenalty}\fi
+  \else\typeout{didactic club test: FAIL #1, club \the\clubpenalty}\fi}
+\makeatother
+\begin{document}
+Before any heading.\checkpen{before a heading}\par
+
+\section{A heading}
+First paragraph.\par
+Second paragraph.\checkpen{after a heading}\par
+\begin{itemize}
+\item An item.
+\end{itemize}
+After a list.\checkpen{after a list}\par
+\typeout{didactic club test: all checks ran}
+\end{document}

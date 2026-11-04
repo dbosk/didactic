@@ -13,6 +13,9 @@ TEST_KEEP_CHAPTER=	test-keep-chapter-article test-keep-chapter-memoir \
 			test-keep-chapter-book
 TEST_KEEP_NOWEB=	test-keep-filbreak test-keep-breakcode \
 			test-keep-breakcode-late test-keep-filbreak-nogap
+TEST_KEEP_SMALL=	test-keep-style test-keep-columns test-keep-guard \
+			test-keep-pagereset test-keep-nofiles test-keep-box \
+			test-keep-addvspace test-keep-club test-keep-club-article
 TEST_NOTEOVERFLOW=	test-noteoverflow test-noteoverflow-carry \
 			test-noteoverflow-draft test-noteoverflow-draftbreak \
 			test-noteoverflow-xe test-noteoverflow-old
@@ -32,7 +35,7 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-keep.pdf test-keep-tall.pdf test-keep-tall100.pdf \
 	test-keep-chain.pdf test-keep-heading.pdf test-keep-heading3.pdf \
 		test-keep-nogap.pdf test-keep-nogap3.pdf test-keep-sweep \
-		${TEST_KEEP_NOWEB:=.pdf} \
+		${TEST_KEEP_NOWEB:=.pdf} ${TEST_KEEP_SMALL:=.pdf} \
 	test-keep-flush.pdf ${TEST_KEEP_CHAPTER:=.pdf} test-keep-stale.pdf \
 	${TEST_NOTEOVERFLOW:=.pdf} test-oldkernel.pdf \
 	test-margin-log.pdf test-margin-log-article.pdf \
@@ -235,7 +238,7 @@ test-keep-heading.pdf test-keep-heading3.pdf: %.pdf: %.tex test-keep-heading.tex
 	! grep 'Overfull .vbox' $*.log
 	test "$$(grep -c 'Package didactic Warning: .*Only 1 of' $*.log)" -eq 0
 	test "$$(grep -c 'Package didactic Warning: .*Only 2 of' $*.log)" -eq ${ONLY2}
-	test "${call count_warn,can.t break here}" -eq 1
+	test "${call count_warn,The code at line}" -eq 1
 	test "$$(grep -c 'didactic heading test.*PASS' $*.log)" -ge 40
 test-keep-heading.pdf: ONLY2=0
 test-keep-heading3.pdf: ONLY2=2
@@ -260,6 +263,7 @@ ${SWEEP_ALL:%=test-keep-sweep-%.tex}: test-keep-sweep-%.tex: test-keep-sweep.py
 ${SWEEP_ALL:%=test-keep-sweep-%.pdf}: PDFLATEX=pdflatex
 ${SWEEP_ALL:%=test-keep-sweep-%.pdf}: %.pdf: %.tex didactic.sty
 	@${latex_until_settled}
+	! grep 'Overfull .vbox' $*.log
 .PHONY: test-keep-sweep
 test-keep-sweep: test-keep-sweep.py ${SWEEP_ALL:%=test-keep-sweep-%.pdf}
 	for v in ${SWEEP}; do python3 $< check $$v || exit 1; done
@@ -268,9 +272,52 @@ test-keep-sweep: test-keep-sweep.py ${SWEEP_ALL:%=test-keep-sweep-%.pdf}
 ${TEST_KEEP_NOWEB:=.pdf}: %.pdf: %.tex didactic.sty
 	@${latex_until_settled}
 	test "${call count_warn,Code chunks of noweb}" -eq "${FILBREAK_WARNINGS}"
+	test -z "${LATE_CHECK}" || grep -q 'didactic late test: PASS' $*.log
+test-keep-breakcode-late.pdf: LATE_CHECK=yes
 test-keep-filbreak.pdf: FILBREAK_WARNINGS=1
 test-keep-breakcode.pdf test-keep-breakcode-late.pdf test-keep-filbreak-nogap.pdf: \
 		FILBREAK_WARNINGS=0
+
+# the keep options in small documents; see each of them.  The first runs at each
+# keepafterheading.
+test-keep-style.pdf: test-keep-style.tex didactic.sty
+	for k in 0 2 3; do \
+		${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode \
+			"\def\testk{$$k}\input{test-keep-style}" || exit 1; \
+		! grep -E 'didactic style test:.*FAIL' test-keep-style.log || exit 1; \
+		grep -q 'didactic style test: all checks ran' test-keep-style.log || exit 1; \
+		test "$$(grep -c 'didactic style ran' test-keep-style.log)" -eq 1 || exit 1; \
+		! grep '^!' test-keep-style.log || exit 1; \
+	done
+test-keep-columns.pdf: test-keep-columns.tex didactic.sty
+	@${latex_until_settled}
+	test "${call count_warn,In columns}" -eq 1
+test-keep-guard.pdf: test-keep-guard.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	for m in hpage tp hb hm after pp; do \
+		grep -q "providecommand.@didactic@keep@$$m" test-keep-guard.aux || exit 1; \
+	done
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode \
+		"\def\testbeamer{}\input{test-keep-guard}"
+	! grep '^!' test-keep-guard.log
+test-keep-pagereset.pdf: test-keep-pagereset.tex didactic.sty
+	@${latex_until_settled}
+	test "$$(grep -c 'keepafterheading): it moves' test-keep-pagereset.log)" -eq 2
+	! grep "heading in test-keep-pagereset, line $$(grep -n 'Stays, number raised' test-keep-pagereset.tex | cut -d: -f1)" test-keep-pagereset.log
+test-keep-nofiles.pdf: test-keep-nofiles.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	test "${call count_warn,With .nofiles}" -eq 1
+test-keep-box.pdf test-keep-club.pdf test-keep-club-article.pdf: %.pdf: %.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	! grep -E 'didactic (box|club) test:.*FAIL' $*.log
+	grep -Eq 'didactic (box|club) test: all checks ran' $*.log
+test-keep-club-article.pdf: test-keep-club.tex
+test-keep-addvspace.pdf: test-keep-addvspace.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode "\def\testk{0}\input{test-keep-addvspace}"
+	sed -n 's/^didactic addvspace: //p' test-keep-addvspace.log > test-keep-addvspace.k0
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode "\def\testk{2}\input{test-keep-addvspace}"
+	sed -n 's/^didactic addvspace: //p' test-keep-addvspace.log | cmp - test-keep-addvspace.k0
+	test -s test-keep-addvspace.k0
 
 # a heading that ends a page under \flushbottom leaves the space at the foot.
 test-keep-flush.pdf: test-keep-flush.tex didactic.sty
@@ -401,6 +448,7 @@ clean:
 	${RM} ${SWEEP_ALL:%=test-keep-sweep-%.tex}
 	for f in test-keep-heading test-keep-heading3 test-keep-nogap test-keep-nogap3 \
 			${SWEEP_ALL:%=test-keep-sweep-%} ${TEST_KEEP_NOWEB} \
+			${TEST_KEEP_SMALL} \
 			test-keep-flush test-keep-stale \
 			test-block-nested ${TEST_KEEP_CHAPTER} ${TEST_NOTEOVERFLOW}; do \
 		${RM} $$f.pdf $$f.aux $$f.log $$f.unq $$f.pytxcode $$f.out $$f.toc; \

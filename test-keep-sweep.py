@@ -35,6 +35,7 @@ import sys
 
 LIMIT = 5.0     # keepmaxgap, default
 ROOMS = [q / 2 for q in range(2, 29)]
+FINEROOMS = [q / 4 for q in range(4, 57)]  # where a heading's own spaces decide
 
 MIMIC = (r"\usepackage[T1]{fontenc}\usepackage[osf,sc]{mathpazo}"
          r"\usepackage[scaled=0.90]{helvet}\usepackage[scaled=0.85]{beramono}"
@@ -45,22 +46,25 @@ MEMOIR = r"\documentclass[a4paper,10pt,oneside,oldfontcommands]{memoir}"
 ARTICLE = r"\documentclass[a4paper,10pt]{article}"
 NOWEB = r"\usepackage{noweb}"
 BREAKCODE = r"\noweboptions{breakcode}"
-DIDACTIC = r"\usepackage[marginparmargin=outer]{didactic}"
+AMS = r"\usepackage{amsmath,amssymb,amsthm}"
+DIDACTIC = AMS + r"\usepackage[marginparmargin=outer]{didactic}"
+BEAMER = r"\usepackage[noamsthm,notheorems]{beamerarticle}"
+PLAIN = BEAMER + AMS + r"\newtheorem{example}{Example}\newtheorem{exercise}{Exercise}"
 SLOPPY = r"\setlength{\topskip}{1.6\topskip}\checkandfixthelayout\sloppybottom"
 VARIANTS = {
-    "m": MEMOIR + NOWEB + DIDACTIC + BREAKCODE,
-    "mp": MEMOIR + MIMIC + NOWEB + BREAKCODE + r"\usepackage{fancyvrb}",
-    "a": ARTICLE + NOWEB + DIDACTIC + BREAKCODE,
-    "ap": ARTICLE + NOWEB + BREAKCODE + r"\usepackage{fancyvrb}",
-    "s": MEMOIR + NOWEB + DIDACTIC + BREAKCODE + SLOPPY,
-    "sp": MEMOIR + MIMIC + NOWEB + BREAKCODE + r"\usepackage{fancyvrb}" + SLOPPY,
+    "m": MEMOIR + NOWEB + DIDACTIC + BEAMER + BREAKCODE,
+    "mp": MEMOIR + MIMIC + PLAIN + NOWEB + BREAKCODE + r"\usepackage{fancyvrb}",
+    "a": ARTICLE + NOWEB + DIDACTIC + BEAMER + BREAKCODE,
+    "ap": ARTICLE + PLAIN + NOWEB + BREAKCODE + r"\usepackage{fancyvrb}",
+    "s": MEMOIR + NOWEB + DIDACTIC + BEAMER + BREAKCODE + SLOPPY,
+    "sp": MEMOIR + MIMIC + PLAIN + NOWEB + BREAKCODE + r"\usepackage{fancyvrb}" + SLOPPY,
     "s3": MEMOIR + NOWEB + DIDACTIC.replace("outer", "outer,keepafterheading=3")
-          + BREAKCODE + SLOPPY,
+          + BEAMER + BREAKCODE + SLOPPY,
 }
 
 def para(k, n, name="L"):
     """A paragraph of n lines, each with a label."""
-    return "\\\\\n".join(rf"{name}{i}\label{{{name}{i}X{k}}}" for i in range(1, n + 1))
+    return "\\hspace*{\\fill}\\break\n".join(rf"{name}{i}\label{{{name}{i}X{k}}}" for i in range(1, n + 1))
 
 
 def items(k, n, lines):
@@ -101,6 +105,19 @@ def pair(k):
 
 def heading(k):
     return rf"\section{{Head}}\label{{HX{k}}}"
+
+
+def runin(k):
+    "A run-in heading: the title is set with what comes next, and the label with it."
+    return rf"\paragraph*{{Head\label{{HX{k}}}}}"
+
+
+def block(k, env="example"):
+    return rf"\begin{{{env}}}[Block\label{{BX{k}}}]"
+
+
+def frame(k):
+    return rf"\begin{{frame}}{{Head\label{{HX{k}}}}}"
 
 
 TAIL = "\n\nAfter.\n"
@@ -150,12 +167,52 @@ CASES = {
     # a listing right under a heading
     "hv": lambda k: heading(k) + "\n" + verbatim(k) + TAIL,
     "hw": lambda k: heading(k) + "\n" + wovenchunk(k) + TAIL,
+    "hn": lambda k: heading(k) + "\n" + chunk(k) + TAIL,
+    "hv8": lambda k: heading(k) + "\n" + verbatim(k, 8) + TAIL,
+    "hv3l": lambda k: heading(k) + "\n" + verbatim(k, 3) + TAIL,
+    # a heading with a figure that lands right here
+    "f": lambda k: heading(k) + "\n" + r"\begin{figure}[h]\rule{1pt}{2\baselineskip}\end{figure}"
+        + "\n" + para(k, 16) + TAIL,
+    # run-in headings, alone and over what puts them on a line of their own
+    "r": lambda k: runin(k) + "\n" + para(k, 16) + TAIL,
+    "rr": lambda k: runin(k) + rf"\subparagraph*{{Sub\label{{BX{k}}}}}" + "\n" + para(k, 16) + TAIL,
+    "ri": lambda k: runin(k) + "\n" + items(k, 8, 1) + TAIL,
+    "re": lambda k: runin(k) + "\n" + block(k) + para(k, 16) + r"\end{example}" + TAIL,
+    "rv": lambda k: runin(k) + "\n" + verbatim(k) + TAIL,
+    "fp": lambda k: frame(k) + "\n" + para(k, 16) + r"\end{frame}" + TAIL,
+    "fe": lambda k: frame(k) + "\n" + block(k) + para(k, 16) + r"\end{example}\end{frame}" + TAIL,
+    "fx": lambda k: frame(k) + "\n" + block(k, "exercise") + para(k, 16) + r"\end{exercise}\end{frame}" + TAIL,
+    "fi": lambda k: frame(k) + "\n" + items(k, 8, 1) + r"\end{frame}" + TAIL,
+    "fI": lambda k: frame(k) + "\n" + items(k, 5, 3) + r"\end{frame}" + TAIL,
+    # blocks: the heading runs in at the first line, or is alone over a list
+    "e": lambda k: rf"\begin{{example}}[Head\label{{HX{k}}}]" + para(k, 16) + r"\end{example}" + TAIL,
+    "ei": lambda k: rf"\begin{{example}}[Head\label{{HX{k}}}]" + items(k, 8, 1) + r"\end{example}" + TAIL,
+    "eI": lambda k: rf"\begin{{example}}[Head\label{{HX{k}}}]" + items(k, 5, 3) + r"\end{example}" + TAIL,
+    "se": lambda k: heading(k) + "\n" + block(k) + para(k, 16) + r"\end{example}" + TAIL,
+    # a block of one line: it has no more lines to give
+    "e1": lambda k: rf"\begin{{example}}[Head\label{{HX{k}}}]" + para(k, 1) + r"\end{example}"
+        + "\n\n" + para(k, 16, "N") + TAIL,
+    # a tall box in a center, which is one line for TeX, and then a paragraph: no more is due
+    "cp": lambda k: heading(k) + "\n" + r"\begin{center}\parbox{.8\linewidth}{\rule{0pt}{3\baselineskip}"
+        + rf"T1\label{{T1X{k}}}" + r"}\end{center}" + "\n" + para(k, 16, "N") + TAIL,
 }
+FINE = {"hv", "hw", "hn", "hv8", "hv3l", "f", "r", "rr", "ri", "re", "rv", "fp", "fe", "fx", "fi", "fI",
+        "e", "ei", "eI", "se", "e1", "cp"}
+# Without didactic these don't exist, or frames set their titles another way.
+DIDACTIC_ONLY = {"hj1", "j3", "fp", "fe", "fx", "fi", "fI"}
+# What comes under a block's heading isn't compared with plain: its style is didactic's.
+NOT_COMPARED = DIDACTIC_ONLY | {"e", "ei", "eI", "se", "e1", "cp", "f"}
 LISTINGS = {"hv1", "hv2", "hv3", "v1", "v3", "v8", "hn1", "hn3", "n3", "hw1", "hw3", "w3",
             "hj1", "j3", "n6", "w6", "v6", "cw0", "cw1", "cw2", "cw3", "cw4"}
 NOHEADING = {"v1", "v3", "v8", "n3", "w3", "j3", "n6", "w6", "v6",
              "cw0", "cw1", "cw2", "cw3", "cw4"}
 AFTERCHUNK = {"cw0", "cw1", "cw2", "cw3", "cw4"}
+
+
+def all_cases():
+    for name in CASES:
+        for r in (FINEROOMS if name in FINE else ROOMS):
+            yield name, f"{name}Q{int(4 * r)}", r
 
 
 def gen(variant):
@@ -170,18 +227,18 @@ def gen(variant):
 \newcommand\roomfor[3]{%
   \clearpage\typeout{CASE #1}%
   \noindent\mbox{}R\label{RX#1}\par
-  \vspace*{\dimexpr\pagegoal-\pagetotal-#2\baselineskip\relax}\par
-  \typeout{ROOM #1 \the\dimexpr\pagegoal-\pagetotal\relax\space\the\baselineskip}}""",
+  \vspace*{\dimexpr\pagegoal-\pagetotal-#2\baselineskip-2\baselineskip\relax}\par
+  \noindent A line above, that a page can end after.\par
+  \noindent And another, as what is kept with a listing can be the one before.\par
+  \typeout{ROOM #1 \the\dimexpr\pagegoal-\pagetotal-\pagedepth\relax\space\the\baselineskip}}""",
            r"\makeatother", r"\begin{document}"]
-    for name, body in CASES.items():
-        for r in ROOMS:
-            k = f"{name}Q{int(2 * r)}"
-            out.append(f"% CASE {k}")
-            extra = int(name[-1]) / 10 if name in AFTERCHUNK else 0
-            out.append(rf"\roomfor{{{k}}}{{{r + extra:g}}}{{}}")
-            if variant.endswith("p") and name in ("hj1", "j3"):
-                continue    # no such thing without didactic
-            out.append(body(k))
+    for name, k, r in all_cases():
+        out.append(f"% CASE {k}")
+        extra = int(name[-1]) / 10 if name in AFTERCHUNK else 0
+        out.append(rf"\roomfor{{{k}}}{{{r + extra:g}}}{{}}")
+        if variant.endswith("p") and name in DIDACTIC_ONLY:
+            continue
+        out.append(CASES[name](k))
     out += [r"\clearpage\typeout{CASE END}", r"\end{document}"]
     print("\n".join(out))
 
@@ -236,7 +293,7 @@ class Pages:
         for m in re.finditer(
                 r"Package didactic Warning: (.*(?:\n\(didactic\).*)*)", log):
             text = re.sub(r"\n\(didactic\)\s*", " ", m[1])
-            n = re.search(r"on input line (\d+)|, line (\d+)", text)
+            n = re.search(r"on input line (\d+)|(?:,| at) line (\d+)", text)
             if not n:
                 self.warn.setdefault(None, []).append(text)
                 continue
@@ -306,8 +363,10 @@ def check_case(p, ref, name, case, K):
             if p.on(lab, case) is not None:
                 first = p.on(lab, case)
                 break
-        if first != h:
+        if first != h and not (name == "f" and warns):
             fail(case, f"D2: heading on {h}, first line on {first}")
+        if p.on("B", case) is not None and p.on("B", case) != first:
+            fail(case, f"D2: inner heading on {p.on('B', case)}, first line on {first}")
         moved = h > r
         says_moved = [w for w in warns if "it moves to the next page" in w]
         # D8: a move past the limit warns, and only that does.
@@ -318,26 +377,41 @@ def check_case(p, ref, name, case, K):
         # D8: only n of its lines
         count = p.lines_under(name, case)
         for w in warns:
-            m = re.search(r"only (\d+) of its lines", w)
-            if m and (moved or int(m[1]) != count):
+            m = re.search(r"only (\d+) lines? follows? it", w)
+            if m and name not in ("t", "c", "cp", "hj1") and (moved or int(m[1]) != count):
                 fail(case, f"D8: says only {m[1]} lines, {count} there, moved={moved}")
             m = re.search(r"Only (\d+) of the", w)
             if m and K <= 2:
                 fail(case, f"D8: {w}")
             if m and name in ("s", "ss") and int(m[1]) != count:
                 fail(case, f"D8: says only {m[1]} fit, {count} there")
-        tall = name in ("t", "c", "hj1")
-        if not moved and not tall and count < K and not warns and name not in ("hv", "hw"):
+        tall = name in ("t", "c", "hj1", "cp")
+        if name == "cp" and K <= 2 and [w for w in warns if "only" in w]:
+            fail(case, f"D8: a tall box is lines enough: {warns[0][:50]}")
+        if name == "e1" and [w for w in warns if "only" in w]:
+            fail(case, f"D8: a block of one line has no more to give: {warns[0][:50]}")
+        if name in ("p", "pl", "l") and not moved and count < K and room <= LIMIT - 0.01 \
+                and (name == "p"):
+            fail(case, f"D1: {count} lines under the heading within the limit")
+        if not moved and not tall and name != "e1" and count < K and not warns \
+                and name not in ("hv", "hw", "hn", "hv8", "hv3l", "rv"):
             fail(case, f"D8: {count} lines under the heading, no warning")
         # D4: never fewer than plain LaTeX
-        if ref is not None and name not in LISTINGS and not name.startswith("h"):
+        # A lead-in and a listing are left out: the listing is kept whole by
+        # keeplines, which plain LaTeX has no idea of, so it has fewer lines by design.
+        if ref is not None and name not in LISTINGS and name not in NOT_COMPARED \
+                and ref.on("H", case) is not None:
             pm = ref.on("H", case) > ref.on("R", case)
             pc = ref.lines_under(name, case)
+            if name in ("hw", "hn"):
+                pc -= 1     # the header of a chunk is no code line
             bad = False
-            if not pm and not moved and count < pc:
+            if not pm and not moved and count < pc and name not in ("hv", "hw", "hv8", "hv3l", "rv"):
                 bad = True
                 text = f"D4: {count} lines under the heading, plain LaTeX has {pc}"
-            elif not pm and moved and pc >= K:
+            elif not pm and moved and pc >= K \
+                    and (over or name not in ("hv", "hw", "hv8", "hv3l", "rv")):
+                # Within the limit a short listing moves whole: that is keeplines.
                 bad = True
                 text = f"D4: moved, plain LaTeX keeps {pc} lines"
             elif pm and not moved and count < 2 and name in ("s", "ss", "L"):
@@ -352,8 +426,7 @@ def check_case(p, ref, name, case, K):
         lead_last = p.on(f"P{n}", case)
         code = p.on("C1", case)
         parted = lead_last < code
-        says = [w for w in warns if "goes to the next page" in w
-                or "can't break here" in w]
+        says = [w for w in warns if "goes to the next page" in w]
         if parted and not says:
             fail(case, f"D6: lead-in on {lead_last}, code on {code}, no warning")
         if name in AFTERCHUNK and p.on("A1", case) > r:
@@ -379,17 +452,15 @@ def check(variant):
     ref = Pages(variant[0] + "p")
     K = 3 if variant.endswith("3") else 2
     n = 0
-    for name in CASES:
-        for r in ROOMS:
-            case = f"{name}Q{int(2 * r)}"
-            n += 1
-            check_case(p, ref, name, case, K)
+    for name, case, r in all_cases():
+        n += 1
+        check_case(p, ref, name, case, K)
     for line in FAILS:
         print(line)
     for w in p.warn.get(None, []):
         print("FAIL: a warning with no place:", w)
         FAILS.append(w)
-    want = len(CASES) * len(ROOMS)
+    want = sum(1 for _ in all_cases())
     if n != want or not p.page:
         print(f"FAIL: {n} cases of {want}")
         return 1

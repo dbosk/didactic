@@ -1,11 +1,16 @@
 % noweb's \filbreak and keepmaxgap (didactic): with breakcode set in the text, as noweave -delay does it: no warning.
-% The Makefile counts the warnings.
+% The Makefile counts the warnings.  And with keepmaxgap, noweb's place to break
+% after a chunk (\nwdocspar) is gone also when the option comes this late, so the page
+% goes on after it: the line that the Makefile looks for is on the first page.
 \documentclass[a4paper]{memoir}
 \usepackage{amsmath,amssymb,amsthm}
 \usepackage{noweb}
 \usepackage{didactic}
 \begin{document}
 \noweboptions{breakcode}
+\makeatletter
+\typeout{didactic late test: \ifx\nwdocspar\relax PASS\else FAIL\fi}
+\makeatother
 Text before the chunks.
 \nwenddocs{}\nwbegincode{1}\moddef{one}\endmoddef\nwstartdeflinemarkup\nwenddeflinemarkup
 line
