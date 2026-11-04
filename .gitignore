@@ -16,6 +16,7 @@ test-note-heading.unq
 test-keep.pdf
 test-keep.unq
 test-keep-*.txt
+test-keep-once-*.stdout
 test-keep-tall.pdf
 test-keep-tall.unq
 test-keep-tall100.pdf

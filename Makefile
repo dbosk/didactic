@@ -518,6 +518,7 @@ clean:
 	${RM} ${TEST_KEEPCHECK:=.unq} ${TEST_KEEPCHECK:=.out}
 	${RM} ${TEST_KEEPCHECK:=.pytxcode} ${TEST_KEEPCHECK:=-?.txt}
 	${RM} test-keep-leadin-*.txt test-keep-leadin-off-*.txt
+	${RM} test-keep-once-m.txt test-keep-once-g.stdout
 	${RM} test-keep-huge.pdf test-keep-huge.aux test-keep-huge.log
 	${RM} test-keep-huge.unq test-keep-huge.pytxcode test-keep-huge-h.txt
 	${RM} test-keep-blank.pdf test-keep-blank.aux test-keep-blank.log
