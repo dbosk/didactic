@@ -1287,15 +1287,15 @@
 %
 % \Cref{tab:pb-decisions} has all of them at a glance, with what would reopen each.
 % They are settled unless what the table names turns up.
-% ^^A Figures in this table and in the paragraphs after it are marked until the
-% ^^A measurement chapter of the appendix has them at the final code; then cite it.
+% The numbers are from \cref{app:pb-measure}, which says how to measure them again:
+% eight real documents, by one author, not a controlled sample, and generated ones.
 %
 % \begin{longtable}{@{}>{\raggedright\arraybackslash}p{.25\linewidth}>{\raggedright\arraybackslash}p{.11\linewidth}>{\raggedright\arraybackslash}p{.58\linewidth}@{}}
 % \caption{The decisions behind the page breaks: what we do, what \LaTeX\ and
 %   \textsf{memoir} do, the basis, what would reopen it, and what was measured and
 %   rejected.
-%   The real documents are eight of the maintainer's, not a controlled sample; empty
-%   lines are counted on 676 text pages of them.}\label{tab:pb-decisions}\\
+%   With all these options off the eight real documents have 811 pages, with them 814;
+%   empty lines are counted on 676 text pages of them.}\label{tab:pb-decisions}\\
 % \toprule
 % Decision & Ours & \LaTeX\ and \textsf{memoir} \\
 % \midrule
@@ -1311,8 +1311,7 @@
 %   for three.
 %   \emph{Reopens:} a reader study on lines under a heading, or real documents where 2
 %   costs pages against 1.
-%   \emph{Measured, rejected:} 1 saves no page, 814 either way, and pages with more than
-%   five lines empty go from 68 to 70, with three or more from 114 to 118 (at dd90b97).
+%   \emph{Measured, rejected:} 1 changes no word on any page of the real documents.
 %   3 wasn't measured in pages; the support is weaker.} \\
 % \midrule
 % A heading is never parted from what follows & Yes &
@@ -1327,11 +1326,11 @@
 %   \enquote{up to four lines short}, one house's, and what \LaTeX\ does; the
 %   maintainer's choice.
 %   \emph{Reopens:} a reader study on short pages, or real documents where the warnings
-%   past the limit become common.
+%   past the limit become common: there are 19 on the eight, 12 of them about a heading.
 %   \emph{Measured, rejected:} 4 leaves a room of 4.5 to 5 lines where a heading and two
 %   lines neither fit nor may move.
-%   0, no limit, leaves up to 7.6 lines on the generated \textsf{noweb} documents, with
-%   the limit 5.6, in about 198 pages.} \\
+%   0, no limit, on generated documents leaves up to 7.6 lines with \textsf{noweb}'s
+%   chunks, against 5.6, and 8.9 with those woven for \texttt{minted}, against 4.5.} \\
 % \midrule
 % Short listings whole, \texttt{keeplines} & 10 &
 %   Listings break at any line; \textsf{noweb} keeps a chunk whole by |\filbreak|. \\*
@@ -1339,7 +1338,9 @@
 %   \textsf{CWEB}'s dozen lines, about a unit and not about pages.
 %   \emph{Reopens:} a reader study on listings across pages, or a page count that this
 %   costs on real documents.
-%   \emph{Measured, rejected:} no other value was compared in pages.} \\
+%   \emph{Measured:} 0 on generated chunks woven for \texttt{minted} has the same 194
+%   pages, and 15 pages with three lines or more empty, against 17.
+%   No other value was compared.} \\
 % \midrule
 % Lines at each end of a break, \texttt{keepends} & 2 &
 %   None. \\*
@@ -1354,7 +1355,10 @@
 %   Off; a bonus for that break in a list, $-51$. \\*
 % \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} by analogy only, weak; the
 %   maintainer's choice.
-%   \emph{Reopens:} a reader study on it, or real documents where it costs pages.} \\
+%   \emph{Reopens:} a reader study on it, or if its cost on real documents grows.
+%   \emph{Measured:} off, the real documents have 811 pages, not 814; pages with three
+%   lines or more empty go from 118 to 97, with more than five from 69 to 62.
+%   Rejected all the same: that is what the option is for.} \\
 % \midrule
 % A list stays with its lead-in & Yes, within the limit &
 %   \textsf{memoir} calls the break annoying and has |\noprelistbreak| for one list; both
@@ -1362,37 +1366,37 @@
 % \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} the same, thin; the maintainer's
 %   choice.
 %   \emph{Reopens:} a page count that this costs on real documents.
-%   \emph{Measured:} at $-51$ 13 of 218 lists are parted, 12 from a real lead-in; 814
-%   pages.
-%   \emph{Rejected:} a penalty of 0 still parts 6.
-%   A plain 10000, 0 parted and 814 pages, has no limit, so we add that.} \\
+%   \emph{Measured:} without it 14 of 218 lists are parted, 13 from a real lead-in, on
+%   814 pages, as with it.
+%   \emph{Rejected:} a penalty of 0 still parts 7.
+%   A plain 10000 has the same words on every page as ours, but no limit.} \\
 % \midrule
 % A list right under a heading & One line is enough &
 %   The same. \\*
 % \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} leaving the default; the
 %   maintainer's choice.
 %   \emph{Reopens:} a reason to treat a list as a paragraph.
-%   \emph{Measured:} it changes no word on any page of the real documents, so it wasn't
-%   measured to help.} \\
+%   It wasn't measured to help.} \\
 % \midrule
 % Club and widow penalties & As the class has them &
 %   1000 and 1000 under \textsf{memoir}, 150 and 150 under |article|. \\*
 % \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} fewer pages, then fewer changes
 %   from the defaults, the maintainer's rule.
 %   \emph{Reopens:} a reader study on lone lines, or a change in those page counts.
-%   \emph{Measured, rejected:} 1000 and 10000 ties on the real documents and is 4 pages
-%   longer of about 1630 generated ones; it has no lone last line against 10, and 5 lone
-%   first lines against 3.
-%   10000 and 10000 also ties, and is 5 pages longer.
-%   Under \texttt{article}, 1000 and 1000 is 3 pages longer than 150 and 150, 610 to 607.} \\
+%   \emph{Measured, rejected:} 1000 and 10000 ties on the real documents, 814, and has no
+%   lone last line against 10, and 4 lone first lines against 3; on about 1630 generated
+%   pages it is 4 longer.
+%   10000 and 10000 adds a page, 815.
+%   Under \texttt{article}, 1000 and 1000 is 3 pages longer than 150 and 150, 610 to 607,
+%   in generated text.} \\
 % \midrule
 % Under |breakcode| \textsf{noweb}'s break after a chunk goes & Yes, with a limit &
 %   Not \LaTeX's: \textsf{noweb} offers it, at $-200$. \\*
 % \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} measured on generated documents;
 %   ours.
 %   \emph{Reopens:} a change in those numbers.
-%   \emph{Measured, rejected:} keeping it leaves up to 7.6 lines and 34 pages with three
-%   or more, against 5.6 and 21, for 19 fewer breaks in chunks.} \\
+%   \emph{Measured, rejected:} keeping it, with \texttt{keepmaxgap=0}, leaves up to 7.6 lines and
+%   33 pages with three or more, against 5.6 and 20, in about 210 pages.} \\
 % \midrule
 % What can't be kept warns & Always &
 %   Mostly silent. \\*
@@ -1417,13 +1421,11 @@
 % Plain \LaTeX\ reaches two for a paragraph of two lines or more, and
 % \textsf{memoir} is the same.
 % For two the support is moderate for a craft rule, for three weak.
-% Nor would one line save pages: |keepafterheading=1| saves no page on eight real
-% documents, 814 either way, and pages with more than five lines empty go from 68 to
-% 70, those with three or more from 114 to 118 of 676.
-% That was measured at commit dd90b97, since it compares the setting and not the code.
+% Nor would one line change a page: with |keepafterheading=1| every one of eight real
+% documents has the same words on each page.\footnote{\Cref{app:pb-measure}.}
 % Those are real documents and not a controlled sample, and eight is few.
-% They were built from their last woven source, of which four are older than their
-% \textsf{noweb}, and with the output of PythonTeX from before.
+% They were built from a snapshot, with their last woven source, some of them older
+% than their \textsf{noweb}, and with the output of PythonTeX from before.
 % What this option adds to \LaTeX\ at two is the second line under a one-line
 % paragraph or a list, as far as a chain of penalties can hold it.
 %
@@ -1467,13 +1469,14 @@
 % We set neither: 1000 and 1000 under \textsf{memoir}, 150 and 150 under |article|.
 % The rule is the maintainer's: fewer pages, then fewer changes from the defaults.
 % On those eight real documents, 814 pages, with the same limits, 1000 and 1000 gave the
-% same pages as 1000 and 10000, document by document; in generated documents of about
-% 1630 pages it was 4 pages shorter.
+% same pages as 1000 and 10000, document by document, and 10000 and 10000 added
+% one;\footnote{\Cref{app:pb-measure}.} in generated documents of about 1630 pages 1000
+% and 1000 was 4 pages shorter than 1000 and 10000.
 % Under |article|, lifting 150 to 1000 costs pages in generated text, 607 against
 % 610 for six documents of each kind, so we don't do that either.
 % The price is stated too: on those real documents 10 last lines alone at the top of a
 % page, against none at a widow penalty of 10000, and 3 first lines alone at the foot,
-% against 5.
+% against 4.
 % \emph{The Chicago Manual of Style} says more: in three editions, a page should not
 % \enquote{begin with the last line of a paragraph unless it is full measure}, while
 % \enquote{A page can, however, end with the first line of a new
@@ -1548,19 +1551,20 @@
 % Past the limit it can start the next page, with a warning, but only if its first
 % item doesn't fit: where it does, $-51$ would part them for no reason, on a page
 % that stretches.
-% On those eight real documents, with the same limits, and with that penalty alone at
-% 10000 and not this rule, it costs no page, 814 either way.
-% At $-51$, 13 of the 218 lists that could be parted from what leads into them are, 12
-% from a real lead-in, 8 of those in one document.
-% At 10000, 7 lead-ins move, and the page they leave has up to 3.9 lines empty; pages
-% with three lines or more empty go from 114 to 116, of the 676 text pages logged.
+% On those eight real documents it costs no page, 814 either way, and the words on each
+% page are those of that penalty alone at 10000.\footnote{\Cref{app:pb-measure}.}
+% Without it, at $-51$, 14 of the 218 lists that could be parted from what leads into
+% them are, 13 from a real lead-in, 8 of those in one document.
+% With it 8 lead-ins move, and the page they leave has up to 3.9 lines empty; pages with
+% three lines or more empty stay at 118 of the 676 text pages logged, and those with
+% more than five go from 70 to 69.
 %
 % \paragraph{A list right under a heading follows \LaTeX.}
 % Its first item stays under the heading even when one line fits.
 % That is fewer than the sample's two lines, and goes against the two-line rule, which
 % stays for a heading over a paragraph.
 % It is the maintainer's choice, for leaving a default where it is; it wasn't measured
-% to help: on those eight documents it changes no page.
+% to help.
 %
 % \paragraph{Reckoning as \TeX\ does, and warnings.}
 % These are ours, not from the sources.
@@ -1573,18 +1577,16 @@
 % Under |breakcode| we drop the break that \textsf{noweb} offers after a chunk with
 % |\nwdocspar|.
 % We measured that on twelve generated documents, in \textsf{memoir}'s |article|, with
-% the mix of chunk lengths of real ones, of about 198 pages.
-% With the chunks that \textsf{noweb} sets, dropping it takes the most empty lines from
-% 7.6 to 5.6, which is one page, the pages with three or more from 34 to 21, and those
-% with five or more from 4 to 1, for 19 more breaks inside chunks; plain \textsf{noweb}
-% with |breakcode| has 6.2 and 31.
+% the mix of chunk lengths of real ones, of about 210 pages.\footnote{%
+%   \Cref{app:pb-measure}; \texttt{measure-flow} in the sources has the generator.}
+% With the chunks that \textsf{noweb} sets, keeping it, with |keepmaxgap=0|, leaves at
+% most 7.6 empty lines, 33 pages with three or more and 4 with five or more; dropping it
+% leaves 5.6, 20 and 1; plain \textsf{noweb} with |breakcode| has 6.2, 31 and 2.
 % With the chunks woven for |minted|, which most decks are, plain has a mean of 0.96
-% empty lines a page, 28 pages with three or more and at most 6.2, and we have 1.09, 30
-% and 5.3.
+% empty lines a page, 28 pages with three or more and at most 6.2, and we have 0.71, 17
+% and 4.5.
 % The same documents without |breakcode| leave up to 41 lines empty, which is why
 % we warn about that.
-% \texttt{measure-flow} in the sources has the generator.
-% ^^A Native chunks; test-keep-sweep.py keeps the rules, not these numbers.
 %
 % \StopEventually{}
 %
