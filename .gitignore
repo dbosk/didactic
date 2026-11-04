@@ -314,6 +314,11 @@ test-keep-heading.unq
 test-keep-heading-?.txt
 test-keep-nogap.pdf
 test-keep-nogap.unq
+test-keep-heading3.pdf
+test-keep-heading3.unq
+test-keep-heading3-?.txt
+test-keep-nogap3.pdf
+test-keep-nogap3.unq
 test-keep-flush.pdf
 test-keep-flush.unq
 test-keep-chapter-*.pdf

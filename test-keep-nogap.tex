@@ -10,7 +10,7 @@
 %   BC  a heading, two short paragraphs and a longtable: not enough lines before
 %       the table, so all move.
 %   BD  a heading of two lines, which the estimate takes for less, and a long
-%       paragraph: three lines of it with the heading.
+%       paragraph: keepafterheading lines of it with the heading.
 %   BB2 the same with three lines, which are enough too.
 %   BF  a \chapter, a \section, a sentence and a longtable with a tall row: the
 %       chapter isn't left behind by a break before the section.
@@ -24,6 +24,14 @@
 %   BE  such a heading, a line and a list, where \LaTeX\ offers a place to break:
 %       it takes that within the list, and a warning at the end says which heading
 %       has too few lines.
+%
+% The default of keepafterheading here; test-keep-nogap3 reads this file with
+% keepafterheading=3, \testk.
+\ifdefined\testk
+  \PassOptionsToPackage{keepafterheading=\testk}{didactic}
+\else
+  \def\testk{2}
+\fi
 \documentclass[a4paper]{memoir}
 \usepackage[british]{babel}
 \usepackage{amsmath,amssymb,amsthm}
@@ -161,7 +169,7 @@ fourth line.
 \testcheck{AQ read twice: first with its table}{q1-a}{=}{q1-t}
 \testcheck{AQ read twice: second isn't moved}{q2-r}{=}{q2-a}
 \testcheck{BC heading with the table}{bc-a}{=}{bc-t}
-\testcheck{BD heading with its third line}{bd-a}{=}{bd-3}
+\testcheck{BD heading with its lines}{bd-a}{=}{bd-\testk}
 \testcheck{BE the page breaks in the list}{be-i}{<}{be-j}
 \end{itemize}
 \typeout{didactic heading test: all checks ran}

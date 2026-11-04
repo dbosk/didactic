@@ -15,7 +15,8 @@
 %       move: test-keep-nogap.)
 %   AB  a frame title, a sentence and such a table.  AC \paragraph*, AD a block.
 %   AE  a two-line heading, a one-line paragraph and a long one, room for all
-%       of them to be moved: three lines after the heading on its page.
+%       of them to be moved: three lines after the heading on its page, when that
+%       is what the option asks.
 %   AF  the same with more room than keepmaxgap: it stays, with a warning.
 %       With a long paragraph, the same: it isn't moved past the limit.
 %   AS  a listing after a listing: the lead-in of the first doesn't count in
@@ -31,8 +32,8 @@
 %       With room for the first, the second moves alone.
 %   AK  a heading, a lead-in and a listing too short to break: it moves, more
 %       room than keepmaxgap stays empty, and a warning says so.
-%   AL  a frame title, then a block or an example: three lines after the
-%       heading of the block.
+%   AL  a frame title, then a block or an example: keepafterheading lines after
+%       the heading of the block.
 %   AM  a heading, a one-line paragraph and a list: the estimate before the
 %       heading moves them.  AN the same for a block.
 %   AO  a paragraph at the foot of a page and at the top of the next: no first
@@ -40,6 +41,14 @@
 %   AP  a table at the top of a page after a heading, with room to spare.
 %   AR  a heading, a listing that takes no paragraph, then a paragraph: the
 %       first paragraph after the listing isn't kept as a first paragraph.
+%
+% The default of keepafterheading here; test-keep-heading3 reads this file with
+% keepafterheading=3, \testk.  The cases that depend on it are written with it.
+\ifdefined\testk
+  \PassOptionsToPackage{keepafterheading=\testk}{didactic}
+\else
+  \def\testk{2}
+\fi
 \documentclass[a4paper]{memoir}
 \usepackage[british]{babel}
 \usepackage{amsmath,amssymb,amsthm}
@@ -173,25 +182,25 @@ Text after AS.
 
 \roomfor{30}
 \section*{AG, a footnote}
-\threelines\footnote{A note.}\testclubs{AG first paragraph with a footnote}{3}
+\threelines\footnote{A note.}\testclubs{AG first paragraph with a footnote}{\testk}
 
 Second.\testclubs{AG second paragraph after a footnote}{0}
 
 Third.\testclubs{AG third paragraph after a footnote}{0}
 
 \section*{AG, a list}
-\threelines\testclubs{AG first paragraph before a list}{3}
+\threelines\testclubs{AG first paragraph before a list}{\testk}
 \begin{itemize}\item Item.\testclubs{AG item after the first paragraph}{0}\end{itemize}
 Second.\testclubs{AG paragraph after a list}{0}
 
 \section*{AG, a float}
 \begin{figure}[t]\centering FIGURE\caption{A figure.}\end{figure}
-\threelines\testclubs{AG first paragraph after a float}{3}
+\threelines\testclubs{AG first paragraph after a float}{\testk}
 
 Second.\testclubs{AG second paragraph after a float}{0}
 
 \section*{AG, a page}
-\threelines\testclubs{AG first paragraph before a page}{3}
+\threelines\testclubs{AG first paragraph before a page}{\testk}
 
 \clearpage
 Second.\testclubs{AG second paragraph after a page}{0}
@@ -200,7 +209,7 @@ Third.\testclubs{AG third paragraph after a page}{0}
 
 \section*{AG, a list first}
 \begin{itemize}
-\item \threelines\testclubs{AG a list as the first thing}{3}
+\item \threelines\testclubs{AG a list as the first thing}{\testk}
 \item Second item.\testclubs{AG the second item}{0}
 \end{itemize}
 Text.\testclubs{AG paragraph after that list}{0}
@@ -276,7 +285,7 @@ Text after AK.
 \item Another item.
 \end{itemize}
 
-\roomfor{2.5}
+\roomfor{\ifnum\testk=2 1.5\else 2.5\fi}
 \begin{example}[AN]\label{ao-a}
   \oneline
   \begin{itemize}
@@ -319,7 +328,9 @@ Paragraph after the listing.\testclubs{AR paragraph after a listing}{0}
 \testcheck{AC paragraph with the table}{ac-a}{=}{ac-t}
 \testcheck{AD block with the table}{ad-a}{=}{ad-t}
 \testcheck{AE heading with its second line}{ae-a}{=}{ae-1}
+\ifnum\testk>2
 \testcheck{AE heading with its third line}{ae-a}{=}{ae-2}
+\fi
 \testcheck{AF long paragraph: heading stays}{ag-r}{=}{ag-a}
 \testcheck{AS second listing whole}{vL1}{=}{vL10}
 \testcheck{AI heading with the listing's first line}{ai-a}{=}{iL1}
@@ -331,8 +342,8 @@ Paragraph after the listing.\testclubs{AR paragraph after a listing}{0}
 \testcheck{AJ second listing on the next page}{sL10}{<}{tL1}
 \testcheck{AJ second listing whole}{tL1}{=}{tL8}
 \testcheck{AK heading with the listing}{ak-a}{=}{mL1}
-\testcheck{AL block's three lines (block)}{al-1}{=}{al-3}
-\testcheck{AL block's three lines (example)}{am-1}{=}{am-3}
+\testcheck{AL block's lines (block)}{al-1}{=}{al-\testk}
+\testcheck{AL block's lines (example)}{am-1}{=}{am-\testk}
 \testcheck{AM heading with the list}{an-a}{=}{an-i}
 \testcheck{AN block with the list}{ao-a}{=}{ao-i}
 \testcheck{AO first line not alone}{ap-1}{=}{ap-2}

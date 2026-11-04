@@ -28,7 +28,8 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-marginfloat.pdf test-marginfloat-slides.pdf \
 	test-frametitle.pdf test-frametitle-slides.pdf \
 	test-keep.pdf test-keep-tall.pdf test-keep-tall100.pdf \
-	test-keep-chain.pdf test-keep-heading.pdf test-keep-nogap.pdf \
+	test-keep-chain.pdf test-keep-heading.pdf test-keep-heading3.pdf \
+		test-keep-nogap.pdf test-keep-nogap3.pdf \
 	test-keep-flush.pdf ${TEST_KEEP_CHAPTER:=.pdf} test-keep-stale.pdf \
 	${TEST_NOTEOVERFLOW:=.pdf} test-oldkernel.pdf \
 	test-margin-log.pdf test-margin-log-article.pdf \
@@ -212,23 +213,31 @@ test-keep-chain.pdf: test-keep-chain.tex didactic.sty
 	test "${call count_word,chained}" -eq 40
 
 # a heading keeps its lines, within keepmaxgap, or warns: see the documents.
-test-keep-heading.pdf: test-keep-heading.tex didactic.sty
+# Each document also runs with keepafterheading=3 (the files ending in 3 only set
+# that), where more is asked of the chain and the estimate.
+test-keep-heading.pdf test-keep-heading3.pdf: %.pdf: %.tex test-keep-heading.tex \
+		didactic.sty
 	@${latex_until_settled}
-	! grep -E 'didactic heading test:.*FAIL' test-keep-heading.log
-	grep -q 'didactic heading test: all checks ran' test-keep-heading.log
-	! grep 'Overfull .vbox' test-keep-heading.log
-	test "${call count_warn,Only 1 of the 3}" -eq 1
-	test "${call count_warn,Only 2 of the 3}" -eq 2
+	! grep -E 'didactic heading test:.*FAIL' $*.log
+	grep -q 'didactic heading test: all checks ran' $*.log
+	! grep 'Overfull .vbox' $*.log
+	test "$$(grep -c 'Package didactic Warning: .*Only 1 of' $*.log)" -eq 1
+	test "$$(grep -c 'Package didactic Warning: .*Only 2 of' $*.log)" -eq ${ONLY2}
 	test "${call count_warn,can.t break here}" -eq 1
-	test "$$(grep -c 'didactic heading test.*PASS' test-keep-heading.log)" -ge 40
+	test "$$(grep -c 'didactic heading test.*PASS' $*.log)" -ge 40
+test-keep-heading.pdf: ONLY2=0
+test-keep-heading3.pdf: ONLY2=2
 
-test-keep-nogap.pdf: test-keep-nogap.tex test-basedir/keep1/x.tex \
-		test-basedir/keep2/x.tex test-basedir/keep3.tex didactic.sty
+test-keep-nogap.pdf test-keep-nogap3.pdf: %.pdf: %.tex test-keep-nogap.tex \
+		test-basedir/keep1/x.tex test-basedir/keep2/x.tex \
+		test-basedir/keep3.tex didactic.sty
 	@${latex_until_settled}
-	! grep -E 'didactic heading test:.*FAIL' test-keep-nogap.log
-	grep -q 'didactic heading test: all checks ran' test-keep-nogap.log
-	test "${call count_warn,The heading in test-keep-nogap}" -eq 2
-	! grep 'Overfull .vbox' test-keep-nogap.log
+	! grep -E 'didactic heading test:.*FAIL' $*.log
+	grep -q 'didactic heading test: all checks ran' $*.log
+	test "$$(grep -c 'Package didactic Warning: The heading in test-keep-nogap' $*.log)" -eq ${NOGAP_HEADINGS}
+	! grep 'Overfull .vbox' $*.log
+test-keep-nogap.pdf: NOGAP_HEADINGS=1
+test-keep-nogap3.pdf: NOGAP_HEADINGS=2
 
 # a heading that ends a page under \flushbottom leaves the space at the foot.
 test-keep-flush.pdf: test-keep-flush.tex didactic.sty
@@ -356,11 +365,12 @@ clean:
 	${RM} test-keep-tall100-?.txt
 	${RM} test-keep-chain.pdf test-keep-chain.aux test-keep-chain.log
 	${RM} test-keep-chain.unq test-keep-chain.pytxcode test-keep-chain-?.txt
-	for f in test-keep-heading test-keep-nogap test-keep-flush test-keep-stale \
+	for f in test-keep-heading test-keep-heading3 test-keep-nogap test-keep-nogap3 \
+			test-keep-flush test-keep-stale \
 			test-block-nested ${TEST_KEEP_CHAPTER} ${TEST_NOTEOVERFLOW}; do \
 		${RM} $$f.pdf $$f.aux $$f.log $$f.unq $$f.pytxcode $$f.out $$f.toc; \
 	done
-	${RM} test-keep-heading-?.txt test-keep-stale-room.tex test-keep-stale-opt.tex
+	${RM} test-keep-heading-?.txt test-keep-heading3-?.txt test-keep-stale-room.tex test-keep-stale-opt.tex
 	${RM} test-oldkernel.pdf test-oldkernel.aux test-oldkernel.log
 	${RM} test-oldkernel.unq test-oldkernel.pytxcode
 	${RM} test-margin-log.pdf test-margin-log.aux test-margin-log.log

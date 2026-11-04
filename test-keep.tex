@@ -68,7 +68,7 @@
 %      goes on on this page.
 %   Z  a listing of 15 lines, over the default of keeplines, with room for 4:
 %      it breaks, rather than moving as a whole.
-%   V  the heading of a block (example), with room for two of its lines:
+%   V  the heading of a block (example), with room for one of its lines:
 %      the block moves to the next page.
 %   R  a section heading, a sentence and a longtable whose caption and
 %      first row don't fit, with room for little: the heading moves to the page
@@ -291,11 +291,11 @@ second line\\
 third line\label{uL3}\\
 fourth line.
 
-\roomfor{2}
+\roomfor{1}
 \begin{example}[Heading V]\label{v-head}
 First line of V\label{vL1}\\
-second line\\
-third line\label{vL3}\\
+second line\label{vL2}\\
+third line\\
 fourth line.
 \end{example}
 
@@ -407,7 +407,7 @@ Text after H.
 \testcheck{T breaks, rather than leave the room empty}{tL1}{<}{tL10}
 \testcheck{T lead-in with line 3}{t-lead}{=}{tL3}
 \testcheck{U heading with three lines}{u-head}{=}{uL3}
-\testcheck{V block heading with its third line}{vL1}{=}{vL3}
+\testcheck{V block heading with its second line}{vL1}{=}{vL2}
 \testcheck{R heading with its long table}{r-head}{=}{r-tab}
 \testcheck{X text goes on after the place to break of noweb}{x-before}{=}{x-1}
 \testcheck{Z lead-in with line 3}{z-lead}{=}{zL3}
