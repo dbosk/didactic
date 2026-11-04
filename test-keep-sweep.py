@@ -212,6 +212,9 @@ CASES = {
     "fl1": lambda k: frame(k) + "\n" + para(k, 1, "P") + "\n" + items(k, 8, 1) + r"\end{frame}" + TAIL,
     "fl3": lambda k: frame(k) + "\n" + para(k, 3, "P") + "\n" + items(k, 8, 1) + r"\end{frame}" + TAIL,
     "qq3": lambda k: para(k, 3, "P") + "\n" + r"\begin{quote}" + para(k, 8, "Q") + r"\end{quote}" + TAIL,
+    # nor is a quote inside an item
+    "lq3": lambda k: para(k, 3, "P") + "\n" + r"\begin{itemize}\item " + para(k, 1, "X") + "\n"
+        + r"\begin{quote}" + para(k, 8, "Q") + r"\end{quote}\end{itemize}" + TAIL,
     # a heading with a figure that lands right here
     "f": lambda k: heading(k) + "\n" + r"\begin{figure}[h]\rule{1pt}{2\baselineskip}\end{figure}"
         + "\n" + para(k, 16) + TAIL,
@@ -219,6 +222,9 @@ CASES = {
     "r": lambda k: runin(k) + "\n" + para(k, 16) + TAIL,
     "rr": lambda k: runin(k) + rf"\subparagraph*{{Sub\label{{BX{k}}}}}" + "\n" + para(k, 16) + TAIL,
     "ri": lambda k: runin(k) + "\n" + items(k, 8, 1) + TAIL,
+    # a title on its own line that moves past the limit, as what follows is too tall
+    "rti": lambda k: runin(k) + "\n" + r"\begin{itemize}\item \parbox{.8\linewidth}{\rule{0pt}{8\baselineskip}"
+        + rf"I0x1\label{{I0x1X{k}}}" + r"}\end{itemize}" + "\n" + para(k, 16, "N") + TAIL,
     "re": lambda k: runin(k) + "\n" + block(k) + para(k, 16) + r"\end{example}" + TAIL,
     "rv": lambda k: runin(k) + "\n" + verbatim(k) + TAIL,
     "fp": lambda k: frame(k) + "\n" + para(k, 16) + r"\end{frame}" + TAIL,
@@ -242,13 +248,13 @@ CASES = {
 }
 SHRINKLISTS = {"hs1", "hs2", "hs3"}
 HEADLISTS = SHRINKLISTS | {"hll1", "hll2", "hll3", "hll6"}
-FINE = HEADLISTS | {"ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3", "qq3",
+FINE = HEADLISTS | {"ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3", "qq3", "lq3", "rti",
         "d", "wL1", "hv", "hw", "hn", "hv8", "hv3l", "f", "r", "rr", "ri", "re", "rv", "fp", "fe", "fx", "fi", "fI",
         "e", "ei", "eI", "se", "e1", "cp"}
 # Without didactic these don't exist, or frames set their titles another way.
 DIDACTIC_ONLY = {"hj1", "j3", "fp", "fe", "fx", "fi", "fI", "fl1", "fl3"}
 # What comes under a block's heading isn't compared with plain: its style is didactic's.
-NOT_COMPARED = DIDACTIC_ONLY | {"e", "ei", "eI", "se", "e1", "cp", "f"}
+NOT_COMPARED = DIDACTIC_ONLY | {"e", "ei", "eI", "se", "e1", "cp", "f", "rti"}
 LISTINGS = {"hv1", "hv2", "hv3", "v1", "v3", "v8", "hn1", "hn3", "n3", "hw1", "hw3", "w3",
             "hj1", "j3", "n6", "w6", "v6", "wL1", "cw0", "cw1", "cw2", "cw3", "cw4",
             "ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3"} | HEADLISTS
@@ -256,7 +262,7 @@ ITEMLISTS = HEADLISTS | {"ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2",
 # L2: a list right under a heading follows LaTeX, so a line is enough.
 DIRECTLISTS = {"l", "L", "ri", "fi", "fI", "ei", "eI"}
 NOHEADING = {"v1", "v3", "v8", "n3", "w3", "j3", "n6", "w6", "v6", "wL1",
-             "ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "qq3",
+             "ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "qq3", "lq3",
              "cw0", "cw1", "cw2", "cw3", "cw4"}
 AFTERCHUNK = {"cw0", "cw1", "cw2", "cw3", "cw4"}
 # Enough to test lists under enumitem.
@@ -426,7 +432,7 @@ def check_case(p, ref, name, case, K):
                 fail(case, "D8: a short listing breaks under its heading, no warning")
             if says_breaks and last == h:
                 fail(case, "D8: says it breaks, and it doesn't")
-        tall = name in ("t", "c", "hj1", "cp", "d")
+        tall = name in ("t", "c", "hj1", "cp", "d", "rti")
         if name == "cp" and K <= 2 and [w for w in warns if "only" in w]:
             fail(case, f"D8: a tall box is lines enough: {warns[0][:50]}")
         if name == "e1" and [w for w in warns if "only" in w]:
@@ -458,15 +464,19 @@ def check_case(p, ref, name, case, K):
                 # One of three lines can't have two on each side, so it always moves.
                 bad = True
                 text = f"D4: moved, plain LaTeX keeps {pc} lines"
+            elif not pm and moved and name in ("l", "L") and pc >= 1:
+                bad = True
+                text = f"L2: moved, plain LaTeX keeps {pc} line under the heading"
             elif pm and not moved and count < 2 and name in ("s", "ss", "L"):
                 bad = True
                 text = f"D4: {count} line under the heading, plain LaTeX moves it"
             if bad:
                 fail(case, text)
     # L1 leaves the breaks between items alone, and other lists than item lists
-    if name == "qq3" and p.on("Q1", case) is not None and ref.on("Q1", case) is not None \
+    last = "X1" if name == "lq3" else "P3"
+    if name in ("qq3", "lq3") and p.on("Q1", case) is not None and ref.on("Q1", case) is not None \
             and (p.on("Q1", case) - p.on("R", case)) != (ref.on("Q1", case) - ref.on("R", case)) \
-            and p.on("P3", case) == p.on("R", case) and ref.on("P3", case) == ref.on("R", case):
+            and p.on(last, case) == p.on("R", case) and ref.on(last, case) == ref.on("R", case):
         fail(case, "L1: a quote is no item list, and breaks as plain LaTeX")
     # D6
     if name in LISTINGS:

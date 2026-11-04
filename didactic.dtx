@@ -6499,7 +6499,11 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % |\@didactic@keep@listtie|, right after |\@trivlist| has ended the paragraph before,
 % forbids the place to break at the start of the list, if moving what leads into it
 % stays within |keepmaxgap|, as for a listing.
+% Past the limit it forbids it too if the first item fits, for there \TeX\ would
+% take the bonus of $-51$ on a page that stretches, and the warning has no reason.
 % Only that penalty changes: between the items \LaTeX\ goes on as ever.
+% The penalty is local to the list, and what starts in an item would inherit it, a
+% quote, say, so every |\@trivlist| first takes it back, |\@didactic@keep@forbidden|.
 % And right under a heading, a list has what \LaTeX\ gives it: its first item stays
 % with the heading, also with one line, and we ask no more, so there is nothing to
 % warn about either.
@@ -6587,6 +6591,15 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \addvspace\@tempskipb
     \@nobreaktrue
   \fi}
+\let\@didactic@keep@bpsaved\relax
+\def\@didactic@keep@forbid{%
+  \edef\@didactic@keep@bpsaved{\the\@beginparpenalty}%
+  \@beginparpenalty\@M}
+\def\@didactic@keep@forbidden{%
+  \ifx\@didactic@keep@bpsaved\relax\else
+    \@beginparpenalty\@didactic@keep@bpsaved\relax
+    \let\@didactic@keep@bpsaved\relax
+  \fi}
 \def\@didactic@keep@listtie{%
   \if@didactic@keep@itemlist
     \@didactic@keep@itemlistfalse
@@ -6597,13 +6610,13 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
         \if@didactic@keepleadin
           \@didactic@keep@tie
           \if@didactic@keep@movable
-            \@beginparpenalty\@M
+            \@didactic@keep@forbid
           \else
             \ifdim\dimexpr\pagegoal-\pagetotal+\pageshrink
                 -\@topsep+\glueshrink\@topsep-\@didactic@keep@L\relax<\z@
               \@didactic@keep@pairstart
             \else
-              \@beginparpenalty\@M
+              \@didactic@keep@forbid
             \fi
           \fi
         \fi
@@ -6627,7 +6640,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \if@noskipsec
     \if@didactic@keep@inbox\else\ifinner\else
       \global\@didactic@keep@titleonlytrue
-      \@beginparpenalty\@M
+      \@didactic@keep@forbid
     \fi\fi
   \fi}
 \AtBeginDocument{%
@@ -6651,6 +6664,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \fi
   \let\@didactic@trivlist\@trivlist
   \def\@trivlist{%
+    \@didactic@keep@forbidden
     \@didactic@keep@titlewaits\@didactic@trivlist\@didactic@keep@listtie}%
   \let\@didactic@FV@LeaveVMode\FV@LeaveVMode
   \def\FV@LeaveVMode{\@didactic@keep@titlewaits\@didactic@FV@LeaveVMode}%
