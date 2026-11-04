@@ -1,0 +1,46 @@
+% Test of listings in multicols (didactic): its columns are set later, from what
+% it has collected, so what keeps listings together can't know their height.
+% The listings are left alone, and each one says so, with its line.
+%
+% Build: see the Makefile; test-check.py checks that there is no Overfull \vbox,
+% that the lead-in stays near its listing (not stretched away from it), and that
+% each listing and pair warns.
+\documentclass[a4paper,oneside]{memoir}
+\usepackage[british]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\usepackage{multicol}
+\makeatletter
+\newwrite\@mcol@out
+\newcount\@mcol@i
+\newcommand\testlisting[1]{%
+  \immediate\openout\@mcol@out=\jobname-#1.txt
+  \@mcol@i\z@
+  \@whilenum\@mcol@i<20\do{\advance\@mcol@i\@ne
+    \immediate\write\@mcol@out{#1 \the\@mcol@i}}%
+  \immediate\closeout\@mcol@out
+  \VerbatimInput{\jobname-#1.txt}}
+\newcommand\case[1]{\typeout{multicol case #1 line \the\inputlineno}}
+\makeatother
+\begin{document}
+\begin{multicols}{2}
+\rule{1pt}{0.8\textheight}
+
+LEADA in.
+\case{a}\testlisting{alpha}
+Text after.
+
+\rule{1pt}{0.7\textheight}
+
+LEADB in.
+\case{b}\testlisting{beta}
+Text after.
+
+\case{p}\begin{didacticpair}{2}
+  \rule{1pt}{2\baselineskip} & right
+\end{didacticpair}
+\end{multicols}
+After the columns, a listing is kept again.
+\testlisting{gamma}
+\end{document}

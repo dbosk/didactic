@@ -1,0 +1,16 @@
+% Test that a chunk set by noweb itself, not woven for minted, warns when it ends up
+% on another page than its lead-in, or makes a page overfull (didactic).
+%
+% Build: see the Makefile; test-check.py compares the warnings with the pages of the
+% words in the PDF: a warning for each case whose lead-in and code are on two pages,
+% except the breaks that are asked for, and for no other.
+\documentclass[a4paper,oneside]{memoir}
+\usepackage[british]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+% The limit of keepmaxgap is off here, to reach a page full of what can't part;
+% test-keep-noweb-break has the default.
+\usepackage[keepmaxgap=0]{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\usepackage{noweb}
+\usepackage{multicol}
+\input{test-keep-noweb-body.tex}

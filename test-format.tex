@@ -1,0 +1,12 @@
+% Test that didactic asks for a format with the hooks it uses: cmd/.../before
+% came in the kernel of 2021-06-01.  Rolled back to before that with latexrelease,
+% loading it must warn about the release, whatever date it asks for.
+%
+% Build: see the Makefile, which looks for the warning in the log.  The rest of
+% the document doesn't matter, and it needn't load without errors.
+\RequirePackage[2021-05-01]{latexrelease}
+\documentclass{article}
+\usepackage{didactic}
+\begin{document}
+Text.
+\end{document}
