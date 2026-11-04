@@ -7,6 +7,8 @@ PYTHONTEX=python3 $(shell which pythontex) --interpreter python:python3
 TEST_FLOATORDER=	test-marginfloat-samepar test-marginfloat-moved \
 			test-marginfloat-chapters test-marginfloat-kinds \
 			test-marginfloat-article
+# The same with \includeonly, from the .aux files of the whole document.
+TEST_INCLUDE=		test-marginfloat-include-all test-marginfloat-include
 
 .PHONY: all
 all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
@@ -16,7 +18,7 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-marginfloat.pdf test-marginfloat-slides.pdf \
 	test-marginfloat-cases.pdf test-marginfloat-order.pdf \
 	test-marginfloat-inorder.pdf test-marginfloat-hidden.pdf \
-	${TEST_FLOATORDER:=.pdf} check
+	${TEST_FLOATORDER:=.pdf} test-marginfloat-include.pdf check
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -102,13 +104,27 @@ test-marginfloat-order.pdf test-marginfloat-inorder.pdf: %.pdf: %.tex \
 ${TEST_FLOATORDER:=.pdf}: %.pdf: %.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
+# The whole document first: the .aux files of the chapters that the second one
+# leaves out are its input as much as its sources.  Three runs of the second: its
+# first has no main .aux yet, so it can't take over the left out chapter's counters.
+test-marginfloat-include-all.pdf: test-marginfloat-include-all.tex \
+		test-marginfloat-include-a.tex test-marginfloat-include-b.tex \
+		didactic.sty
+	${RM} test-marginfloat-include-a.aux test-marginfloat-include-b.aux
+	${PDFLATEX} ${LATEXFLAGS} $<
+	${PDFLATEX} ${LATEXFLAGS} $<
+test-marginfloat-include.pdf: test-marginfloat-include.tex \
+		test-marginfloat-include-all.pdf
+	${PDFLATEX} ${LATEXFLAGS} $<
+	${PDFLATEX} ${LATEXFLAGS} $<
+	${PDFLATEX} ${LATEXFLAGS} $<
 
 # What the headers of the tests expect, from the PDFs and logs: building a test
 # only shows that LaTeX didn't stop.  Phony, so that it runs every time, also
 # on PDFs that are up to date.
 CHECKED_TESTS=	test-marginfloat test-marginfloat-slides test-marginfloat-cases \
 		test-marginfloat-order test-marginfloat-inorder \
-		test-marginfloat-hidden ${TEST_FLOATORDER}
+		test-marginfloat-hidden ${TEST_FLOATORDER} ${TEST_INCLUDE}
 .PHONY: check
 check: test-check.py ${CHECKED_TESTS:=.pdf}
 	python3 test-check.py ${CHECKED_TESTS}
@@ -190,4 +206,7 @@ clean:
 	${RM} ${TEST_FLOATORDER:=.lof} ${TEST_FLOATORDER:=.lot}
 	${RM} ${TEST_FLOATORDER:=.toc} ${TEST_FLOATORDER:=.unq}
 	${RM} ${TEST_FLOATORDER:=.pytxcode}
+	${RM} ${TEST_INCLUDE:=.pdf} ${TEST_INCLUDE:=.aux} ${TEST_INCLUDE:=.log}
+	${RM} ${TEST_INCLUDE:=.out} ${TEST_INCLUDE:=.unq} ${TEST_INCLUDE:=.pytxcode}
+	${RM} test-marginfloat-include-a.aux test-marginfloat-include-b.aux
 	latexmk -C test.tex

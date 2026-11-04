@@ -265,6 +265,20 @@ def marginfloat_article(c):
          f"warnings about the order: {found}")
 
 
+def marginfloat_include(c):
+    """test-marginfloat-include.tex; the numbers are those of its header."""
+    c.absent("AONE")                                 # the chapter is left out
+    late, early = c.one("BLATE"), c.one("BEARLY")
+    c.ok(late["page"] > early["page"], "BLATE is on a later page than BEARLY")
+    c.clean_log(order=[("figure", "2.2", "7", "2.3", "6")])  # 1, 2
+
+
+def marginfloat_include_all(c):
+    """test-marginfloat-include-all.tex: all chapters, the same warning."""
+    c.has_text("Figure 1.1: AONE")
+    c.clean_log(order=[("figure", "2.2", "7", "2.3", "6")])
+
+
 def marginfloat_hidden(c):
     """test-marginfloat-hidden.tex; the numbers are those of its header."""
     c.clean_log()                                    # 1
@@ -287,6 +301,8 @@ CHECKS = {
     "test-marginfloat-kinds": marginfloat_kinds,
     "test-marginfloat-article": marginfloat_article,
     "test-marginfloat-hidden": marginfloat_hidden,
+    "test-marginfloat-include": marginfloat_include,
+    "test-marginfloat-include-all": marginfloat_include_all,
 }
 
 

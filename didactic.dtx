@@ -2095,6 +2095,12 @@
 % harmless, and the absolute page a page number that starts over.
 % A frame that isn't there (|\begin{frame}<presentation>|) ends in a box that is
 % thrown away, and this line with it.
+%
+% The line goes to the main \texttt{.aux} even in a file of |\include|.
+% With |\includeonly|, the \texttt{.aux} of a chapter left out is what an
+% earlier run wrote, and it is read too; its running numbers and pages would
+% be compared with this run's and give false warnings.
+% The main \texttt{.aux} holds this run and nothing else.
 %    \begin{macrocode}
 \newcount\@didactic@floatseq
 \newcommand\@didactic@floatrec[6]{}
@@ -2104,7 +2110,7 @@
     \ifx\@didactic@tmp\@didactic@tmpb\else
       \@ifundefined{c@#2}{}{%
         \global\advance\@didactic@floatseq\@ne
-        \protected@write\@auxout{}{%
+        \protected@write\@mainaux{}{%
           \string\@didactic@floatrec{#2}{\the\@didactic@floatseq}%
           {\csname the#2\endcsname}{\thepage}%
           {\noexpand\the\ReadonlyShipoutCounter}{\the\inputlineno}}%
