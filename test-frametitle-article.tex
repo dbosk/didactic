@@ -1,0 +1,29 @@
+% Test of frame titles (didactic) in the class article, with beamerarticle loaded
+% before didactic.
+%
+% Expected in the resulting PDF:
+%   "TITLEART TEXTART" and "TITLESUBART – SUBART TEXTSUBART" on a line each;
+%   TITLELIST above the list; TITLEIMG above the rule's figure, FIGIMG.
+\documentclass[a4paper]{article}
+\usepackage{beamerarticle}
+\usepackage{didactic}
+\begin{document}
+\begin{frame}{TITLEART}
+  TEXTART runs in.
+\end{frame}
+\begin{frame}{TITLESUBART}{SUBART}
+  TEXTSUBART runs in.
+\end{frame}
+\begin{frame}{TITLELIST}
+  \begin{itemize}
+  \item ITEMART
+  \item another
+  \end{itemize}
+\end{frame}
+\begin{frame}{TITLEIMG}
+  \begin{figure}[h]
+    \centering\rule{3cm}{1cm}
+    \caption{FIGIMG}
+  \end{figure}
+\end{frame}
+\end{document}

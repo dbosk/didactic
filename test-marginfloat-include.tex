@@ -1,0 +1,20 @@
+% Test of the order of float numbers (didactic) with \includeonly: the .aux file
+% of a chapter left out is what an earlier run wrote, so that run's captions must
+% not be compared with this run's.
+%
+% Build: see the Makefile: test-marginfloat-include-all.tex first, which writes
+% the .aux files of both chapters.
+%
+% Expected in the log, with the first chapter left out:
+%   1  No warning from the first chapter, whose page numbers and running numbers
+%      overlap those of the second.
+%   2  BLATE (Figure 2.2) on a later page than BEARLY (Figure 2.3), in the chapter
+%      that is included: the warning names both.
+\documentclass[a4paper]{memoir}
+\usepackage{lipsum}
+\usepackage{didactic}
+\includeonly{test-marginfloat-include-b}
+\begin{document}
+\include{test-marginfloat-include-a}
+\include{test-marginfloat-include-b}
+\end{document}

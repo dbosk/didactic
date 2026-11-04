@@ -3,7 +3,21 @@ PDFLATEX?=xelatex -pdf
 LATEXFLAGS=-shell-escape
 PYTHONTEX=python3 $(shell which pythontex) --interpreter python:python3
 
+# A failed check leaves no PDF, so that the next make doesn't call it up to date.
 .DELETE_ON_ERROR:
+
+# The cases of frame titles, one file per kind; see the header of each file.
+TEST_FRAMETITLE_CASES=	test-frametitle-overlay test-frametitle-floats \
+			test-frametitle-boxes test-frametitle-end \
+			test-frametitle-template \
+			test-frametitle-template-after \
+			test-frametitle-noarticle test-frametitle-article
+# The order of float numbers, from the pages the floats end up on.
+TEST_FLOATORDER=	test-marginfloat-samepar test-marginfloat-moved \
+			test-marginfloat-chapters test-marginfloat-kinds \
+			test-marginfloat-article
+# The same with \includeonly, from the .aux files of the whole document.
+TEST_INCLUDE=		test-marginfloat-include-all test-marginfloat-include
 
 .PHONY: all
 all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
@@ -14,7 +28,12 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-frametitle.pdf test-frametitle-slides.pdf \
 	test-keep.pdf test-keep-tall.pdf test-keep-tall100.pdf \
 	test-keep-chain.pdf test-oldkernel.pdf \
-	test-margin-log.pdf test-margin-log-article.pdf
+	test-margin-log.pdf test-margin-log-article.pdf \
+	${TEST_FRAMETITLE_CASES:=.pdf} \
+	test-marginfloat-cases.pdf test-marginfloat-order.pdf \
+	test-marginfloat-inorder.pdf test-marginfloat-hidden.pdf \
+	${TEST_FLOATORDER:=.pdf} test-marginfloat-include.pdf \
+	test-format.pdf check
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -90,10 +109,56 @@ test-marginfloat.pdf test-marginfloat-slides.pdf: %.pdf: %.tex didactic.sty \
 		${TEST_MARGINFLOAT_SRC}
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
+test-marginfloat-cases.pdf test-marginfloat-hidden.pdf: %.pdf: %.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} $<
+	${PDFLATEX} ${LATEXFLAGS} $<
+test-marginfloat-order.pdf test-marginfloat-inorder.pdf: %.pdf: %.tex \
+		test-marginfloat-order.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} $<
+	${PDFLATEX} ${LATEXFLAGS} $<
+${TEST_FLOATORDER:=.pdf}: %.pdf: %.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} $<
+	${PDFLATEX} ${LATEXFLAGS} $<
+# The whole document first: the .aux files of the chapters that the second one
+# leaves out are its input as much as its sources.  Three runs of the second: its
+# first has no main .aux yet, so it can't take over the left out chapter's counters.
+test-marginfloat-include-all.pdf: test-marginfloat-include-all.tex \
+		test-marginfloat-include-a.tex test-marginfloat-include-b.tex \
+		didactic.sty
+	${RM} test-marginfloat-include-a.aux test-marginfloat-include-b.aux
+	${PDFLATEX} ${LATEXFLAGS} $<
+	${PDFLATEX} ${LATEXFLAGS} $<
+test-marginfloat-include.pdf: test-marginfloat-include.tex \
+		test-marginfloat-include-all.pdf
+	${PDFLATEX} ${LATEXFLAGS} $<
+	${PDFLATEX} ${LATEXFLAGS} $<
+	${PDFLATEX} ${LATEXFLAGS} $<
 
-# frame titles, in the notes and on the slides, from one source.
+# What the headers of the tests expect, from the PDFs and logs: building a test
+# only shows that LaTeX didn't stop.  Phony, so that it runs every time, also
+# on PDFs that are up to date.
+CHECKED_TESTS=	test-marginfloat test-marginfloat-slides test-marginfloat-cases \
+		test-marginfloat-order test-marginfloat-inorder \
+		test-marginfloat-hidden test-frametitle test-frametitle-slides \
+		${TEST_FRAMETITLE_CASES} ${TEST_FLOATORDER} ${TEST_INCLUDE}
+.PHONY: check
+check: test-check.py ${CHECKED_TESTS:=.pdf}
+	python3 test-check.py ${CHECKED_TESTS}
+
+# a format from before the hooks we use: the warning from didactic itself, so
+# right after the log opens the file, since other packages ask for releases too.
+test-format.pdf: test-format.tex didactic.sty
+	-${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	grep -A2 'didactic.sty$$' test-format.log | grep -q 'You have requested release'
+
+# frame titles, in the notes and on the slides, from one source; twice, since
+# beamer asks for a rerun for its outline.
 test-frametitle.pdf test-frametitle-slides.pdf: %.pdf: %.tex didactic.sty \
 		test-frametitle-contents.tex
+	${PDFLATEX} ${LATEXFLAGS} $<
+	${PDFLATEX} ${LATEXFLAGS} $<
+${TEST_FRAMETITLE_CASES:=.pdf}: %.pdf: %.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
 
 # code side by side, in the notes and on the slides; minted needs
@@ -248,4 +313,35 @@ clean:
 	${RM} test-margin-log-article.log test-margin-log-article.unq
 	${RM} test-margin-log-article.pytxcode
 	${RM} _minted/*.minted
+	${RM} ${TEST_FRAMETITLE_CASES:=.pdf} ${TEST_FRAMETITLE_CASES:=.aux}
+	${RM} ${TEST_FRAMETITLE_CASES:=.log} ${TEST_FRAMETITLE_CASES:=.toc}
+	${RM} ${TEST_FRAMETITLE_CASES:=.lof} ${TEST_FRAMETITLE_CASES:=.lot}
+	${RM} ${TEST_FRAMETITLE_CASES:=.unq} ${TEST_FRAMETITLE_CASES:=.out}
+	${RM} ${TEST_FRAMETITLE_CASES:=.pytxcode} test-frametitle.pytxcode
+	${RM} test-frametitle-slides.pytxcode
+	${RM} test-marginfloat-cases.pdf test-marginfloat-cases.aux
+	${RM} test-marginfloat-cases.log test-marginfloat-cases.out
+	${RM} test-marginfloat-cases.unq
+	${RM} test-marginfloat-order.pdf test-marginfloat-order.aux
+	${RM} test-marginfloat-order.log test-marginfloat-order.out
+	${RM} test-marginfloat-order.unq
+	${RM} test-marginfloat-inorder.pdf test-marginfloat-inorder.aux
+	${RM} test-marginfloat-inorder.log test-marginfloat-inorder.out
+	${RM} test-marginfloat-inorder.unq
+	${RM} test-marginfloat-hidden.pdf test-marginfloat-hidden.aux
+	${RM} test-marginfloat-hidden.log test-marginfloat-hidden.out
+	${RM} test-marginfloat-hidden.unq
+	${RM} test-marginfloat.pytxcode test-marginfloat-slides.pytxcode
+	${RM} test-marginfloat-cases.pytxcode test-marginfloat-order.pytxcode
+	${RM} test-marginfloat-inorder.pytxcode test-marginfloat-hidden.pytxcode
+	${RM} ${TEST_FLOATORDER:=.pdf} ${TEST_FLOATORDER:=.aux}
+	${RM} ${TEST_FLOATORDER:=.log} ${TEST_FLOATORDER:=.out}
+	${RM} ${TEST_FLOATORDER:=.lof} ${TEST_FLOATORDER:=.lot}
+	${RM} ${TEST_FLOATORDER:=.toc} ${TEST_FLOATORDER:=.unq}
+	${RM} ${TEST_FLOATORDER:=.pytxcode}
+	${RM} ${TEST_INCLUDE:=.pdf} ${TEST_INCLUDE:=.aux} ${TEST_INCLUDE:=.log}
+	${RM} ${TEST_INCLUDE:=.out} ${TEST_INCLUDE:=.unq} ${TEST_INCLUDE:=.pytxcode}
+	${RM} test-marginfloat-include-a.aux test-marginfloat-include-b.aux
+	${RM} test-format.pdf test-format.aux test-format.log test-format.unq
+	${RM} test-format.pytxcode
 	latexmk -C test.tex

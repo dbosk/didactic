@@ -19,7 +19,7 @@
 %<*driver>
 \ProvidesFile{didactic.dtx}
 %</driver>
-%<package>\NeedsTeXFormat{LaTeX2e}
+%<package>\NeedsTeXFormat{LaTeX2e}[2021/06/01]
 %<package>\ProvidesPackage{didactic}
 %<*package>
   [2026/10/22 v2.14 didactic]
@@ -167,12 +167,24 @@
 %   paragraph under it.
 %   A subtitle follows the title in the heading.
 % }
+% \changes{v2.13}{2026/10/21}{%
+%   A frame title goes on a line of its own above a float or a picture, table, 
+%   \texttt{columns} or table of contents at the start of the frame, and a 
+%   \texttt{frametitle} template of your own wins wherever it is set.
+% }
 % \changes{v2.12}{2026/10/18}{%
 %   |marginfigure| and |margintable| work in a source shared with the 
 %   slides: ordinary floats in |beamer| and without |memoir|; in |memoir| 
 %   they no longer end the paragraph or start a new page when a float is 
 %   waiting, aren't raised by 1.2\,ex, and add no space to the text.
 %   Margin tables are set ragged like margin figures.
+% }
+% \changes{v2.12}{2026/10/18}{%
+%   Adds the option \texttt{marginfloatorder}: with \texttt{beside}, the 
+%   default, a margin float stays beside its text; \texttt{inorder} keeps the 
+%   order of the numbers, as \textsf{memoir} does.
+%   At the end of a run, a warning names any float whose number is out of page 
+%   order, of any kind.
 % }
 % \changes{v2.11.1}{2026/10/11}{%
 %   |\textbytext| fits its line: it was 13 to 17\,pt too wide, which with 
@@ -447,12 +459,23 @@
 % We make the frame title a run-in heading instead, like |\paragraph|: the
 % title in bold, and the frame's text after it on the same line.
 % A subtitle follows the title in the heading, after a dash and in italics.
-% A frame that starts with a list, a block or other displayed material gets
-% the title on a line of its own above it, as after any run-in heading.
+% A frame that starts with a list, a block, a display or code gets the title on a
+% line of its own above it, as after any run-in heading.
+% So does a frame that starts with a picture (|\includegraphics|, |tikzpicture|),
+% a table (|tabular|, |tabular*|, |tabularx|), a |minipage|, |columns| or
+% |\tableofcontents|, which would otherwise stand beside the title; and a frame
+% that starts with a figure or table float, which could otherwise come above the
+% title: then the text after the float doesn't run in with the title either.
+% Any other box (an |\fbox|, a |\parbox|, a |\rule|) is set in the line like a
+% word, as after any run-in heading, so it stands beside the title.
+% To put one under the title, write it in a |center|.
 % The slides are unchanged.
-% The option |noarticle| keeps |beamerarticle|'s frame titles, and so does
-% setting the template |frametitle| in the preamble, after |beamerarticle|
-% is loaded.
+% The option |noarticle| keeps |beamerarticle|'s frame titles.
+% A template |frametitle| of your own in the preamble wins too, wherever it
+% stands, before or after the packages.
+% If it's |beamerarticle|'s default you want, use |noarticle|: writing
+% |\setbeamertemplate{frametitle}[default]| only works after both packages, since
+% before |didactic| it can't be told from not having set a template.
 %
 % \subsection{Adding margin notes of different kinds}
 %
@@ -597,16 +620,50 @@
 % first line; inside it, the float hangs from the line where it stands.
 % Like |\marginpar|, the environment adds no space to the text: a space
 % before it and one after it leave one space between the words around it.
+% In a frame that is only on the slides (|\begin{frame}<presentation>|), the
+% float has no effect on the notes: it isn't set and takes no number, and a
+% |\label| in it is undefined there.
 %
 % We change two things in |memoir|'s environments.
 % |memoir| ends the paragraph at a margin float and, whenever an ordinary
 % float is still waiting to be placed, starts a new page
 % (|\FloatBlock|), to keep the figures in the order of their numbers.
-% In notes with many figures, that leaves pages half empty, so we do
-% neither: the margin float stays beside its text, and a waiting float may
-% come after it with a lower number.
-% Write |\FloatBlock| before the environment to get |memoir|'s behaviour
-% back for one float.
+% In notes with many figures, that leaves pages half empty.
+%
+% \DescribeOpt{marginfloatorder}
+% The option |marginfloatorder| says which of the two you get:
+% \begin{description}
+% \item[beside] (the default) The margin float stays beside its text: the
+%   paragraph goes on and no page ends.
+%   A figure that is still waiting may then come on a later page with a lower
+%   number, so the numbers can come out of page order.
+%   The warning described below says when they did.
+% \item[inorder] The numbers stay in page order, as in |memoir|: the
+%   environment ends the paragraph, and starts a new page when an ordinary
+%   float is waiting, also one for the bottom of the current page.
+%   The price is that half-empty page.
+% \end{description}
+% To keep the order for one float, write |\FloatBlock| before the environment
+% with |beside|.
+%
+% Whatever the option, at the end of each run we compare the pages where the
+% captions ended up, for all floats of each kind (figures, tables, a float type
+% of your own) and not only for margin floats.
+% A caption on a later page than one numbered after it gives one warning, which
+% names both numbers, both pages and both input lines; numbers on the same page
+% don't count.
+% That also covers a margin float that \textsf{marginfix} moves on to the next
+% page, and a figure with |[H]| that overtakes one that waits.
+% The warning takes no extra run, since it reads what the same run wrote; it does
+% mean that it can appear in a run where the pages aren't final yet, so only
+% believe the one from the last run.
+% We see a caption when it goes into its list (|\addcontentsline|), so a caption
+% that doesn't (|\captionsetup{list=no}| from the package \textsf{caption}) isn't
+% compared, and neither is anything under |\nofiles|, which writes no \texttt{.aux}.
+% It stays on in a draft, as it costs next to nothing.
+% On the slides (the class |beamer|) floats don't move, so there is nothing to
+% check.
+%
 % |memoir| also raises a margin float by 1.2\,ex, which pushes it into the
 % space between it and a margin note above it, so that the two touch; ours
 % isn't raised.
@@ -1159,6 +1216,17 @@
 \newcommand\@didactic@notebesidefloats{reserve}
 \DeclareOptionX{notebesidefloats}{%
   \renewcommand\@didactic@notebesidefloats{#1}}
+%    \end{macrocode}
+% \end{option}
+%
+% \begin{option}{marginfloatorder}
+% The |marginfloatorder| option chooses between a margin float beside its text
+% (|beside|, the default) and figure numbers in page order (|inorder|), see
+% below.
+%    \begin{macrocode}
+\newcommand\@didactic@marginfloatorder{beside}
+\DeclareOptionX{marginfloatorder}{%
+  \renewcommand\@didactic@marginfloatorder{#1}}
 %    \end{macrocode}
 % \end{option}
 %
@@ -2082,8 +2150,9 @@
 % (|\marginfloatmarginmacro|), which \textsf{marginfix} has redefined.
 % It starts with |\FloatBlock|, which ends the paragraph and, when an
 % ordinary float is waiting, starts a new page.
-% We make |\FloatBlock| do nothing inside our environments, and we make the
-% offset 0\,pt by default instead of $-1.2$\,ex.
+% We make |\FloatBlock| do nothing inside our environments, after asking the
+% option |marginfloatorder| what to do about the order of the floats, and we
+% make the offset 0\,pt by default instead of $-1.2$\,ex.
 % The offset is the vertical space at the top of the box, after an empty
 % |\hbox| that is aligned with the anchor.
 % \textsf{marginfix} keeps the boxes in the margin from overlapping, so a
@@ -2101,17 +2170,55 @@
 % environment (|\ignorespacesafterend|).
 % |\@bsphack| sets |\@savsk| locally, and |\marginpar|'s own |\@bsphack|
 % happens in the group of |mem@margin@float|, so ours is intact at the end.
+%
+% In the notes, a frame that isn't there (|\begin{frame}<presentation>|) is
+% typeset all the same, in a box that |beamer| throws away.
+% Inside it, a |\marginpar| goes wrong in two ways: between paragraphs, where the
+% box counts as inner mode, it fails with an undefined |\@marbox|, and in a
+% paragraph, where it doesn't, it takes float boxes that never come back, so
+% \LaTeX\ reports lost floats and other floats are lost in fact.
+% So we don't give the box to |\marginpar| in such a frame, and we take the
+% number back, since nothing in the notes will show it.
+% The order of the floats doesn't matter there either, and |\FloatBlock| would
+% end a page from inside the box.
 %    \begin{macrocode}
+\newcommand\@didactic@ifhiddenframe{%
+  \@tempswafalse
+  \@ifundefined{beamer@donoframe}{}{%
+    \ifbeamer@inframe
+      \ifx\beamer@howtotreatframe\beamer@donoframe\@tempswatrue\fi
+    \fi}%
+  \if@tempswa\expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
+\newcommand\@didactic@aftermarginfloat{}
 \newcommand\@didactic@marginfloat[2]{%
+  \@didactic@ifhiddenframe
+    {\let\marginfloatmarginmacro\@gobble
+     \edef\@didactic@aftermarginfloat{%
+       \noexpand\setcounter{#2}{\the\value{#2}}}}%
+    {\@didactic@marginfloatorder@check{#2}}%
   \@bsphack
   \let\FloatBlock\relax
   \begin{mem@margin@float}[#1]{#2}}
 \newcommand\@didactic@endmarginfloat{%
   \end{mem@margin@float}%
+  \@didactic@aftermarginfloat
   \relax\ifhmode
     \spacefactor\@savsf
     \ifdim\@savsk>\z@\ignorespacesafterend\fi
   \fi}
+%    \end{macrocode}
+% With |inorder| we simply do what |memoir| does, before |\@bsphack|, so that
+% the environment starts between paragraphs and there is no space to save.
+% With |beside| we do nothing here, and the comparison below reports the outcome.
+%    \begin{macrocode}
+\newcommand\@didactic@blockfloatorder[1]{\FloatBlock}
+\IfStrEqCase{\@didactic@marginfloatorder}{%
+  {beside}{\let\@didactic@marginfloatorder@check\@gobble}%
+  {inorder}{\let\@didactic@marginfloatorder@check\@didactic@blockfloatorder}%
+}[\PackageError{didactic}{%
+    Unknown value `\@didactic@marginfloatorder'\MessageBreak
+    for marginfloatorder}{Use beside or inorder.}%
+  \let\@didactic@marginfloatorder@check\@gobble]
 %    \end{macrocode}
 % We only change |memoir|'s environments when we customize |memoir|, and
 % only if they are built as we expect.
@@ -2145,6 +2252,114 @@
 \ProvideDocumentEnvironment{margintable}{o}
   {\begin{table}\centering}{\end{table}}
 %    \end{macrocode}
+%
+% Then the order of the numbers.
+% We can't tell from the state of \LaTeX\ when a float starts whether its number
+% will come out of page order: a float earlier in the same paragraph isn't in
+% any list yet, and \textsf{marginfix} can move a margin float later.
+% So we look at the outcome: where each caption was shipped out.
+%
+% |\addcontentsline| is where we see a caption, since every way of making one
+% comes through it with the name of the counter: the kernel, |memoir| with its
+% side captions, \textsf{hyperref}, \textsf{float}'s own captions and
+% \textsf{longtable}.
+% |\@caption| doesn't do for the last two, and |\refstepcounter| doesn't do for
+% \textsf{longtable} and has an optional argument with \textsf{cleveref}.
+% Next to the entry for the list, in the same box, we write a line to the
+% \texttt{.aux} with the counter, a running number for the order in which the
+% numbers were given, the number as printed, and the input line, all expanded now,
+% and the page, printed and absolute, expanded when the page is shipped out.
+% The running number is what makes a counter that starts over in each chapter
+% harmless, and the absolute page a page number that starts over.
+% A frame that isn't there (|\begin{frame}<presentation>|) ends in a box that is
+% thrown away, and this line with it.
+%
+% The line goes to the main \texttt{.aux} even in a file of |\include|.
+% With |\includeonly|, the \texttt{.aux} of a chapter left out is what an
+% earlier run wrote, and it is read too; its running numbers and pages would
+% be compared with this run's and give false warnings.
+% The main \texttt{.aux} holds this run and nothing else.
+%    \begin{macrocode}
+\newcount\@didactic@floatseq
+\newcommand\@didactic@floatrec[6]{}
+\newcommand\@didactic@recordfloat[2]{%
+  \if@filesw
+    \edef\@didactic@tmp{#1}\def\@didactic@tmpb{toc}%
+    \ifx\@didactic@tmp\@didactic@tmpb\else
+      \@ifundefined{c@#2}{}{%
+        \global\advance\@didactic@floatseq\@ne
+        \protected@write\@mainaux{}{%
+          \string\@didactic@floatrec{#2}{\the\@didactic@floatseq}%
+          {\csname the#2\endcsname}{\thepage}%
+          {\noexpand\the\ReadonlyShipoutCounter}{\the\inputlineno}}%
+      }%
+    \fi
+  \fi}
+\newcommand\@didactic@contentsline[2]{%
+  \@didactic@recordfloat{#1}{#2}%
+  \@didactic@addcontentsline{#1}{#2}}
+\newcommand\@didactic@recordfloats{%
+  \if@filesw
+    \immediate\write\@mainaux{%
+      \string\providecommand\string\@didactic@floatrec[6]{}}%
+  \fi
+  \let\@didactic@addcontentsline\addcontentsline
+  \let\addcontentsline\@didactic@contentsline}
+%    \end{macrocode}
+% \LaTeX\ reads the \texttt{.aux} at the start of the document, where the lines
+% do nothing, and again at the end, after the last page, where they are compared.
+% That reading is of what this run wrote, so it takes no extra run, and it
+% changes nothing that \LaTeX\ compares to ask for one.
+%
+% The lines are in the order of the pages.
+% For each counter we keep the highest running number of the page we're on and the
+% highest one of the pages before it.
+% A caption with a lower running number than that last one has been overtaken; a
+% lower running number on the same page doesn't count.
+%    \begin{macrocode}
+\newcommand\@didactic@fo[2]{\csname @didactic@fo@#1@#2\endcsname}
+\newcommand\@didactic@foset[3]{%
+  \expandafter\gdef\csname @didactic@fo@#1@#2\endcsname{#3}}
+\newcommand\@didactic@focopy[3]{%
+  \expandafter\global\expandafter\let\csname @didactic@fo@#1@#2\expandafter
+    \endcsname\csname @didactic@fo@#1@#3\endcsname}
+\newcommand\@didactic@floatcheck[6]{%
+  \@ifundefined{@didactic@fo@#1@abspage}{%
+    \@didactic@foset{#1}{abspage}{#5}%
+    \@didactic@foset{#1}{curseq}{0}%
+    \@didactic@foset{#1}{prevseq}{0}%
+  }{}%
+  \ifnum#5>\@didactic@fo{#1}{abspage}\relax
+    \ifnum\@didactic@fo{#1}{curseq}>\@didactic@fo{#1}{prevseq}\relax
+      \@didactic@focopy{#1}{prevseq}{curseq}%
+      \@didactic@focopy{#1}{prevnum}{curnum}%
+      \@didactic@focopy{#1}{prevpage}{curpage}%
+      \@didactic@focopy{#1}{prevline}{curline}%
+    \fi
+    \@didactic@foset{#1}{abspage}{#5}%
+    \@didactic@foset{#1}{curseq}{0}%
+  \fi
+  \ifnum#2<\@didactic@fo{#1}{prevseq}\relax
+    \PackageWarningNoLine{didactic}{%
+      #1 #3 on page #4 comes after #1 \@didactic@fo{#1}{prevnum}
+      on page \@didactic@fo{#1}{prevpage}:\MessageBreak
+      the numbers are out of page order (captions at input\MessageBreak
+      lines #6 and \@didactic@fo{#1}{prevline}).
+      marginfloatorder=inorder or\MessageBreak
+      \string\FloatBlock\space before the later number keeps the order}%
+  \fi
+  \ifnum#2>\@didactic@fo{#1}{curseq}\relax
+    \@didactic@foset{#1}{curseq}{#2}%
+    \@didactic@foset{#1}{curnum}{#3}%
+    \@didactic@foset{#1}{curpage}{#4}%
+    \@didactic@foset{#1}{curline}{#6}%
+  \fi}
+\@ifclassloaded{beamer}{}{%
+  \AddToHook{begindocument/end}{\@didactic@recordfloats}%
+  \AddToHook{enddocument/afterlastpage}{%
+    \let\@didactic@floatrec\@didactic@floatcheck}%
+}
+%    \end{macrocode}
 % \end{environment}
 % \end{environment}
 %
@@ -2174,38 +2389,142 @@
 % |\frametitle{Title}\framesubtitle{Subtitle}|), so we can decide here
 % whether there is one.
 % |beamer| empties |\insertframesubtitle| at the start of each frame.
+%
+% We give |\paragraph*| the title itself and not |\insertframetitle|, since it
+% is only typeset later, at the next paragraph: by then a second |\frametitle|
+% in the frame (|\frametitle<2>|) may have changed |\insertframetitle|, which
+% would lose the first title and set the second one twice.
+% That is one step of expansion only: the title may hold anything that a frame
+% title can hold, and a full expansion would fail on commands that aren't
+% robust, which a frame title never had to be.
+% So a macro in the title gets the meaning it has at that next paragraph.
+%
+% An empty title (|\begin{frame}{}|) makes no heading, and with a subtitle only
+% the subtitle is the heading, without the dash.
 %    \begin{macrocode}
+\newcommand\@didactic@framehead{}
+\protected\def\@didactic@frameheadused{%
+  \global\let\@didactic@framehead\@empty}
+\newcommand\@didactic@runinheading[1]{%
+  \paragraph*{\@didactic@frameheadused #1}%
+  \gdef\@didactic@framehead{#1}%
+  \aftergroup\@didactic@endframetitle}
 \newcommand\@didactic@frametitle{%
   \ifx\insertframesubtitle\@empty
-    \paragraph*{\insertframetitle}%
+    \ifx\insertframetitle\@empty\else
+      \expandafter\@didactic@runinheading\expandafter{\insertframetitle}%
+    \fi
   \else
-    \paragraph*{\insertframetitle\space\textendash\space
-      \textmd{\emph{\insertframesubtitle}}}%
+    \edef\@didactic@heading{%
+      \ifx\insertframetitle\@empty\else
+        \unexpanded\expandafter{\insertframetitle}%
+        \noexpand\space\noexpand\textendash\noexpand\space
+      \fi
+      \noexpand\textmd{\noexpand\emph{%
+        \unexpanded\expandafter{\insertframesubtitle}}}}%
+    \expandafter\@didactic@runinheading\expandafter{\@didactic@heading}%
   \fi}
 %    \end{macrocode}
 % The title waits for the next paragraph in |\everypar|, which is local to
 % the frame's group.
 % A frame with nothing after the title that starts a paragraph---only a
-% figure, say---would therefore lose the title when the frame ends, and
+% margin note, say---would therefore lose the title when the frame ends, and
 % leave \LaTeX\ believing a run-in heading is still waiting.
-% So at the end of a frame, still inside its group, we typeset a waiting
-% title as a paragraph of its own.
+% So the heading empties |\@didactic@framehead| when it is typeset, and after the
+% group in which |\frametitle| was used (|\aftergroup|), if it still isn't empty,
+% we typeset it again as a paragraph of its own.
+% This works for |\begin{frame}| and |\frame{...}| alike, where a hook at the end
+% of the environment wouldn't be used for the second form.
+% It comes after the box of a frame that isn't there
+% (|\begin{frame}<presentation>|), so there we only forget the title.
+% We don't look at |\if@noskipsec| to decide this, since that is also true for a
+% |\paragraph| that the author wrote at the end of the frame, after the title has
+% been set; that heading is lost as it would be at the end of any group.
 %    \begin{macrocode}
+\newcommand\@didactic@settitle{%
+  \begingroup
+    \leftskip\z@ \rightskip\@rightskip \parfillskip\@flushglue
+    \leavevmode\par
+  \endgroup}
+\newcommand\@didactic@lateframetitle[1]{%
+  \paragraph*{\@didactic@frameheadused #1}%
+  \@didactic@settitle}
 \newcommand\@didactic@endframetitle{%
-  \if@noskipsec\leavevmode\par\fi}
+  \ifx\@didactic@framehead\@empty\else
+    \global\@noskipsecfalse
+    \ifx\beamer@howtotreatframe\beamer@donoframe
+      \@didactic@frameheadused
+    \else
+      \expandafter\@didactic@lateframetitle\expandafter
+        {\@didactic@framehead}%
+    \fi
+  \fi}
+%    \end{macrocode}
+% A float can't wait for the title either: \LaTeX\ may set it right here (|[h]|,
+% or |[H]| from the \textsf{float} package), so the figure would come above its
+% title.
+% So a float that starts while a title waits in a frame sets the title first.
+% That also holds for a float that goes elsewhere, since we can't know where
+% it will go.
+%
+% A box has the opposite problem: it starts the paragraph, so the title runs in
+% with it, and a picture has the title at its baseline, as if it were a label.
+% The boxes that a frame usually starts with therefore set the title first too,
+% through their |before| hooks.
+% |\tableofcontents| is among them, since the title would run into its heading.
+% A box that isn't in the list stands beside the title; that can't be wrong in
+% another way, and the user documentation says so.
+%
+% All of these only act while a title waits, in a frame, so they can't change
+% text elsewhere: outside the frames, a run-in heading before a float or a box
+% stays as it is.
+% We set the title flush left and with an ordinary last line, whatever the frame
+% has set up (|\centering| before the picture, say): the frame's text isn't
+% typeset yet, so the title was never in that setup.
+%    \begin{macrocode}
+\newcommand\@didactic@titlefirst[1]{%
+  \AddToHook{#1/before}{\@didactic@flushframetitle}}
+\newcommand\@didactic@flushframetitle{%
+  \ifbeamer@inframe
+    \if@noskipsec\@didactic@settitle\fi
+  \fi}
 %    \end{macrocode}
 % We use the template only in the article mode, unless the option
 % |noarticle| is given.
 % |beamerarticle| is often loaded after |didactic|, so we wait until it's
 % loaded (or run at once if it already is).
-% A template the user sets in the preamble after that still wins.
+% A template the user sets in the preamble after that still wins, because it
+% comes later.
+% One that the user set before |didactic|, after |beamerarticle|, wins because we
+% only replace |beamerarticle|'s default: |\ifx| compares what is set to what
+% setting the default makes.
 %    \begin{macrocode}
 \if@didactic@article
-\AtEndOfPackageFile*{beamerarticle}{%
+\newcommand\@didactic@articletitles{%
+  \begingroup
+    \setbeamertemplate{frametitle}[default]%
+    \global\let\@didactic@defaulttitle\beamer@@tmpl@frametitle
+  \endgroup
   \defbeamertemplate<article>{frametitle}{didactic}{\@didactic@frametitle}%
-  \setbeamertemplate{frametitle}[didactic]%
-  \AddToHook{env/frame/end}{\@didactic@endframetitle}%
+  \ifx\beamer@@tmpl@frametitle\@didactic@defaulttitle
+    \setbeamertemplate{frametitle}[didactic]%
+  \fi
+  \@didactic@titlefirst{env/figure}%
+  \@didactic@titlefirst{env/figure*}%
+  \@didactic@titlefirst{env/table}%
+  \@didactic@titlefirst{env/table*}%
+  \@didactic@titlefirst{env/tabular}%
+  \@didactic@titlefirst{env/tabular*}%
+  \@didactic@titlefirst{env/tabularx}%
+  \@didactic@titlefirst{env/minipage}%
+  \@didactic@titlefirst{env/tikzpicture}%
+  \@didactic@titlefirst{env/columns}%
+  \@didactic@titlefirst{cmd/includegraphics}%
+  \@didactic@titlefirst{cmd/tableofcontents}%
 }
+\@ifpackageloaded{beamerarticle}
+  {\@didactic@articletitles}
+  {\AddToHook{package/beamerarticle/after}{\@didactic@articletitles}}
 \fi
 %    \end{macrocode}
 %

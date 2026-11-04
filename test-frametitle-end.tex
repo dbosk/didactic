@@ -1,0 +1,60 @@
+% Test of frame titles (didactic) in the notes: titles that nothing in the frame
+% picks up.  \everypar, where the title waits, is local to the frame, so the
+% title must be set before it is lost, in both forms of a frame.
+%
+% Expected in the resulting PDF:
+%   1  TENVEMPTY, a frame with only a title, and TCMDEMPTY, the same as
+%      \frame{...}: each on a line of its own, above what comes next.
+%   2  TENVNOTE and TCMDNOTE, frames with only a margin note, the same.
+%   3  TCMDTEXT runs in with TEXTCMD, in \frame{...}, as in the environment.
+%   4  PROSEA, PROSEB, PROSEC, PROSED after these frames are ordinary paragraphs
+%      that nothing runs in with.
+%   5  THIDENV and THICMD, frames only on the slides, nowhere, and no heading
+%      goes on to the next frame or paragraph (PROSEE stands alone, TAFTER
+%      appears once).
+%   6  TWICE once: a \paragraph that waits at the end of a frame, after the
+%      title was set, doesn't set the title again.
+\documentclass[a4paper]{memoir}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\begin{document}
+\begin{frame}{TENVEMPTY}
+\end{frame}
+
+PROSEA is a paragraph.
+
+\frame{\frametitle{TCMDEMPTY}}
+
+PROSEB is a paragraph.
+
+\begin{frame}{TENVNOTE}
+  \ltnote{NOTEENV}
+\end{frame}
+
+PROSEC is a paragraph.
+
+\frame{\frametitle{TCMDNOTE}\ltnote{NOTECMD}}
+
+PROSED is a paragraph.
+
+\frame{\frametitle{TCMDTEXT}TEXTCMD runs in.}
+
+\begin{frame}<presentation>{THIDENV}
+\end{frame}
+
+\frame<presentation>{\frametitle{THICMD}}
+
+PROSEE is a paragraph.
+
+\begin{frame}{TAFTER}
+  TEXTAFTER runs in.
+\end{frame}
+
+\begin{frame}{TWICE}
+  TEXTTWICE runs in.
+  \paragraph*{WAITINGHEAD}
+\end{frame}
+
+PROSEF is a paragraph.
+\end{document}
