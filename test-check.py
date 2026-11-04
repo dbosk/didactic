@@ -309,11 +309,6 @@ def frametitle(c):
     c.ok(c.one("TEXTH")["xmin"] > c.one("TITLEA")["xmin"],  # 7
          "TEXTH has no heading in front of it")
     c.absent("SLIDEONLY")
-    with open("didactic.sty", encoding="utf-8") as sty:
-        # \AddToHook (2020/10/01) and hooks like cmd/includegraphics/before
-        # (2021/06/01), from the kernel.
-        c.ok(r"\NeedsTeXFormat{LaTeX2e}[2021/06/01]" in sty.read(),
-             "didactic.sty asks for the format with cmd hooks")
 
 
 def frametitle_slides(c):

@@ -3,6 +3,9 @@ PDFLATEX?=xelatex -pdf
 LATEXFLAGS=-shell-escape
 PYTHONTEX=python3 $(shell which pythontex) --interpreter python:python3
 
+# A failed check leaves no PDF, so that the next make doesn't call it up to date.
+.DELETE_ON_ERROR:
+
 # The cases of frame titles, one file per kind; see the header of each file.
 TEST_FRAMETITLE_CASES=	test-frametitle-overlay test-frametitle-floats \
 			test-frametitle-boxes test-frametitle-end \
@@ -26,7 +29,8 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	${TEST_FRAMETITLE_CASES:=.pdf} \
 	test-marginfloat-cases.pdf test-marginfloat-order.pdf \
 	test-marginfloat-inorder.pdf test-marginfloat-hidden.pdf \
-	${TEST_FLOATORDER:=.pdf} test-marginfloat-include.pdf check
+	${TEST_FLOATORDER:=.pdf} test-marginfloat-include.pdf \
+	test-format.pdf check
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -138,6 +142,12 @@ CHECKED_TESTS=	test-marginfloat test-marginfloat-slides test-marginfloat-cases \
 check: test-check.py ${CHECKED_TESTS:=.pdf}
 	python3 test-check.py ${CHECKED_TESTS}
 
+# a format from before the hooks we use: the warning from didactic itself, so
+# right after the log opens the file, since other packages ask for releases too.
+test-format.pdf: test-format.tex didactic.sty
+	-${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	grep -A2 'didactic.sty$$' test-format.log | grep -q 'You have requested release'
+
 # frame titles, in the notes and on the slides, from one source; twice, since
 # beamer asks for a rerun for its outline.
 test-frametitle.pdf test-frametitle-slides.pdf: %.pdf: %.tex didactic.sty \
@@ -240,4 +250,6 @@ clean:
 	${RM} ${TEST_INCLUDE:=.pdf} ${TEST_INCLUDE:=.aux} ${TEST_INCLUDE:=.log}
 	${RM} ${TEST_INCLUDE:=.out} ${TEST_INCLUDE:=.unq} ${TEST_INCLUDE:=.pytxcode}
 	${RM} test-marginfloat-include-a.aux test-marginfloat-include-b.aux
+	${RM} test-format.pdf test-format.aux test-format.log test-format.unq
+	${RM} test-format.pytxcode
 	latexmk -C test.tex
