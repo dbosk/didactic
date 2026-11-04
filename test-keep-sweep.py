@@ -204,6 +204,9 @@ CASES = {
     # a first line taller than the room it seems to need, also on a page that stretches
     "lT1": lambda k: para(k, 1, "P") + "\n" + tallitem(k) + TAIL,
     "hT3": lambda k: heading(k) + "\n" + para(k, 3, "P") + "\n" + tallitem(k) + TAIL,
+    # all the stretch above the heading: all of it goes, and only the heading's warning says so
+    "hM3": lambda k: r"\vspace{0pt plus 400pt}" + "\nS.\n\n" + heading(k) + "\n" + para(k, 3, "P") + "\n"
+        + tallitem(k, 16) + TAIL,
     # all the stretch below the heading, so that TeX takes only the lead-in's last lines
     "hS3": lambda k: heading(k) + "\n" + r"\vspace{0pt plus 400pt}" + "\n" + para(k, 3, "P") + "\n"
         + tallitem(k, 16) + TAIL,
@@ -262,7 +265,7 @@ CASES = {
 SHRINKLISTS = {"hs1", "hs2", "hs3"}
 TALLITEMS = {"lT1", "lS1"}
 # under a heading too, where the last lines of the lead-in can go along with it
-HEADTALL = {"hT3", "hS3"}
+HEADTALL = {"hT3", "hS3", "hM3"}
 HEADLISTS = SHRINKLISTS | {"hll1", "hll2", "hll3", "hll6"}
 FINE = HEADLISTS | TALLITEMS | HEADTALL | {"ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3", "qq3", "lq3", "rti",
         "d", "wL1", "hv", "hw", "hn", "hv8", "hv3l", "f", "r", "rr", "ri", "re", "rv", "fp", "fe", "fx", "fi", "fI",
@@ -290,7 +293,7 @@ def all_cases(variant="m"):
         if variant[0] == "e" and name not in ENUMITEM_CASES:
             continue
         rooms = FINEROOMS if name in FINE else ROOMS
-        if name == "hS3":
+        if name in ("hS3", "hM3"):
             rooms = [x / 4 for x in range(21, 57)]
         for r in rooms:
             yield name, f"{name}Q{int(4 * r)}", r
@@ -410,6 +413,8 @@ def check_case(p, ref, name, case, K):
         return
     over = room > LIMIT + 0.01
     r = p.on("R", case)
+    if name == "hM3":
+        over = p.empty.get(r, 0) > LIMIT + 0.01  # a line of text comes before the heading
     if name not in NOHEADING:
         h = p.on("H", case)
         if h is None:
