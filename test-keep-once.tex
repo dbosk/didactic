@@ -10,6 +10,7 @@
 %   W  A chunk woven for minted.
 %   M  A listing whose lines come from minted's file: the warning names this file's
 %      line, not that file's.
+%   G  A listing from a file that PythonTeX wrote: the same.
 %   I  A list whose first line seems to fit, by a line of the text, and doesn't: under
 %      a heading the club penalty is still 10000 there, and the list still can't stay.
 % The space before a list stays what it is, when the tie is released and what is
@@ -35,6 +36,13 @@
 \immediate\write\@once@out{CODEM one}
 \immediate\write\@once@out{code two}
 \immediate\write\@once@out{code three}
+\immediate\closeout\@once@out
+\immediate\openout\@once@out=\jobname-g.stdout
+\immediate\write\@once@out{\string\begin{Verbatim}}
+\immediate\write\@once@out{CODEG one}
+\immediate\write\@once@out{code two}
+\immediate\write\@once@out{code three}
+\immediate\write\@once@out{\string\end{Verbatim}}
 \immediate\closeout\@once@out
 \makeatother
 \begin{document}
@@ -96,6 +104,14 @@ Above.
 LEADM in\hspace*{\fill}\break and on.
 \case{m}\inputminted{text}{\jobname-m.txt}
 After M.
+
+\roomfor{7}
+Above.
+
+\section*{G}
+LEADG in\hspace*{\fill}\break and on.
+\case{g}\input{\jobname-g.stdout}
+After G.
 
 \roomfor{9}
 Above.

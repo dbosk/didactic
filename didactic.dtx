@@ -6534,7 +6534,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % A warning about a listing should name the place where the listing was asked 
 % for.
 % |\inputlineno| doesn't always say: the lines of |minted| come from a file of its 
-% own, and PythonTeX's output too, which it reads with |\input|.
+% own, and PythonTeX's output too, which it reads with |\input|, from
+% |pythontex-files-| or as a |.stdout| file.
 % So we note the line when such a file is opened from any other file, and which
 % file that is: |\CurrentFile| is the generated file by then, so we keep a stack of
 % the others, |\@didactic@keep@filestack|, and |\@didactic@keep@where| says both.
@@ -6561,7 +6562,11 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       {
         \str_if_in:NnTF \CurrentFile { pythontex-files- }
           { \use_i:nn }
-          { \use_ii:nn }
+          {
+            \str_if_in:NnTF \CurrentFile { .stdout }
+              { \use_i:nn }
+              { \use_ii:nn }
+          }
       }
   }
 \ExplSyntaxOff
