@@ -156,7 +156,7 @@
 %   Adds \texttt{keepmaxgap}: a listing kept together moves to the next page 
 %   only if that leaves at most 5 empty lines at its foot, counting a heading 
 %   that moves along, and otherwise breaks.
-%   Adds \texttt{keepafterheading}: at least 3 lines follow a heading, of a 
+%   Adds \texttt{keepafterheading}: at least 2 lines follow a heading, of a 
 %   section or a block, on its page, or the heading moves to the next page, 
 %   within that limit; if it can't, a warning names the heading.
 % }
@@ -1389,7 +1389,7 @@
 % together may leave at the foot of a page, see \cref{KeepListings}.
 %    \begin{macrocode}
 \newcount\@didactic@keepafterheading
-\@didactic@keepafterheading=3
+\@didactic@keepafterheading=2
 \newcount\@didactic@keepmaxgap
 \@didactic@keepmaxgap=5
 \DeclareOptionX{keepafterheading}{\@didactic@keepafterheading=#1\relax}
