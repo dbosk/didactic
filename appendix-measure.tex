@@ -20,9 +20,10 @@ lecture notes, one set of course notes, a book, two literate programs and a pape
 One is built with Xe\TeX, the others with pdf\TeX.
 Together they have 814 pages and 249 lists.
 
-Each document is copied, with the generated files of its last build, and those are reused:
+Each document is copied once, with the generated files of its last build, and those are reused:
 PythonTeX output, biber's and minted's.
-So each setting sees the same text.
+All numbers are from that fixed snapshot, taken on 4 November 2026, so each setting and commit sees
+the same text.
 One set of lecture notes was woven and run through biber in its copy, as its woven source wasn't kept.
 \texttt{audit.py} checks each copy before anything is counted, see below.
 Then each document is built under each setting until its \texttt{.aux} doesn't change, at most six times.
@@ -257,12 +258,16 @@ Each of these went wrong once, without showing in the page count.
   citations from an older bibliography, in every setting.
 \item The probe still moves some lines between pages in two documents, on 13 and 22 pages, with the
   same page count.
-  The page counts and the warnings for \emph{current} are from a build without it.
-  The other rows have the probe, and the parted lists in those two documents were also read in the
-  text without it, at an earlier commit, where their pages agreed.
+  The page counts and the warnings for \emph{current} are from a build without it, and so is the
+  check of the list rule off in those two documents.
+  List counts come from the builds with the probe.
+  In those two documents the parted lists were also read in the text of a build without it, and each
+  falls on the same pages.
 \item A list is measured against the last paragraph before it, whatever lies between: hence the reading above.
 \item The choice of breaks doesn't depend on a flush or ragged bottom, as \apcs{flushbottom} and
   \apcs{raggedbottom} act after a page is broken.
-\item The copies were taken once.
-  A rerun on documents that have moved on measures those changes too, so keep the copies when comparing commits.
+\item A rerun on documents that have moved on since the snapshot mixes their changes with the
+  package's, so keep a snapshot when comparing commits.
+  One literate program here changed on the day of the snapshot: from its source it now has 79 pages,
+  from the snapshot 78.
 \end{itemize}

@@ -22,8 +22,8 @@ biber = yes
 
 [book-1]
 kind = course book
-# Optional: another root for this document, such as a kept snapshot.
-# root = /path/to/snapshot
+# Optional: another root for this document, such as its kept snapshot.
+# root = /path/to/snapshot/src/book-1
 dir = course/book
 main = book
 output = ltxobj

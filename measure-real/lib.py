@@ -28,6 +28,7 @@ SETTINGS = {
     "afterheading-1": {"defaults": {"keepafterheading": 1}},
     # The break before a list's first item, without the package's own rule.
     "list-rule-off": {"tail": NOTIE},
+    "list-rule-off-noprobe": {"tail": NOTIE, "probe": False},  # read the parted lists in its text
     "list-0": {"tail": NOTIE + "\n" + beginpar("0")},
     "list-10000": {"tail": NOTIE + "\n" + beginpar(r"\@M")},
 }

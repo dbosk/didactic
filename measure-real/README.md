@@ -37,9 +37,12 @@ Add `--doc NAME` to any of them for one document, and `--setting NAME` to
 setting. `analyse.py --context` prints the text around each parted list, for
 reading whether the paragraph before it really leads into it.
 
-A document that has moved on since the last measurement isn't the same document.
-For a comparison between versions of the package, keep `results/` and the `src/`
-copies, or a snapshot to point `root` at.
+**Keep a snapshot.** A snapshot keeps numbers comparable. A rerun from sources that
+have moved mixes document changes with package changes, and the audit shows that
+only as another word count. So after the first `prepare.py`, keep `src/` outside any
+temporary directory, and give each document a `root` pointing at its copy, such as
+`root = /path/to/snapshot/src/notes-1`. A document's last build at source may also
+be cleaned, and then `prepare.py` refuses it.
 
 ## The steps
 
