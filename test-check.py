@@ -306,11 +306,12 @@ def keep_leadin(c):
     asked = {"g", "x", "y", "t", "o"}
     # Cases where the lead-in and the first line must be parted; if a change of
     # layout parts them no more, the case tests nothing, and that should show.
-    for n in list("mnfhsbruljipw") + ["fr"] + (["k"] if "k" in pages else []):
+    for n in (list("mnfhsbruljipw") + ["fr", "ee"]
+              + (["k"] if "k" in pages else [])):
         c.ok(pages[n][0] < pages[n][1], f"case {n} is on two pages: {pages[n]}")
     for n in asked:
         c.ok(pages[n][0] < pages[n][1], f"case {n} is on two pages: {pages[n]}")
-    for n in ("c", "a", "d", "q", "e", "z", "v", "qb", "fs"):
+    for n in ("c", "a", "d", "q", "e", "z", "v", "qb", "fs", "hh"):
         c.ok(pages[n][0] == pages[n][1], f"case {n} is on one page: {pages[n]}")
     found = {}
     for w in warnings(c):
@@ -350,7 +351,7 @@ def keep_overfull(c):
             c.ok(m, f"names a page and a line: {w}")
             if m:
                 found[int(m.group(2))] = int(m.group(1))
-    for n in "veltp":
+    for n in "veltpf":
         c.ok(lines[n] in found, f"case {n}, line {lines[n]}, warns")
         c.ok(found.get(lines[n]) == pages[n],
              f"case {n} names page {found.get(lines[n])}, it is on {pages[n]}")

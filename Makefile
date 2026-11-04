@@ -234,6 +234,7 @@ test-keep-chain.pdf: test-keep-chain.tex didactic.sty
 	grep -q 'Overfull .vbox' test-keep-chain.log
 	test "${call count_warn,doesn.t fit}" -eq 2
 	test "${call count_word,chained}" -eq 40
+	test "${call count_word,boxed}" -eq 0
 
 # warnings from where things ended up, checked by test-check.py; see the documents.
 test-keep-leadin.pdf test-keep-leadin-off.pdf: %.pdf: %.tex \

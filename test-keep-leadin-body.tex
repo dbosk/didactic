@@ -147,6 +147,15 @@ Lead-in Y2, to a listing in a frame.\label{fr}
 \case{fr}\VerbatimInput[commandchars=\\\{\},frame=lines]{\jobname-fr.txt}
 Text.
 
+% The page ended before the first line even comes, and a note on the empty page.
+\roomfor{2}
+Lead-in E2, and then more space than fits.\label{ee}
+
+\vspace{700pt}\penalty0
+\marginpar{note E2}
+\case{ee}\testlisting{ee}{3}
+Text.
+
 % Controls: the lead-in stays with the listing.
 \roomfor{2}
 Lead-in C, a blank line only.\label{c}
@@ -201,6 +210,17 @@ same page, which is all that the option asks.\label{e}
 \case{e}\testlisting{e}{3}
 Text.
 
+% On a page begun by a paragraph that broke, a heading and a listing, which adds no
+% place to break at the end of its list.
+\roomfor{1}
+Lead-in H2, a paragraph of a few lines, which goes over to the next page, where a
+heading follows it, with nothing in the way of the listing under the heading,
+which is the last thing on this page for a long way and doesn't start it, whatever
+the page looks like before it has taken in the listing.
+\section*{Heading H2\label{hh}}
+\case{hh}\testlisting{hh}{3}
+Text.
+
 % A listing that fits, after a note: no page break at all.
 \clearpage
 Lead-in Z, on a page with room.\label{z}
@@ -246,10 +266,10 @@ Text.
 \results{u}\results{l}\results{i}\results{j}\results{p}\results{w}
 \makeatletter
 \ifdefined\nwbegincode\results{k}\fi
-\results{fr}
+\results{fr}\results{ee}
 \makeatother
 \results{c}\results{a}\results{d}\results{q}\results{e}\results{z}\results{g}
-\results{v}\results{fs}\typeout{leadin result qb lead=\getpagerefnumber{q2}
+\results{v}\results{fs}\results{hh}\typeout{leadin result qb lead=\getpagerefnumber{q2}
     first=\getpagerefnumber{q2L}}
 \results{x}\results{y}\results{t}\results{o}
 \typeout{leadin results end}

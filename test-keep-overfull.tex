@@ -10,6 +10,7 @@
 %   L  A long listing, 30 lines: only its first lines can't part from the lead-in.
 %   T  A listing made long by the height of its lines.
 %   P  Code side by side, one box.
+%   F  The same as V, with a float page shipped out right after the full page.
 %   C  Control: the same as V, in room: no warning.
 \documentclass[a4paper,oneside]{memoir}
 \usepackage[british]{babel}
@@ -73,11 +74,18 @@ Tall lead-in P:\label{p} \rule{1pt}{0.9\textheight}
 Text after P.
 
 \clearpage
+\begin{figure}[p]\rule{4cm}{4cm}\caption{A float page after the full page.}\end{figure}
+Tall lead-in F:\label{f} \rule{1pt}{0.9\textheight}
+\testfile{f}{10}{floating}%
+\case{f}\VerbatimInput{\jobname-f.txt}
+Text after F.
+
+\clearpage
 Lead-in C, in room.\label{c}
 \testfile{c}{10}{room}%
 \case{c}\VerbatimInput{\jobname-c.txt}
 Text after C.
 
 \clearpage
-\results{v}\results{e}\results{l}\results{t}\results{p}\results{c}
+\results{v}\results{e}\results{l}\results{t}\results{p}\results{f}\results{c}
 \end{document}

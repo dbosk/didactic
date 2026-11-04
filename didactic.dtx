@@ -5404,6 +5404,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
         >\@didactic@keep@maxrun
       \@tempcntb\ifnum\count@<\@M\count@\else\z@\fi
       \global\@didactic@keep@run\z@
+      \if@didactic@keep@watch\else\global\@didactic@keep@warnedtrue\fi
       \if@didactic@keep@warned\else
         \global\@didactic@keep@warnedtrue
         \PackageWarningNoLine{didactic}{%
