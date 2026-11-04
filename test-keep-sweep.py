@@ -91,9 +91,9 @@ def chunk(k, n=5, name="C"):
                      + [END])
 
 
-def wovenchunk(k):
+def wovenchunk(k, n=5):
     "A chunk with its code set by a list of fancyvrb, as the minted weave gives."
-    return "\n".join([HEADER, verbatim(k), END])
+    return "\n".join([HEADER, verbatim(k, n), END])
 
 
 def pair(k):
@@ -159,6 +159,8 @@ CASES = {
     "hw1": lambda k: heading(k) + "\n" + para(k, 1, "P") + "\n\n" + wovenchunk(k) + TAIL,
     "hw3": lambda k: heading(k) + "\n" + para(k, 3, "P") + "\n\n" + wovenchunk(k) + TAIL,
     "w3": lambda k: para(k, 3, "P") + "\n\n" + wovenchunk(k) + TAIL,
+    # longer than keeplines: it may break, and if it starts the next page it warns too
+    "wL1": lambda k: para(k, 1, "P") + "\n\n" + wovenchunk(k, 15) + TAIL,
     "w6": lambda k: para(k, 6, "P") + "\n\n" + wovenchunk(k) + TAIL,
     "v6": lambda k: para(k, 6, "P") + "\n\n" + verbatim(k) + TAIL,
     # code side by side, with didactic only
@@ -192,19 +194,21 @@ CASES = {
     # a block of one line: it has no more lines to give
     "e1": lambda k: rf"\begin{{example}}[Head\label{{HX{k}}}]" + para(k, 1) + r"\end{example}"
         + "\n\n" + para(k, 16, "N") + TAIL,
+    # a display as the first thing: its lines are lines under the heading
+    "d": lambda k: heading(k) + "\n" + r"\[ x = \frac{a}{b} \]" + "\n" + para(k, 16) + TAIL,
     # a tall box in a center, which is one line for TeX, and then a paragraph: no more is due
     "cp": lambda k: heading(k) + "\n" + r"\begin{center}\parbox{.8\linewidth}{\rule{0pt}{3\baselineskip}"
         + rf"T1\label{{T1X{k}}}" + r"}\end{center}" + "\n" + para(k, 16, "N") + TAIL,
 }
-FINE = {"hv", "hw", "hn", "hv8", "hv3l", "f", "r", "rr", "ri", "re", "rv", "fp", "fe", "fx", "fi", "fI",
+FINE = {"d", "wL1", "hv", "hw", "hn", "hv8", "hv3l", "f", "r", "rr", "ri", "re", "rv", "fp", "fe", "fx", "fi", "fI",
         "e", "ei", "eI", "se", "e1", "cp"}
 # Without didactic these don't exist, or frames set their titles another way.
 DIDACTIC_ONLY = {"hj1", "j3", "fp", "fe", "fx", "fi", "fI"}
 # What comes under a block's heading isn't compared with plain: its style is didactic's.
 NOT_COMPARED = DIDACTIC_ONLY | {"e", "ei", "eI", "se", "e1", "cp", "f"}
 LISTINGS = {"hv1", "hv2", "hv3", "v1", "v3", "v8", "hn1", "hn3", "n3", "hw1", "hw3", "w3",
-            "hj1", "j3", "n6", "w6", "v6", "cw0", "cw1", "cw2", "cw3", "cw4"}
-NOHEADING = {"v1", "v3", "v8", "n3", "w3", "j3", "n6", "w6", "v6",
+            "hj1", "j3", "n6", "w6", "v6", "wL1", "cw0", "cw1", "cw2", "cw3", "cw4"}
+NOHEADING = {"v1", "v3", "v8", "n3", "w3", "j3", "n6", "w6", "v6", "wL1",
              "cw0", "cw1", "cw2", "cw3", "cw4"}
 AFTERCHUNK = {"cw0", "cw1", "cw2", "cw3", "cw4"}
 
@@ -363,7 +367,7 @@ def check_case(p, ref, name, case, K):
             if p.on(lab, case) is not None:
                 first = p.on(lab, case)
                 break
-        if first != h and not (name == "f" and warns):
+        if first != h and not (name == "f" and warns) and name != "d":
             fail(case, f"D2: heading on {h}, first line on {first}")
         if p.on("B", case) is not None and p.on("B", case) != first:
             fail(case, f"D2: inner heading on {p.on('B', case)}, first line on {first}")
@@ -385,7 +389,7 @@ def check_case(p, ref, name, case, K):
                 fail(case, f"D8: {w}")
             if m and name in ("s", "ss") and int(m[1]) != count:
                 fail(case, f"D8: says only {m[1]} fit, {count} there")
-        tall = name in ("t", "c", "hj1", "cp")
+        tall = name in ("t", "c", "hj1", "cp", "d")
         if name == "cp" and K <= 2 and [w for w in warns if "only" in w]:
             fail(case, f"D8: a tall box is lines enough: {warns[0][:50]}")
         if name == "e1" and [w for w in warns if "only" in w]:

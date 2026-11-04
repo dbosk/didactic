@@ -1057,9 +1057,11 @@
 %
 % \subsection{Listings across pages}\label{KeepListingsUsage}
 %
-% In the notes, a listing that breaks across pages is hard to read: a
-% function is cut in two, or two lines of a program sit at the foot of a page
-% and the rest on the next.
+% In the notes, we keep listings whole where we can.
+% That is a practice, not a finding: no study read shows that a listing across
+% pages is harder to read (\cref{app:pb-listings}).
+% That a function cut in two, or two lines of a program at the foot of a page and
+% the rest on the next, are worth avoiding is this package's own view.
 % So outside |beamer|, \textsf{didactic} decides where listings may break.
 % This holds for every listing set by \textsf{fancyvrb}, which is every
 % listing of |minted|: |\lstexample|, |\inputminted|, the |minted|
@@ -1222,16 +1224,19 @@
 % The measure was what the \LaTeX\ and typographic communities do, with
 % \textsf{memoir} and \textsf{noweb} with |breakcode| in mind, since that's what
 % notes with this package are mostly made of.
-% It is a measure of practice, since no other is to be had: no study was found of
-% how readers fare with the number of lines under a heading, with short pages, with
-% a lead-in parted from its list, or with lone lines in print, and none was
-% read.\footnote{%
-%   See the discussion in \cref{app:pb-lines,app:pb-gap,app:pb-lists} and the
-%   reader evidence in \cref{app:pb-penalties}.}
-% The nearest, second hand and with the book unread, points against the costliest of
-% our rules: a blog reports of Wheildon's reader tests that \enquote{no readers said
-% they were offended by -- or even aware of -- widows}.\cite{harrison2020widows}
-% So all of it is craft, and where it is one publisher's sample we say so.
+% It is a measure of practice: no study read tests how readers fare with the number
+% of lines under a heading, with short pages, with a lead-in parted from its list,
+% with lone lines in print, or with a listing across pages.
+% Formatting experiments on program text exist, read in abstract only, and they are
+% silent on page breaks.\footnote{%
+%   See the discussion in \cref{app:pb-lines,app:pb-gap,app:pb-lists,app:pb-listings}
+%   and the reader evidence in \cref{app:pb-penalties}.}
+% The nearest on lone lines is second hand, from a book not read, on newspapers and
+% magazines, and it points against the costliest of our rules: a blog reports of
+% Wheildon's reader tests that \enquote{no readers said they were offended by -- or
+% even aware of -- widows}.\cite{harrison2020widows}
+% So all of it is craft, and where it rests on a labelled sample in the 16th edition
+% of \emph{The Chicago Manual of Style} we say so.
 %
 % \paragraph{Two lines after a heading (\texttt{keepafterheading}).}
 % The University of Chicago Press's sample house style, in the 16th edition of
@@ -1296,7 +1301,7 @@
 % not \enquote{begin with the last line of a paragraph unless it is full measure},
 % while \enquote{A page can, however, end with the first line of a new
 % paragraph}.\cite[§2.121]{chicago2024manual}
-% Other typographers treat the two the same way, as craft.\footnote{%
+% Many of those read treat the two the same way, as craft.\footnote{%
 %   \Cref{app:pb-penalties} has them and the \TeX\ behind the numbers.}
 % The sources speak of the outcome and not of penalties, so they say nothing of
 % the number.
@@ -1307,12 +1312,13 @@
 % full measure, so no last line starts a page.
 % The first line costs 1000, \textsf{memoir}'s value, whose only stated reason is
 % \enquote{we want stronger discouragement}.\cite{wilson2025memoirsrc}
-% It counts only on a page with some stretch to spare, and the \TeX\ FAQ finds
-% finite values all alike,\cite{texfaq2026widows} but it is not nothing: in six
-% generated documents of about 315 pages, with headings every eight paragraphs and a
-% widow penalty of 10000, 150 leaves 38 first lines alone at the foot under
-% \textsf{memoir} and 40 under |article|, 1000 leaves 15 and 6, and 10000 none.
-% See also \cref{app:pb-penalties}.
+% It counts only on a page with some stretch to spare, and the \TeX\ FAQ finds finite
+% values all alike.\cite{texfaq2026widows}
+% In generated text, without lists or floats, that held for 150 and 500 in three sets
+% of four, but 1000 left clearly fewer lone first lines than 150 in all four, and 10000
+% none: at 150, 1000 and 10000 and a widow penalty of 10000, with headings 38, 15, 0
+% under \textsf{memoir} and 40, 6, 0 under |article|, without headings 26, 18, 0 and
+% 38, 24, 0.\footnote{\Cref{app:pb-penalties}.}
 % The price of 10000 is what \textcite[p.~250]{mittelbach2018forlorn} says it is,
 % \enquote{partly empty pages}, and it goes on: \enquote{Thus you are better off
 % allowing widows and orphans (by changing the parameter values) and manually
@@ -1329,11 +1335,41 @@
 % lead-in; that those would normally include it is the review's
 % reading.\cite[fig.~A.3]{chicago2010manual}
 % The other support is by analogy, and the defaults of \LaTeX\ and \textsf{memoir}
-% go the other way: they give a bonus for a break before a list.\footnote{%
-%   \Cref{app:pb-lists} has these, and says that the evidence doesn't settle it.}
+% go the other way: they give a bonus for a break before a list.
+% No source read speaks of a listing's lead-in.\footnote{%
+%   \Cref{app:pb-lists} has these, and says that the evidence doesn't settle it; see
+%   also \cref{app:pb-listings}.}
 % Weak support can't outweigh a page with a hole in it, so the tie holds only within
 % |keepmaxgap|, and past it the listing starts the next page as it would in plain
 % \LaTeX, with a warning.
+%
+% \paragraph{Short listings whole, ten lines (\texttt{keeplines}).}
+% No source read gives a length below which a listing stays whole, and 10 is ours.
+% The nearest figure is \textsf{CWEB}'s, whose code should be \enquote{about a dozen
+% lines long, so that it is easily comprehensible as a unit}, which is about the unit
+% and not about pages.\cite{knuth2025cweb}
+% \textsf{noweb} keeps every chunk on a page by default, so our limit is narrower than
+% its default; |breakcode| gives that up.\cite{ramsey2026noweb}
+% \textsf{fancyvrb} and |minted| leave |samepage| off, \textsf{listings} breaks, and
+% \textsf{tcolorbox} doesn't break unless asked.\footnote{\Cref{app:pb-listings} has
+%   these and what they say.}
+%
+% \paragraph{Three lines at each end (\texttt{keepends}).}
+% Two counts were read and both are two: the same sample of the Press, two lines of
+% \enquote{a separate text element}, which it doesn't say of code, and
+% \textsf{tcolorbox}'s |lines before break|, for a box and not for
+% code.\cite[fig.~A.3]{chicago2010manual}\cite{sturm2025tcolorbox}
+% So 3 is stricter than any source read, and it is ours.
+%
+% \paragraph{A listing right under a heading, past the limit.}
+% A heading stays with what follows it, and the limit holds too, so the heading stays
+% and the listing breaks, with a warning, if two lines stay on each side.
+% The two has the same backing as above, and the same caveat, and with a |keepends| of
+% two this rule and that one would be the same.
+% Below that all moves, as \LaTeX\ moves it when nothing can part from the heading.
+% So a listing of three lines moves, and leaves up to about six lines empty, with a
+% warning, where plain \LaTeX\ keeps two of its lines and leaves one alone at the top
+% of the next page.
 %
 % \paragraph{Reckoning as \TeX\ does, and warnings.}
 % These are ours, not from the sources.
@@ -6449,8 +6485,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % So after the space above the block we say that we are after a heading, 
 % |\@didactic@keep@thmhead|: |\protected@write| then adds a |\nobreak|, and 
 % \textsf{amsthm} takes care of the rest, as when a heading comes right before it.
-% A run-in title that is still waiting (a frame title, say, before a block) 
-% takes a line of its own when this heading starts, one more line.
+% A run-in title that is still waiting (a frame title, say, before a block)
+% takes a line of its own when this heading starts, which we don't count: the chain
+% holds there.
 % The headings of the blocks are those of \textsf{amsthm}'s theorems, 
 % run-in at the start of their first paragraph, which start with 
 % |\@thm|; it ends the paragraph before it first, and so do we.
@@ -6487,12 +6524,10 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \def\@didactic@keep@startsection#1#2#3#4#5#6{%
   \ifnum#2>\z@
     \if@didactic@keep@inbox\else\ifinner\else
-      \if@noskipsec
-        \@tempskipa\@didactic@keep@L
-      \else
+      \if@noskipsec\else
         \par
-        \@tempskipa\z@
       \fi
+      \@tempskipa\z@
       \@didactic@keep@headrecord
       \@tempskipb#4\relax
       \ifdim\@tempskipb<\z@ \@tempskipb-\@tempskipb \fi
@@ -6547,11 +6582,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \ifhmode\unskip\unskip\par\fi
       \if@didactic@keep@inbox\else\ifinner\else
         \@didactic@keep@headrecord
-        \if@noskipsec
-          \@didactic@keep@room{\topsep-\glueshrink\topsep+\@didactic@keep@L}%
-        \else
-          \@didactic@keep@room{\topsep-\glueshrink\topsep}%
-        \fi
+        \@didactic@keep@room{\topsep-\glueshrink\topsep}%
         \@didactic@keep@headwaits
         \aftergroup\@didactic@keep@blockend
       \fi\fi
@@ -6566,6 +6597,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \let\@didactic@FV@LeaveVMode\FV@LeaveVMode
   \def\FV@LeaveVMode{\@didactic@keep@titlewaits\@didactic@FV@LeaveVMode}%
   \g@addto@macro\@afterheading{\@didactic@keep@afterheading}%
+  \everydisplay\expandafter{\the\everydisplay\@didactic@keep@display}%
   \ifdefined\LT@start
     \let\@didactic@LT@start\LT@start
     \def\LT@start{%
@@ -6906,6 +6938,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % They all come through |\@arrayparboxrestore|, or the output routine, or start 
 % directly in a |\vbox|, where we set |\if@didactic@keep@inbox|, locally.
 % They get no |\clubpenalties| from around them either.
+% A display in the first paragraph is lines enough, and what follows it in the
+% same paragraph would count its lines from the start: the penalties end there.
 %
 % At the start of the first paragraph the heading is on the page, so we can 
 % measure, in vertical mode (|para/before|), again counting what the page can 
@@ -7116,7 +7150,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \ifx\@newl@bel\@testdef
         \@ifundefined{@didactic@ha@#1}{%
           \global\@namedef{@didactic@ha@#1}{}%
-          \@didactic@keep@tellhead{#1}{\ifcase#3\relax its first paragraph
+          \@didactic@keep@tellhead{#1}{\ifcase#3 its first paragraph
             starts on the next page\or only 1 line follows it on
             its\MessageBreak page\else only #3 lines follow it on
             its\MessageBreak page\fi}%
@@ -7128,6 +7162,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \ifnum\@didactic@keep@headstate=\thr@@
     \global\@didactic@keep@headstate\z@
   \fi}
+\def\@didactic@keep@display{\global\clubpenalties\z@}
 \AddToHook{para/before}{\@didactic@keep@parabefore}
 \AddToHook{para/begin}{\@didactic@keep@parabegin}
 \AddToHook{para/after}{\@didactic@keep@paraafter}

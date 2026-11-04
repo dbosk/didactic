@@ -52,7 +52,8 @@ SRC+=	pairwrite.py pairread.py
 # what it was made from, which isn't read in the build (a record of the searches).
 SRC+=	appendix.tex appendix-hitlist.tex didactic.bib
 LIT_RECORD=	heading-foot-of-page.csv $(wildcard queries/*.csv) \
-		$(wildcard measure-flow/*)
+		queries/t-pen.py queries/t-pen-memoir.py queries/pen.py \
+		queries/pen-results.txt $(wildcard measure-flow/*)
 
 # The change history (\PrintChanges) needs makeindex on the .glo file; that
 # also checks that every \changes entry can be written and typeset.
