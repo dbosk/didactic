@@ -1276,6 +1276,124 @@
 % So all of it is craft, and where it rests on a labelled sample in the 16th edition
 % of \emph{The Chicago Manual of Style} we say so.
 %
+% \Cref{tab:pb-decisions} has all of them at a glance, with what would reopen each.
+% They are settled unless what the table names turns up.
+% ^^A Figures in this table and in the paragraphs after it are marked until the
+% ^^A measurement chapter of the appendix has them at the final code; then cite it.
+%
+% \begin{longtable}{@{}>{\raggedright\arraybackslash}p{.25\linewidth}>{\raggedright\arraybackslash}p{.11\linewidth}>{\raggedright\arraybackslash}p{.58\linewidth}@{}}
+% \caption{The decisions behind the page breaks: what we do, what \LaTeX\ and
+%   \textsf{memoir} do, the basis, what would reopen it, and what was measured and
+%   rejected.
+%   The real documents are eight of the maintainer's, not a controlled sample; empty
+%   lines are counted on 676 text pages of them.}\label{tab:pb-decisions}\\
+% \toprule
+% Decision & Ours & \LaTeX\ and \textsf{memoir} \\
+% \midrule
+% \endfirsthead
+% \toprule
+% Decision & Ours & \LaTeX\ and \textsf{memoir} \\
+% \midrule
+% \endhead
+% Lines after a heading, \texttt{keepafterheading} & 2 &
+%   Two lines of a paragraph of two or more; one of a paragraph of one or of a list. \\*
+% \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} the labelled sample of the
+%   \emph{Chicago Manual}, 16th edition, and some presses: craft, moderate for two, weak
+%   for three.
+%   \emph{Reopens:} a reader study on lines under a heading, or real documents where 2
+%   costs pages against 1.
+%   \emph{Measured, rejected:} 1 saves no page, 814 either way, and pages with more than
+%   five lines empty go from 68 to 70, with three or more from 114 to 118 (at dd90b97).
+%   3 wasn't measured in pages; the support is weaker.} \\
+% \midrule
+% A heading is never parted from what follows & Yes &
+%   The same, for a paragraph, by |\@afterheading|. \\*
+% \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} \LaTeX, and the maintainer.
+%   \emph{Reopens:} nothing we know of; a case that can't hold it is a bug or warns.
+%   Past the limit a heading can move, as in \LaTeX, and that warns.} \\
+% \midrule
+% Most lines left empty by a move, \texttt{keepmaxgap} & 5 &
+%   No limit; \LaTeX\ moves a lone heading at up to about five lines. \\*
+% \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} the same sample's
+%   \enquote{up to four lines short}, one house's, and what \LaTeX\ does; the
+%   maintainer's choice.
+%   \emph{Reopens:} a reader study on short pages, or real documents where the warnings
+%   past the limit become common.
+%   \emph{Measured, rejected:} 4 leaves a room of 4.5 to 5 lines where a heading and two
+%   lines neither fit nor may move.
+%   0, no limit, leaves up to 7.6 lines on the generated \textsf{noweb} documents, with
+%   the limit 5.6, in about 198 pages.} \\
+% \midrule
+% Short listings whole, \texttt{keeplines} & 10 &
+%   Listings break at any line; \textsf{noweb} keeps a chunk whole by |\filbreak|. \\*
+% \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} ours; the nearest is
+%   \textsf{CWEB}'s dozen lines, about a unit and not about pages.
+%   \emph{Reopens:} a reader study on listings across pages, or a page count that this
+%   costs on real documents.
+%   \emph{Measured, rejected:} no other value was compared in pages.} \\
+% \midrule
+% Lines at each end of a break, \texttt{keepends} & 2 &
+%   None. \\*
+% \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} the two counts read are two, the
+%   sample's and \textsf{tcolorbox}'s, neither about code; the maintainer's choice.
+%   \emph{Reopens:} a source about code, or complaints of two lines of code alone on a
+%   page.
+%   \emph{Measured, rejected:} 3, the default until then, wasn't compared in pages; it
+%   stays tested (\texttt{test-keep}, \texttt{test-keep-heading3}).} \\
+% \midrule
+% Lead-in stays with a listing, \texttt{keepleadin} & Yes, within the limit &
+%   Off; a bonus for that break in a list, $-51$. \\*
+% \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} by analogy only, weak; the
+%   maintainer's choice.
+%   \emph{Reopens:} a reader study on it, or real documents where it costs pages.} \\
+% \midrule
+% A list stays with its lead-in & Yes, within the limit &
+%   \textsf{memoir} calls the break annoying and has |\noprelistbreak| for one list; both
+%   give it the bonus. \\*
+% \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} the same, thin; the maintainer's
+%   choice.
+%   \emph{Reopens:} a page count that this costs on real documents.
+%   \emph{Measured:} at $-51$ 13 of 218 lists are parted, 12 from a real lead-in; 814
+%   pages.
+%   \emph{Rejected:} a penalty of 0 still parts 6.
+%   A plain 10000, 0 parted and 814 pages, has no limit, so we add that.} \\
+% \midrule
+% A list right under a heading & One line is enough &
+%   The same. \\*
+% \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} leaving the default; the
+%   maintainer's choice.
+%   \emph{Reopens:} a reason to treat a list as a paragraph.
+%   \emph{Measured:} it changes no word on any page of the real documents, so it wasn't
+%   measured to help.} \\
+% \midrule
+% Club and widow penalties & As the class has them &
+%   1000 and 1000 under \textsf{memoir}, 150 and 150 under |article|. \\*
+% \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} fewer pages, then fewer changes
+%   from the defaults, the maintainer's rule.
+%   \emph{Reopens:} a reader study on lone lines, or a change in those page counts.
+%   \emph{Measured, rejected:} 1000 and 10000 ties on the real documents and is 4 pages
+%   longer of about 1630 generated ones; it has no lone last line against 10, and 5 lone
+%   first lines against 3.
+%   10000 and 10000 also ties, and is 5 pages longer.
+%   Under \texttt{article}, 1000 and 1000 is 3 pages longer than 150 and 150, 610 to 607.} \\
+% \midrule
+% Under |breakcode| \textsf{noweb}'s break after a chunk goes & Yes, with a limit &
+%   Not \LaTeX's: \textsf{noweb} offers it, at $-200$. \\*
+% \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} measured on generated documents;
+%   ours.
+%   \emph{Reopens:} a change in those numbers.
+%   \emph{Measured, rejected:} keeping it leaves up to 7.6 lines and 34 pages with three
+%   or more, against 5.6 and 21, for 19 fewer breaks in chunks.} \\
+% \midrule
+% What can't be kept warns & Always &
+%   Mostly silent. \\*
+% \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} ours; a layout is correct or
+%   says that it isn't.
+%   \emph{Reopens:} a warning that is false, which is a bug, with a test
+%   (\texttt{test-keep-sweep.py}).} \\
+% \bottomrule
+% \end{longtable}
+%
 % \paragraph{Two lines after a heading (\texttt{keepafterheading}).}
 % The University of Chicago Press's sample house style, in the 16th edition of
 % its \emph{Manual}, says: \enquote{The minimum number of lines of text below a
@@ -1291,7 +1409,9 @@
 % \textsf{memoir} is the same.
 % For two the support is moderate for a craft rule, for three weak.
 % Nor would one line save pages: |keepafterheading=1| saves no page on eight real
-% documents, and pages with more than five lines empty go from 68 to 70.
+% documents, 814 either way, and pages with more than five lines empty go from 68 to
+% 70, those with three or more from 114 to 118 of 676.
+% That was measured at commit dd90b97, since it compares the setting and not the code.
 % Those are real documents and not a controlled sample, and eight is few.
 % They were built from their last woven source, of which four are older than their
 % \textsf{noweb}, and with the output of PythonTeX from before.
