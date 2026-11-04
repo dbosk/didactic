@@ -72,6 +72,25 @@ class Check:
             r"Package didactic Warning: (\S+) (\S+) on page (\S+) comes after "
             r"\S+ (\S+) on page (\S+):", self.log)
 
+    def order_lines(self, *captions):
+        """Each warning about the order names the input lines of its two
+        captions: pairs of (later number, earlier number), each the caption's
+        text in the source, as (text, file) in another file, or a line number."""
+        def line(caption):
+            if isinstance(caption, int):
+                return str(caption)
+            word, name = caption if isinstance(caption, tuple) else (caption, self.name)
+            with open(name + ".tex", encoding="utf-8") as src:
+                for number, text in enumerate(src, 1):
+                    if "{" + word + "}" in text:
+                        return str(number)
+            return f"no {word}"
+        expected = [(line(a), line(b)) for a, b in captions]
+        found = re.findall(
+            r"captions at input\n\(didactic\)\s+lines (\d+) and (\d+)\)", self.log)
+        self.ok(found == expected,
+                f"the warnings name the lines {found}, expected {expected}")
+
     def clean_log(self, order=()):
         """No errors, undefined references or requests for another run, and no
         warnings about the order of float numbers but the expected ones."""
@@ -226,6 +245,7 @@ def marginfloat_samepar(c):
     c.clean_log(order=[("figure", "0.1", "2", "0.2", "1")])
     c.ok(c.one("MARGINAL")["page"] == 1, "the margin figure is on page 1")
     c.ok(c.one("ORDINARY")["page"] == 2, "the ordinary figure is on page 2")
+    c.order_lines(("ORDINARY", "MARGINAL"))
 
 
 def marginfloat_moved(c):
@@ -233,6 +253,7 @@ def marginfloat_moved(c):
     c.clean_log(order=[("figure", "0.1", "2", "0.2", "1")])
     c.ok(c.one("MOVED")["page"] == 2, "marginfix moved MOVED to page 2")
     c.ok(c.one("STAYS")["page"] == 1, "STAYS is on page 1")
+    c.order_lines(("MOVED", "STAYS"))
 
 
 def marginfloat_chapters(c):
@@ -240,6 +261,7 @@ def marginfloat_chapters(c):
     late, early = c.one("FIGLATE"), c.one("EARLY")
     c.ok(late["page"] > early["page"], "FIGLATE is on a later page than EARLY")
     c.clean_log(order=[("figure", "1.1", "2", "1.2", "1")])
+    c.order_lines(("FIGLATE", "EARLY"))
     c.has_text("Figure 2.1: TWOA")
     with open(c.name + ".aux", encoding="latin-1") as aux:
         # Only floats are recorded: chapters go to the ToC and have counters too.
@@ -257,6 +279,9 @@ def marginfloat_kinds(c):
                    ("listing", "1", "4", "2", "3"),
                    ("table", "0.1", "6", "0.2", "5")],
          f"warnings about the order: {found}")
+    # A side caption is set at \\end{sidecaption}, two lines below its text.
+    c.order_lines((19, "MARGINONE"), ("LISTLATE", "LISTHERE"),
+                  ("TABLATE", "TABHERE"))
 
 
 def marginfloat_article(c):
@@ -266,6 +291,8 @@ def marginfloat_article(c):
                    ("floatone", "1", "4", "2", "3"),
                    ("table", "1", "6", "2", "5")],
          f"warnings about the order: {found}")
+    c.order_lines(("LATEFIG", "HEREFIG"), ("LATEONE", "HEREONE"),
+                  ("LATETAB", "LONGTAB"))
 
 
 def marginfloat_include(c):
@@ -274,6 +301,8 @@ def marginfloat_include(c):
     late, early = c.one("BLATE"), c.one("BEARLY")
     c.ok(late["page"] > early["page"], "BLATE is on a later page than BEARLY")
     c.clean_log(order=[("figure", "2.2", "7", "2.3", "6")])  # 1, 2
+    chapter = "test-marginfloat-include-b"
+    c.order_lines((("BLATE", chapter), ("BEARLY", chapter)))
 
 
 def marginfloat_include_all(c):
