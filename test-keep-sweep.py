@@ -75,9 +75,9 @@ def items(k, n, lines):
     return "\n".join(out)
 
 
-def tallitem(k):
-    "A list whose first line is six lines tall."
-    return (r"\begin{itemize}\item \rule{0pt}{6\baselineskip}" + rf"I0x1\label{{I0x1X{k}}}" + "\n"
+def tallitem(k, n=6):
+    "A list whose first line is n lines tall."
+    return (rf"\begin{{itemize}}\item \rule{{0pt}}{{{n}\baselineskip}}" + rf"I0x1\label{{I0x1X{k}}}" + "\n"
             + r"\item more\item more\end{itemize}")
 
 
@@ -203,6 +203,10 @@ CASES = {
     "hll6": lambda k: heading(k) + "\n" + para(k, 6, "P") + "\n" + items(k, 8, 1) + TAIL,
     # a first line taller than the room it seems to need, also on a page that stretches
     "lT1": lambda k: para(k, 1, "P") + "\n" + tallitem(k) + TAIL,
+    "hT3": lambda k: heading(k) + "\n" + para(k, 3, "P") + "\n" + tallitem(k) + TAIL,
+    # all the stretch below the heading, so that TeX takes only the lead-in's last lines
+    "hS3": lambda k: heading(k) + "\n" + r"\vspace{0pt plus 400pt}" + "\n" + para(k, 3, "P") + "\n"
+        + tallitem(k, 16) + TAIL,
     "lS1": lambda k: r"\vspace{0pt plus 400pt}" + "\nS.\n\n" + para(k, 1, "P") + "\n" + tallitem(k) + TAIL,
     # and on a page that can shrink or stretch, so the first item fits where naturally it
     # wouldn't, while a break before it would look just as good to TeX
@@ -257,8 +261,10 @@ CASES = {
 }
 SHRINKLISTS = {"hs1", "hs2", "hs3"}
 TALLITEMS = {"lT1", "lS1"}
+# under a heading too, where the last lines of the lead-in can go along with it
+HEADTALL = {"hT3", "hS3"}
 HEADLISTS = SHRINKLISTS | {"hll1", "hll2", "hll3", "hll6"}
-FINE = HEADLISTS | TALLITEMS | {"ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3", "qq3", "lq3", "rti",
+FINE = HEADLISTS | TALLITEMS | HEADTALL | {"ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3", "qq3", "lq3", "rti",
         "d", "wL1", "hv", "hw", "hn", "hv8", "hv3l", "f", "r", "rr", "ri", "re", "rv", "fp", "fe", "fx", "fi", "fI",
         "e", "ei", "eI", "se", "e1", "cp"}
 # Without didactic these don't exist, or frames set their titles another way.
@@ -267,8 +273,8 @@ DIDACTIC_ONLY = {"hj1", "j3", "fp", "fe", "fx", "fi", "fI", "fl1", "fl3"}
 NOT_COMPARED = DIDACTIC_ONLY | {"e", "ei", "eI", "se", "e1", "cp", "f", "rti"}
 LISTINGS = {"hv1", "hv2", "hv3", "v1", "v3", "v8", "hn1", "hn3", "n3", "hw1", "hw3", "w3",
             "hj1", "j3", "n6", "w6", "v6", "wL1", "cw0", "cw1", "cw2", "cw3", "cw4",
-            "ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3"} | HEADLISTS | TALLITEMS
-ITEMLISTS = HEADLISTS | TALLITEMS | {"ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3"}
+            "ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3"} | HEADLISTS | TALLITEMS | HEADTALL
+ITEMLISTS = HEADLISTS | TALLITEMS | HEADTALL | {"ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3"}
 # L2: a list right under a heading follows LaTeX, so a line is enough.
 DIRECTLISTS = {"l", "L", "ri", "fi", "fI", "ei", "eI"}
 NOHEADING = TALLITEMS | {"v1", "v3", "v8", "n3", "w3", "j3", "n6", "w6", "v6", "wL1",
@@ -283,7 +289,10 @@ def all_cases(variant="m"):
     for name in CASES:
         if variant[0] == "e" and name not in ENUMITEM_CASES:
             continue
-        for r in (FINEROOMS if name in FINE else ROOMS):
+        rooms = FINEROOMS if name in FINE else ROOMS
+        if name == "hS3":
+            rooms = [x / 4 for x in range(21, 57)]
+        for r in rooms:
             yield name, f"{name}Q{int(4 * r)}", r
 
 
@@ -498,18 +507,25 @@ def check_case(p, ref, name, case, K):
         says = [w for w in warns if "goes to the next page" in w]
         # What the first line needs isn't known when the tie is decided: TeX can then
         # take the lead-in along, and that says so.
-        along = name in TALLITEMS and [w for w in warns if "moves along" in w]
+        along = name in TALLITEMS | HEADTALL and [w for w in warns if "moves along" in w]
+        if name in HEADTALL:
+            kept = p.on("H", case) == r
+            if kept and lead_last > r and p.empty.get(r, 0) > LIMIT + 0.01 and not along:
+                fail(case, f"D8: the last lines of the lead-in move along, {p.empty[r]:.1f} "
+                     "lines empty, no warning")
+            if not kept and along:
+                fail(case, "D8: two warnings for a heading that moves")
         if parted and not says:
             fail(case, f"D6: lead-in on {lead_last}, code on {code}, no warning")
         if name in AFTERCHUNK and p.on("A1", case) > r:
             return  # the first chunk moved, and what warns is about that
-        if along and lead_first == r:
+        if along and lead_last == r:
             fail(case, "D8: says the lead-in moves along, and it stays")
         if says and code <= r:
             fail(case, f"D8: {says[0][:50]}, but it stays")
         if says and not parted:
             fail(case, f"D8: {says[0][:50]}, but what leads into it goes along")
-        if name in ITEMLISTS and name not in TALLITEMS and parted and p.empty.get(lead_last, 0) >= 2:
+        if name in ITEMLISTS and name not in TALLITEMS | HEADTALL and parted and p.empty.get(lead_last, 0) >= 2:
             fail(case, f"L1: parted, with {p.empty[lead_last]:.1f} lines left for its first item")
         # 8pt of shrink out of the topsep and the line that the first item needs, and the
         # topsep can shrink too

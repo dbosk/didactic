@@ -1250,6 +1250,15 @@
 %   half the height of a chunk's header and the space above it.
 %   Something above the listing lower than that would pass unseen, and so would a
 %   header more than twice as tall as |\topskip| be taken for something above it.
+% \item If the lead-in ends in space of its own, such as |\addvspace|, right before the
+%   listing or the list, and the tie is released, we can't write down the page of its
+%   last line without hiding that space from what comes next.
+%   So we take the page at the time of the tie, and if \TeX\ then takes that line along
+%   to the next page, the warning says that what starts there is parted when it isn't.
+% \item That the first line of a list fits is reckoned by a line of the text.
+%   If it is taller, \TeX\ may take the lead-in along past the limit, and the warning
+%   says that this \emph{can} leave more than |keepmaxgap| lines empty, as it can't
+%   tell how many lines went.
 % \end{itemize}
 %
 % \subsection{Why pages break where they do}\label{PageBreakDecisions}
@@ -6297,11 +6306,13 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \def\@didactic@keep@pa#1{\gdef\@didactic@keep@relpage{#1}}
 \def\@didactic@keep@pm#1#2#3{%
   \ifnum#2>#1\relax
+    \ifnum#2=\@didactic@keep@lastmoved\relax\else
     \ifx\@newl@bel\@testdef
       \PackageWarningNoLine{didactic}{%
         What leads into what starts at #3 moves along\MessageBreak
         to the next page, since that didn't fit there after all:\MessageBreak
         this can leave more than keepmaxgap lines empty}%
+    \fi
     \fi
   \fi}
 \def\@didactic@keep@pp#1#2#3{%
@@ -7050,7 +7061,10 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % \TeX\ may then also find a break above the lead-in better, on a page that stretches.
 % That takes the lead-in along, past the limit, and has a warning of its own
 % (|\@didactic@keep@relmove|), which can only say what it can leave empty, since it
-% doesn't know how many lines went; under a heading the heading's warning says it.
+% doesn't know how many lines went.
+% Under a heading it is about the last lines of the lead-in, at most two, so it is
+% written only if they could leave too much, and if the heading went as well, the
+% heading's warning says it and this one keeps quiet (|\@didactic@keep@lastmoved|).
 % Only that penalty changes: between the items \LaTeX\ goes on as ever.
 % The penalty is local to the list, and what starts in an item would inherit it, a
 % quote, say, so every |\@trivlist| first takes it back, |\@didactic@keep@forbidden|.
@@ -7166,7 +7180,12 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
             \ifdim\dimexpr\pagegoal-\pagetotal+\pageshrink
                 -\@topsep+\glueshrink\@topsep-\@didactic@keep@L\relax<\z@
             \else
-              \@didactic@keep@ifchained{}{\@didactic@keep@relmove}%
+              \@didactic@keep@ifchained{%
+                \ifdim\dimexpr\pagegoal-\pagetotal-\pagedepth
+                    +2\@didactic@keep@L\relax>\@didactic@keepmaxgap\@didactic@keep@L
+                  \@didactic@keep@relmove
+                \fi
+              }{\@didactic@keep@relmove}%
               \@didactic@keep@forbid
                 {\numexpr\@clubpenalty+\interlinepenalty+101\relax}%
             \fi
@@ -7338,8 +7357,10 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
         \@didactic@keep@hb{#1}{#3}%
       \fi\fi
     \fi}}
+\def\@didactic@keep@lastmoved{0}
 \def\@didactic@keep@hm#1#2#3{%
   \ifnum#2>#3\relax
+    \gdef\@didactic@keep@lastmoved{#2}%
     \@didactic@keep@tellhead{#1}{it moves to the next page, which leaves
       more\MessageBreak than keepmaxgap lines empty}%
   \fi}
