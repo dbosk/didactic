@@ -371,6 +371,39 @@ def keep_twocol(c):
          "LISTM starts the second column, away from LEADM")
 
 
+def keep_noweb(c):
+    """test-keep-noweb.tex and -break: warnings against the pages of the words."""
+    lines = keep_results(c, "noweb")
+    c.ok(len(lines) == 14, f"14 cases, has {len(lines)}")
+    apart, full = {}, {}
+    for w in warnings(c):
+        m = re.search(r"input line (\d+)", w)
+        if "apart from what leads" in w:
+            apart[int(m.group(1))] = int(re.search(r"starts page (\d+)", w).group(1))
+        elif "doesn't fit" in w:
+            full[int(m.group(1))] = w
+    asked = {"g", "y"}
+    for n, line in sorted(lines.items()):
+        lead, code = c.one("LEAD" + n.upper()), c.one("CODE" + n.upper())
+        two = lead["page"] < code["page"]
+        if n in "mnfsuh" or n in asked:
+            c.ok(two, f"case {n} is on two pages")
+        if n in "qare":
+            c.ok(not two, f"case {n} is on one page")
+        if n in "tc":
+            continue
+        c.ok((line in apart) == (two and n not in asked),
+             f"case {n}, line {line}: {'a' if line in apart else 'no'} warning")
+        if line in apart:
+            c.ok(apart[line] == code["page"],
+                 f"case {n} names page {apart[line]}, it is on {code['page']}")
+    w = [x for x in warnings(c) if "in multicols" in x]
+    c.ok(len(w) == 1 and f"input line {lines['c']}" in w[0], f"case c warns: {w}")
+    c.ok(lines["t"] in full, f"case t warns that it doesn't fit: {sorted(full)}")
+    c.ok(set(full) == {lines["t"]}, f"nothing else doesn't fit: {sorted(full)}")
+    c.ok(not set(apart) - set(lines.values()), "no warning elsewhere")
+
+
 def keep_multicol(c):
     """test-keep-multicol.tex; see its header."""
     lines = keep_results(c, "multicol")
@@ -562,6 +595,8 @@ CHECKS = {
     "test-keep-overfull": keep_overfull,
     "test-keep-multicol": keep_multicol,
     "test-keep-twocol": keep_twocol,
+    "test-keep-noweb": keep_noweb,
+    "test-keep-noweb-break": keep_noweb,
     "test-frametitle": frametitle,
     "test-frametitle-slides": frametitle_slides,
     "test-frametitle-overlay": frametitle_overlay,

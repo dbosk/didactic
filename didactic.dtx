@@ -1051,6 +1051,8 @@
 % Nor can the first |keepends| lines of a longer listing.
 % Then that page is overfull, and \textsf{didactic} warns, as it does whenever
 % it can't do what these options ask.
+% If what can't part is the whole of the page, \LaTeX\ first ends the page before it
+% and tries on an empty one, so that page stays nearly empty as well.
 % Give the listing room with a place to break before it, such as |\goodbreak|.
 % A line taller than a page can't be kept from running off it, since a page
 % can't break within a line: what doesn't fit is lost, and \textsf{didactic} says
@@ -1083,6 +1085,27 @@
 % anyway, and on the slides nothing changes.
 % In |multicols| they stay as \textsf{fancyvrb} has them, each with a warning: the
 % columns are made later, so we can't know the height a listing should fit.
+%
+% What warns looks at the page when \TeX\ has decided, for all listings, for code
+% side by side and for the chunks of \textsf{noweb}, whether woven for |minted| or
+% set by \textsf{noweb} itself, with or without |breakcode|.
+% It can't see everything:
+% \begin{itemize}
+% \item The environment |webcode| of \textsf{noweb} isn't tied to anything and isn't
+%   looked at.
+% \item In two columns, no page is shipped out between them.
+%   So when a column ended before a listing even started, the break it looks at is
+%   the end of the last page, and a break you asked for there can warn, or one you
+%   didn't can stay silent.
+%   A listing that makes the column end itself is looked at correctly.
+% \item It tells a listing that starts the page from one with something above it by
+%   the height of the page, allowing half a line.
+%   After a frame of \textsf{fancyvrb} or the header of a chunk, it allows more,
+%   since it can't tell what space above them \TeX\ dropped from the top of the page;
+%   half the height of a chunk's header and the space above it.
+%   Something above the listing lower than that would pass unseen, and so would a
+%   header more than twice as tall as |\topskip| be taken for something above it.
+% \end{itemize}
 %
 % \StopEventually{}
 %
@@ -5774,6 +5797,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \@didactic@keep@ifgenerated{%
     \global\advance\@didactic@keep@gendepth\m@ne
   }{}}
+\newcount\@didactic@keep@nwstate
 \newdimen\@didactic@keep@startpt
 \newdimen\@didactic@keep@pre
 \let\@didactic@keep@started\relax
@@ -5950,6 +5974,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 %    \begin{macrocode}
 \let\@didactic@FV@ListVSpace\FV@ListVSpace
 \def\FV@ListVSpace{%
+  \global\@didactic@keep@nwstate\z@
   \@didactic@keep@atstart
   \if@didactic@keepleadin
     \@beginparpenalty\@M
@@ -5969,9 +5994,27 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % chunk 10\,000, and the penalty after the first line of the chunk, the 
 % header, |\@didactic@nwfirstpenalty|, which is 10\,000 in a chunk until 
 % the header has used it, and |\nwcodepenalty| otherwise.
-% When the chunk's code is set by |minted|, the breaks in the code itself 
-% are ours, as for every listing; when \textsf{noweb} sets the code, its 
+% When the chunk's code is set by |minted|, the breaks in the code itself
+% are ours, as for every listing; when \textsf{noweb} sets the code, its
 % breaks stay as they were.
+%
+% A chunk that \textsf{noweb} sets itself gets the check of |\@didactic@keep@check|
+% too, and that works differently, since we hold no box with its lines.
+% Every line is a paragraph of its own, ended by the |\par| that we patch, so we can
+% look at the page around the header line and the first line of code: the first place
+% to break comes after that first line, its |\nwcodepenalty|.
+% |\@didactic@keep@nwa|, |nwb| and |nwc| are the height of the page before the header,
+% after it, and after the first line, all before \TeX\ could end the page there.
+% If the page then starts with the header, it holds at most |\topskip| and the depth
+% of the header more than the step from |nwb| to |nwc|.
+% If anything comes before the header, it holds at least all of the step from |nwa|
+% to |nwb| more, which is the header and the space above it.
+% So half of that step tells them apart, whatever the font, unless the header is
+% twice as tall as |\topskip|.
+% The page can't end within that first line: \textsf{noweb} makes the spaces in code
+% unbreakable, so a line doesn't wrap.
+% A chunk woven for |minted| sets |\@didactic@keep@nwstate| to 0 when its list starts,
+% and gets the check of a listing.
 % \textsf{noweb} is usually loaded after us, so we patch it at the beginning 
 % of the document, if it's loaded.
 % |\patchcmd| reads the patched macro anew with the category codes of the 
@@ -5979,7 +6022,47 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % for a while.
 %    \begin{macrocode}
 \let\@didactic@nwfirstpenalty\relax
+\newdimen\@didactic@keep@nwa
+\newdimen\@didactic@keep@nwb
+\newdimen\@didactic@keep@nwc
+\def\@didactic@keep@nwbefore{%
+  \ifcase\@didactic@keep@nwstate
+  \or
+    \@didactic@keep@atstart
+    \@didactic@keep@noteempty
+    \global\@didactic@keep@nwa\dimexpr\pagetotal+\pagedepth\relax
+    \if@didactic@keep@cols
+      \PackageWarningNoLine{didactic}{%
+        A code chunk in multicols isn't tied to what leads\MessageBreak
+        into it: we can't know the height of its column,\MessageBreak
+        \@didactic@keep@place}%
+    \fi
+  \or
+    \global\@didactic@keep@nwb\dimexpr\pagetotal+\pagedepth\relax
+  \fi}
+\def\@didactic@keep@nwmiddle{%
+  \ifnum\@didactic@keep@nwstate=\tw@
+    \global\@didactic@keep@nwc\dimexpr\pagetotal+\pagedepth\relax
+  \fi}
+\def\@didactic@keep@nwafter{%
+  \ifcase\@didactic@keep@nwstate
+  \or
+    \global\@didactic@keep@nwstate\tw@
+  \or
+    \global\@didactic@keep@nwstate\thr@@
+    \@didactic@keep@nwcheck
+  \fi}
+\def\@didactic@keep@nwcheck{%
+  \global\@didactic@keep@watchtrue
+  \ifinner\global\@didactic@keep@watchfalse\fi
+  \if@didactic@keep@cols\global\@didactic@keep@watchfalse\fi
+  \global\@didactic@keep@top\dimexpr\topskip
+    +\@didactic@keep@nwc-\@didactic@keep@nwb
+    +(\@didactic@keep@nwb-\@didactic@keep@nwa)/2
+    -\baselineskip/2\relax
+  \@didactic@keep@check{A code chunk}}
 \def\@didactic@nwkeep{%
+  \global\@didactic@keep@nwstate\@ne
   \if@didactic@keepleadin
     \@beginparpenalty\@M
     \def\@didactic@nwfirstpenalty{\@M}%
@@ -5998,8 +6081,10 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
         \patchcmd{\nwbegincode}{\@begincode}
           {\@didactic@nwkeep\@begincode}{}{}%
         \patchcmd{\@begincode}{\@@par\penalty\nwcodepenalty}
-          {\@didactic@keep@atstart\@@par\penalty\@didactic@nwfirstpenalty
-            \let\@didactic@nwfirstpenalty\nwcodepenalty}{}{}%
+          {\@didactic@keep@nwbefore\@@par\@didactic@keep@nwmiddle
+            \penalty\@didactic@nwfirstpenalty
+            \let\@didactic@nwfirstpenalty\nwcodepenalty
+            \@didactic@keep@nwafter}{}{}%
       }{\@didactic@nwkeepwarning}%
     }{\@didactic@nwkeepwarning}%
     \catcode`\@\@didactic@atcatcode

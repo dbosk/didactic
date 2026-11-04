@@ -20,7 +20,8 @@ TEST_FLOATORDER=	test-marginfloat-samepar test-marginfloat-moved \
 TEST_INCLUDE=		test-marginfloat-include-all test-marginfloat-include
 # Warnings from where listings ended up.
 TEST_KEEPCHECK=		test-keep-leadin test-keep-leadin-off test-keep-overfull \
-			test-keep-multicol test-keep-twocol
+			test-keep-multicol test-keep-twocol test-keep-noweb \
+			test-keep-noweb-break
 
 .PHONY: all
 all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
@@ -237,6 +238,9 @@ test-keep-chain.pdf: test-keep-chain.tex didactic.sty
 	test "${call count_word,boxed}" -eq 0
 
 # warnings from where things ended up, checked by test-check.py; see the documents.
+test-keep-noweb.pdf test-keep-noweb-break.pdf: %.pdf: %.tex \
+		test-keep-noweb-body.tex didactic.sty
+	@${latex_until_settled}
 test-keep-leadin.pdf test-keep-leadin-off.pdf: %.pdf: %.tex \
 		test-keep-leadin-body.tex didactic.sty
 	@${latex_until_settled}
