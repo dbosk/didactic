@@ -1287,7 +1287,10 @@
 % \textsf{memoir} is the same.
 % For two the support is moderate for a craft rule, for three weak.
 % Nor would one line save pages: |keepafterheading=1| saves no page on eight real
-% documents, and pages with more than five lines empty go from 69 to 71.
+% documents, and pages with more than five lines empty go from 68 to 70.
+% Those are real documents and not a controlled sample, and eight is few.
+% They were built from their last woven source, of which four are older than their
+% \textsf{noweb}, and with the output of PythonTeX from before.
 % What this option adds to \LaTeX\ at two is the second line under a one-line
 % paragraph or a list, as far as a chain of penalties can hold it.
 %
@@ -1330,9 +1333,9 @@
 % \paragraph{Club and widow penalties as the class has them.}
 % We set neither: 1000 and 1000 under \textsf{memoir}, 150 and 150 under |article|.
 % The rule is the maintainer's: fewer pages, then fewer changes from the defaults.
-% On eight real documents, 814 pages, 1000 and 1000 gave the same pages as 1000 and
-% 10000, document by document; in generated documents of about 1630 pages it was 4
-% pages shorter.
+% On those eight real documents, 814 pages, with the same limits, 1000 and 1000 gave the
+% same pages as 1000 and 10000, document by document; in generated documents of about
+% 1630 pages it was 4 pages shorter.
 % Under |article|, lifting 150 to 1000 costs pages in generated text, 607 against
 % 610 for six documents of each kind, so we don't do that either.
 % The price is stated too: on those real documents 10 last lines alone at the top of a
@@ -1412,10 +1415,10 @@
 % Past the limit it can start the next page, with a warning, but only if its first
 % item doesn't fit: where it does, $-51$ would part them for no reason, on a page
 % that stretches.
-% On eight real documents, with that penalty alone at 10000 and not this rule, it
-% costs no page, 814 either way.
-% At $-51$, 12 of the 218 lists that could be parted from what leads into them are, 8
-% of those in one document.
+% On those eight real documents, with the same limits, and with that penalty alone at
+% 10000 and not this rule, it costs no page, 814 either way.
+% At $-51$, 13 of the 218 lists that could be parted from what leads into them are, 12
+% from a real lead-in, 8 of those in one document.
 % At 10000, 7 lead-ins move, and the page they leave has up to 3.9 lines empty; pages
 % with three lines or more empty go from 114 to 116, of the 676 text pages logged.
 %
