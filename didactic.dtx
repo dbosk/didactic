@@ -5628,12 +5628,21 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \newif\if@didactic@keep@ltowed
 \newif\if@didactic@keep@movable
 \newif\if@didactic@keep@inchunk
-\newif\if@didactic@keep@chunkwarned
 \newif\if@didactic@keep@hmdue
 \newif\if@didactic@keep@pairdue
 \newif\if@didactic@keep@titleonly
+\newif\if@didactic@keep@direct
+\newif\if@didactic@keep@columnswarned
 \@didactic@keep@movabletrue
 \let\@didactic@keep@tie\relax
+\newcommand\@didactic@keep@hpage[2]{}
+\newcommand\@didactic@keep@tp[4]{}
+\newcommand\@didactic@keep@hb[2]{}
+\newcommand\@didactic@keep@hm[3]{}
+\newcommand\@didactic@keep@after[3]{}
+\newcommand\@didactic@keep@pp[3]{}
+\newcommand\@didactic@keep@headbreak[1]{}
+\newcommand\@didactic@keep@tpage[2]{}
 \@ifclassloaded{beamer}{\@didactic@keepfalse}{\@didactic@keeptrue}
 \if@didactic@keep
 %    \end{macrocode}
@@ -5834,8 +5843,12 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % It fits as \TeX\ reckons it: the page less all it can shrink, and without the 
 % depth of the last line.
 % If the listing then can't break after all, since |keepends| asks for more
-% lines than it has or than fit (|\@didactic@keep@cantbreak|), it goes to the next
-% page, not tied to what leads into it, and we warn.
+% lines than it has or than fit, it goes to the next page, not tied to what leads
+% into it, and we warn, from the pages, at the end of the run.
+% |\@didactic@keep@pairstart| notes the page, when the tie is released, and
+% |\@didactic@keep@pairend| writes it to the |.aux| file, with the page that the
+% first line ended up on, whatever comes first: a listing, the header of a chunk,
+% or code side by side.
 %    \begin{macrocode}
 \newdimen\@didactic@keep@L
 \AtBeginDocument{\@didactic@keep@L\baselineskip}
@@ -5882,6 +5895,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \ifdim\ht\@didactic@keep@box>\dimexpr\dimen@+\pageshrink\relax
         \if@didactic@keep@movable\else
           \@didactic@keep@longtrue
+          \if@didactic@keep@direct
+            \ifnum\@didactic@keepends>\tw@ \@didactic@keepends\tw@ \fi
+          \fi
           \@didactic@keep@cantbreak
         \fi
       \fi
@@ -5927,41 +5943,34 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \ifnum#2>#1\relax
     \ifx\@newl@bel\@testdef
       \PackageWarningNoLine{didactic}{%
-        Code side by side, line #3, goes to the next page,\MessageBreak
-        not tied to what leads into it: moving that too\MessageBreak
-        would leave more than keepmaxgap lines empty}%
+        The code at line #3 goes to the next page, not tied\MessageBreak
+        to what leads into it: moving that too would leave\MessageBreak
+        more than keepmaxgap lines empty}%
     \fi
   \fi}
 \def\@didactic@keep@cantbreak{%
-  \@tempcnta\@didactic@keepends
-  \multiply\@tempcnta\tw@
-  \@tempswafalse
-  \ifnum\@didactic@keep@nb<\@tempcnta
+  \if@didactic@keep@direct
+    \@tempcnta\@didactic@keepends
+    \multiply\@tempcnta\tw@
     \@tempswatrue
-  \else
-    \@tempdimb\dimexpr\ht\@didactic@keep@box+\dp\@didactic@keep@box\relax
-    \divide\@tempdimb\@didactic@keep@n
-    \multiply\@tempdimb\@didactic@keepends
-    \ifdim\dimen@<\@tempdimb
-      \@tempswatrue
-    \fi
-  \fi
-  \if@tempswa
-    \ifdim\dimen@>\@didactic@keepmaxgap\@didactic@keep@L
-      \PackageWarning{didactic}{%
-        A listing of \the\@didactic@keep@n\space lines can't break here, as
-        keepends\MessageBreak
-        asks for more, so it goes to the next page and\MessageBreak
-        leaves more than keepmaxgap lines empty, near\MessageBreak
-        page \the\c@page}%
+    \ifnum\@didactic@keep@nb<\@tempcnta
+      \@tempswafalse
     \else
-      \if@didactic@keep@chunkwarned\else
+      \@tempdimb\dimexpr\ht\@didactic@keep@box+\dp\@didactic@keep@box\relax
+      \divide\@tempdimb\@didactic@keep@n
+      \multiply\@tempdimb\@didactic@keepends
+      \ifdim\dimexpr\dimen@+\pageshrink\relax<\@tempdimb
+        \@tempswafalse
+      \fi
+    \fi
+    \if@tempswa
+      \ifnum\@didactic@keep@n>\@didactic@keeplines\else
         \PackageWarning{didactic}{%
-          A listing of \the\@didactic@keep@n\space lines can't break here, as
-          keepends\MessageBreak
-          asks for more, so it goes to the next page, not tied\MessageBreak
-          to what leads into it: moving that too would leave\MessageBreak
-          more than keepmaxgap lines empty, near page \the\c@page}%
+          A listing of \the\@didactic@keep@n\space lines breaks under its
+          heading, at\MessageBreak
+          two lines or more on each side: moving them would\MessageBreak
+          leave more than keepmaxgap lines empty, near page\MessageBreak
+          \the\c@page}%
       \fi
     \fi
   \fi}
@@ -6163,12 +6172,17 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \fi
   \ifnum\@didactic@keep@i>\z@
   \repeat
+  \if@didactic@keep@inchunk\else
+    \@didactic@keep@pairend
+  \fi
   \if@didactic@keepleadin
     \if@didactic@keep@inchunk
       \nobreak
     \else\if@didactic@keep@movable
       \nobreak
-    \fi\fi
+    \else\if@didactic@keep@direct
+      \nobreak
+    \fi\fi\fi
   \fi
   \unvbox\@didactic@keep@box
   \unvbox\@didactic@keep@out
@@ -6248,8 +6262,16 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % listing, unless moving them would leave too much empty space 
 % (|\@didactic@keep@tie|).
 % Breaks within that paragraph are still allowed.
-% In a chunk of \textsf{noweb} the line before is its header, which never parts 
+% In a chunk of \textsf{noweb} the line before is its header, which never parts
 % from the code; the chunk has settled the tie before its header.
+%
+% A listing right under a heading has nothing to be released from, and a heading
+% is never parted from what follows it (|\if@didactic@keep@direct|).
+% But the limit holds here too: past |keepmaxgap| the heading stays and the listing
+% breaks, with a warning, with at least two lines on each side, so also one of at
+% most |keeplines| lines and one where |keepends| asks for more.
+% If that doesn't fit, or the listing has too few lines, all moves as \LaTeX\ moves
+% it, and the pages say so at the end of the run.
 %    \begin{macrocode}
 \let\@didactic@FV@ListVSpace\FV@ListVSpace
 \def\FV@ListVSpace{%
@@ -6258,14 +6280,26 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \@beginparpenalty\@M
     \fi
   \else
+    \@didactic@keep@directfalse
     \@didactic@keep@tie
     \if@didactic@keepleadin
       \if@didactic@keep@movable
         \@beginparpenalty\@M
       \fi
     \fi
+    \@didactic@keep@underheading
+    \if@didactic@keep@movable\else\if@didactic@keep@direct\else
+      \ifinner\else\@didactic@keep@pairstart\fi
+    \fi\fi
   \fi
   \@didactic@FV@ListVSpace}
+\def\@didactic@keep@underheading{%
+  \ifinner\else
+    \ifnum\@didactic@keep@headstate=\@ne
+      \@didactic@keep@directtrue
+      \@beginparpenalty\@M
+    \fi
+  \fi}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -6570,7 +6604,24 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \cs_new:Npn \@didactic@keep@hash #1
   { \exp_args:Ne \str_mdfive_hash:n {#1} }
 \ExplSyntaxOff
-\def\@didactic@keep@cpage{\number\c@page}
+\def\@didactic@keep@cpage{\number\ReadonlyShipoutCounter}
+\AtBeginDocument{%
+  \if@filesw
+    \immediate\write\@mainaux{%
+      \string\providecommand\string\@didactic@keep@hpage[2]{}%
+      \string\providecommand\string\@didactic@keep@tp[4]{}%
+      \string\providecommand\string\@didactic@keep@hb[2]{}%
+      \string\providecommand\string\@didactic@keep@hm[3]{}%
+      \string\providecommand\string\@didactic@keep@after[3]{}%
+      \string\providecommand\string\@didactic@keep@pp[3]{}}%
+  \else
+    \ifnum\@didactic@keepafterheading>\z@
+      \PackageWarningNoLine{didactic}{%
+        With \string\nofiles, no warning can say what the pages\MessageBreak
+        did to headings and listings, as they come from the\MessageBreak
+        .aux file}%
+    \fi
+  \fi}
 \def\@didactic@keep@hpage#1#2{%
   \global\@namedef{@didactic@hp@#1}{#2}}
 \def\@didactic@keep@tp#1#2#3#4{%
@@ -7046,8 +7097,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % So the penalty is set right after |\trivlist| has ended the paragraph before, 
 % |\@didactic@nwtie|, and the code knows it is in a chunk, 
 % |\if@didactic@keep@inchunk|.
-% If the tie is released and the header and the first line of the code don't fit,
-% the chunk goes to the next page, not tied to its lead-in, and we warn.
+% If the tie is released and the chunk then goes to the next page, we warn.
 % (\TeX\ can still take the lead-in along, if a break above it costs less; the
 % warning doesn't say otherwise.)
 % \textsf{noweb} also invites a page break at the start of the text after 
@@ -7071,29 +7121,20 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \def\@didactic@nwkeep{%
   \@didactic@nwfilbreak
   \@didactic@keep@inchunktrue
-  \@didactic@keep@chunkwarnedfalse
+    \@didactic@keep@directfalse
   \if@didactic@keepleadin
     \def\@didactic@nwfirstpenalty{\@M}%
   \fi}
 \def\@didactic@nwtie{%
   \if@didactic@keep@inchunk
   \@didactic@keep@tie
+  \@didactic@keep@underheading
   \if@didactic@keepleadin
     \if@didactic@keep@movable
       \@beginparpenalty\@M
-    \else
-      \if@nobreak\else
-        \setbox\@tempboxa\vbox{\nowebsize\global\dimen@\baselineskip}%
-        \ifdim\dimexpr\pagegoal-\pagetotal+\pageshrink\relax
-            <\dimexpr\@topsep-\glueshrink\@topsep+2\dimen@\relax
-          \@didactic@keep@chunkwarnedtrue
-          \PackageWarning{didactic}{%
-            A code chunk goes to the next page, not tied to what\MessageBreak
-            leads into it: moving that too would leave more\MessageBreak
-            than keepmaxgap lines empty, near page \the\c@page}%
-        \fi
-      \fi
-    \fi
+    \else\if@didactic@keep@direct\else
+      \ifinner\else\@didactic@keep@pairstart\fi
+    \fi\fi
   \fi
   \fi}
 \def\@didactic@nwfilbreak{%
@@ -7124,7 +7165,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
         \patchcmd{\@begincode}{\trivlist}
           {\trivlist\@didactic@nwtie}{}{\@didactic@nwkeepwarning}%
         \patchcmd{\@begincode}{\@@par\penalty\nwcodepenalty}
-          {\@@par\penalty\@didactic@nwfirstpenalty
+          {\@@par\@didactic@keep@pairend\penalty\@didactic@nwfirstpenalty
             \let\@didactic@nwfirstpenalty\nwcodepenalty}{}{}%
       }{\@didactic@nwkeepwarning}%
     }{\@didactic@nwkeepwarning}%
