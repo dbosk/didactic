@@ -29,7 +29,7 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-frametitle.pdf test-frametitle-slides.pdf \
 	test-keep.pdf test-keep-tall.pdf test-keep-tall100.pdf \
 	test-keep-chain.pdf test-keep-heading.pdf test-keep-heading3.pdf \
-		test-keep-nogap.pdf test-keep-nogap3.pdf \
+		test-keep-nogap.pdf test-keep-nogap3.pdf test-keep-sweep \
 		${TEST_KEEP_NOWEB:=.pdf} \
 	test-keep-flush.pdf ${TEST_KEEP_CHAPTER:=.pdf} test-keep-stale.pdf \
 	${TEST_NOTEOVERFLOW:=.pdf} test-oldkernel.pdf \
@@ -240,6 +240,19 @@ test-keep-nogap.pdf test-keep-nogap3.pdf: %.pdf: %.tex test-keep-nogap.tex \
 test-keep-nogap.pdf: NOGAP_HEADINGS=1
 test-keep-nogap3.pdf: NOGAP_HEADINGS=2
 
+# page breaks around headings and listings, room by room, against plain LaTeX with
+# the same fonts and margins: see test-keep-sweep.py.  pdflatex, for those fonts.
+SWEEP=m a s s3
+SWEEP_ALL=${SWEEP} mp ap sp
+${SWEEP_ALL:%=test-keep-sweep-%.tex}: test-keep-sweep-%.tex: test-keep-sweep.py
+	python3 $< gen $* > $@
+${SWEEP_ALL:%=test-keep-sweep-%.pdf}: PDFLATEX=pdflatex
+${SWEEP_ALL:%=test-keep-sweep-%.pdf}: %.pdf: %.tex didactic.sty
+	@${latex_until_settled}
+.PHONY: test-keep-sweep
+test-keep-sweep: test-keep-sweep.py ${SWEEP_ALL:%=test-keep-sweep-%.pdf}
+	for v in ${SWEEP}; do python3 $< check $$v || exit 1; done
+
 # noweb without breakcode warns, once; with breakcode, however it is set, it doesn't.
 TEST_KEEP_NOWEB=test-keep-filbreak test-keep-breakcode test-keep-breakcode-late \
 		test-keep-filbreak-nogap
@@ -376,8 +389,9 @@ clean:
 	${RM} test-keep-tall100-?.txt
 	${RM} test-keep-chain.pdf test-keep-chain.aux test-keep-chain.log
 	${RM} test-keep-chain.unq test-keep-chain.pytxcode test-keep-chain-?.txt
+	${RM} ${SWEEP_ALL:%=test-keep-sweep-%.tex}
 	for f in test-keep-heading test-keep-heading3 test-keep-nogap test-keep-nogap3 \
-			${TEST_KEEP_NOWEB} \
+			${SWEEP_ALL:%=test-keep-sweep-%} ${TEST_KEEP_NOWEB} \
 			test-keep-flush test-keep-stale \
 			test-block-nested ${TEST_KEEP_CHAPTER} ${TEST_NOTEOVERFLOW}; do \
 		${RM} $$f.pdf $$f.aux $$f.log $$f.unq $$f.pytxcode $$f.out $$f.toc; \
