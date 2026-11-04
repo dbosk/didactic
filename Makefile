@@ -197,6 +197,7 @@ test-keep.pdf: test-keep.tex didactic.sty
 	@${latex_until_settled}
 	! grep -E 'didactic keep test:.*(FAIL|SKIP)' test-keep.log
 	grep -q 'didactic keep test: all checks ran' test-keep.log
+	! grep 'Overfull .vbox' test-keep.log
 	pdftotext -layout test-keep.pdf - | grep -Eq '^ *1\. +qline 1$$'
 	test "$$(pdftotext test-keep.pdf - | awk -v RS='\f' '/wline 1\n/ && /wline 30/ {n++} /wline 27/ && /wline 30/ {m++} END {print n+0, m+0}')" = "0 1"
 
@@ -326,7 +327,7 @@ clean:
 	${RM} ${TEST_KEEPCHECK:=.pdf} ${TEST_KEEPCHECK:=.aux} ${TEST_KEEPCHECK:=.log}
 	${RM} ${TEST_KEEPCHECK:=.unq} ${TEST_KEEPCHECK:=.out}
 	${RM} ${TEST_KEEPCHECK:=.pytxcode} ${TEST_KEEPCHECK:=-?.txt}
-	${RM} test-keep-leadin-o1.txt test-keep-leadin-off-o1.txt
+	${RM} test-keep-leadin-*.txt test-keep-leadin-off-*.txt
 	${RM} test-keep-huge.pdf test-keep-huge.aux test-keep-huge.log
 	${RM} test-keep-huge.unq test-keep-huge.pytxcode test-keep-huge-h.txt
 	${RM} test-oldkernel.pdf test-oldkernel.aux test-oldkernel.log

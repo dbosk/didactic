@@ -10,7 +10,7 @@
 % document checks itself: the last page lists every check with PASS or
 % FAIL, and the log has a line "didactic keep test: <check> PASS/FAIL"
 % for each, then "didactic keep test: all checks ran"; the Makefile fails
-% on any FAIL or SKIP and when that last line is missing.
+% on any FAIL or SKIP, when that last line is missing, and on an overfull page.
 %
 % Expected in the resulting PDF, besides PASS everywhere:
 %   A  a short listing (10 lines) with room for 4: the lead-in and the
@@ -40,8 +40,8 @@
 %   N  a listing after a paragraph with an \ltnote in it, with room for 2
 %      lines: on the next page with its lead-in.  M the same with \marginpar,
 %      P with a float before the lead-in.  (Between the lead-in and the listing,
-%      on their own after a blank line, they give a place to break, which the
-%      docs state as a limit.  Taking that place away isn't right either:
+%      on their own after a blank line, they give a place to break, and that warns:
+%      test-keep-leadin.  Taking that place away isn't right:
 %      test-keep-chain shows paragraphs that can't part.)
 %   O  a listing with formatcom=\color{blue}: on the next page with its
 %      lead-in.
@@ -66,12 +66,11 @@
 
 \makeatletter
 % \roomfor{n}: start a new page and fill it so that n lines of text fit
-% under the rule.
+% under a rule.  A rule and no \vspace, for what moves would take the space along
+% and make the next page overfull.
 \newcommand\roomfor[1]{%
   \clearpage
-  \noindent\rule{\linewidth}{0.4pt}\par
-  \vspace*{\dimexpr\textheight-\topskip-#1\baselineskip-\baselineskip\relax}%
-  \par}
+  \noindent\rule{1pt}{\dimexpr\textheight-#1\baselineskip-\baselineskip\relax}\par}
 % \testfile{prefix}{n}{before}{after}: write the file \jobname-prefix.txt
 % of n lines "line <i>", each followed by
 % <before>\label{prefix L<i>}<after>, except an empty line set by
