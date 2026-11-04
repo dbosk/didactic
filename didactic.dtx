@@ -5076,8 +5076,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % moving them stays within |keepmaxgap| (|\@didactic@keep@tie|).
 % Otherwise the pair may start the next page on its own.
 % It doesn't break, and we don't know its height at the start, so whether it did
-% we learn from the pages, as for a heading: |\@didactic@keep@pairstart| and
-% |\@didactic@keep@pairend| write to the |.aux| file the pages of the lead-in and
+% we learn from the pages, as for a heading: |\@didactic@keep@relstart| and
+% |\@didactic@keep@relend| write to the |.aux| file the pages of the lead-in and
 % of the pair, and |\@didactic@keep@pp| warns.
 %    \begin{macrocode}
 \ExplSyntaxOn
@@ -5377,7 +5377,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
           {
             \legacy_if:nTF { @didactic@keep@movable }
               { \@beginparpenalty = \@M }
-              { \@didactic@keep@pairstart }
+              { \@didactic@keep@relstart }
           }
         \bool_if:NT \g__didactic_pair_fullwidth_bool
           {
@@ -5410,7 +5410,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
           { \end{center} }
       }
       {
-        \@didactic@keep@pairend
+        \@didactic@keep@relend
         \bool_if:NTF \l__didactic_pair_full_bool
           {
             \end{fullwidth}
@@ -5724,7 +5724,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \newif\if@didactic@keep@movable
 \newif\if@didactic@keep@inchunk
 \newif\if@didactic@keep@hmdue
-\newif\if@didactic@keep@pairdue
+\newif\if@didactic@keep@reldue
 \newif\if@didactic@keep@titleonly
 \newif\if@didactic@keep@direct
 \newif\if@didactic@keep@columnswarned
@@ -5950,10 +5950,10 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % of its first and last lines (|\@didactic@keep@breakwrite|).
 % The first write is a whatsit, and glue after a whatsit is a legal break, so a
 % |\nobreak| follows it; after the last line a break was legal anyway.
-% |\@didactic@keep@pairstart| writes to the |.aux| file the page that the last
+% |\@didactic@keep@relstart| writes to the |.aux| file the page that the last
 % line of the lead-in ends up on, when the tie is released, for \TeX\ may yet take
 % that line along by itself and then nothing is parted, and
-% |\@didactic@keep@pairend| writes the page that the
+% |\@didactic@keep@relend| writes the page that the
 % first line ended up on, whatever comes first: a listing, the header of a chunk,
 % or code side by side.
 %    \begin{macrocode}
@@ -6031,26 +6031,26 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \else
     \expandafter\@secondoftwo
   \fi}
-\def\@didactic@keep@pairstart{%
-  \global\@didactic@keep@pairduetrue
-  \xdef\@didactic@keep@pairline{\the\inputlineno}%
+\def\@didactic@keep@relstart{%
+  \global\@didactic@keep@relduetrue
+  \xdef\@didactic@keep@relline{\the\inputlineno}%
   \if@filesw
     \count@\lastpenalty
     \protected@write\@auxout{\let\@didactic@keep@cpage\relax}{%
       \string\@didactic@keep@pa{\@didactic@keep@cpage}}%
     \ifnum\count@=\@M\nobreak\fi
   \fi}
-\def\@didactic@keep@pairend{%
-  \if@didactic@keep@pairdue
-    \global\@didactic@keep@pairduefalse
+\def\@didactic@keep@relend{%
+  \if@didactic@keep@reldue
+    \global\@didactic@keep@relduefalse
     \if@filesw
       \protected@write\@auxout{\let\@didactic@keep@cpage\relax}{%
-        \string\@didactic@keep@pp{\string\@didactic@keep@pairpage}%
-          {\@didactic@keep@cpage}{\@didactic@keep@pairline}}%
+        \string\@didactic@keep@pp{\string\@didactic@keep@relpage}%
+          {\@didactic@keep@cpage}{\@didactic@keep@relline}}%
       \ifvmode\nobreak\fi
     \fi
   \fi}
-\def\@didactic@keep@pa#1{\gdef\@didactic@keep@pairpage{#1}}
+\def\@didactic@keep@pa#1{\gdef\@didactic@keep@relpage{#1}}
 \def\@didactic@keep@pp#1#2#3{%
   \ifnum#2>#1\relax
     \ifx\@newl@bel\@testdef
@@ -6278,7 +6278,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \ifnum\@didactic@keep@i>\z@
   \repeat
   \if@didactic@keep@inchunk\else
-    \@didactic@keep@pairend
+    \@didactic@keep@relend
   \fi
   \if@didactic@keepleadin
     \if@didactic@keep@inchunk
@@ -6399,7 +6399,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \fi
     \@didactic@keep@underheading
     \if@didactic@keep@movable\else\if@didactic@keep@direct\else
-      \ifinner\else\@didactic@keep@pairstart\fi
+      \ifinner\else\@didactic@keep@relstart\fi
     \fi\fi
   \fi
   \@didactic@FV@ListVSpace}
@@ -6614,7 +6614,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
           \else
             \ifdim\dimexpr\pagegoal-\pagetotal+\pageshrink
                 -\@topsep+\glueshrink\@topsep-\@didactic@keep@L\relax<\z@
-              \@didactic@keep@pairstart
+              \@didactic@keep@relstart
             \else
               \@didactic@keep@forbid
             \fi
@@ -7160,7 +7160,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \fi}
 \def\@didactic@keep@parabegin{%
   \if@didactic@keep@inbox\else
-    \@didactic@keep@pairend
+    \@didactic@keep@relend
     \ifcase\@didactic@keep@headstate
     \or
       \@didactic@keep@setclubs
@@ -7312,7 +7312,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \if@didactic@keep@movable
       \@beginparpenalty\@M
     \else\if@didactic@keep@direct\else
-      \ifinner\else\@didactic@keep@pairstart\fi
+      \ifinner\else\@didactic@keep@relstart\fi
     \fi\fi
   \fi
   \fi}
