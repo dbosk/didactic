@@ -1374,6 +1374,9 @@
 % is thin, and the choice is the maintainer's: rather have the first item or two on
 % this page and break in the middle.
 % So only that break changes, and between the items a page breaks as ever.
+% Past the limit it can start the next page, with a warning, but only if its first
+% item doesn't fit: where it does, $-51$ would part them for no reason, on a page
+% that stretches.
 % On eight real documents, with that penalty alone at 10000 and not this rule, it
 % costs no page, 804 either way.
 % At $-51$, 13 of the 208 lists that could be parted from what leads into them are, 8
@@ -1410,8 +1413,7 @@
 % The same documents without |breakcode| leave up to 41 lines empty, which is why
 % we warn about that.
 % \texttt{measure-flow} in the sources has the generator.
-% ^^A Native chunks; test-keep-sweep.py keeps the rules, not these numbers, which come
-% ^^A from a generator that isn't part of this repository.
+% ^^A Native chunks; test-keep-sweep.py keeps the rules, not these numbers.
 %
 % \StopEventually{}
 %
@@ -5074,9 +5076,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % moving them stays within |keepmaxgap| (|\@didactic@keep@tie|).
 % Otherwise the pair may start the next page on its own.
 % It doesn't break, and we don't know its height at the start, so whether it did
-% we learn from the pages, as for a heading: |\@didactic@keep@pairstart| notes
-% the page, |\@didactic@keep@pairend| writes it to the |.aux| file with the page
-% that the pair ended up on, and |\@didactic@keep@pp| warns.
+% we learn from the pages, as for a heading: |\@didactic@keep@pairstart| and
+% |\@didactic@keep@pairend| write to the |.aux| file the pages of the lead-in and
+% of the pair, and |\@didactic@keep@pp| warns.
 %    \begin{macrocode}
 \ExplSyntaxOn
 \newlength{\didacticpairgap}
@@ -5734,6 +5736,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \newcommand\@didactic@keep@hb[2]{}
 \newcommand\@didactic@keep@hm[3]{}
 \newcommand\@didactic@keep@after[3]{}
+\newcommand\@didactic@keep@pa[1]{}
 \newcommand\@didactic@keep@pp[3]{}
 \newcommand\@didactic@keep@bua[1]{}
 \newcommand\@didactic@keep@bub[3]{}
@@ -5947,8 +5950,10 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % of its first and last lines (|\@didactic@keep@breakwrite|).
 % The first write is a whatsit, and glue after a whatsit is a legal break, so a
 % |\nobreak| follows it; after the last line a break was legal anyway.
-% |\@didactic@keep@pairstart| notes the page, when the tie is released, and
-% |\@didactic@keep@pairend| writes it to the |.aux| file, with the page that the
+% |\@didactic@keep@pairstart| writes to the |.aux| file the page that the last
+% line of the lead-in ends up on, when the tie is released, for \TeX\ may yet take
+% that line along by itself and then nothing is parted, and
+% |\@didactic@keep@pairend| writes the page that the
 % first line ended up on, whatever comes first: a listing, the header of a chunk,
 % or code side by side.
 %    \begin{macrocode}
@@ -5960,10 +5965,13 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \ifvmode\ifinner\else
     \ifdim\pagegoal<\maxdimen
       \dimen@\dimexpr\pagegoal-\pagetotal-\pagedepth\relax
+      \@didactic@keep@ifchained{%
+        \dimen@\dimexpr\@didactic@keep@headroom-\@didactic@keep@headdepth\relax
+        \ifdim\dimen@>\@didactic@keepmaxgap\@didactic@keep@L
+          \global\@didactic@keep@movablefalse
+        \fi
+      }{%
       \ifdim\dimen@<\z@\else
-        \@didactic@keep@ifchained{%
-          \dimen@\dimexpr\@didactic@keep@headroom-\@didactic@keep@headdepth\relax
-        }{%
           \if@didactic@keep@afterlisting\else
             \if@didactic@keepleadin
               \ifnum\prevgraf>\thr@@
@@ -5977,11 +5985,11 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
               \fi
             \fi
           \fi
-        }%
         \ifdim\dimen@>\@didactic@keepmaxgap\@didactic@keep@L
           \global\@didactic@keep@movablefalse
         \fi
       \fi
+      }%
     \fi\fi\fi
   \fi}
 \def\@didactic@keep@gap{%
@@ -6025,18 +6033,24 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \fi}
 \def\@didactic@keep@pairstart{%
   \global\@didactic@keep@pairduetrue
-  \xdef\@didactic@keep@pairpage{\number\numexpr\ReadonlyShipoutCounter+\@ne\relax}%
-  \xdef\@didactic@keep@pairline{\the\inputlineno}}
+  \xdef\@didactic@keep@pairline{\the\inputlineno}%
+  \if@filesw
+    \count@\lastpenalty
+    \protected@write\@auxout{\let\@didactic@keep@cpage\relax}{%
+      \string\@didactic@keep@pa{\@didactic@keep@cpage}}%
+    \ifnum\count@=\@M\nobreak\fi
+  \fi}
 \def\@didactic@keep@pairend{%
   \if@didactic@keep@pairdue
     \global\@didactic@keep@pairduefalse
     \if@filesw
       \protected@write\@auxout{\let\@didactic@keep@cpage\relax}{%
-        \string\@didactic@keep@pp{\@didactic@keep@pairpage}%
+        \string\@didactic@keep@pp{\string\@didactic@keep@pairpage}%
           {\@didactic@keep@cpage}{\@didactic@keep@pairline}}%
       \ifvmode\nobreak\fi
     \fi
   \fi}
+\def\@didactic@keep@pa#1{\gdef\@didactic@keep@pairpage{#1}}
 \def\@didactic@keep@pp#1#2#3{%
   \ifnum#2>#1\relax
     \ifx\@newl@bel\@testdef
@@ -6585,7 +6599,12 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
           \if@didactic@keep@movable
             \@beginparpenalty\@M
           \else
-            \@didactic@keep@pairstart
+            \ifdim\dimexpr\pagegoal-\pagetotal-\pagedepth+\pageshrink
+                -\@topsep-\@didactic@keep@L\relax<\z@
+              \@didactic@keep@pairstart
+            \else
+              \@beginparpenalty\@M
+            \fi
           \fi
         \fi
       \fi
@@ -6724,6 +6743,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \string\providecommand\string\@didactic@keep@hb[2]{}%
       \string\providecommand\string\@didactic@keep@hm[3]{}%
       \string\providecommand\string\@didactic@keep@after[3]{}%
+      \string\providecommand\string\@didactic@keep@pa[1]{}%
       \string\providecommand\string\@didactic@keep@pp[3]{}%
       \string\providecommand\string\@didactic@keep@bua[1]{}%
       \string\providecommand\string\@didactic@keep@bub[3]{}}%
