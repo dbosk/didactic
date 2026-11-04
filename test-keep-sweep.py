@@ -197,9 +197,9 @@ CASES = {
     "hll6": lambda k: heading(k) + "\n" + para(k, 6, "P") + "\n" + items(k, 8, 1) + TAIL,
     # and on a page that can shrink or stretch, so the first item fits where naturally it
     # wouldn't, while a break before it would look just as good to TeX
-    "hs1": lambda k: r"\vspace{0pt plus 20pt minus 15pt}" + "\n" + heading(k) + "\n" + para(k, 1, "P") + "\n" + items(k, 8, 1) + TAIL,
-    "hs2": lambda k: r"\vspace{0pt plus 20pt minus 15pt}" + "\n" + heading(k) + "\n" + para(k, 2, "P") + "\n" + items(k, 8, 1) + TAIL,
-    "hs3": lambda k: r"\vspace{0pt plus 20pt minus 15pt}" + "\n" + heading(k) + "\n" + para(k, 3, "P") + "\n" + items(k, 8, 1) + TAIL,
+    "hs1": lambda k: r"\vspace{0pt plus 20pt minus 8pt}" + "\n" + heading(k) + "\n" + para(k, 1, "P") + "\n" + items(k, 8, 1) + TAIL,
+    "hs2": lambda k: r"\vspace{0pt plus 20pt minus 8pt}" + "\n" + heading(k) + "\n" + para(k, 2, "P") + "\n" + items(k, 8, 1) + TAIL,
+    "hs3": lambda k: r"\vspace{0pt plus 20pt minus 8pt}" + "\n" + heading(k) + "\n" + para(k, 3, "P") + "\n" + items(k, 8, 1) + TAIL,
     "ll2": lambda k: para(k, 2, "P") + "\n" + items(k, 8, 1) + TAIL,
     "ll3": lambda k: para(k, 3, "P") + "\n" + items(k, 8, 1) + TAIL,
     "ll6": lambda k: para(k, 6, "P") + "\n" + items(k, 8, 1) + TAIL,
@@ -486,9 +486,10 @@ def check_case(p, ref, name, case, K):
             fail(case, f"D8: {says[0][:50]}, but what leads into it goes along")
         if name in ITEMLISTS and parted and p.empty.get(lead_last, 0) >= 2:
             fail(case, f"L1: parted, with {p.empty[lead_last]:.1f} lines left for its first item")
-        # 15pt of shrink out of the topsep and the line that the first item needs
+        # 8pt of shrink out of the topsep and the line that the first item needs, and the
+        # topsep can shrink too
         if name in SHRINKLISTS and parted and p.empty.get(lead_last, 0) >= 0.8:
-            fail(case, f"L1: parted, with {p.empty[lead_last]:.1f} lines and 15pt to shrink left")
+            fail(case, f"L1: parted, with {p.empty[lead_last]:.1f} lines and 8pt to shrink left")
         # Within a tenth, for the depth of the line above; TeX may choose that by itself.
         if name in HEADLISTS and p.on("H", case) > r and p.empty.get(r, 0) > LIMIT + 0.1 \
                 and ref.on("H", case) == ref.on("R", case):

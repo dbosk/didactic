@@ -6599,8 +6599,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
           \if@didactic@keep@movable
             \@beginparpenalty\@M
           \else
-            \ifdim\dimexpr\pagegoal-\pagetotal-\pagedepth+\pageshrink
-                -\@topsep-\@didactic@keep@L\relax<\z@
+            \ifdim\dimexpr\pagegoal-\pagetotal+\pageshrink
+                -\@topsep+\glueshrink\@topsep-\@didactic@keep@L\relax<\z@
               \@didactic@keep@pairstart
             \else
               \@beginparpenalty\@M
