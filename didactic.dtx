@@ -6912,6 +6912,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % If it can, \TeX\ would still take the bonus on a page that stretches, and the warning
 % would have no reason, so we make that break cost more than the one after that line
 % can: its club and interline penalties, and 100 for the shrinking it may need.
+% (The club penalty of \LaTeX, |\@clubpenalty|: |\clubpenalty| is 10000 here under a
+% heading, until the next paragraph.)
 % So the first item stays on the page if \TeX\ can have it there.
 % We don't forbid the break: what follows may yet not fit, a first line taller than a
 % line of the text, or the lead-in of a listing in the item, and then the list starts
@@ -7037,7 +7039,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
             \else
               \@didactic@keep@ifchained{}{\@didactic@keep@relmove}%
               \@didactic@keep@forbid
-                {\numexpr\clubpenalty+\interlinepenalty+101\relax}%
+                {\numexpr\@clubpenalty+\interlinepenalty+101\relax}%
             \fi
           \fi
         \fi

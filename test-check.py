@@ -410,7 +410,7 @@ def keep_noweb(c, overfull=True):
 def keep_once(c):
     """test-keep-once.tex; see its header."""
     lines = keep_results(c, "once")
-    c.ok(set(lines) == set("vpnwm"), f"five cases, has {sorted(lines)}")
+    c.ok(set(lines) == set("vpnwmi"), f"six cases, has {sorted(lines)}")
     w = warnings(c)
     c.ok(not [x for x in w if "apart from what leads" in x],
          f"nothing warns a second time: {w}")

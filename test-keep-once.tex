@@ -10,6 +10,8 @@
 %   W  A chunk woven for minted.
 %   M  A listing whose lines come from minted's file: the warning names this file's
 %      line, not that file's.
+%   I  A list whose first line seems to fit, by a line of the text, and doesn't: under
+%      a heading the club penalty is still 10000 there, and the list still can't stay.
 % The space before a list stays what it is, when the tie is released and what is
 % written to the .aux comes between that space and the list.
 %   A  Plenty of room, the tie holds: nothing is written there.
@@ -95,6 +97,16 @@ LEADM in\hspace*{\fill}\break and on.
 \case{m}\inputminted{text}{\jobname-m.txt}
 After M.
 
+\roomfor{9}
+Above.
+
+\section*{I}
+LEADI in\hspace*{\fill}\break and on.
+\case{i}\begin{itemize}\item \rule{0pt}{6\baselineskip}CODEI one
+\item two
+\end{itemize}
+After I.
+
 \clearpage
 Above.
 
@@ -102,7 +114,7 @@ Above.
 LEADA in\hspace*{\fill}\break and on.
 
 \total{a0}
-\vspace{20pt}
+\addvspace{20pt}
 \begin{itemize}
 \item ITEMA one.\par\total{a1}
 \item two.
@@ -115,7 +127,7 @@ Above.
 LEADB in\hspace*{\fill}\break and on.
 
 \total{b0}
-\vspace{20pt}
+\addvspace{20pt}
 \begin{itemize}
 \item ITEMB one.\par\total{b1}
 \item two.
