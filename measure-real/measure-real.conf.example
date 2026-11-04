@@ -1,0 +1,29 @@
+# measure-real.conf: which documents, kept outside the repository.
+# Copy this, fill it in, and pass it with --conf.
+[rig]
+# The directory the document paths below are relative to.  Read only.
+root = /path/to/documents
+
+# One section per document, named as you like.  `kind` is what the tables say.
+[notes-1]
+kind = lecture notes
+# Its directory below the root, and its main file without .tex.
+dir = course/lecture-1
+main = notes
+# Where its last build left its files, with -output-directory; default "."
+output = ltxobj
+# pdflatex, or xelatex or lualatex if that is what it builds with.
+engine = pdflatex
+# Optional: a shell command, run in the copy's directory, if the woven source
+# isn't kept or is out of date.  The same recipe as the document's own Makefile.
+weave = noweave -n -delay -t2 -index -filter tominted contents.nw > contents.tex
+# Optional: run biber once in the copy, if the woven source has other citations.
+biber = yes
+
+[book-1]
+kind = course book
+# Optional: another root for this document, such as a kept snapshot.
+# root = /path/to/snapshot
+dir = course/book
+main = book
+output = ltxobj
