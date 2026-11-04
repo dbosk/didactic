@@ -156,6 +156,10 @@
 %   \texttt{didacticpair}, and the header line of a \textsf{noweb} chunk, 
 %   stay with it.
 %   A listing too tall for a page breaks anyway, with a warning.
+%   A warning names the place when a listing ends up on another page than its
+%   lead-in, for a note, a float or space between them, and when what can't
+%   part from a listing makes a page overfull.
+%   In \texttt{multicols} listings stay as they were, with a warning.
 %   A listing of \textsf{fvextra} (so of \texttt{minted}) no longer breaks 
 %   after any line, whatever the penalties.
 %   Writes the margin column's place to the log 
@@ -1023,10 +1027,13 @@
 %   A colour set for the listing doesn't change that.
 %   A margin note or a float on its own between them, after a blank line,
 %   does, and so does space that you add with |\vspace|: \LaTeX\ gives a
-%   place to break there, whatever comes next, and the two can land on
-%   different pages.
+%   place to break there, whatever comes next.
+%   If the two land on different pages that way, \textsf{didactic} warns, with
+%   the page and the input line.
 %   To keep them together, write a note in the paragraph that leads into the
 %   listing, without a blank line, and a float before that paragraph.
+%   A break that you ask for doesn't warn, with |\pagebreak| or |\goodbreak|
+%   say, and nor does one after a list.
 %   The header line of a code chunk of \textsf{noweb} stays with its code
 %   too.
 %   A page may still break within a longer paragraph before the listing,
@@ -1041,10 +1048,13 @@
 % A listing kept whole can still fail to fit on a page, with what is kept
 % with it: a tall box in the paragraph before it, or a float at the top of
 % the next page, which is placed before \TeX\ gets to the listing.
+% Nor can the first |keepends| lines of a longer listing.
 % Then that page is overfull, and \textsf{didactic} warns, as it does whenever
 % it can't do what these options ask.
-% Give the listing room with a place to break before it, such as a blank line
-% and |\vspace|.
+% Give the listing room with a place to break before it, such as |\goodbreak|.
+% A line taller than a page can't be kept from running off it, since a page
+% can't break within a line: what doesn't fit is lost, and \textsf{didactic} says
+% so.
 %
 % The page that a listing moves away from comes up short, and what happens
 % with that space depends on the document.
@@ -1071,6 +1081,8 @@
 % after any line, whatever the penalties: that no longer happens.
 % Listings inside a box, such as the code side by side above, can't break
 % anyway, and on the slides nothing changes.
+% In |multicols| they stay as \textsf{fancyvrb} has them, each with a warning: the
+% columns are made later, so we can't know the height a listing should fit.
 %
 % \StopEventually{}
 %
