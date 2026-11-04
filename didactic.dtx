@@ -6781,6 +6781,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
           {\@didactic@keep@cpage}}%
     \fi
   \fi}
+\newskip\@didactic@keep@after@skip
 \def\@didactic@keep@afterheading{%
   \if@didactic@keep@inbox\else\ifinner\else
     \if@didactic@keep@ownline
@@ -6788,8 +6789,16 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \ifnum\@didactic@keepafterheading>\z@
         \global\@didactic@keep@headstate\@ne
       \fi
+      \@didactic@keep@after@skip\lastskip
+      \ifdim\@didactic@keep@after@skip=\z@\else
+        \vskip-\@didactic@keep@after@skip
+      \fi
       \@didactic@keep@headpage
       \@didactic@keep@movecheck
+      \ifdim\@didactic@keep@after@skip=\z@\else
+        \nobreak
+        \vskip\@didactic@keep@after@skip
+      \fi
     \else
       \global\let\@didactic@keep@headkey\@empty
       \global\@didactic@keep@hpduefalse
@@ -7120,7 +7129,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % every chunk (|\nwdocspar|): a |\filbreak|, or with the option 
 % |breakcode| a penalty of $-200$ with 0.2\,in of stretch, which in the 
 % notes ends pages right after a chunk with several lines empty.
-% With a |keepmaxgap| we leave the breaks to the rules above and drop it.
+% With a |keepmaxgap| we leave the breaks to the rules above and drop it, also
+% when |\noweboptions| comes later, as it does in the text with |noweave -delay|.
 % The |\filbreak| that \textsf{noweb} has at the end of a chunk without 
 % |breakcode| we can't drop as well as honour what the writer may want of it, and 
 % it ends a page wherever the next chunk doesn't fit whole, so |keepmaxgap| can't 
@@ -7134,6 +7144,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % for a while.
 %    \begin{macrocode}
 \let\@didactic@nwfirstpenalty\relax
+\def\@didactic@nwoptions#1{%
+  \@didactic@noweboptions{#1}\let\nwdocspar\relax}
 \def\@didactic@nwkeep{%
   \@didactic@nwfilbreak
   \@didactic@keep@inchunktrue
@@ -7188,6 +7200,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \catcode`\@\@didactic@atcatcode
     \ifnum\@didactic@keepmaxgap>\z@
       \let\nwdocspar\relax
+      \let\@didactic@noweboptions\noweboptions
+      \let\noweboptions\@didactic@nwoptions
     \fi
   \fi}
 \fi
