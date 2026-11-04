@@ -19,7 +19,8 @@ TEST_FLOATORDER=	test-marginfloat-samepar test-marginfloat-moved \
 # The same with \includeonly, from the .aux files of the whole document.
 TEST_INCLUDE=		test-marginfloat-include-all test-marginfloat-include
 # Warnings from where listings ended up.
-TEST_KEEPCHECK=		test-keep-leadin test-keep-leadin-off test-keep-overfull
+TEST_KEEPCHECK=		test-keep-leadin test-keep-leadin-off test-keep-overfull \
+			test-keep-multicol
 
 .PHONY: all
 all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
@@ -237,7 +238,7 @@ test-keep-chain.pdf: test-keep-chain.tex didactic.sty
 test-keep-leadin.pdf test-keep-leadin-off.pdf: %.pdf: %.tex \
 		test-keep-leadin-body.tex didactic.sty
 	@${latex_until_settled}
-test-keep-overfull.pdf: %.pdf: %.tex didactic.sty
+test-keep-overfull.pdf test-keep-multicol.pdf: %.pdf: %.tex didactic.sty
 	@${latex_until_settled}
 
 test-keep-huge.pdf: test-keep-huge.tex didactic.sty

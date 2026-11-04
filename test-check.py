@@ -360,6 +360,29 @@ def keep_overfull(c):
     c.ok(n >= 4 and n <= len(found), f"{n} overfull pages, {len(found)} warnings")
 
 
+def keep_multicol(c):
+    """test-keep-multicol.tex; see its header."""
+    lines = keep_results(c, "multicol")
+    c.ok(not re.search(r"Overfull \\vbox", c.log), "no Overfull \\vbox")
+    w = [x for x in warnings(c) if "multicols" in x]
+    for n in "abp":
+        c.ok(any(f"input line {lines[n]}" in x for x in w),
+             f"case {n}, line {lines[n]}, warns")
+    c.ok(len(w) == 3, f"three warnings about multicols, has {len(w)}: {w}")
+    for lead, first in (("LEADA", "alpha"), ("LEADB", "beta")):
+        # In its own column, it's above it with no stretch; in the next one, it's
+        # at the top of it.
+        a, b = c.one(lead), c.words(first)[0]
+        gap = b["ymin"] - a["ymax"]
+        if abs(a["xmin"] - b["xmin"]) < 50:
+            c.ok(-1 < gap < 40, f"{lead} is right above its listing: {gap:.0f}pt")
+        else:
+            c.ok(b["ymin"] < a["ymin"], f"{first} starts the next column")
+    c.ok(len(c.words("gamma")) == 20, "the listing after the columns is there")
+    gam = c.words("gamma")
+    c.ok(gam[0]["page"] == gam[-1]["page"], "the one after them is kept")
+
+
 def marginfloat_hidden(c):
     """test-marginfloat-hidden.tex; the numbers are those of its header."""
     c.clean_log()                                    # 1
@@ -526,6 +549,7 @@ CHECKS = {
     "test-keep-leadin": keep_leadin,
     "test-keep-leadin-off": keep_leadin_off,
     "test-keep-overfull": keep_overfull,
+    "test-keep-multicol": keep_multicol,
     "test-frametitle": frametitle,
     "test-frametitle-slides": frametitle_slides,
     "test-frametitle-overlay": frametitle_overlay,

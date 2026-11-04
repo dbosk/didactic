@@ -5244,6 +5244,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \newif\if@didactic@keep@watch
 \newif\if@didactic@keep@emptystart
 \newif\if@didactic@keep@head
+\newif\if@didactic@keep@cols
 \@ifclassloaded{beamer}{\@didactic@keepfalse}{\@didactic@keeptrue}
 \if@didactic@keep
 %    \end{macrocode}
@@ -5364,6 +5365,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % \textsf{fancyvrb}'s penalty unless that forbids it too (|samepage|), and 
 % say so.
 % The result goes to |\@didactic@keep@pen|.
+%
+% In |multicols| we leave the penalties to \textsf{fancyvrb} (see 
+% |\@didactic@keep@atfirst|).
 %    \begin{macrocode}
 \newcount\@didactic@keep@pen
 \newdimen\@didactic@keep@run
@@ -5378,7 +5382,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \advance\@tempcntb\widowpenalty
   \fi
   \count@\@tempcntb
-  \if@didactic@keep@long
+  \if@didactic@keep@cols
+  \else\if@didactic@keep@long
     \ifnum\numexpr\@didactic@keep@nb-\@didactic@keep@tail\relax
         <\@didactic@keepends
       \@tempcntb\@M
@@ -5391,7 +5396,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \fi
   \else
     \@tempcntb\@M
-  \fi
+  \fi\fi
   \ifnum\@tempcntb<\@M
     \global\@didactic@keep@run\z@
   \else
@@ -5424,13 +5429,15 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % We leave room for what is kept with the listing (|keepleadin|) too, which 
 % we can't measure from here: a heading and the line that leads into the 
 % listing, five lines of the text.
-% Inside a box there is no page to fit on.
+% Inside a box there is no page to fit on, and in |multicols| we don't know the 
+% limit.
 %    \begin{macrocode}
 \def\@didactic@keep@tall{%
   \global\@didactic@keep@warnedfalse
   \global\@didactic@keep@maxrun
     \dimexpr\textheight-\topskip-5\normalbaselineskip\relax
   \ifinner\else
+    \if@didactic@keep@cols\else
     \ifnum\@didactic@keep@n>\@didactic@keeplines\else
       \ifdim\dimexpr\ht\@didactic@keep@box+\dp\@didactic@keep@box\relax
           >\@didactic@keep@maxrun
@@ -5445,6 +5452,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
           It breaks between its lines, as a long listing\MessageBreak
           does, \@didactic@keep@place}%
       \fi
+    \fi
     \fi
   \fi}
 %    \end{macrocode}
@@ -5574,6 +5582,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \global\let\@didactic@keep@shipped\relax
   \global\@didactic@keep@watchtrue
   \ifinner\global\@didactic@keep@watchfalse\fi
+  \if@didactic@keep@cols\global\@didactic@keep@watchfalse\fi
   \@didactic@keep@i\@didactic@keep@n
   \@didactic@keep@tail\z@
   \global\@didactic@keep@run\z@
@@ -5718,6 +5727,12 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % line (a frame of \textsf{fancyvrb}, the header line of a chunk).
 % By the first line, |\@didactic@keep@atfirst|, we know how much that is and if the 
 % page was empty.
+%
+% In |multicols| the columns are made later, from what it has collected, so we 
+% can't know the height the listing should fit, and keeping the lines together 
+% makes things worse: columns overfull and the text stretched away from the listing.
+% So there we leave listings as \textsf{fancyvrb} has them, and say so.
+% |multicols| ends its group, and our settings with it.
 %    \begin{macrocode}
 \newcount\@didactic@keep@gendepth
 \ExplSyntaxOn
@@ -5759,6 +5774,12 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \def\@didactic@keep@place{near page \thepage\space on input line
   \@didactic@keep@inputline}
 \def\@didactic@keep@atfirst{%
+  \if@didactic@keep@cols
+    \PackageWarningNoLine{didactic}{%
+      A listing in multicols isn't kept together: we can't\MessageBreak
+      know the height of its column, so it breaks as\MessageBreak
+      any text can, \@didactic@keep@place}%
+  \fi
   \@didactic@keep@noteempty
   \global\@didactic@keep@pre\dimexpr\pagetotal-\@didactic@keep@startpt\relax}
 \def\@didactic@keep@noteempty{%
@@ -5767,6 +5788,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \else
     \global\@didactic@keep@emptystartfalse
   \fi}
+\AddToHook{env/multicols/begin}{\@didactic@keep@colstrue\@didactic@keepleadinfalse}
+\AddToHook{env/multicols*/begin}{\@didactic@keep@colstrue\@didactic@keepleadinfalse}
 %    \end{macrocode}
 % \end{macro}
 % \end{macro}
@@ -5875,7 +5898,14 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \@didactic@keep@noteempty
   \global\let\@didactic@keep@shipped\relax
   \global\@didactic@keep@watchtrue
-  \ifinner\global\@didactic@keep@watchfalse\fi}
+  \ifinner\global\@didactic@keep@watchfalse\fi
+  \if@didactic@keep@cols
+    \global\@didactic@keep@watchfalse
+    \PackageWarningNoLine{didactic}{%
+      Code side by side in multicols isn't tied to what\MessageBreak
+      leads into it: we can't know the height of its\MessageBreak
+      column, \@didactic@keep@place}%
+  \fi}
 \def\@didactic@keep@pairmeasure{%
   \ifhmode
     \setbox\@tempboxa\lastbox
