@@ -505,7 +505,8 @@ test-noteyield-cap: test-noteyield-cap.tex test-noteyield-cap.sh didactic.sty
 # What a page that ends early for a note does to a heading and to lone lines,
 # under pdflatex whatever PDFLATEX is.
 .PHONY: test-yieldkeep
-test-yieldkeep: test-yieldkeep.tex test-yieldkeep.sh didactic.sty
+test-yieldkeep: test-yieldkeep.tex test-yieldkeep-slides.tex test-yieldkeep.sh \
+		didactic.sty
 	./test-yieldkeep.sh
 
 # biburlpenalty and bibemergencystretch: biblatex's URL break penalties and
@@ -638,6 +639,8 @@ clean:
 	${RM} test-noteyield.unq test-noteyield.pytxcode
 	${RM} test-yieldkeep-*.pdf test-yieldkeep-*.aux test-yieldkeep-*.log
 	${RM} test-yieldkeep-*.aux.old test-yieldkeep-*.unq test-yieldkeep-*.pytxcode
+	${RM} test-yieldkeep-*.nav test-yieldkeep-*.snm test-yieldkeep-*.toc
+	${RM} test-yieldkeep-*.out
 	${RM} test-noteyield-cap-*.pdf test-noteyield-cap-*.aux
 	${RM} test-noteyield-cap-*.log test-noteyield-cap-*.aux.old
 	${RM} test-noteyield-cap-*.unq test-noteyield-cap-*.pytxcode

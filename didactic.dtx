@@ -3967,6 +3967,8 @@
 % reason here; the same goes for the other notes of that page, which are capped
 % with it.
 % The rest of a split note has a box with no key (\cs{@didactic@fit@key}).
+% Under \textsf{beamer} the code that counts a heading's lines isn't there, and we
+% stay out of it: a frame doesn't end early for a note.
 % The fix for a note held back or a lone line is in the text: a shorter note, or
 % moving the mark.
 %    \begin{macrocode}
@@ -4172,11 +4174,13 @@
   \AddToHook{para/after}{\@didactic@fit@paraafter}}
 \AtBeginDocument{%
   \ifdefined\MFX@fit@capwhy
-    \ifdefined\pdftexversion
-      \@didactic@fit@setup
-    \else\ifdefined\directlua
-      \@didactic@fit@setup
-    \fi\fi
+    \ifdefined\@didactic@keep@headstate
+      \ifdefined\pdftexversion
+        \@didactic@fit@setup
+      \else\ifdefined\directlua
+        \@didactic@fit@setup
+      \fi\fi
+    \fi
   \fi}
 %    \end{macrocode}
 % \end{macro}

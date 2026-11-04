@@ -89,4 +89,12 @@ check widow widow 7 '' "hold:$last"
 check clubzero club 4 'noteyieldmaxgap=0' "warnlone:$first"
 check middle middle 9 '' yield
 check split split 4 '' clean
+rm -f "$job-slides.aux"
+pdflatex -shell-escape -interaction=nonstopmode "$job-slides" > /dev/null
+errors=$(grep -c '^!' "$job-slides.log")
+if [ "$errors" = 0 ]; then
+  echo "didactic yieldkeep test: slides PASS"
+else
+  echo "didactic yieldkeep test: slides FAIL ($errors errors)"; status=1
+fi
 exit $status
