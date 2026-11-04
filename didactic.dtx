@@ -6134,7 +6134,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \fi}
 \def\@didactic@keep@relstart{%
   \global\@didactic@keep@relduetrue
-  \xdef\@didactic@keep@relline{\the\inputlineno}%
+  \xdef\@didactic@keep@relline{\@didactic@keep@where}%
   \if@filesw
     \count@\lastpenalty
     \protected@write\@auxout{\let\@didactic@keep@cpage\relax}{%
@@ -6156,7 +6156,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \ifnum#2>#1\relax
     \ifx\@newl@bel\@testdef
       \PackageWarningNoLine{didactic}{%
-        What starts at line #3 goes to the next page, not tied\MessageBreak
+        What starts at #3 goes to the next page, not tied\MessageBreak
         to what leads into it: moving that too would leave\MessageBreak
         more than keepmaxgap lines empty}%
     \fi
@@ -6166,7 +6166,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \ifnum#1>\@didactic@keep@bupage\relax
     \ifx\@newl@bel\@testdef
       \PackageWarningNoLine{didactic}{%
-        The listing of #2 lines at line #3 breaks under its\MessageBreak
+        The listing of #2 lines at #3 breaks under its\MessageBreak
         heading, by keepends: moving them would leave more\MessageBreak
         than keepmaxgap lines empty}%
     \fi
@@ -6454,7 +6454,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \fi
   \@didactic@keep@breakwrite{%
     \string\@didactic@keep@bub{\@didactic@keep@cpage}{\the\@didactic@keep@n}%
-      {\the\inputlineno}}{}%
+      {\@didactic@keep@where}}{}%
   \prevdepth\@didactic@keep@pd
   \ifinner\else
     \begingroup\@@par\endgroup
@@ -6507,7 +6507,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % for.
 % |\inputlineno| doesn't always say: the lines of |minted| come from a file of its 
 % own, and PythonTeX's output too, which it reads with |\input|.
-% So we note the line when such a file is opened from any other file.
+% So we note the line when such a file is opened from any other file, and which
+% file that is: |\CurrentFile| is the generated file by then, so we keep a stack of
+% the others, |\@didactic@keep@filestack|, and |\@didactic@keep@where| says both.
 % The start of the list, |\@didactic@keep@atstart|, then reads the line; a noweb 
 % chunk starts its list before its code, so it sets it first, at its header line, 
 % in a group that ends with the chunk.
@@ -6546,6 +6548,29 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \@didactic@keep@ifgenerated{%
     \global\advance\@didactic@keep@gendepth\m@ne
   }{}}
+\def\@didactic@keep@currentfile{%
+  \ifx\CurrentFile\@undefined\jobname\else
+    \ifx\CurrentFile\@empty\jobname\else
+      \ifx\CurrentFilePath\@empty\else\CurrentFilePath/\fi
+      \CurrentFile\fi\fi}
+\let\@didactic@keep@filestack\@empty
+\def\@didactic@keep@srctop#1\@nnil#2\@nil{#1}
+\def\@didactic@keep@srcfile{%
+  \expandafter\@didactic@keep@srctop\@didactic@keep@filestack\jobname\@nnil\@nil}
+\def\@didactic@keep@srcpop#1\@nnil#2\@nil{\gdef\@didactic@keep@filestack{#2}}
+\AddToHook{file/before}{%
+  \@didactic@keep@ifgenerated{}{%
+    \xdef\@didactic@keep@filestack{\@didactic@keep@currentfile\noexpand\@nnil
+      \unexpanded\expandafter{\@didactic@keep@filestack}}}}
+\AddToHook{file/after}{%
+  \@didactic@keep@ifgenerated{}{%
+    \ifx\@didactic@keep@filestack\@empty\else
+      \expandafter\@didactic@keep@srcpop\@didactic@keep@filestack\@nil
+    \fi}}
+\AtBeginDocument{%
+  \xdef\@didactic@keep@filestack{\@didactic@keep@currentfile\noexpand\@nnil}}
+\def\@didactic@keep@where{\@didactic@keep@srcfile, line
+  \ifnum\@didactic@keep@gendepth>\z@\@didactic@keep@genline\else\the\inputlineno\fi}
 \newcount\@didactic@keep@nwstate
 \newdimen\@didactic@keep@startpt
 \newdimen\@didactic@keep@pre
@@ -6558,10 +6583,11 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \else
       \xdef\@didactic@keep@inputline{\the\inputlineno}%
     \fi
+    \xdef\@didactic@keep@inputfile{\@didactic@keep@srcfile}%
     \global\@didactic@keep@startpt\pagetotal
   \fi}
 \def\@didactic@keep@place{near page \thepage\space on input line
-  \@didactic@keep@inputline}
+  \@didactic@keep@inputline\space of \@didactic@keep@inputfile}
 \def\@didactic@keep@atfirst{%
   \if@didactic@keep@cols
     \PackageWarningNoLine{didactic}{%
@@ -6649,7 +6675,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
         with it, so page \ifx\@didactic@keep@shipped\relax\thepage\else
         \@didactic@keep@shipped\fi\space is overfull. Put a place to\MessageBreak
         break before it, such as \string\goodbreak, on input line
-        \@didactic@keep@inputline}%
+        \@didactic@keep@inputline\space of \@didactic@keep@inputfile}%
     \else
       \if@didactic@keepleadin\if@didactic@keep@movable
         \ifdim\dimexpr\pagetotal+\pagedepth\relax
@@ -6663,7 +6689,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
             \PackageWarningNoLine{didactic}{%
               #1 starts page \thepage, apart from what leads\MessageBreak
               into it: a note, a float or space between them\MessageBreak
-              gave a place to break, on input line \@didactic@keep@inputline}%
+              gave a place to break, on input line
+              \@didactic@keep@inputline\space of \@didactic@keep@inputfile}%
           \fi
         \fi
       \fi\fi

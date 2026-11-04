@@ -1,0 +1,123 @@
+% A released tie warns once, and names the source's file and line (didactic).
+%
+% In each case below moving the heading and the lead-in would leave more than
+% keepmaxgap lines empty, so the tie is released and what follows the lead-in starts
+% the next page.  That has its warning, and the check of where a listing ended up, which
+% would also see it starting a page apart from its lead-in, stays quiet.
+%   V  A listing.
+%   P  Code side by side.
+%   N  A chunk that noweb sets itself.
+%   W  A chunk woven for minted.
+%   M  A listing whose lines come from minted's file: the warning names this file's
+%      line, not that file's.
+% The space before a list stays what it is, when the tie is released and what is
+% written to the .aux comes between that space and the list.
+%   A  Plenty of room, the tie holds: nothing is written there.
+%   B  Past the limit, and the first item fits.
+%
+% Build: see the Makefile; test-check.py compares the warnings with the words' pages.
+\documentclass[a4paper,oneside]{memoir}
+\usepackage[british]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\usepackage{noweb}
+\makeatletter
+\newcommand\roomfor[1]{%
+  \clearpage
+  \noindent\rule{1pt}{\dimexpr\textheight-\topskip-#1\baselineskip-\baselineskip\relax}\par}
+\newcommand\case[1]{\typeout{once case #1 line \the\inputlineno}}
+\newcommand\total[1]{\typeout{once total #1 \the\pagetotal}}
+\newwrite\@once@out
+\immediate\openout\@once@out=\jobname-m.txt
+\immediate\write\@once@out{CODEM one}
+\immediate\write\@once@out{code two}
+\immediate\write\@once@out{code three}
+\immediate\closeout\@once@out
+\makeatother
+\begin{document}
+
+\roomfor{7}
+Above.
+
+\section*{V}
+LEADV in\hspace*{\fill}\break and on.
+\case{v}\begin{Verbatim}
+CODEV one
+code two
+code three
+\end{Verbatim}
+After V.
+
+\roomfor{7}
+Above.
+
+\section*{P}
+LEADP in\hspace*{\fill}\break and on.
+\case{p}\begin{didacticpair}{2}
+  \rule{1pt}{8\baselineskip}CODEP & right
+\end{didacticpair}
+After P.
+
+\roomfor{6.2}
+Above.
+
+\section*{N}
+LEADN in\hspace*{\fill}\break and on.
+\nwenddocs{}\case{n}\nwbegincode{1}\moddef{N}\endmoddef\nwstartdeflinemarkup\nwenddeflinemarkup
+CODEN one
+code two
+code three
+\nwendcode{}\nwbegindocs{2}\nwdocspar
+After N.
+\nwenddocs{}
+
+\roomfor{7}
+Above.
+
+\section*{W}
+LEADW in\hspace*{\fill}\break and on.
+\nwenddocs{}\case{w}\nwbegincode{3}\moddef{W}\endmoddef\nwstartdeflinemarkup\nwenddeflinemarkup
+\begin{Verbatim}
+CODEW one
+code two
+code three
+\end{Verbatim}
+\nwnotused{W}\nwendcode{}\nwbegindocs{4}\nwdocspar
+After W.
+\nwenddocs{}
+
+\roomfor{7}
+Above.
+
+\section*{M}
+LEADM in\hspace*{\fill}\break and on.
+\case{m}\inputminted{text}{\jobname-m.txt}
+After M.
+
+\clearpage
+Above.
+
+\section*{A}
+LEADA in\hspace*{\fill}\break and on.
+
+\total{a0}
+\vspace{20pt}
+\begin{itemize}
+\item ITEMA one.\par\total{a1}
+\item two.
+\end{itemize}
+
+\roomfor{9.5}
+Above.
+
+\section*{B}
+LEADB in\hspace*{\fill}\break and on.
+
+\total{b0}
+\vspace{20pt}
+\begin{itemize}
+\item ITEMB one.\par\total{b1}
+\item two.
+\end{itemize}
+\end{document}

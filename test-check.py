@@ -407,6 +407,27 @@ def keep_noweb(c, overfull=True):
     c.ok(not set(apart) - set(lines.values()), "no warning elsewhere")
 
 
+def keep_once(c):
+    """test-keep-once.tex; see its header."""
+    lines = keep_results(c, "once")
+    c.ok(set(lines) == set("vpnwm"), f"five cases, has {sorted(lines)}")
+    w = warnings(c)
+    c.ok(not [x for x in w if "apart from what leads" in x],
+         f"nothing warns a second time: {w}")
+    for n, line in lines.items():
+        lead, code = c.one("LEAD" + n.upper()), c.one("CODE" + n.upper())
+        c.ok(lead["page"] < code["page"], f"case {n} is on two pages")
+        here = [x for x in w if "goes to the next page" in x
+                and f"test-keep-once, line {line} " in x]
+        c.ok(len(here) == 1, f"case {n}, line {line}, warns once: {w}")
+    c.ok(len([x for x in w if "goes to the next page" in x]) == len(lines),
+         f"no warning elsewhere: {w}")
+    totals = {k: float(v) for k, v in re.findall(r"once total (\w+) ([\d.]+)pt", c.log)}
+    a, b = totals["a1"] - totals["a0"], totals["b1"] - totals["b0"]
+    c.ok(abs(a - b) < 0.01, f"the same space before the list: {a:.2f}pt and {b:.2f}pt")
+    c.ok(c.one("LEADB")["page"] == c.one("ITEMB")["page"], "case B is on one page")
+
+
 def keep_multicol(c):
     """test-keep-multicol.tex; see its header."""
     lines = keep_results(c, "multicol")
@@ -615,6 +636,7 @@ CHECKS = {
     "test-keep-leadin-off": keep_leadin_off,
     "test-keep-overfull": keep_overfull,
     "test-keep-multicol": keep_multicol,
+    "test-keep-once": keep_once,
     "test-keep-twocol": keep_twocol,
     "test-keep-noweb": keep_noweb,
     "test-keep-noweb-break": lambda c: keep_noweb(c, overfull=False),

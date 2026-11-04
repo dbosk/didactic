@@ -31,7 +31,7 @@ TEST_INCLUDE=		test-marginfloat-include-all test-marginfloat-include
 # Warnings from where listings ended up.
 TEST_KEEPCHECK=		test-keep-leadin test-keep-leadin-off test-keep-overfull \
 			test-keep-multicol test-keep-twocol test-keep-noweb \
-			test-keep-noweb-break
+			test-keep-noweb-break test-keep-once
 
 .PHONY: all
 all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
@@ -270,7 +270,7 @@ test-keep-noweb.pdf test-keep-noweb-break.pdf: %.pdf: %.tex \
 test-keep-leadin.pdf test-keep-leadin-off.pdf: %.pdf: %.tex \
 		test-keep-leadin-body.tex didactic.sty
 	@${latex_until_settled}
-test-keep-overfull.pdf test-keep-multicol.pdf test-keep-twocol.pdf: %.pdf: %.tex didactic.sty
+test-keep-once.pdf test-keep-overfull.pdf test-keep-multicol.pdf test-keep-twocol.pdf: %.pdf: %.tex didactic.sty
 	@${latex_until_settled}
 
 test-keep-blank.pdf: test-keep-blank.tex didactic.sty
@@ -297,7 +297,7 @@ test-keep-heading.pdf test-keep-heading3.pdf: %.pdf: %.tex test-keep-heading.tex
 	! grep 'Overfull .vbox' $*.log
 	test "$$(grep -c 'Package didactic Warning: .*Only 1 of' $*.log)" -eq 0
 	test "$$(grep -c 'Package didactic Warning: .*Only 2 of' $*.log)" -eq ${ONLY2}
-	test "${call count_warn,What starts at line}" -eq 1
+	test "${call count_warn,What starts at}" -eq 1
 	test "$$(grep -c 'didactic heading test.*PASS' $*.log)" -ge 40
 test-keep-heading.pdf: ONLY2=0
 test-keep-heading3.pdf: ONLY2=3
