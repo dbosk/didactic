@@ -329,8 +329,8 @@ test-keep-flush.pdf: test-keep-flush.tex didactic.sty
 # section, and an entry for a table only if a section stands in for the chapter.
 ${TEST_KEEP_CHAPTER:=.pdf}: %.pdf: %.tex didactic.sty
 	@${latex_until_settled}
-	test "$$(grep -c 'keep@hpage' $*.aux)" -eq "$$(grep -c '^.section\*' $*.tex)"
-	test "$$(grep -c 'keep@tp' $*.aux)" -eq "$$(grep -c '^.section\*.After' $*.tex)"
+	test "$$(grep -c '^.@didactic@keep@hpage' $*.aux)" -eq "$$(grep -c '^.section\*' $*.tex)"
+	test "$$(grep -c '^.@didactic@keep@tp' $*.aux)" -eq "$$(grep -c '^.section\*.After' $*.tex)"
 
 # the break before a heading doesn't go stale; see the script.
 test-keep-stale.pdf: test-keep-stale.tex test-keep-stale.sh didactic.sty

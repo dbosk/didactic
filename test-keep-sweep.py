@@ -317,7 +317,7 @@ class Pages:
     def widow(self, case):
         "Does a paragraph of this case leave its last line alone on the next page?"
         for lab, page in self.page.items():
-            m = re.fullmatch(r"(.*?)(\d+)X" + case, lab)
+            m = re.fullmatch(r"(P|L|N|I\d+x)(\d+)X" + case, lab)
             if m and int(m[2]) > 1:
                 before = self.page.get(f"{m[1]}{int(m[2]) - 1}X{case}")
                 after = self.page.get(f"{m[1]}{int(m[2]) + 1}X{case}")
@@ -410,8 +410,10 @@ def check_case(p, ref, name, case, K):
                 bad = True
                 text = f"D4: {count} lines under the heading, plain LaTeX has {pc}"
             elif not pm and moved and pc >= K \
-                    and (over or name not in ("hv", "hw", "hv8", "hv3l", "rv")):
+                    and name != "hv3l" \
+                    and (over or name not in ("hv", "hw", "hv8", "rv")):
                 # Within the limit a short listing moves whole: that is keeplines.
+                # One of three lines can't have two on each side, so it always moves.
                 bad = True
                 text = f"D4: moved, plain LaTeX keeps {pc} lines"
             elif pm and not moved and count < 2 and name in ("s", "ss", "L"):
@@ -419,6 +421,9 @@ def check_case(p, ref, name, case, K):
                 text = f"D4: {count} line under the heading, plain LaTeX moves it"
             if bad and not ref.widow(case) and not ref.club(case):
                 fail(case, text)
+    # D5
+    if p.widow(case):
+        fail(case, "D5: a last line alone on the next page")
     # D6
     if name in LISTINGS:
         lead_first = p.on("P1", case)
