@@ -172,6 +172,12 @@ CHECKED_TESTS=	test-marginfloat test-marginfloat-slides test-marginfloat-cases \
 		test-marginfloat-hidden test-frametitle test-frametitle-slides \
 		test-block-nested ${TEST_FRAMETITLE_CASES} ${TEST_FLOATORDER} ${TEST_INCLUDE} \
 		${TEST_KEEPCHECK}
+# Deliberate breaks of the source, and which tests catch them: see test-mutants.txt.
+# Not part of all: it takes hours.
+.PHONY: mutants
+mutants: test-mutants.py test-mutants.txt
+	python3 test-mutants.py ${MUTANTS}
+
 .PHONY: check
 check: test-check.py ${CHECKED_TESTS:=.pdf}
 	python3 test-check.py ${CHECKED_TESTS}
