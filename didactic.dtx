@@ -5847,7 +5847,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \dimen@\dimexpr\pagegoal-\pagetotal-\pagedepth\relax
       \ifdim\dimen@<\z@\else
         \@didactic@keep@ifchained{%
-          \dimen@\@didactic@keep@headroom
+          \dimen@\dimexpr\@didactic@keep@headroom-\@didactic@keep@headdepth\relax
         }{%
           \if@didactic@keep@afterlisting\else
             \if@didactic@keepleadin
@@ -6344,17 +6344,37 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % A heading on a line of its own (a positive \meta{afterskip}) needs that 
 % line and the space after it; a run-in heading only the space before it, since 
 % it starts the first line.
-% We take the line from the heading's own font: what \meta{style} sets, in a box 
-% that is thrown away, with an empty group for the argument that the last command 
-% of a style may take.
-% From the line before it, that line takes the |\baselineskip| of that font, less 
-% |\prevdepth|, plus |\pagedepth|, which aren't the same when glue has come since 
-% that line; after a rule, or anything else that sets |\prevdepth| to $-1000$\,pt, 
-% there is no interline glue, and the line takes its height, which we count as 
-% four fifths of that.
-% A heading of more than one line is more than we count; the chain sees to that, 
-% and we'd rather have the estimate low: the chain is exact where it holds, and a 
-% page ended too early can't be taken back.
+% We count that line as a line of the text: \meta{style} can do anything, and we
+% don't run it to learn its font, since that would run all it does twice.
+% From the line before it, that line takes the |\baselineskip| less |\prevdepth|,
+% plus |\pagedepth|, which aren't the same when glue has come since that line;
+% after a rule, or anything else that sets |\prevdepth| to $-1000$\,pt, there is
+% no interline glue, and the line takes its height, which we count as four fifths
+% of that.
+% A heading in a larger font, or of more than one line, is more than we count, and
+% the chain sees to that.
+% The estimate may be low: the chain is exact where it holds, and a page ended too
+% early can't be taken back; where the chain doesn't hold, the outcome warns.
+%
+% A heading is never parted from what follows it, which takes more than that for
+% a run-in heading.
+% Its title is set with the next paragraph, but a list, a block or another heading
+% starts by setting the title on a line of its own, and then offers a place to
+% break, |\@beginparpenalty| or |\@secpenalty|: the title would end the page alone.
+% So when a title is waiting, we forbid that place.
+% All that starts with |\@trivlist| comes through there, and we set the penalty in
+% it, in the group of its environment; \textsf{fancyvrb} has its own start,
+% |\FV@LeaveVMode|.
+% Before another heading we set the title ourselves, with the space that the
+% heading would have had, and tell \LaTeX\ that we are after a heading,
+% |\@didactic@keep@forcetitle|.
+% That line holds no line of the text, |\if@didactic@keep@titleonly|.
+% Between the heading of a block and its paragraph can come what writes to a file, 
+% such as its entry in a list of examples, and the glue of the paragraph after that 
+% is a place to break too.
+% So after the space above the block we say that we are after a heading, 
+% |\@didactic@keep@thmhead|: |\protected@write| then adds a |\nobreak|, and 
+% \textsf{amsthm} takes care of the rest, as when a heading comes right before it.
 % A run-in title that is still waiting (a frame title, say, before a block) 
 % takes a line of its own when this heading starts, one more line.
 % The headings of the blocks are those of \textsf{amsthm}'s theorems, 
@@ -6377,7 +6397,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
           \ifdim\dimexpr\@didactic@keep@tmp+\pageshrink\relax<\dimexpr#1
               +\@didactic@keepafterheading\@didactic@keep@L\relax
             \ifnum\@didactic@keepmaxgap>\z@
-              \ifdim\@didactic@keep@tmp>\@didactic@keepmaxgap\@didactic@keep@L
+              \ifdim\dimexpr\@didactic@keep@tmp-\pagedepth\relax
+                  >\@didactic@keepmaxgap\@didactic@keep@L
               \else
                 \vfil\penalty-\@M
               \fi
@@ -6404,8 +6425,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \advance\@tempskipa\@tempskipb
       \@tempskipb#5\relax
       \ifdim\@tempskipb>\z@
-        \setbox\@tempboxa\vbox{#6{}\global\@didactic@keep@tmp\baselineskip}%
-        \@didactic@keep@tmpb\@didactic@keep@tmp
+        \@didactic@keep@tmpb\@didactic@keep@L
         \ifdim\prevdepth>-\@m\p@
           \advance\@didactic@keep@tmpb-\prevdepth
         \else
@@ -6608,6 +6628,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \let\@didactic@keep@headkey\@empty
 \newdimen\@didactic@keep@headroom
 \newdimen\@didactic@keep@headtotal
+\newdimen\@didactic@keep@headdepth
 \def\@didactic@keep@headrecord{%
   \ifnum\@didactic@keepafterheading>\z@
     \global\@didactic@keep@afterlistingfalse
@@ -6650,8 +6671,10 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \ifdim\pagetotal>\pagegoal\else
       \global\@didactic@keep@headroom\dimexpr\pagegoal-\pagetotal\relax
       \global\@didactic@keep@headtotal\pagetotal
+      \global\@didactic@keep@headdepth\pagedepth
       \ifnum\@didactic@keepmaxgap>\z@
-        \ifdim\@didactic@keep@headroom>\@didactic@keepmaxgap\@didactic@keep@L
+        \ifdim\dimexpr\@didactic@keep@headroom-\pagedepth\relax
+            >\@didactic@keepmaxgap\@didactic@keep@L
           \global\@didactic@keep@overlimittrue
         \fi
       \fi
