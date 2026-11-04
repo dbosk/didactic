@@ -344,7 +344,7 @@ def frametitle_overlay(c):
 
 def frametitle_floats(c):
     """test-frametitle-floats.tex; the numbers are those of its header."""
-    c.num_pages(1)
+    c.num_pages(2)
     c.clean_log()
     c.above("TITLEH", "FIGH")                        # 1
     c.above("TITLEBIGH", "FIGBIGH")                  # 2
@@ -353,6 +353,8 @@ def frametitle_floats(c):
     c.above("FIGT", "TEXTT")
     c.ok(c.same_line(c.one("FLOATPROSE"), c.one("PROSEAFTER")),  # 5
          "FLOATPROSE still runs in with PROSEAFTER")
+    c.above("TITLESTARFIG", "FIGSTAR")               # 6
+    c.above("TITLESTARTAB", "TABSTAR")
 
 
 def frametitle_boxes(c):
