@@ -1,0 +1,82 @@
+% Test of what a page that ends early for a margin note (noteoverflow=break) does
+% to a heading and to a paragraph's first and last lines.  A note fills the margin
+% of the first page, so the note NOTEY doesn't fit there, and a rule leaves
+% \testroom lines of the page for the text of the case.  See test-yieldkeep.sh,
+% which runs each case and checks the outcome.  Needs pdflatex: under xelatex no
+% page ends early.
+\documentclass[a4paper]{memoir}
+\expandafter\PassOptionsToPackage\expandafter{\testoptions}{didactic}
+\usepackage{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\newcommand\yieldnote{\marginpar{NOTEY}}
+\newcommand\filler{Some words to fill up the rest of this line of the text and
+  also quite a few of the next one, as the words of a paragraph do when it goes
+  on for a while, and there is more to say about the matter at hand here.}
+% Fills up the line after FIRSTLINE, so that what follows is on the second line.
+\newcommand\oneline{Some words to fill up the rest of this line of the text and
+  also quite a few}
+\def\heading{heading}\def\stacked{stacked}\def\second{second}\def\vertical{vertical}
+\def\runin{runin}\def\runintwo{runintwo}\def\club{club}\def\widow{widow}
+\def\middle{middle}
+\def\theoremcase{theorem}\def\headlist{headlist}
+\newtheorem{thmx}{THMX}
+\begin{document}
+\noindent x\marginpar{TALL\par\rule{1pt}{.97\textheight}} text
+\par\noindent\rule{1cm}{\dimexpr\textheight-\testroom\baselineskip-1\baselineskip}\par
+\ifx\testcase\heading
+  \section{HEADINGX}
+  FIRSTLINE\yieldnote{} \filler\ \filler
+\fi
+\ifx\testcase\stacked
+  \section{HEADINGX}
+  \subsection{SUBX}
+  FIRSTLINE\yieldnote{} \filler\ \filler
+\fi
+\ifx\testcase\second
+  \section{HEADINGX}
+  FIRSTLINE.
+
+  SECONDPARA\yieldnote{} \filler\ \filler
+\fi
+\ifx\testcase\vertical
+  \section{HEADINGX}
+  \yieldnote{}
+  FIRSTLINE \filler\ \filler
+\fi
+\ifx\testcase\headlist
+  \section{HEADINGX}
+  \begin{itemize}
+  \item FIRSTLINE\yieldnote{} \filler\ \filler
+  \end{itemize}
+\fi
+\ifx\testcase\theoremcase
+  \begin{thmx}
+  FIRSTLINE\yieldnote{} \filler\ \filler
+  \end{thmx}
+\fi
+\ifx\testcase\runin
+  \paragraph{HEADINGX}
+  FIRSTLINE\yieldnote{} \filler\ \filler
+\fi
+\ifx\testcase\runintwo
+  \paragraph{HEADINGX}
+  FIRSTLINE \oneline\ more words\yieldnote{} \filler
+\fi
+\ifx\testcase\club
+  FIRSTLINE \oneline\ more words\yieldnote{} \filler\ \filler
+\fi
+\ifx\testcase\widow
+  FIRSTLINE \filler\ Now the last line of the paragraph, with its
+  note\yieldnote{}.
+\fi
+\ifx\testcase\middle
+  FIRSTLINE \filler\ \filler\yieldnote{} \filler\ \filler
+\fi
+
+\filler\ \filler\ \filler
+
+\filler\ \filler\ \filler
+
+\newpage
+LASTPAGE
+\end{document}

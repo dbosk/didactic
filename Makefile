@@ -41,7 +41,7 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-marginfloat-cases.pdf test-marginfloat-order.pdf \
 	test-marginfloat-inorder.pdf test-marginfloat-hidden.pdf \
 	${TEST_FLOATORDER:=.pdf} check \
-	test-noteyield test-noteyield-cap test-biburl
+	test-noteyield test-noteyield-cap test-yieldkeep test-biburl
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -387,6 +387,12 @@ test-noteyield: test-noteyield.tex didactic.sty
 test-noteyield-cap: test-noteyield-cap.tex test-noteyield-cap.sh didactic.sty
 	./test-noteyield-cap.sh
 
+# What a page that ends early for a note does to a heading and to lone lines,
+# under pdflatex whatever PDFLATEX is.
+.PHONY: test-yieldkeep
+test-yieldkeep: test-yieldkeep.tex test-yieldkeep.sh didactic.sty
+	./test-yieldkeep.sh
+
 # biburlpenalty and bibemergencystretch: biblatex's URL break penalties and
 # the bibliography's \emergencystretch, with biblatex loaded before didactic,
 # after it or not at all; one run per case, order:options:penalty set in
@@ -505,6 +511,8 @@ clean:
 	${RM} -R _minted-test-keep
 	${RM} test-noteyield.pdf test-noteyield.aux test-noteyield.log
 	${RM} test-noteyield.unq test-noteyield.pytxcode
+	${RM} test-yieldkeep-*.pdf test-yieldkeep-*.aux test-yieldkeep-*.log
+	${RM} test-yieldkeep-*.aux.old test-yieldkeep-*.unq test-yieldkeep-*.pytxcode
 	${RM} test-noteyield-cap-*.pdf test-noteyield-cap-*.aux
 	${RM} test-noteyield-cap-*.log test-noteyield-cap-*.aux.old
 	${RM} test-noteyield-cap-*.unq test-noteyield-cap-*.pytxcode

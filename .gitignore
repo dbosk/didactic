@@ -21,6 +21,9 @@ test-noteyield.unq
 test-noteyield-cap-*.pdf
 test-noteyield-cap-*.unq
 test-noteyield-cap-*.aux.old
+test-yieldkeep-*.pdf
+test-yieldkeep-*.unq
+test-yieldkeep-*.aux.old
 test-keep-tall.pdf
 test-keep-tall.unq
 test-keep-tall100.pdf
