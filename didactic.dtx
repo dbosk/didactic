@@ -5186,16 +5186,49 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % \TeX\ skips that code as a whole, so the conditionals in it must be known 
 % before.
 %    \begin{macrocode}
-\ExplSyntaxOn
-\regex_const:Nn \c__didactic_keep_blank_regex
-  { \A (?: \s | \\PYG\ \{ [^\}]* \} \{ \s* \} )* \Z }
-\cs_new_protected:Npn \@didactic@keep@ifblank #1
-  {
-    \str_set:Nn \l_tmpa_str {#1}
-    \exp_args:NNV \regex_match:NnTF
-      \c__didactic_keep_blank_regex \l_tmpa_str
-  }
-\ExplSyntaxOff
+\newcommand\@didactic@keep@ifblank[1]{%
+  \@tempswatrue
+  \let\@didactic@keep@scanafter\relax
+  \expandafter\@didactic@keep@scan\detokenize{#1}\@empty\@nil
+  \if@tempswa\expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
+\def\@didactic@keep@scannil{\relax}
+\begingroup
+\catcode`\|=0 \catcode`\[=1 \catcode`\]=2 \catcode`\{=12 \catcode`\}=12
+\catcode`\P=12 \catcode`\Y=12 \catcode`\G=12 |catcode`|\=12
+|gdef|@didactic@keep@scan#1#2|@nil[%
+  |ifx|@empty#1%
+    |let|@didactic@keep@scannext|@didactic@keep@scanafter
+  |else|ifnum`#1<14
+    |def|@didactic@keep@scannext[|@didactic@keep@scan#2|@nil]%
+  |else|if\#1%
+    |def|@didactic@keep@scannext[|@didactic@keep@scanprefix#2PYG {|@nil]%
+  |else
+    |@tempswafalse
+    |let|@didactic@keep@scannext|relax
+  |fi|fi|fi
+  |@didactic@keep@scannext]
+|gdef|@didactic@keep@scanprefix#1PYG {#2|@nil[%
+  |if|relax|detokenize[#1]|relax
+    |def|@didactic@keep@scannext[|@didactic@keep@scansplit#2}{|relax}|@nil]%
+  |else
+    |@tempswafalse
+    |let|@didactic@keep@scannext|relax
+  |fi
+  |@didactic@keep@scannext]
+|gdef|@didactic@keep@scansplit#1}{#2}#3|@nil[%
+  |def|@tempa[#2]%
+  |ifx|@tempa|@didactic@keep@scannil
+    |@tempswafalse
+    |let|@didactic@keep@scannext|relax
+  |else
+    |def|@didactic@keep@scanafter[|@didactic@keep@scanstrip#3|@stop]%
+    |def|@didactic@keep@scannext[|@didactic@keep@scan#2|@empty|@nil]%
+  |fi
+  |@didactic@keep@scannext]
+|gdef|@didactic@keep@scanstrip#1|@empty PYG {}{|relax}#2|@stop[%
+  |let|@didactic@keep@scanafter|relax
+  |@didactic@keep@scan#1|@empty|@nil]
+|endgroup
 \newif\if@didactic@keep
 \newif\if@didactic@keep@glue
 \newif\if@didactic@keep@ok
@@ -5245,6 +5278,14 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % space.
 % (A line that holds only something else invisible, like the |\label| of 
 % |escapeinside|, counts as a line: we can't tell what a command does.)
+% We do this for every line, so it must be cheap: a regular expression took some 
+% 9\,ms a line, which a listing of 1500 lines feels.
+% So we read the string from the front: a character below 14 is white space, a 
+% backslash must start |\PYG {class}{text}|, whose text we read the same way, and 
+% anything else ends it.
+% Nearly all lines tell at their first or second word.
+% In the string all characters but the space have category 12, so the letters and
+% braces in the delimiters below must too.
 %    \begin{macrocode}
 \newbox\@didactic@keep@box
 \newbox\@didactic@keep@line
