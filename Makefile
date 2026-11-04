@@ -14,6 +14,7 @@ TEST_KEEP_CHAPTER=	test-keep-chapter-article test-keep-chapter-memoir \
 TEST_KEEP_NOWEB=	test-keep-filbreak test-keep-breakcode \
 			test-keep-breakcode-late test-keep-filbreak-nogap
 TEST_NOTEOVERFLOW=	test-noteoverflow test-noteoverflow-carry \
+			test-noteoverflow-cap \
 			test-noteoverflow-draft test-noteoverflow-draftbreak \
 			test-noteoverflow-xe test-noteoverflow-old
 # The order of float numbers, from the pages the floats end up on.
@@ -295,7 +296,8 @@ test-keep-stale.pdf: test-keep-stale.tex test-keep-stale.sh didactic.sty
 # test-noteoverflow-xe, which is about the engine that can't.
 NOTEOVERFLOW_SRC=	test-noteoverflow-contents.tex didactic.sty
 test-noteoverflow.pdf test-noteoverflow-carry.pdf test-noteoverflow-draft.pdf \
-		test-noteoverflow-draftbreak.pdf: PDFLATEX=pdflatex
+		test-noteoverflow-draftbreak.pdf \
+		test-noteoverflow-cap.pdf: PDFLATEX=pdflatex
 define settle_many
 for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do \
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $< || exit 1; \
@@ -314,6 +316,12 @@ test-noteoverflow-carry.pdf test-noteoverflow-draft.pdf: %.pdf: %.tex ${NOTEOVER
 	test "${call count_spill,intended}" -gt 0
 	test "${call count_spill,unresolved}" -eq 0
 	test "$$(grep -c 'mfx@yield' $*.aux)" -eq 0
+test-noteoverflow-cap.pdf: %.pdf: %.tex ${NOTEOVERFLOW_SRC}
+	@${settle_many}
+	! grep '^!' $*.log
+	test "${call count_spill,capped}" -gt 0
+	test "${call count_spill,unresolved}" -eq 0
+	test "$$(grep -c 'keeps page' $*.log)" -eq "${call count_spill,capped}"
 test-noteoverflow-xe.pdf: %.pdf: %.tex ${NOTEOVERFLOW_SRC}
 	@${settle_many}
 	! grep '^!' $*.log

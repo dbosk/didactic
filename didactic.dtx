@@ -669,8 +669,10 @@
 % paragraph dense with citations, whose footnotes are in the margin too.
 % Then a note moves to the next page, away from its mark.
 % With |noteoverflow=break|, the default, the text gives way instead: the 
-% page ends before the line that calls out the first note that doesn't fit, 
+% page ends before the line that calls out the first note that doesn't fit,
 % in the next run, so that line and its note start the next page.
+% It does so only as far as |noteyieldmaxgap| below allows, so on a page where
+% that line is high up, the notes still move, with a warning for each.
 % That can move more text and more notes, so a page dense with notes can take 
 % several runs, up to about ten; \LaTeX\ asks for a rerun until they are done.
 % A page that ends that early is a little shorter, but its margin is full; 
