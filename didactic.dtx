@@ -1251,6 +1251,8 @@
 % Plain \LaTeX\ reaches two for a paragraph of two lines or more, and
 % \textsf{memoir} is the same.
 % For two the support is moderate for a craft rule, for three weak.
+% Nor would one line save pages: |keepafterheading=1| saves no page on eight real
+% documents, and pages with more than five lines empty go from 69 to 71.
 % What this option adds to \LaTeX\ at two is the second line under a one-line
 % paragraph or a list, as far as a chain of penalties can hold it.
 %
@@ -1372,12 +1374,19 @@
 % is thin, and the choice is the maintainer's: rather have the first item or two on
 % this page and break in the middle.
 % So only that break changes, and between the items a page breaks as ever.
+% On eight real documents, with that penalty alone at 10000 and not this rule, it
+% costs no page, 804 either way.
+% At $-51$, 13 of the 208 lists that could be parted from what leads into them are, 8
+% of those in one document.
+% At 10000, 7 lead-ins move, and the page they leave has up to 3.9 lines empty; pages
+% with three lines or more empty go from 112 to 116, of the 666 text pages logged.
 %
 % \paragraph{A list right under a heading follows \LaTeX.}
 % Its first item stays under the heading even when one line fits.
 % That is fewer than the sample's two lines, and goes against the two-line rule, which
 % stays for a heading over a paragraph.
-% It is the maintainer's choice, for fewer pages and for leaving a default where it is.
+% It is the maintainer's choice, for leaving a default where it is; it wasn't measured
+% to help: on those eight documents it changes no page.
 %
 % \paragraph{Reckoning as \TeX\ does, and warnings.}
 % These are ours, not from the sources.
