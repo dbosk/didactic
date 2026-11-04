@@ -319,6 +319,10 @@ test-keep-heading3.unq
 test-keep-heading3-?.txt
 test-keep-nogap3.pdf
 test-keep-nogap3.unq
+didactic.bbl
+didactic.bcf
+didactic.blg
+didactic.run.xml
 test-keep-sweep-*.tex
 test-keep-sweep-*.pdf
 test-keep-sweep-*.unq

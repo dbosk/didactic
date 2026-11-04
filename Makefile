@@ -43,22 +43,31 @@ SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
 SRC+=	hello.py ask.py askmany.py greet.py filter.py pairgreet1.py pairgreet2.py
 SRC+=	pairwrite.py pairread.py
+# The review behind the decisions on page breaks: the appendix and its sources, and
+# what it was made from, which isn't read in the build (a record of the searches).
+SRC+=	appendix.tex appendix-hitlist.tex didactic.bib
+LIT_RECORD=	heading-foot-of-page.csv $(wildcard queries/*.csv)
 
 # The change history (\PrintChanges) needs makeindex on the .glo file; that
 # also checks that every \changes entry can be written and typeset.
 didactic.pdf: ${SRC} didactic.sty
 	-${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	${PYTHONTEX} didactic
+	biber didactic
 	${PDFLATEX} ${LATEXFLAGS} $<
 	makeindex -s gglo.ist -o didactic.gls didactic.glo
 	${PDFLATEX} ${LATEXFLAGS} $<
+	${PDFLATEX} ${LATEXFLAGS} $<
+	! grep -E 'Empty bibliography|Citation .*undefined|could not be found' didactic.log
+	! grep -E 'WARN|ERROR' didactic.blg
+	! grep -E "Reference .app:.*undefined|Reference .PageBreakDecisions.*undefined" didactic.log
 
 # docstrip asks before overwriting, so remove the old file first.
 didactic.sty: didactic.ins didactic.dtx
 	${RM} $@
 	${LATEX} ${LATEXFLAGS} $<
 
-didactic.tar.gz: ${SRC} didactic.ins LICENSE Makefile README.md didactic.pdf
+didactic.tar.gz: ${SRC} ${LIT_RECORD} didactic.ins LICENSE Makefile README.md didactic.pdf
 	tar -czf $@ --transform "s|^|didactic/|" $^
 
 test.pdf: test.tex didactic.sty
@@ -341,7 +350,7 @@ clean:
 	${RM} didactic.out didactic.pdf
 	${RM} didactic.pytxcode didactic.pytxmcr didactic.pytxpyg
 	${RM} didactic.tar.gz didactic.toc didactic.unq
-	${RM} didactic.hd
+	${RM} didactic.hd didactic.bbl didactic.bcf didactic.blg didactic.run.xml
 	${RM} pythontex_data.pkl
 	${RM} -R _minted-didactic _minted-test pythontex_data.pkl
 	${RM} $(wildcard py_default_default_*.stdout)

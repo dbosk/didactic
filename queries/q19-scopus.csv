@@ -1,0 +1,11 @@
+# Query: TITLE-ABS-KEY((list OR "bulleted list" OR "list items" OR "lead-in") AND ("page break" OR pagination) AND (criticism OR empirical OR experiment OR evidence))
+# Provider: scopus
+# Timestamp: 2026-11-03T21:07:51.278164
+# Results: 4
+
+title	authors	year	doi	venue	url
+Database-Native Authorization for Human and Autonomous Principals: The SHRBAC Model	R. Slaney	2026	10.1109/COMPSAC69091.2026.00298	Proceedings 2026 IEEE 50th Annual Computers Software and Applications Conference Compsac 2026	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=105048936737&origin=inward
+SDC: Structured data collection by yourself	T. Ohshima	2018	10.1145/3200842.3200849	ACM International Conference Proceeding Series	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=85048027600&origin=inward
+Correction: 2017 ACC/AHA/HRS Guideline for the Evaluation and Management of Patients With Syncope: Executive Summary: A Report of the American College of Cardiology/American Heart Association Task Force on Clinical Practice Guidelines and the Heart Rhythm Society (Journal of the American College of Cardiology (2017) 70(5) (620–663) (S0735109717307921) (10.1016/j.jacc.2017.03.002))		2017	10.1016/j.jacc.2017.08.023	Journal of the American College of Cardiology	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=85032286565&origin=inward
+Using information scent and need for cognition to understand online search behavior	W.C. Wu	2014	10.1145/2600428.2609626	SIGIR 2014 Proceedings of the 37th International ACM SIGIR Conference on Research and Development in Information Retrieval	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=84904564683&origin=inward
+

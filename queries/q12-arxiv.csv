@@ -1,0 +1,9 @@
+# Query: ("bulleted list" OR "list items" OR "lead-in") AND ("page break" OR pagination) AND (reading OR comprehension OR typography)
+# Provider: arxiv
+# Timestamp: 2026-11-03T20:13:35.456049
+# Results: 2
+
+title	authors	year	doi	venue	url
+Did time begin? Will time end?	Paul H. Frampton	2007	10.48550/arXiv.0704.1132	astro-ph	http://arxiv.org/abs/0704.1132v2
+Static Analysis for AWS Best Practices in Python Code	Rajdeep Mukherjee; Omer Tripp; Ben Liblit; Michael Wilson	2022	10.48550/arXiv.2205.04432	cs.PL	http://arxiv.org/abs/2205.04432v1
+

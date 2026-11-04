@@ -47,6 +47,9 @@
 \usepackage{pythontex}
 \usepackage[notheorems]{beamerarticle}
 \usepackage[marginparmargin=right]{didactic}
+\usepackage{csquotes,booktabs,longtable,array}
+\usepackage[backend=biber,style=numeric]{biblatex}
+\addbibresource{didactic.bib}
 \usepackage{shortvrb}
 \MakeShortVerb{\|}
 \usepackage{lipsum}
@@ -59,6 +62,7 @@
   \DocInput{didactic.dtx}
   \PrintChanges
   %\PrintIndex
+  \printbibliography
 \end{document}
 %</driver>
 % \fi
@@ -1197,6 +1201,124 @@
 % after any line, whatever the penalties: that no longer happens.
 % Listings inside a box, such as the code side by side above, can't break
 % anyway, and on the slides nothing changes.
+%
+% \subsection{Why pages break where they do}\label{PageBreakDecisions}
+%
+% The defaults above are decisions, and the reader may want to take others.
+% Here is, for each, what we decided, why, what the sources say, how strong that
+% is, and what \LaTeX\ and \textsf{memoir} do.
+% The review behind it is in the appendix, with its search, its quotations and
+% what it couldn't read; the footnotes point there.
+% The measure was what the \LaTeX\ and typographic communities do, with
+% \textsf{memoir} and \textsf{noweb} with |breakcode| in mind, since that's what
+% notes with this package are mostly made of.
+% It is a measure of practice, since no other is to be had: no study was found of
+% how readers fare with the number of lines under a heading, with short pages, with
+% a lead-in parted from its list, or with lone lines in print.\footnote{%
+%   See the discussion in \cref{app:pb-lines,app:pb-gap,app:pb-lists} and the
+%   reader evidence in \cref{app:pb-penalties}.}
+% So all of it is craft, and where it is one publisher's habit we say so.
+%
+% \paragraph{Two lines after a heading (\texttt{keepafterheading}).}
+% The University of Chicago Press's sample house style, in the 16th edition of
+% its \emph{Manual}, says: \enquote{The minimum number of lines of text below a
+% subhead at the bottom of a page is two.}\cite[fig.~A.3]{chicago2010manual}
+% It is a labelled sample of what a publisher tells its typesetters, not a rule of
+% the \emph{Manual}, whose running text in the 16th to 18th editions has no number.
+% Thesis manuals say two as well; only a W3C draft goes higher, with
+% \enquote{two or three}, and gives no source for
+% it.\footnote{\Cref{app:pb-lines} has who states what.}
+% Plain \LaTeX\ reaches two for a paragraph of two lines or more, and
+% \textsf{memoir} is the same.
+% For two the support is moderate for a craft rule, for three weak.
+% What this option adds to \LaTeX\ at two is the second line under a one-line
+% paragraph or a list, as far as a chain of penalties can hold it.
+%
+% \paragraph{A heading stays with its first paragraph.}
+% This has broad support, as practice and not as a measured effect, and \LaTeX\
+% does it: its |\@afterheading| forbids the break after the first line.
+% We don't break that for anything, not for the limit on empty space either.
+%
+% \paragraph{At most five empty lines (\texttt{keepmaxgap}).}
+% The same sample of the Press is the only source with a limit for this very case:
+% \enquote{The text page may be up to four lines short if there is no room for a
+% subhead at the bottom of a page.}\cite[fig.~A.3]{chicago2010manual}
+% So our five is a line more than the only number there is, and that is a choice,
+% with a reason: in the fonts of the notes a heading with its two lines takes about
+% five lines, and \LaTeX\ moves one with less room than that, so at a limit of four
+% a heading with room for four and a half lines could neither keep its two lines
+% nor move within the limit.
+% For other adjustments the Press allows one line, on both facing pages, and books
+% with facing pages may well want less than we do; thesis manuals set no limit.
+% The support is moderate that the heading moves, and limited for the
+% amount.\footnote{\Cref{app:pb-gap} has the numbers, which measure different
+%   things.}
+%
+% \paragraph{Never fewer lines than \LaTeX\ keeps.}
+% Staying within the limit could mean keeping one line under a heading where
+% \LaTeX\ keeps two or moves it.
+% No source read argues, as a principle, for fewer lines to avoid white
+% space.\footnote{See \cref{app:pb-gap}.}
+% So past the limit we follow \LaTeX, and warn.
+% Three things can still leave a line less than plain \LaTeX\ has, each for a
+% decision of its own: a last line that \LaTeX\ would leave alone at the top of the
+% next page, a first line alone at the foot where the page has enough stretch for
+% our club penalty to count, and the header of a chunk of \textsf{noweb} alone at
+% the foot.
+%
+% \paragraph{Club penalty 1000, widow penalty 10000 (with \texttt{keepleadin}).}
+% This goes for every paragraph of the notes, not only for those before a listing.
+% \emph{The Chicago Manual of Style} says, in three editions, that a page should
+% not \enquote{begin with the last line of a paragraph unless it is full measure},
+% while \enquote{A page can, however, end with the first line of a new
+% paragraph}.\cite[§2.121]{chicago2024manual}
+% Other typographers treat the two the same way, as craft.\footnote{%
+%   \Cref{app:pb-penalties} has them and the \TeX\ behind the numbers.}
+% The sources speak of the outcome and not of penalties, so they say nothing of
+% the number.
+% We are stricter than Chicago on one point: \TeX\ can't tell that a last line is
+% full measure, so no last line starts a page.
+% The first line costs 1000, \textsf{memoir}'s value, whose only stated reason is
+% \enquote{we want stronger discouragement}.\cite{wilson2025memoirsrc}
+% It counts only on a page with some stretch to spare: the \TeX\ FAQ finds finite
+% values all alike,\cite{texfaq2026widows} and in the review's own small test 150 and
+% 1000 differ only in a narrow band of stretch.\footnote{See
+%   \cref{app:pb-penalties}.}
+% The price of 10000 is what \textcite[p.~250]{mittelbach2018forlorn} says it is,
+% \enquote{partly empty pages}.
+%
+% \paragraph{The lead-in stays with its listing (\texttt{keepleadin}), within the limit.}
+% The manual of \textsf{memoir} says, of lists, that \enquote{it can be annoying
+% if there is a page break between the introductory words and the first item}, and
+% offers |\noprelistbreak|, per list, off by default.\cite[§18.7]{wilson2025memoir}
+% The Press's sample asks for two text lines above a list and doesn't name the
+% lead-in; that those would normally include it is the review's
+% reading.\cite[fig.~A.3]{chicago2010manual}
+% The other support is by analogy, and the defaults of \LaTeX\ and \textsf{memoir}
+% go the other way: they give a bonus for a break before a list.\footnote{%
+%   \Cref{app:pb-lists} has these, and says that the evidence doesn't settle it.}
+% Weak support can't outweigh a page with a hole in it, so the tie holds only within
+% |keepmaxgap|, and past it the listing starts the next page as it would in plain
+% \LaTeX, with a warning.
+%
+% \paragraph{Reckoning as \TeX\ does, and warnings.}
+% These are ours, not from the sources.
+% Layout is correct by construction, and what can't be guaranteed warns, and says
+% what the page did.
+% So room counts what the page can shrink, since \TeX\ does, and whatever depends on
+% how the page came out is told from the pages themselves, at the end of the run.
+%
+% \paragraph{\textsf{noweb}.}
+% Under |breakcode| we drop the break that \textsf{noweb} offers after a chunk with
+% |\nwdocspar|.
+% In twelve generated documents with the mix of chunk lengths of real ones, that
+% takes the most empty lines from 7.6 to 5.6 and the pages with three or more from 34
+% to 21, for 19 more breaks inside chunks; plain \textsf{noweb} with |breakcode|
+% reaches 6.2.
+% The same documents without |breakcode| leave up to 41 lines empty, which is why
+% we warn about that.
+% ^^A Native chunks; test-keep-sweep.py keeps the rules, not these numbers, which come
+% ^^A from a generator that isn't part of this repository.
 %
 % \StopEventually{}
 %
@@ -6915,6 +7037,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 %    \end{macrocode}
 % \end{macro}
 % \end{macro}
+%
+% \appendix
+% \input{appendix}
 %
 % \Finale
 \endinput

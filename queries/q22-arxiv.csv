@@ -1,0 +1,7 @@
+# Query: (subheading OR subhead OR "section heading") AND ("page break" OR pagination OR "keep with next" OR "foot of the page" OR "bottom of the page") AND (typography OR typesetting)
+# Provider: arxiv
+# Timestamp: 2026-11-03T21:09:58.826104
+# Results: 0
+
+title	authors	year	doi	venue	url
+
