@@ -5444,6 +5444,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % listing, five lines of the text.
 % Inside a box there is no page to fit on, and in |multicols| we don't know the 
 % limit.
+% A listing of one line has nothing to break between, and that line has a warning of
+% its own (|\@didactic@keep@taller|).
 %    \begin{macrocode}
 \def\@didactic@keep@tall{%
   \global\@didactic@keep@warnedfalse
@@ -5456,6 +5458,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
           >\@didactic@keep@maxrun
         \@didactic@keep@longtrue
         \global\@didactic@keep@warnedtrue
+        \ifnum\@didactic@keep@n>\@ne
         \PackageWarningNoLine{didactic}{%
           A listing of \the\@didactic@keep@n\space lines is too tall to
           keep\MessageBreak
@@ -5464,6 +5467,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
           \the\@didactic@keep@maxrun\space fit.\MessageBreak
           It breaks between its lines, as a long listing\MessageBreak
           does, \@didactic@keep@place}%
+        \fi
       \fi
     \fi
     \fi

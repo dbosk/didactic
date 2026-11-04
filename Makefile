@@ -248,7 +248,7 @@ test-keep-huge.pdf: test-keep-huge.tex didactic.sty
 	grep -q 'Package didactic Warning: Line 1 of a listing .*taller than a page' test-keep-huge.log
 	grep -A3 'taller than a page' test-keep-huge.log | grep -q 'is lost'
 	grep -A3 'taller than a page' test-keep-huge.log | grep -q 'input line 23'
-	! grep 'may break' test-keep-huge.log
+	! grep 'may break\|between its lines' test-keep-huge.log
 
 # the place of the margin column in the log against where a note is printed.
 test-margin-log.pdf test-margin-log-article.pdf: %.pdf: %.tex test-margin-log.tex \
