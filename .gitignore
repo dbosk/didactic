@@ -22,6 +22,8 @@ test-keep-tall100.pdf
 test-keep-tall100.unq
 test-keep-chain.pdf
 test-keep-chain.unq
+test-keep-*.pdf
+test-keep-*.unq
 test-oldkernel.pdf
 test-oldkernel.unq
 test-margin-log.pdf

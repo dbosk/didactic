@@ -1,0 +1,10 @@
+% As test-keep-leadin.tex, with keepleadin=false: what the user turned off doesn't
+% warn, though the lead-in and the listing are on different pages.
+\documentclass[a4paper,oneside]{memoir}
+\usepackage[british]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[keepleadin=false]{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\usepackage{refcount}
+\IfFileExists{noweb.sty}{\usepackage[minted]{noweb}}{}
+\input{test-keep-leadin-body.tex}

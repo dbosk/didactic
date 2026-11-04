@@ -1,0 +1,83 @@
+% Test that a page made overfull by what can't part from the start of a listing
+% warns, whatever kind of listing it is, and names the place (didactic).
+%
+% Build: see the Makefile; test-check.py checks that each case below warns, with
+% its input line (the line in this file, not in the listing's file or minted's) and
+% the page that is overfull, from the label, and as often as the log has an Overfull
+% \vbox.
+%   V  A listing kept whole, by \VerbatimInput.
+%   E  The same by \lstexample*, whose lines come from minted's file.
+%   L  A long listing, 30 lines: only its first lines can't part from the lead-in.
+%   T  A listing made long by the height of its lines.
+%   P  Code side by side, one box.
+%   C  Control: the same as V, in room: no warning.
+\documentclass[a4paper,oneside]{memoir}
+\usepackage[british]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\PassOptionsToPackage{keeplines=20,keepleadin=true}{didactic}
+\usepackage{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\usepackage{refcount}
+\makeatletter
+\newwrite\@ofull@out
+\newcount\@ofull@i
+\newcommand\testfile[3]{%
+  \immediate\openout\@ofull@out=\jobname-#1.txt
+  \@ofull@i\z@
+  \@whilenum\@ofull@i<#2\do{\advance\@ofull@i\@ne
+    \immediate\write\@ofull@out{#3}}%
+  \immediate\closeout\@ofull@out}
+\newcommand\case[1]{\typeout{overfull case #1 line \the\inputlineno}}
+\newcommand\results[1]{\typeout{overfull result #1 page=\getpagerefnumber{#1}}}
+\makeatother
+\begin{document}
+Tall lead-in V:\label{v} \rule{1pt}{0.9\textheight}
+\testfile{v}{10}{verbatim}%
+\case{v}\VerbatimInput{\jobname-v.txt}
+Text after V.
+
+\clearpage
+Tall lead-in E:\label{e} \rule{1pt}{0.9\textheight}
+\testfile{e}{10}{minted}%
+\case{e}\lstexample*{text}{\jobname-e.txt}
+Text after E.
+
+\clearpage
+Tall lead-in L:\label{l} \rule{1pt}{0.97\textheight}
+\testfile{l}{30}{longer}%
+\case{l}\VerbatimInput{\jobname-l.txt}
+Text after L.
+
+\clearpage
+Tall lead-in T:\label{t} \rule{1pt}{0.97\textheight}
+\testfile{t}{6}{tall tall tall tall tall tall tall tall tall tall tall tall tall
+  tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+  tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+  tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+  tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+  tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+  tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+  tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+  tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+  tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+  tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+  tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall}%
+\case{t}\VerbatimInput[breaklines]{\jobname-t.txt}
+Text after T.
+
+\clearpage
+Tall lead-in P:\label{p} \rule{1pt}{0.9\textheight}
+\case{p}\begin{didacticpair}{2}
+  \rule{1pt}{8\baselineskip} & right
+\end{didacticpair}
+Text after P.
+
+\clearpage
+Lead-in C, in room.\label{c}
+\testfile{c}{10}{room}%
+\case{c}\VerbatimInput{\jobname-c.txt}
+Text after C.
+
+\clearpage
+\results{v}\results{e}\results{l}\results{t}\results{p}\results{c}
+\end{document}

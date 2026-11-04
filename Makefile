@@ -18,6 +18,8 @@ TEST_FLOATORDER=	test-marginfloat-samepar test-marginfloat-moved \
 			test-marginfloat-article
 # The same with \includeonly, from the .aux files of the whole document.
 TEST_INCLUDE=		test-marginfloat-include-all test-marginfloat-include
+# Warnings from where listings ended up.
+TEST_KEEPCHECK=		test-keep-leadin test-keep-leadin-off test-keep-overfull
 
 .PHONY: all
 all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
@@ -140,7 +142,8 @@ test-marginfloat-include.pdf: test-marginfloat-include.tex \
 CHECKED_TESTS=	test-marginfloat test-marginfloat-slides test-marginfloat-cases \
 		test-marginfloat-order test-marginfloat-inorder \
 		test-marginfloat-hidden test-frametitle test-frametitle-slides \
-		${TEST_FRAMETITLE_CASES} ${TEST_FLOATORDER} ${TEST_INCLUDE}
+		${TEST_FRAMETITLE_CASES} ${TEST_FLOATORDER} ${TEST_INCLUDE} \
+		${TEST_KEEPCHECK}
 .PHONY: check
 check: test-check.py ${CHECKED_TESTS:=.pdf}
 	python3 test-check.py ${CHECKED_TESTS}
@@ -230,6 +233,13 @@ test-keep-chain.pdf: test-keep-chain.tex didactic.sty
 	test "${call count_warn,doesn.t fit}" -eq 2
 	test "${call count_word,chained}" -eq 40
 
+# warnings from where things ended up, checked by test-check.py; see the documents.
+test-keep-leadin.pdf test-keep-leadin-off.pdf: %.pdf: %.tex \
+		test-keep-leadin-body.tex didactic.sty
+	@${latex_until_settled}
+test-keep-overfull.pdf: %.pdf: %.tex didactic.sty
+	@${latex_until_settled}
+
 # the place of the margin column in the log against where a note is printed.
 test-margin-log.pdf test-margin-log-article.pdf: %.pdf: %.tex test-margin-log.tex \
 		test-margin-log.sh didactic.sty
@@ -305,6 +315,10 @@ clean:
 	${RM} test-keep-tall100-?.txt
 	${RM} test-keep-chain.pdf test-keep-chain.aux test-keep-chain.log
 	${RM} test-keep-chain.unq test-keep-chain.pytxcode test-keep-chain-?.txt
+	${RM} ${TEST_KEEPCHECK:=.pdf} ${TEST_KEEPCHECK:=.aux} ${TEST_KEEPCHECK:=.log}
+	${RM} ${TEST_KEEPCHECK:=.unq} ${TEST_KEEPCHECK:=.out}
+	${RM} ${TEST_KEEPCHECK:=.pytxcode} ${TEST_KEEPCHECK:=-?.txt}
+	${RM} test-keep-leadin-o1.txt test-keep-leadin-off-o1.txt
 	${RM} test-oldkernel.pdf test-oldkernel.aux test-oldkernel.log
 	${RM} test-oldkernel.unq test-oldkernel.pytxcode
 	${RM} test-margin-log.pdf test-margin-log.aux test-margin-log.log

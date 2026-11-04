@@ -282,6 +282,84 @@ def marginfloat_include_all(c):
     c.clean_log(order=[("figure", "2.2", "7", "2.3", "6")])
 
 
+def warnings(c):
+    """The warnings from didactic in the log, each on one line."""
+    found = re.findall(r"Package didactic Warning: (.*?)\n\n", c.log, re.S)
+    return [re.sub(r"\s*\n\(didactic\)\s+", " ", w) for w in found]
+
+
+def keep_results(c, tag):
+    """Which line each case is on, and the warnings naming a line."""
+    return {n: int(l) for n, l in
+            re.findall(tag + r" case (\w+) line (\d+)", c.log)}
+
+
+def keep_leadin(c):
+    """test-keep-leadin.tex: warnings against the pages of the labels."""
+    lines = keep_results(c, "leadin")
+    pages = {n: (int(a), int(b)) for n, a, b in re.findall(
+        r"leadin result (\w+) lead=(\d+)\s+first=(\d+)", c.log)}
+    c.ok(len(pages) >= 24 and set(pages) == set(lines),
+         f"results for all cases: {sorted(set(pages) ^ set(lines))}, "
+         f"{len(pages)} of them")
+    # What is asked for, or isn't a lead-in: different pages, and no warning.
+    asked = {"g", "x", "y", "t", "o"}
+    # Cases where the lead-in and the first line must be parted; if a change of
+    # layout parts them no more, the case tests nothing, and that should show.
+    for n in list("mnfhsbruljipw") + ["fr"] + (["k"] if "k" in pages else []):
+        c.ok(pages[n][0] < pages[n][1], f"case {n} is on two pages: {pages[n]}")
+    for n in asked:
+        c.ok(pages[n][0] < pages[n][1], f"case {n} is on two pages: {pages[n]}")
+    for n in ("c", "a", "d", "q", "e", "z", "v", "qb", "fs"):
+        c.ok(pages[n][0] == pages[n][1], f"case {n} is on one page: {pages[n]}")
+    found = {}
+    for w in warnings(c):
+        if "apart from what leads" in w:
+            m = re.search(r"starts page (\d+).*input line (\d+)", w)
+            found[int(m.group(2))] = int(m.group(1))
+    for n, line in sorted(lines.items()):
+        parted = pages[n][0] < pages[n][1] and n not in asked
+        c.ok((line in found) == parted,
+             f"case {n}, line {line}, pages {pages[n]}: "
+             f"{'a' if line in found else 'no'} warning")
+        if parted and line in found:
+            c.ok(found[line] == pages[n][1],
+                 f"case {n} names page {found[line]}, it is on {pages[n][1]}")
+    c.ok(not set(found) - set(lines.values()),
+         f"no warning elsewhere: {sorted(set(found) - set(lines.values()))}")
+
+
+def keep_leadin_off(c):
+    """test-keep-leadin-off.tex: nothing of this from what was turned off."""
+    pages = re.findall(r"leadin result (\w+) lead=(\d+)\s+first=(\d+)", c.log)
+    c.ok(any(int(a) < int(b) for _, a, b in pages),
+         "some lead-in and listing are on different pages")
+    w = [w for w in warnings(c) if "apart from what leads" in w]
+    c.ok(not w, f"no warning about a lead-in: {w}")
+
+
+def keep_overfull(c):
+    """test-keep-overfull.tex: the warning names the line and the full page."""
+    lines = keep_results(c, "overfull")
+    pages = {n: int(p) for n, p in
+             re.findall(r"overfull result (\w+) page=(\d+)", c.log)}
+    found = {}
+    for w in warnings(c):
+        if "doesn't fit" in w:
+            m = re.search(r"page (\d+) is overfull.*input line (\d+)", w)
+            c.ok(m, f"names a page and a line: {w}")
+            if m:
+                found[int(m.group(2))] = int(m.group(1))
+    for n in "veltp":
+        c.ok(lines[n] in found, f"case {n}, line {lines[n]}, warns")
+        c.ok(found.get(lines[n]) == pages[n],
+             f"case {n} names page {found.get(lines[n])}, it is on {pages[n]}")
+    c.ok(lines["c"] not in found, "the control doesn't warn")
+    # A pair's page can run off the paper without TeX's message, so at least.
+    n = len(re.findall(r"Overfull \\vbox", c.log))
+    c.ok(n >= 4 and n <= len(found), f"{n} overfull pages, {len(found)} warnings")
+
+
 def marginfloat_hidden(c):
     """test-marginfloat-hidden.tex; the numbers are those of its header."""
     c.clean_log()                                    # 1
@@ -445,6 +523,9 @@ CHECKS = {
     "test-marginfloat-kinds": marginfloat_kinds,
     "test-marginfloat-article": marginfloat_article,
     "test-marginfloat-hidden": marginfloat_hidden,
+    "test-keep-leadin": keep_leadin,
+    "test-keep-leadin-off": keep_leadin_off,
+    "test-keep-overfull": keep_overfull,
     "test-frametitle": frametitle,
     "test-frametitle-slides": frametitle_slides,
     "test-frametitle-overlay": frametitle_overlay,
