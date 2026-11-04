@@ -5452,6 +5452,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \newif\if@didactic@keep@ownline
 \newif\if@didactic@keep@dobreak
 \newif\if@didactic@keep@ltowed
+\newif\if@didactic@keep@hmdue
 \@ifclassloaded{beamer}{\@didactic@keepfalse}{\@didactic@keeptrue}
 \if@didactic@keep
 %    \end{macrocode}
@@ -6051,8 +6052,13 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % \textsf{needspace} does: |\@didactic@keep@room|\{\meta{height}\} ends the 
 % page here if less than \meta{height} plus that many lines of the text are 
 % left.
+% We estimate as \TeX\ will decide: a break fits if the page less all that it can 
+% shrink fits, so the room counts |\pageshrink|, which includes what 
+% \textsf{memoir}'s |\sloppybottom| gives to |\topskip|, and \meta{height} is 
+% what the heading's spaces can shrink to.
 % But with a |keepmaxgap| we break only if no more than that many lines are 
-% left: the limit on empty space wins over the lines after a heading.
+% left, and those are the natural lines, without the shrinking: the limit on 
+% empty space wins over the lines after a heading.
 % Not after another heading (|\if@nobreak|), which has asked already, nor on 
 % an empty page, nor inside a box.
 % Nor when the text so far is already more than the page holds: then \TeX\ 
@@ -6067,9 +6073,19 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % |\@startsection|\{\meta{name}\}\{\meta{level}\}\{\meta{indent}\}\{\meta{beforeskip}\}
 % \{\meta{afterskip}\}\{\meta{style}\}; |\chapter| doesn't.
 % A heading on a line of its own (a positive \meta{afterskip}) needs that 
-% line, which we count as one and a half lines of the text for its larger font, and 
-% the space after it; a run-in heading only the space before it, since it 
-% starts the first line.
+% line and the space after it; a run-in heading only the space before it, since 
+% it starts the first line.
+% We take the line from the heading's own font: what \meta{style} sets, in a box 
+% that is thrown away, with an empty group for the argument that the last command 
+% of a style may take.
+% From the line before it, that line takes the |\baselineskip| of that font, less 
+% |\prevdepth|, plus |\pagedepth|, which aren't the same when glue has come since 
+% that line; after a rule, or anything else that sets |\prevdepth| to $-1000$\,pt, 
+% there is no interline glue, and the line takes its height, which we count as 
+% four fifths of that.
+% A heading of more than one line is more than we count; the chain sees to that, 
+% and we'd rather have the estimate low: the chain is exact where it holds, and a 
+% page ended too early can't be taken back.
 % A run-in title that is still waiting (a frame title, say, before a block) 
 % takes a line of its own when this heading starts, one more line.
 % The headings of the blocks are those of \textsf{amsthm}'s theorems, 
@@ -6081,6 +6097,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % breaks only on the main list.
 %    \begin{macrocode}
 \newdimen\@didactic@keep@tmp
+\newdimen\@didactic@keep@tmpb
 \newcount\@didactic@keep@tmpc
 \def\@didactic@keep@room#1{%
   \ifnum\@didactic@keepafterheading>\z@
@@ -6088,7 +6105,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \ifvmode\ifinner\else\ifdim\pagegoal<\maxdimen
         \ifdim\pagetotal>\pagegoal\else
           \@didactic@keep@tmp\dimexpr\pagegoal-\pagetotal\relax
-          \ifdim\@didactic@keep@tmp<\dimexpr#1
+          \ifdim\dimexpr\@didactic@keep@tmp+\pageshrink\relax<\dimexpr#1
               +\@didactic@keepafterheading\@didactic@keep@L\relax
             \ifnum\@didactic@keepmaxgap>\z@
               \ifdim\@didactic@keep@tmp>\@didactic@keepmaxgap\@didactic@keep@L
@@ -6118,11 +6135,20 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \advance\@tempskipa\@tempskipb
       \@tempskipb#5\relax
       \ifdim\@tempskipb>\z@
-        \@didactic@keep@room{\@tempskipa+1.5\@didactic@keep@L+\@tempskipb}%
+        \setbox\@tempboxa\vbox{#6{}\global\@didactic@keep@tmp\baselineskip}%
+        \@didactic@keep@tmpb\@didactic@keep@tmp
+        \ifdim\prevdepth>-\@m\p@
+          \advance\@didactic@keep@tmpb-\prevdepth
+        \else
+          \@didactic@keep@tmpb.8\@didactic@keep@tmpb
+        \fi
+        \advance\@didactic@keep@tmpb\pagedepth
+        \@didactic@keep@room{\@tempskipa-\glueshrink\@tempskipa
+          +\@didactic@keep@tmpb+\@tempskipb-\glueshrink\@tempskipb}%
         \global\@didactic@keep@headstate\z@
         \global\@didactic@keep@ownlinetrue
       \else
-        \@didactic@keep@room{\@tempskipa}%
+        \@didactic@keep@room{\@tempskipa-\glueshrink\@tempskipa}%
         \@didactic@keep@headwaits
       \fi
     \fi
@@ -6138,9 +6164,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \if@didactic@keep@inbox\else
         \@didactic@keep@headrecord
         \if@noskipsec
-          \@didactic@keep@room{\topsep+\@didactic@keep@L}%
+          \@didactic@keep@room{\topsep-\glueshrink\topsep+\@didactic@keep@L}%
         \else
-          \@didactic@keep@room{\topsep}%
+          \@didactic@keep@room{\topsep-\glueshrink\topsep}%
         \fi
         \@didactic@keep@headwaits
       \fi
@@ -6202,6 +6228,15 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % the heading are in \cs{@didactic@hn@}\meta{key}, in memory, and we say it when 
 % the |.aux| file is read at the end of the run, so once and about this run.
 %
+% A heading with more room than the limit can still end up on the next page: 
+% \LaTeX\ moves it when what follows can't part from it, such as a tall box or the 
+% first two lines of a paragraph.
+% No estimate can say so; the pages can.
+% So such a heading writes the page it ended up on, and the page where it started 
+% (|\@didactic@keep@hm|), and if they differ we warn.
+% The warning says what the pages did, in every such case, with no estimate behind 
+% it.
+%
 % The room goes with the break into the |.aux| (|\@didactic@keep@hb|): the table 
 % doesn't fit in that much room.
 % The next run breaks only if the room is no more than that, and the option 
@@ -6233,6 +6268,23 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
         \@didactic@keep@hb{#1}{#3}%
       \fi\fi
     \fi}}
+\def\@didactic@keep@hm#1#2#3{%
+  \ifnum#2>#3\relax
+    \@didactic@keep@tellhead{#1}{it moves to the next page, which leaves
+      more\MessageBreak than keepmaxgap lines empty}%
+  \fi}
+\def\@didactic@keep@movecheck{%
+  \if@didactic@keep@hmdue
+    \global\@didactic@keep@hmduefalse
+    \if@didactic@keep@overlimit
+      \if@filesw
+        \protected@write\@auxout{\let\@didactic@keep@cpage\relax}{%
+          \string\@didactic@keep@hm{\@didactic@keep@headkey}%
+            {\@didactic@keep@cpage}{\@didactic@keep@headstart}}%
+        \nobreak
+      \fi
+    \fi
+  \fi}
 \def\@didactic@keep@hb#1#2{%
   \ifx\@newl@bel\@testdef
     \@ifundefined{@didactic@hb@#1}{\@tempswatrue}{%
@@ -6292,6 +6344,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \@didactic@keep@recordedbreak
   \fi\fi
   \global\@didactic@keep@overlimitfalse
+  \global\@didactic@keep@hmduetrue
+  \xdef\@didactic@keep@headstart{\number\c@page}%
   \global\@didactic@keep@headroom-\p@
   \ifvmode\ifinner\else\ifdim\pagegoal<\maxdimen
     \ifdim\pagetotal>\pagegoal\else
@@ -6346,6 +6400,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
         \global\@didactic@keep@headstate\@ne
       \fi
       \@didactic@keep@headpage
+      \@didactic@keep@movecheck
     \else
       \global\let\@didactic@keep@headkey\@empty
       \global\@didactic@keep@hpduefalse
@@ -6415,11 +6470,16 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % They get no |\clubpenalties| from around them either.
 %
 % At the start of the first paragraph the heading is on the page, so we can 
-% measure, in vertical mode (|para/before|).
+% measure, in vertical mode (|para/before|), again counting what the page can 
+% shrink.
 % If the lines don't fit, the chain will move the heading to the next page, 
 % and if that is over |keepmaxgap| the limit wins: we ask for as many lines as 
 % fit, and warn.
-% If not even one fits, the heading has to go; we warn about the space left.
+% But never for fewer than \LaTeX\ keeps: |\@afterheading| forbids a break after 
+% the first line of the paragraph, so with room for less than two lines, the 
+% heading moves if the paragraph has them, however much that leaves empty.
+% The pages say so at the end of the run (|\@didactic@keep@hm|), so there's nothing 
+% to tell here.
 %
 % At the end of a paragraph (|para/after|) we count its lines, |\prevgraf|, or 
 % its height if that is more: a table in a |center| is one line of \TeX's.
@@ -6427,7 +6487,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % |\nobreak| between them, again unless that is over the limit.
 % The next paragraph also writes its page, with what came so far; if that isn't 
 % the page of the heading we warn, when the |.aux| is read at the end of the 
-% run (|\@didactic@keep@after|).
+% run (|\@didactic@keep@after|), about the first such paragraph, since those 
+% after it are on later pages too.
 % That is the check on all of the above: what can end a page in such a gap, such 
 % as the place to break before a list, is seen there.
 % Unless the page was ended on purpose: by |\newpage|, which |\clearpage| and 
@@ -6440,6 +6501,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 %    \begin{macrocode}
 \newcount\@didactic@keep@headstate
 \newcount\@didactic@keep@owed
+\newcount\@didactic@keep@asked
 \newdimen\@didactic@keep@ptotal
 \let\@didactic@keep@owedkey\@empty
 \def\@didactic@keep@headwaits{%
@@ -6461,25 +6523,20 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \global\clubpenalties\@didactic@keep@owed\space
       \@didactic@keep@tens{\the\@didactic@keep@owed}0\relax
   \else
-    \if@didactic@keep@overlimit
-      \global\clubpenalties\@ne\space 0\relax
-    \else
-      \global\clubpenalties\z@
-    \fi
+    \global\clubpenalties\z@
   \fi}
 \def\@didactic@keep@measure{%
   \global\@didactic@keep@owed\@didactic@keepafterheading
   \if@didactic@keep@overlimit
     \ifdim\pagegoal<\maxdimen
-      \@didactic@keep@tmp\dimexpr\pagegoal-\pagetotal-\parskip\relax
+      \@didactic@keep@tmp\dimexpr\pagegoal-\pagetotal+\pageshrink-\parskip\relax
       \ifdim\@didactic@keep@tmp<\@didactic@keepafterheading\@didactic@keep@L
         \@didactic@keep@tmpc\@didactic@keep@tmp
         \divide\@didactic@keep@tmpc\@didactic@keep@L
-        \ifnum\@didactic@keep@tmpc<\@ne
-          \PackageWarning{didactic}{%
-            No line fits after a heading, so it moves to the\MessageBreak
-            next page and leaves more than keepmaxgap lines\MessageBreak
-            empty, near page \the\c@page}%
+        \ifnum\@didactic@keep@tmpc<\tw@
+          \ifnum\@didactic@keepafterheading>\tw@
+            \global\@didactic@keep@owed\tw@
+          \fi
         \else
           \global\@didactic@keep@owed\@didactic@keep@tmpc
           \PackageWarning{didactic}{%
@@ -6491,7 +6548,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
         \fi
       \fi
     \fi
-  \fi}
+  \fi
+  \global\@didactic@keep@asked\@didactic@keep@owed}
 \def\@didactic@keep@parabefore{%
   \ifcase\currentgrouptype
   \or\or\or\or
@@ -6509,6 +6567,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \global\@didactic@keep@afterlistingfalse
     \ifcase\@didactic@keep@headstate
     \or
+      \@didactic@keep@movecheck
       \@didactic@keep@measure
       \global\@didactic@keep@ptotal\pagetotal
     \or
@@ -6520,6 +6579,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
         \global\let\@didactic@keep@owedkey\@empty
       \fi
     \or
+      \@didactic@keep@movecheck
     \or
       \global\@didactic@keep@headstate\z@
     \fi
@@ -6539,8 +6599,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
           \protected@write\@auxout{\let\@didactic@keep@cpage\relax}{%
             \string\@didactic@keep@after{\@didactic@keep@owedkey}%
               {\@didactic@keep@cpage}%
-              {\the\numexpr\@didactic@keepafterheading
-                -\@didactic@keep@owed\relax}}%
+              {\the\numexpr\@didactic@keep@asked-\@didactic@keep@owed\relax}}%
         \fi
         \global\let\@didactic@keep@owedkey\@empty
       \fi
@@ -6580,7 +6639,12 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \def\@didactic@keep@after#1#2#3{%
   \@ifundefined{@didactic@hp@#1}{}{%
     \ifnum#2>\@nameuse{@didactic@hp@#1}\relax
-      \@didactic@keep@tellhead{#1}{only #3 of its lines are on its page}%
+      \ifx\@newl@bel\@testdef
+        \@ifundefined{@didactic@ha@#1}{%
+          \global\@namedef{@didactic@ha@#1}{}%
+          \@didactic@keep@tellhead{#1}{only #3 of its lines are on its page}%
+        }{}%
+      \fi
     \fi}}
 \AddToHook{cmd/newpage/before}{%
   \global\let\@didactic@keep@owedkey\@empty

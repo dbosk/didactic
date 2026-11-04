@@ -221,7 +221,7 @@ test-keep-heading.pdf test-keep-heading3.pdf: %.pdf: %.tex test-keep-heading.tex
 	! grep -E 'didactic heading test:.*FAIL' $*.log
 	grep -q 'didactic heading test: all checks ran' $*.log
 	! grep 'Overfull .vbox' $*.log
-	test "$$(grep -c 'Package didactic Warning: .*Only 1 of' $*.log)" -eq 1
+	test "$$(grep -c 'Package didactic Warning: .*Only 1 of' $*.log)" -eq 0
 	test "$$(grep -c 'Package didactic Warning: .*Only 2 of' $*.log)" -eq ${ONLY2}
 	test "${call count_warn,can.t break here}" -eq 1
 	test "$$(grep -c 'didactic heading test.*PASS' $*.log)" -ge 40
