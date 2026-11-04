@@ -1120,6 +1120,10 @@
 %   The same goes for a list (|itemize|, |enumerate|, |description|, with
 %   \textsf{enumitem} too): it doesn't start the next page with what leads into it
 %   at the foot of this one, though it may break between its items as ever.
+%   Past the limit it starts the next page only if its first item doesn't fit there,
+%   and a warning says so.
+%   If a page breaks above a lead-in that was tied past the limit, a warning says that
+%   as well.
 %   The default is |true|.
 % \item[keepmaxgap] What moves to the next page to stay together may leave at
 %   most this many empty lines at the foot of the page.
