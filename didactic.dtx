@@ -153,12 +153,15 @@
 %   the frame titles.
 % }
 % \changes{v2.15}{2026/10/22}{%
-%   Adds \texttt{keepmaxgap}: a listing kept together moves to the next page 
-%   only if that leaves at most 5 empty lines at its foot, counting a heading 
-%   that moves along, and otherwise breaks.
-%   Adds \texttt{keepafterheading}: at least 2 lines follow a heading, of a 
-%   section or a block, on its page, or the heading moves to the next page, 
-%   within that limit; if it can't, a warning names the heading.
+%   Adds \texttt{keepmaxgap}: a listing kept together moves to the next page
+%   only if that leaves at most 5 empty lines at its foot, counting what moves
+%   along, and otherwise breaks, or starts the next page without what leads
+%   into it.
+%   Adds \texttt{keepafterheading}: at least 2 lines follow a heading, of a
+%   section or a block, on its page, or the heading moves to the next page,
+%   within that limit.
+%   Past the limit, a heading has what \LaTeX\ gives it, and a warning says
+%   what the page did.
 % }
 % \changes{v2.15}{2026/10/22}{%
 %   Lowers the default of \texttt{keeplines} to 10 lines: long programs may 
@@ -167,8 +170,8 @@
 % \changes{v2.15}{2026/10/22}{%
 %   With \texttt{keepleadin}, sets the widow penalty to 10\,000 and the club 
 %   penalty to 1\,000 for every paragraph in the notes, so that a lead-in of 
-%   a line or two moves whole with its listing, and a longer one leaves at 
-%   least two lines with it.
+%   a line or two moves whole with its listing, and a longer one leaves at
+%   least two lines with it, within \texttt{keepmaxgap}.
 % }
 % \changes{v2.15}{2026/10/22}{%
 %   Adds the \texttt{noteoverflow} option, passed on to \textsf{marginfix}'s 
@@ -186,7 +189,7 @@
 %   \texttt{didacticpair}, and the header line of a \textsf{noweb} chunk, 
 %   stay with it.
 %   A listing too tall for a page breaks anyway, with a warning.
-%   A listing of \textsf{fvextra} (so of \texttt{minted}) no longer breaks 
+%   A listing of \textsf{fvextra} (so of \texttt{minted}) no longer breaks
 %   after any line, whatever the penalties.
 %   Writes the margin column's place to the log 
 %   (\texttt{didactic-margin:}\dots), for scripts that check the notes.
@@ -1063,9 +1066,10 @@
 % \DescribeOpt{keepleadin}
 % \begin{description}
 % \item[keeplines] A listing of at most this many lines doesn't break; it
-%   moves to the next page as a whole, within the limit of |keepmaxgap|: if 
-%   moving it would leave more empty lines than that, it breaks after all, by 
-%   the rule of |keepends|.
+%   moves to the next page as a whole, within the limit of |keepmaxgap|: if
+%   moving it with what leads into it would leave more empty lines than that,
+%   it breaks after all, by the rule of |keepends|, or starts the next page by
+%   itself.
 %   Unless it wouldn't fit on a page, with a few lines to spare for what is
 %   kept with it: lines can wrap (|breaklines|), so that is a matter of its
 %   height.
@@ -1098,35 +1102,54 @@
 %   A lead-in of one or two lines moves whole with the listing, and a longer
 %   one leaves at least two lines with it, the lines of an exercise's heading
 %   included.
+%   All this within |keepmaxgap|: if moving them would leave more empty lines
+%   than that, the listing can start the next page by itself, as without this
+%   option, and if it does a warning says so.
 %   The default is |true|.
-% \item[keepmaxgap] A listing of at most |keeplines| lines moves to the next 
-%   page only if that leaves at most this many empty lines at the foot of 
-%   the page; otherwise it breaks there, still with |keepends| lines on 
-%   each side.
-%   The lines are lines of the text, and what moves along counts too: the 
+% \item[keepmaxgap] What moves to the next page to stay together may leave at
+%   most this many empty lines at the foot of the page.
+%   The lines are lines of the text, and what moves along counts too: the
 %   lines of the lead-in, and a heading right before them.
-%   A listing that can't break, since |keepends| asks for more lines than it 
-%   has or than fit, moves anyway, with a warning.
-%   With a limit, the place to break that \textsf{noweb} offers after every 
+%   If it would leave more, a listing of at most |keeplines| lines breaks
+%   there, still with |keepends| lines on each side, and the tie to what leads
+%   into it is released.
+%   A listing that can't break, since |keepends| asks for more lines than it
+%   has or than fit, starts the next page without its lead-in, with a warning.
+%   With a limit, the place to break that \textsf{noweb} offers after every
 %   code chunk, which also leaves empty space, is dropped.
+%   The limit bounds the moves of \textsf{didactic}, not the breaks that \TeX\
+%   finds best by itself, which can leave as much with or without this package.
+%   Nor does it bound what \textsf{noweb} does without its option |breakcode|:
+%   a |\filbreak| after each chunk, which can leave most of a page empty, and
+%   there is a warning.
+%   Use |\noweboptions{breakcode}|; |\usepackage[breakcode]{noweb}| doesn't set it.
 %   The default is 5; 0 turns the limit off.
 % \item[keepafterheading] At least this many lines follow a heading on its 
 %   page: of text, of a listing, or of a table.
 %   If they don't fit, the heading starts the next page.
-%   This holds for |\section| and the levels below it, |\paragraph| 
-%   included, so also for the frame titles in the notes, and for the 
-%   headings of the blocks (|example|, |exercise|, |solution| and so on), 
-%   but not for |\chapter|, which starts a page anyway.
+%   This holds for |\section| and the levels below it, |\paragraph|
+%   included, so also for the frame titles in the notes, and for the
+%   headings of the blocks (|example|, |exercise|, |solution| and so on),
+%   but not for |\chapter|.
+%   That usually starts a page.
+%   Under the option |article| of \textsf{memoir} it doesn't, and it has what
+%   \LaTeX\ gives every heading: the first two lines of a paragraph stay with it,
+%   or it moves.
 %   A table of \textsf{longtable} that starts on the next page, leaving the 
 %   heading behind, takes the heading along in the next run.
 %   When the page no longer needs that, or with this option off, the heading 
 %   stays in the run after, whatever the old |.aux| file says.
-%   Moving a heading must also stay within |keepmaxgap|, which wins: then the 
-%   heading stays with the lines that fit, or the table starts on the next page, 
-%   and a warning names the heading.
-%   Nothing else keeps a heading from these lines, except a page you end 
-%   yourself, or a place to break that \LaTeX\ offers between short paragraphs 
-%   and a list; whenever that happens a warning says which heading it was.
+%   Moving a heading must also stay within |keepmaxgap|, which wins: then the
+%   heading has what \LaTeX\ would give it, the lines that fit if it has more
+%   room than this option asks, or the table starts on the next page.
+%   It never has fewer lines than without this option: a heading is never parted
+%   from its first paragraph, and if the first two lines of that don't fit, or
+%   what comes first can't break, it moves whatever the limit, as \LaTeX\ moves it.
+%   Whenever a heading has too few lines, or moves past the limit, a warning
+%   names the heading and says what the page did.
+%   Nothing else keeps a heading from these lines, except a page you end
+%   yourself, or a place to break that \LaTeX\ offers between short paragraphs
+%   and a list.
 %   The default is 3; 0 turns it off.
 % \end{description}
 % A line counts as empty when it holds nothing but spaces and tabs.
@@ -1152,6 +1175,11 @@
 % has an |Underfull \vbox|.
 % If you want the empty foot, put |\raggedbottom| in the preamble of the
 % notes; \textsf{didactic} doesn't change it for you.
+% When a heading moves, the space stays at the foot whatever you choose, so
+% \textsf{memoir}'s |\raggedbottomsection| changes nothing within |keepmaxgap|; it
+% matters only for a heading that \LaTeX\ moves past that.
+% \textsf{memoir}'s |\sloppybottom| lets a page hold more by shrinking its
+% |\topskip|; \textsf{didactic} counts that as room, as \TeX\ does.
 % Either way |keeplines| is a trade-off between a listing cut in two and
 % empty space, and |keepmaxgap| bounds the empty space: a listing of 10
 % lines moves whole only if at most 5 lines of the page are left empty,
