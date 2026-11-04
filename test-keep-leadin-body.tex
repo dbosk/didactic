@@ -118,6 +118,17 @@ Lead-in W, to code side by side, by vspace.\label{w}
 \end{didacticpair}
 Text.
 
+% A pair of listings, as \codebycode makes: a listing in a cell is in a box.
+\roomfor{2}
+Lead-in PC, to listings side by side.\label{pc}
+
+\marginpar{note PC}
+\testfile{pcx}{9}{}{}%
+\case{pc}\begin{didacticpair}{2}
+  \VerbatimInput{\jobname-pcx.txt} & \label{pcL}\VerbatimInput{\jobname-pcx.txt}
+\end{didacticpair}
+Text.
+
 % A chunk of noweb, woven for minted: its header line comes first.
 \makeatletter
 \ifdefined\nwbegincode
@@ -266,7 +277,7 @@ Text.
 \results{u}\results{l}\results{i}\results{j}\results{p}\results{w}
 \makeatletter
 \ifdefined\nwbegincode\results{k}\fi
-\results{fr}\results{ee}
+\results{fr}\results{ee}\results{pc}
 \makeatother
 \results{c}\results{a}\results{d}\results{q}\results{e}\results{z}\results{g}
 \results{v}\results{fs}\results{hh}\typeout{leadin result qb lead=\getpagerefnumber{q2}

@@ -5909,36 +5909,36 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % is, when \TeX\ has looked at the end of the list.
 % The tabular is the last box of its line at its end, so we can take it, measure it 
 % and put it back.
+% Listings in its cells have been through |\@didactic@keep@flush| by then, in a box, 
+% so only now we set what the check looks at.
 %    \begin{macrocode}
 \def\@didactic@keep@pairstart{%
   \@didactic@keep@atstart
   \@didactic@keep@noteempty
   \global\let\@didactic@keep@shipped\relax
-  \global\@didactic@keep@watchtrue
-  \ifinner\global\@didactic@keep@watchfalse\fi
   \if@didactic@keep@cols
-    \global\@didactic@keep@watchfalse
     \PackageWarningNoLine{didactic}{%
       Code side by side in multicols isn't tied to what\MessageBreak
       leads into it: we can't know the height of its\MessageBreak
       column, \@didactic@keep@place}%
   \fi}
 \def\@didactic@keep@pairmeasure{%
+  \global\@didactic@keep@top-\maxdimen
   \ifhmode
     \setbox\@tempboxa\lastbox
-    \ifvoid\@tempboxa
-      \global\@didactic@keep@watchfalse
-    \else
+    \ifvoid\@tempboxa\else
       \@tempdima\dimexpr\topskip-\ht\@tempboxa\relax
       \ifdim\@tempdima<\z@\@tempdima\z@\fi
       \global\@didactic@keep@top
         \dimexpr\@tempdima+\ht\@tempboxa+\dp\@tempboxa\relax
       \box\@tempboxa
     \fi
-  \else
-    \global\@didactic@keep@watchfalse
   \fi}
-\def\@didactic@keep@pairend{\@didactic@keep@check{Code side by side}}
+\def\@didactic@keep@pairend{%
+  \global\@didactic@keep@watchtrue
+  \ifinner\global\@didactic@keep@watchfalse\fi
+  \if@didactic@keep@cols\global\@didactic@keep@watchfalse\fi
+  \@didactic@keep@check{Code side by side}}
 %    \end{macrocode}
 % \end{macro}
 % \end{macro}

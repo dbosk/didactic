@@ -306,7 +306,7 @@ def keep_leadin(c):
     asked = {"g", "x", "y", "t", "o"}
     # Cases where the lead-in and the first line must be parted; if a change of
     # layout parts them no more, the case tests nothing, and that should show.
-    for n in (list("mnfhsbruljipw") + ["fr", "ee"]
+    for n in (list("mnfhsbruljipw") + ["fr", "ee", "pc"]
               + (["k"] if "k" in pages else [])):
         c.ok(pages[n][0] < pages[n][1], f"case {n} is on two pages: {pages[n]}")
     for n in asked:
