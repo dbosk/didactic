@@ -712,6 +712,7 @@
 % moves, until the value changes.
 % The default is the value of |keepmaxgap|, 5 lines unless given, the same 
 % bound as for keeping a listing together; 0 turns the cap off.
+% With Xe\LaTeX, where no page ends early for a note, it does nothing.
 % It needs \textsf{marginfix} with |\marginnoteyieldlimit|; with an older 
 % one it does nothing, and if you gave the option, we warn.
 % A |\marginnoteyieldlimit| of your own in the preamble wins over the option 
@@ -3632,9 +3633,12 @@
 % The limit of |noteyieldmaxgap| is a number of lines, so we set it when 
 % the document starts and |\baselineskip| is that of the text.
 % With 0 we leave \textsf{marginfix}'s limit as it is: none, or your own.
-% We also leave it if it isn't \cs{maxdimen} by then, that is if you have set 
-% your own in the preamble, before or after |\usepackage{didactic}|: yours 
+% We also leave it if it isn't \cs{maxdimen} by then, that is if you have set
+% your own in the preamble, before or after |\usepackage{didactic}|: yours
 % wins.
+% And we leave it with an engine where no page can end early for a note, as
+% with Xe\LaTeX: a limit would have \textsf{marginfix} say of each carried note
+% that the limit kept its page from ending early, which isn't the reason.
 %    \begin{macrocode}
 \ifnum\@didactic@noteyieldmaxgap<\z@
   \@didactic@noteyieldmaxgap=\@didactic@keepmaxgap
@@ -3643,11 +3647,15 @@
   \ifdefined\marginnoteyieldlimit
     \ifnum\@didactic@noteyieldmaxgap>\z@
       \ifdim\mfx@yieldlimit=\maxdimen
-        \marginnoteyieldlimit{\@didactic@noteyieldmaxgap\baselineskip}%
+        \ifdefined\pdftexversion
+          \marginnoteyieldlimit{\@didactic@noteyieldmaxgap\baselineskip}%
+        \else\ifdefined\directlua
+          \marginnoteyieldlimit{\@didactic@noteyieldmaxgap\baselineskip}%
+        \fi\fi
       \fi
     \fi
   \else
-    \if@didactic@noteyieldgiven
+\if@didactic@noteyieldgiven
       \ifnum\@didactic@noteyieldmaxgap>\z@
         \PackageWarningNoLine{didactic}{The option noteyieldmaxgap does
           nothing here:\MessageBreak

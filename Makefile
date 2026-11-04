@@ -318,6 +318,7 @@ test-noteoverflow-xe.pdf: %.pdf: %.tex ${NOTEOVERFLOW_SRC}
 	@${settle_many}
 	! grep '^!' $*.log
 	test "${call count_spill,unresolved}" -gt 0
+	test "$$(grep -c 'keeps page' $*.log)" -eq 0
 	test "${call count_warn,A margin note from page}" -eq "${call count_spill,unresolved}"
 test-noteoverflow-old.pdf: test-noteoverflow-old.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
@@ -347,7 +348,9 @@ NOTEYIELD_CASES=:5 keepmaxgap=8:8 noteyieldmaxgap=3:3 \
 # option asks for a limit that can't be honoured, quiet if not.
 NOTEYIELD_OLD_CASES=noteyieldmaxgap=3:warn :quiet keepmaxgap=8:quiet \
 	noteyieldmaxgap=0:quiet
+# The limit is set only where a page can end early, so under pdflatex.
 .PHONY: test-noteyield
+test-noteyield: PDFLATEX=pdflatex
 test-noteyield: test-noteyield.tex didactic.sty
 	for c in ${NOTEYIELD_CASES}; do \
 	  ${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode \
