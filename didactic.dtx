@@ -5822,6 +5822,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \newcommand\@didactic@keep@hm[3]{}
 \newcommand\@didactic@keep@after[3]{}
 \newcommand\@didactic@keep@pa[1]{}
+\newcommand\@didactic@keep@pm[3]{}
 \newcommand\@didactic@keep@pp[3]{}
 \newcommand\@didactic@keep@bua[1]{}
 \newcommand\@didactic@keep@bub[3]{}
@@ -6135,23 +6136,47 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \def\@didactic@keep@relstart{%
   \global\@didactic@keep@relduetrue
   \xdef\@didactic@keep@relline{\@didactic@keep@where}%
+  \xdef\@didactic@keep@tiepage{\number\numexpr\ReadonlyShipoutCounter+\@ne\relax}%
+  \let\@didactic@keep@relpageis\@didactic@keep@tiepage
   \if@filesw
-    \count@\lastpenalty
-    \protected@write\@auxout{\let\@didactic@keep@cpage\relax}{%
-      \string\@didactic@keep@pa{\@didactic@keep@cpage}}%
-    \ifnum\count@=\@M\nobreak\fi
+    \ifnum\lastnodetype=11 \else
+      \count@\lastpenalty
+      \protected@write\@auxout{\let\@didactic@keep@cpage\relax}{%
+        \string\@didactic@keep@pa{\@didactic@keep@cpage}}%
+      \ifnum\count@=\@M\nobreak\fi
+      \gdef\@didactic@keep@relpageis{\string\@didactic@keep@relpage}%
+    \fi
+  \fi}
+\def\@didactic@keep@relmove{%
+  \if@filesw
+    \ifnum\lastnodetype=11 \else
+      \count@\lastpenalty
+      \protected@write\@auxout{\let\@didactic@keep@cpage\relax}{%
+        \string\@didactic@keep@pm{\@didactic@keep@tiepage}%
+          {\@didactic@keep@cpage}{\@didactic@keep@relline}}%
+      \ifnum\count@=\@M\nobreak\fi
+    \fi
   \fi}
 \def\@didactic@keep@relend{%
   \if@didactic@keep@reldue
     \global\@didactic@keep@relduefalse
     \if@filesw
       \protected@write\@auxout{\let\@didactic@keep@cpage\relax}{%
-        \string\@didactic@keep@pp{\string\@didactic@keep@relpage}%
+        \string\@didactic@keep@pp{\@didactic@keep@relpageis}%
           {\@didactic@keep@cpage}{\@didactic@keep@relline}}%
       \ifvmode\nobreak\fi
     \fi
   \fi}
 \def\@didactic@keep@pa#1{\gdef\@didactic@keep@relpage{#1}}
+\def\@didactic@keep@pm#1#2#3{%
+  \ifnum#2>#1\relax
+    \ifx\@newl@bel\@testdef
+      \PackageWarningNoLine{didactic}{%
+        What leads into what starts at #3 moves along\MessageBreak
+        to the next page, since that didn't fit there after all:\MessageBreak
+        this can leave more than keepmaxgap lines empty}%
+    \fi
+  \fi}
 \def\@didactic@keep@pp#1#2#3{%
   \ifnum#2>#1\relax
     \ifx\@newl@bel\@testdef
@@ -6879,8 +6904,19 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % |\@didactic@keep@listtie|, right after |\@trivlist| has ended the paragraph before,
 % forbids the place to break at the start of the list, if moving what leads into it
 % stays within |keepmaxgap|, as for a listing.
-% Past the limit it forbids it too if the first item fits, for there \TeX\ would
-% take the bonus of $-51$ on a page that stretches, and the warning has no reason.
+% Past the limit the bonus of $-51$ stays only if the first line of the first item
+% can't fit, reckoned as \TeX\ does, with a line of the text.
+% If it can, \TeX\ would still take the bonus on a page that stretches, and the warning
+% would have no reason, so we make that break cost more than the one after that line
+% can: its club and interline penalties, and 100 for the shrinking it may need.
+% So the first item stays on the page if \TeX\ can have it there.
+% We don't forbid the break: what follows may yet not fit, a first line taller than a
+% line of the text, or the lead-in of a listing in the item, and then the list starts
+% the next page, with the warning that says so, and no page is overfull.
+% \TeX\ may then also find a break above the lead-in better, on a page that stretches.
+% That takes the lead-in along, past the limit, and has a warning of its own
+% (|\@didactic@keep@relmove|), which can only say what it can leave empty, since it
+% doesn't know how many lines went; under a heading the heading's warning says it.
 % Only that penalty changes: between the items \LaTeX\ goes on as ever.
 % The penalty is local to the list, and what starts in an item would inherit it, a
 % quote, say, so every |\@trivlist| first takes it back, |\@didactic@keep@forbidden|.
@@ -6972,9 +7008,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \@nobreaktrue
   \fi}
 \let\@didactic@keep@bpsaved\relax
-\def\@didactic@keep@forbid{%
+\def\@didactic@keep@forbid#1{%
   \edef\@didactic@keep@bpsaved{\the\@beginparpenalty}%
-  \@beginparpenalty\@M}
+  \@beginparpenalty#1\relax}
 \def\@didactic@keep@forbidden{%
   \ifx\@didactic@keep@bpsaved\relax\else
     \@beginparpenalty\@didactic@keep@bpsaved\relax
@@ -6990,13 +7026,15 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
         \if@didactic@keepleadin
           \@didactic@keep@tie
           \if@didactic@keep@movable
-            \@didactic@keep@forbid
+            \@didactic@keep@forbid\@M
           \else
+            \@didactic@keep@relstart
             \ifdim\dimexpr\pagegoal-\pagetotal+\pageshrink
                 -\@topsep+\glueshrink\@topsep-\@didactic@keep@L\relax<\z@
-              \@didactic@keep@relstart
             \else
+              \@didactic@keep@ifchained{}{\@didactic@keep@relmove}%
               \@didactic@keep@forbid
+                {\numexpr\clubpenalty+\interlinepenalty+101\relax}%
             \fi
           \fi
         \fi
@@ -7020,7 +7058,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \if@noskipsec
     \if@didactic@keep@inbox\else\ifinner\else
       \global\@didactic@keep@titleonlytrue
-      \@didactic@keep@forbid
+      \@didactic@keep@forbid\@M
     \fi\fi
   \fi}
 \AtBeginDocument{%
@@ -7138,6 +7176,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \string\providecommand\string\@didactic@keep@hm[3]{}%
       \string\providecommand\string\@didactic@keep@after[3]{}%
       \string\providecommand\string\@didactic@keep@pa[1]{}%
+      \string\providecommand\string\@didactic@keep@pm[3]{}%
       \string\providecommand\string\@didactic@keep@pp[3]{}%
       \string\providecommand\string\@didactic@keep@bua[1]{}%
       \string\providecommand\string\@didactic@keep@bub[3]{}}%

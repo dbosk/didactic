@@ -75,6 +75,12 @@ def items(k, n, lines):
     return "\n".join(out)
 
 
+def tallitem(k):
+    "A list whose first line is six lines tall."
+    return (r"\begin{itemize}\item \rule{0pt}{6\baselineskip}" + rf"I0x1\label{{I0x1X{k}}}" + "\n"
+            + r"\item more\item more\end{itemize}")
+
+
 def listof(k, env, n, lines):
     "A list of another kind."
     out = [rf"\begin{{{env}}}"]
@@ -195,6 +201,9 @@ CASES = {
     "hll2": lambda k: heading(k) + "\n" + para(k, 2, "P") + "\n" + items(k, 8, 1) + TAIL,
     "hll3": lambda k: heading(k) + "\n" + para(k, 3, "P") + "\n" + items(k, 8, 1) + TAIL,
     "hll6": lambda k: heading(k) + "\n" + para(k, 6, "P") + "\n" + items(k, 8, 1) + TAIL,
+    # a first line taller than the room it seems to need, also on a page that stretches
+    "lT1": lambda k: para(k, 1, "P") + "\n" + tallitem(k) + TAIL,
+    "lS1": lambda k: r"\vspace{0pt plus 400pt}" + "\nS.\n\n" + para(k, 1, "P") + "\n" + tallitem(k) + TAIL,
     # and on a page that can shrink or stretch, so the first item fits where naturally it
     # wouldn't, while a break before it would look just as good to TeX
     "hs1": lambda k: r"\vspace{0pt plus 20pt minus 8pt}" + "\n" + heading(k) + "\n" + para(k, 1, "P") + "\n" + items(k, 8, 1) + TAIL,
@@ -243,12 +252,13 @@ CASES = {
     # a display as the first thing: its lines are lines under the heading
     "d": lambda k: heading(k) + "\n" + r"\[ x = \frac{a}{b} \]" + "\n" + para(k, 16) + TAIL,
     # a tall box in a center, which is one line for TeX, and then a paragraph: no more is due
-    "cp": lambda k: heading(k) + "\n" + r"\begin{center}\parbox{.8\linewidth}{\rule{0pt}{3\baselineskip}"
+    "cp": lambda k: heading(k) + "\n" + r"\begin{center}\parbox{.8\linewidth}{\rule{0pt}{6\baselineskip}"
         + rf"T1\label{{T1X{k}}}" + r"}\end{center}" + "\n" + para(k, 16, "N") + TAIL,
 }
 SHRINKLISTS = {"hs1", "hs2", "hs3"}
+TALLITEMS = {"lT1", "lS1"}
 HEADLISTS = SHRINKLISTS | {"hll1", "hll2", "hll3", "hll6"}
-FINE = HEADLISTS | {"ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3", "qq3", "lq3", "rti",
+FINE = HEADLISTS | TALLITEMS | {"ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3", "qq3", "lq3", "rti",
         "d", "wL1", "hv", "hw", "hn", "hv8", "hv3l", "f", "r", "rr", "ri", "re", "rv", "fp", "fe", "fx", "fi", "fI",
         "e", "ei", "eI", "se", "e1", "cp"}
 # Without didactic these don't exist, or frames set their titles another way.
@@ -257,11 +267,11 @@ DIDACTIC_ONLY = {"hj1", "j3", "fp", "fe", "fx", "fi", "fI", "fl1", "fl3"}
 NOT_COMPARED = DIDACTIC_ONLY | {"e", "ei", "eI", "se", "e1", "cp", "f", "rti"}
 LISTINGS = {"hv1", "hv2", "hv3", "v1", "v3", "v8", "hn1", "hn3", "n3", "hw1", "hw3", "w3",
             "hj1", "j3", "n6", "w6", "v6", "wL1", "cw0", "cw1", "cw2", "cw3", "cw4",
-            "ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3"} | HEADLISTS
-ITEMLISTS = HEADLISTS | {"ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3"}
+            "ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3"} | HEADLISTS | TALLITEMS
+ITEMLISTS = HEADLISTS | TALLITEMS | {"ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3"}
 # L2: a list right under a heading follows LaTeX, so a line is enough.
 DIRECTLISTS = {"l", "L", "ri", "fi", "fI", "ei", "eI"}
-NOHEADING = {"v1", "v3", "v8", "n3", "w3", "j3", "n6", "w6", "v6", "wL1",
+NOHEADING = TALLITEMS | {"v1", "v3", "v8", "n3", "w3", "j3", "n6", "w6", "v6", "wL1",
              "ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "qq3", "lq3",
              "cw0", "cw1", "cw2", "cw3", "cw4"}
 AFTERCHUNK = {"cw0", "cw1", "cw2", "cw3", "cw4"}
@@ -486,15 +496,20 @@ def check_case(p, ref, name, case, K):
         code = p.on("I0x1" if name in ITEMLISTS else "C1", case)
         parted = lead_last < code
         says = [w for w in warns if "goes to the next page" in w]
+        # What the first line needs isn't known when the tie is decided: TeX can then
+        # take the lead-in along, and that says so.
+        along = name in TALLITEMS and [w for w in warns if "moves along" in w]
         if parted and not says:
             fail(case, f"D6: lead-in on {lead_last}, code on {code}, no warning")
         if name in AFTERCHUNK and p.on("A1", case) > r:
             return  # the first chunk moved, and what warns is about that
+        if along and lead_first == r:
+            fail(case, "D8: says the lead-in moves along, and it stays")
         if says and code <= r:
             fail(case, f"D8: {says[0][:50]}, but it stays")
         if says and not parted:
             fail(case, f"D8: {says[0][:50]}, but what leads into it goes along")
-        if name in ITEMLISTS and parted and p.empty.get(lead_last, 0) >= 2:
+        if name in ITEMLISTS and name not in TALLITEMS and parted and p.empty.get(lead_last, 0) >= 2:
             fail(case, f"L1: parted, with {p.empty[lead_last]:.1f} lines left for its first item")
         # 8pt of shrink out of the topsep and the line that the first item needs, and the
         # topsep can shrink too
@@ -508,13 +523,15 @@ def check_case(p, ref, name, case, K):
         if parted and room - n + moving <= LIMIT - 0.3 and name in NOHEADING | {"fl1", "fl3"} \
                 and name not in AFTERCHUNK:
             fail(case, f"D6: parted at room {room:.1f}, within the limit")
-        if name in NOHEADING and lead_first > r and over and name not in AFTERCHUNK:
+        if name == "lS1" and lead_first > r and p.empty.get(r, 0) > LIMIT + 0.01 and not along:
+            fail(case, "D8: the lead-in moves along past the limit, no warning")
+        if name in NOHEADING and lead_first > r and over and name not in AFTERCHUNK and name != "lS1":
             fail(case, f"D6: lead-in moved at room {room:.1f}")
-        if name in NOHEADING and lead_first > r and p.empty.get(r, 0) > LIMIT + 0.01:
+        if name in NOHEADING and lead_first > r and p.empty.get(r, 0) > LIMIT + 0.01 and not along:
             fail(case, f"D6: lead-in moved, {p.empty[r]:.1f} lines empty")
         if name in NOHEADING and lead_first == r and lead_last > r and name not in AFTERCHUNK:
             stay = sum(1 for i in range(1, n + 1) if p.on(f"P{i}", case) == r)
-            if room - stay > LIMIT + 0.01:
+            if room - stay > LIMIT + 0.01 and not along:
                 fail(case, f"D6: lead-in parted, {stay} lines stay at room {room:.1f}")
 
 
