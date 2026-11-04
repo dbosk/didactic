@@ -425,7 +425,7 @@ def check_case(p, ref, name, case, K):
             if m and name in ("s", "ss") and int(m[1]) != count:
                 fail(case, f"D8: says only {m[1]} fit, {count} there")
         # R9: past the limit a short listing breaks under its heading, and says so
-        if name in ("hv", "hw", "hv8") and over and not moved:
+        if name in ("hv", "hw", "hv8", "rv") and over and not moved:
             last = p.on("C8" if name == "hv8" else "C5", case)
             says_breaks = [w for w in warns if "breaks under" in w]
             if p.on("C1", case) == h and last > h and not says_breaks:
@@ -464,7 +464,7 @@ def check_case(p, ref, name, case, K):
                 # One of three lines can't have two on each side, so it always moves.
                 bad = True
                 text = f"D4: moved, plain LaTeX keeps {pc} lines"
-            elif not pm and moved and name in ("l", "L") and pc >= 1:
+            elif not pm and moved and name in ("l", "L", "ri") and pc >= 1:
                 bad = True
                 text = f"L2: moved, plain LaTeX keeps {pc} line under the heading"
             elif pm and not moved and count < 2 and name in ("s", "ss", "L"):
