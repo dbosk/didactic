@@ -166,7 +166,7 @@
 %   (\texttt{didactic-margin:}\dots), for scripts that check the notes.
 % }
 % \changes{v2.13}{2026/10/21}{%
-%   In the article mode of |beamer|, a frame title is a run-in heading: the 
+%   In the article mode of \texttt{beamer}, a frame title is a run-in heading: the
 %   frame's text follows it on the same line, instead of starting a new 
 %   paragraph under it.
 %   A subtitle follows the title in the heading.
@@ -177,8 +177,9 @@
 %   \texttt{frametitle} template of your own wins wherever it is set.
 % }
 % \changes{v2.12}{2026/10/18}{%
-%   |marginfigure| and |margintable| work in a source shared with the 
-%   slides: ordinary floats in |beamer| and without |memoir|; in |memoir| 
+%   \texttt{marginfigure} and \texttt{margintable} work in a source shared with
+%   the slides: ordinary floats in \texttt{beamer} and without \texttt{memoir};
+%   in \texttt{memoir}
 %   they no longer end the paragraph or start a new page when a float is 
 %   waiting, aren't raised by 1.2\,ex, and add no space to the text.
 %   Margin tables are set ragged like margin figures.
@@ -2533,6 +2534,11 @@
 % One that the user set before |didactic|, after |beamerarticle|, wins because we
 % only replace |beamerarticle|'s default: |\ifx| compares what is set to what
 % setting the default makes.
+%
+% |\tableofcontents| doesn't get a hook, but we set the title in front of it at the
+% beginning of the document, after the classes and packages have defined it:
+% before the kernel of 2023-06, the hook on |beamerarticle|'s |\tableofcontents| fails
+% with an illegal parameter number, and we ask for an older kernel than that.
 %    \begin{macrocode}
 \if@didactic@article
 \newcommand\@didactic@articletitles{%
@@ -2555,7 +2561,10 @@
   \@didactic@titlefirst{env/tikzpicture}%
   \@didactic@titlefirst{env/columns}%
   \@didactic@titlefirst{cmd/includegraphics}%
-  \@didactic@titlefirst{cmd/tableofcontents}%
+  \AtBeginDocument{%
+    \let\@didactic@tableofcontents\tableofcontents
+    \def\tableofcontents{%
+      \@didactic@flushframetitle\@didactic@tableofcontents}}%
 }
 \@ifpackageloaded{beamerarticle}
   {\@didactic@articletitles}

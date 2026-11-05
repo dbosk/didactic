@@ -37,7 +37,7 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-marginfloat-cases.pdf test-marginfloat-order.pdf \
 	test-marginfloat-inorder.pdf test-marginfloat-hidden.pdf \
 	${TEST_FLOATORDER:=.pdf} test-marginfloat-include.pdf \
-	test-format.pdf check
+	test-format.pdf test-oldkernel-title.pdf check
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -51,6 +51,8 @@ didactic.pdf: ${SRC} didactic.sty
 	${PYTHONTEX} didactic
 	${PDFLATEX} ${LATEXFLAGS} $<
 	makeindex -s gglo.ist -o didactic.gls didactic.glo
+	grep -q 'work in a source shared' didactic.gls
+	grep -q 'a frame title is a run-in heading' didactic.gls
 	${PDFLATEX} ${LATEXFLAGS} $<
 
 # docstrip asks before overwriting, so remove the old file first.
@@ -145,7 +147,7 @@ CHECKED_TESTS=	test-marginfloat test-marginfloat-slides test-marginfloat-cases \
 		test-marginfloat-order test-marginfloat-inorder \
 		test-marginfloat-hidden test-frametitle test-frametitle-slides \
 		${TEST_FRAMETITLE_CASES} ${TEST_FLOATORDER} ${TEST_INCLUDE} \
-		${TEST_KEEPCHECK}
+		${TEST_KEEPCHECK} test-oldkernel-title
 .PHONY: check
 check: test-check.py ${CHECKED_TESTS:=.pdf}
 	python3 test-check.py ${CHECKED_TESTS}
@@ -162,7 +164,7 @@ test-frametitle.pdf test-frametitle-slides.pdf: %.pdf: %.tex didactic.sty \
 		test-frametitle-contents.tex
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
-${TEST_FRAMETITLE_CASES:=.pdf}: %.pdf: %.tex didactic.sty
+${TEST_FRAMETITLE_CASES:=.pdf} test-oldkernel-title.pdf: %.pdf: %.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
 
@@ -382,4 +384,6 @@ clean:
 	${RM} test-marginfloat-include-a.aux test-marginfloat-include-b.aux
 	${RM} test-format.pdf test-format.aux test-format.log test-format.unq
 	${RM} test-format.pytxcode
+	${RM} test-oldkernel-title.pdf test-oldkernel-title.aux test-oldkernel-title.log
+	${RM} test-oldkernel-title.unq test-oldkernel-title.pytxcode test-oldkernel-title.toc
 	latexmk -C test.tex
