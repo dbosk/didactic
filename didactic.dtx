@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}[2021/06/01]
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/10/23 v2.15 didactic]
+  [2026/10/24 v2.16 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -150,6 +150,29 @@
 %   when it's loaded.
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
+% }
+% \changes{v2.16}{2026/10/24}{%
+%   With \textsf{biblatex}, sets \texttt{\textbackslash emergencystretch} 
+%   to 3\,em in the bibliography, as \texttt{bibemergencystretch} sets, so 
+%   that a line of long names or titles is set loose instead of running into 
+%   the margin.
+% }
+% \changes{v2.16}{2026/10/24}{%
+%   With \textsf{biblatex}, lets long URLs and DOIs break after any letter or 
+%   digit, with a penalty of 9\,000 that \texttt{biburlpenalty} sets, so 
+%   that they no longer run into the margin.
+% }
+% \changes{v2.16}{2026/10/24}{%
+%   A page no longer ends early for a margin note where that parts a heading
+%   from what follows it: the note moves, with a warning that says why.  One that
+%   leaves a paragraph's first or last line alone gets a warning, and moves only
+%   if the document forbids that line.
+% }
+% \changes{v2.15}{2026/10/23}{%
+%   Adds \texttt{noteyieldmaxgap}, passed on to \textsf{marginfix}'s 
+%   \texttt{\textbackslash marginnoteyieldlimit} in lines: a page doesn't end 
+%   early for a margin note if that leaves more than this many lines empty. 
+%   The default is \texttt{keepmaxgap}.
 % }
 % \changes{v2.15}{2026/11/05}{%
 %   A list stays with what leads into it, as a listing does: within
@@ -448,6 +471,38 @@
 % |latexmk| allows by default (5); it continues from where it stopped the next 
 % time, or you can raise |$max_repeat|.
 %
+% \DescribeOpt{biburlpenalty}
+% A URL or DOI in the bibliography, or in a citation, can only break after 
+% the punctuation in it, such as a slash, and a long one between two such 
+% places runs into the margin.
+% So with \textsf{biblatex} we let a URL break after any letter or digit 
+% too, with a penalty of |biburlpenalty|, 9\,000 unless given: high, as 
+% \textsf{biblatex}'s documentation suggests, so that a URL breaks there 
+% only when the line can't break anywhere else.
+% We set \textsf{biblatex}'s counters |biburlnumpenalty|, |biburlucpenalty| 
+% and |biburllcpenalty| to it right after \textsf{biblatex} is loaded, 
+% whether that is before \textsf{didactic} or after, leaving any that isn't 0 
+% by then, so your own |\setcounter| of them in the preamble wins, wherever it 
+% is.
+% The exception is a 0 of your own between \textsf{biblatex} and 
+% \textsf{didactic}, which can't be told from \textsf{biblatex}'s default: for 
+% that, use |biburlpenalty=0|, or set it after \textsf{didactic}.
+% |biburlpenalty=0| leaves the counters as they are, which in 
+% \textsf{biblatex} means that a URL doesn't break after letters or digits.
+%
+% \DescribeOpt{bibemergencystretch}
+% A line in the bibliography can run into the margin without a URL too: 
+% names and titles are long, often joined by hyphens, such as 
+% ``Castillo-Manzano'' or ``Object-Oriented'', and the narrow 
+% text of a document with wide margins gives a line few places to break.
+% So in the bibliography we set |\emergencystretch| to 
+% |bibemergencystretch|, 3\,em unless given, the space \TeX\ may add to a 
+% line before it gives up and lets it run over: such a line is then set 
+% loose instead.
+% A |\emergencystretch| of your own in the preamble wins, as does one in 
+% your own |\AtBeginBibliography|, and |bibemergencystretch=0pt| leaves 
+% the bibliography as it is.
+%
 % \subsection{Beamer blocks and semantic environments for papers}
 %
 % \DescribeEnv{assumption}
@@ -647,6 +702,18 @@
 % With |noteoverflow=break|, the default, the text gives way instead: the 
 % page ends before the line that calls out the first note that doesn't fit, 
 % in the next run, so that line and its note start the next page.
+% It does so only as far as |noteyieldmaxgap| below allows, so on a page where
+% that line is high up, the notes still move, with a warning for each.
+% The break goes over any penalty, so it doesn't end a page where that would part
+% a heading from what follows it, less than |keepafterheading| lines' height: such
+% a note moves too, with a warning that says why; only |keepafterheading=0| lets a
+% page end under a heading.
+% If the break leaves a paragraph's first line alone at the foot of the page or its
+% last line alone at the top of the next, it stands and we warn, or say that we
+% can't tell where the paragraph holds a tall line or a display: the class allows
+% such a line at a cost, and the note stays by its mark.
+% Only if your document forbids that line, with a |\clubpenalty| or |\widowpenalty|
+% of 10\,000, does the note move instead, unless you asked for |noteyieldmaxgap=0|.
 % That can move more text and more notes, so a page dense with notes can take 
 % several runs, up to about ten; \LaTeX\ asks for a rerun until they are done.
 % A page that ends that early is a little shorter, but its margin is full; 
@@ -665,7 +732,34 @@
 % the next page, while the rest of the document keeps |break|.
 % \textsf{marginfix} logs every note that is still carried to a later page, 
 % as |marginfix-spill: page=|\meta{p}| to=|\meta{q}| intended| for a note in 
-% the mode |carry| and |... unresolved| otherwise.
+% the mode |carry|, |... capped| for one that |noteyieldmaxgap| kept from 
+% ending its page, and |... unresolved| otherwise.
+%
+% \DescribeOpt{noteyieldmaxgap}
+% A page that ends early for a note keeps its notes by its text, but when 
+% the line that calls out the note is near its top, say a paragraph dense 
+% with citations, most of the page is left empty.
+% |noteyieldmaxgap|\meta{=lines} caps that: a page that would end early 
+% leaving more than \meta{lines} lines empty doesn't (in the next run), and 
+% its notes go to a later page, as with |carry|; the other notes called 
+% out on that page are capped with it.
+% A later page need not be the next one.
+% There the carried notes come in their order, ahead of the notes called out 
+% further down that page but after one called out at its very top, so a capped 
+% note can come after a note that follows it in the text.
+% So \textsf{marginfix} warns about each such note, naming where it is called 
+% out and the two pages.
+% The cap is tried again in each run, so a new value counts in the next runs, 
+% with no need to delete the |.aux| file; the exception is a note whose page 
+% really ended early and left too much, which stays capped, even if the text 
+% moves, until the value changes.
+% The default is the value of |keepmaxgap|, 5 lines unless given, the same 
+% bound as for keeping a listing together; 0 turns the cap off.
+% With Xe\LaTeX, where no page ends early for a note, it does nothing.
+% It needs \textsf{marginfix} with |\marginnoteyieldlimit|; with an older 
+% one it does nothing, and if you gave the option, we warn.
+% A |\marginnoteyieldlimit| of your own in the preamble wins over the option 
+% (a limit of |\maxdimen| can't be told from none: for no limit, use 0).
 %
 % Outside |beamer|, \textsf{didactic} writes where the margin column is to 
 % the log, once, as |didactic-margin: odd=431.65 even=431.65 width=156.7|: 
@@ -1300,6 +1394,17 @@
 %   If it is taller, \TeX\ may take the lead-in along past the limit, and the warning
 %   says that this \emph{can} leave more than |keepmaxgap| lines empty, as it can't
 %   tell how many lines went.
+% \item A margin note that would end its page under a heading is found by height: at
+%   least |keepafterheading| lines' height must lie between the heading and the note's
+%   line.  So a line twice the height counts as two lines: after one tall line under a
+%   heading, a note can end the page with only that line there.
+% \item If a heading goes to the next page after we noted where it ended, we take off
+%   the height of the page before.  It matters only where at most a few lines' room is
+%   left under a heading at the top of a page, and it has no test: we couldn't build a
+%   case where the limit of |noteyieldmaxgap| didn't answer first.
+% \item Where your document forbids a lone line, a note held back for it stays so while
+%   its callout keeps its place in the source, even if the text moves: without the
+%   break we can't see the line again.
 % \end{itemize}
 %
 % \subsection{What changes from v2.13}\label{PageBreakChanges}
@@ -1324,6 +1429,15 @@
 % \item Warnings say what the page did where it can't do what these options ask; see
 %   the options above.
 % \item The club and widow penalties stay as the class has them.
+% \item With |noteoverflow=break|, now the default, a page can end early for a margin
+%   note that doesn't fit, so notes and page ends move compared with v2.13, where the
+%   note moved instead.
+%   The option |draft| keeps the notes moving, and doesn't reflow.
+%   A page ends early only as far as |noteyieldmaxgap| allows, and never under a
+%   heading; a note that can't end its page moves, with a warning that says why.
+%   If it leaves a paragraph's first or last line alone it stands, with a warning,
+%   unless your document forbids that line with a penalty of 10\,000, when the note
+%   moves too.
 % \end{itemize}
 % It takes no longer that we can see: on three real documents no difference shows in one
 % pass, though the machine was loaded, so that under about 20 per cent wouldn't show; a
@@ -1915,6 +2029,46 @@
 \DeclareOptionX{keepmaxgap}{\@didactic@keepmaxgap=#1\relax}
 %    \end{macrocode}
 % \end{option}
+% \end{option}
+%
+% \begin{option}{noteyieldmaxgap}
+% |noteyieldmaxgap| is the number of empty lines that a page may be left 
+% with when it ends early for a margin note (|noteoverflow=break|), passed 
+% on to \textsf{marginfix}'s |\marginnoteyieldlimit|, see below.
+% Unless it's given, it's the value of |keepmaxgap|, which we know only 
+% when all the options have been read, so we keep $-1$ for that and 
+% resolve it where we pass it on.
+% There we also warn if it was given and \textsf{marginfix} can't honour it.
+%    \begin{macrocode}
+\newcount\@didactic@noteyieldmaxgap
+\@didactic@noteyieldmaxgap=\m@ne
+\newif\if@didactic@noteyieldgiven
+\DeclareOptionX{noteyieldmaxgap}{%
+  \@didactic@noteyieldmaxgap=#1\relax
+  \@didactic@noteyieldgiventrue}
+%    \end{macrocode}
+% \end{option}
+%
+% \begin{option}{biburlpenalty}
+% |biburlpenalty| is the penalty for breaking a URL after a letter or a 
+% digit in \textsf{biblatex}'s bibliography and citations, see below; 0 
+% leaves \textsf{biblatex}'s own (no such breaks).
+%    \begin{macrocode}
+\newcount\@didactic@biburlpenalty
+\@didactic@biburlpenalty=9000
+\DeclareOptionX{biburlpenalty}{\@didactic@biburlpenalty=#1\relax}
+%    \end{macrocode}
+% \end{option}
+%
+% \begin{option}{bibemergencystretch}
+% |bibemergencystretch| is the |\emergencystretch| of \textsf{biblatex}'s 
+% bibliography, see below.
+% We keep it as text, so that |em| is that of the bibliography's font.
+%    \begin{macrocode}
+\newcommand\@didactic@bibemergencystretch{3em}
+\DeclareOptionX{bibemergencystretch}{%
+  \renewcommand\@didactic@bibemergencystretch{#1}}
+%    \end{macrocode}
 % \end{option}
 % \end{option}
 %
@@ -2737,6 +2891,48 @@
   }{}%
 }
 %    \end{macrocode}
+%
+% \begin{macro}{\@didactic@bibbreaks}
+% A long URL in the bibliography should break rather than run into the 
+% margin, so we set \textsf{biblatex}'s penalties for breaking after 
+% digits, upper-case and lower-case letters to |biburlpenalty|, unless they 
+% have a value already, which is the document's own if \textsf{biblatex} came 
+% first.
+% \textsf{biblatex} reads them when it typesets a URL, so they need only 
+% be set before the document's bibliography.
+% Likewise a line of long names should be set loose rather than run into 
+% the margin, so the bibliography gets an |\emergencystretch| of 
+% |bibemergencystretch|, unless the document has set one of its own, which 
+% we only know in the bibliography.
+% Unlike the |csquotes| setting above, these are settings that a document 
+% may make itself, so we don't wait for the end of the preamble, which would 
+% undo that: we make them as soon as \textsf{biblatex} is loaded, now if it 
+% is already, and otherwise right after it is.
+% Then a document's own |\AtBeginBibliography| comes after ours too.
+%    \begin{macrocode}
+\newcommand\@didactic@bibbreaks{%
+  \ifnum\@didactic@biburlpenalty>\z@
+    \ifnum\value{biburlnumpenalty}=\z@
+      \setcounter{biburlnumpenalty}{\@didactic@biburlpenalty}%
+    \fi
+    \ifnum\value{biburlucpenalty}=\z@
+      \setcounter{biburlucpenalty}{\@didactic@biburlpenalty}%
+    \fi
+    \ifnum\value{biburllcpenalty}=\z@
+      \setcounter{biburllcpenalty}{\@didactic@biburlpenalty}%
+    \fi
+  \fi
+  \ifdim\@didactic@bibemergencystretch>\z@
+    \AtBeginBibliography{%
+      \ifdim\emergencystretch=\z@
+        \setlength\emergencystretch{\@didactic@bibemergencystretch}%
+      \fi}%
+  \fi}
+\@ifpackageloaded{biblatex}
+  {\@didactic@bibbreaks}
+  {\AddToHook{package/biblatex/after}{\@didactic@bibbreaks}}
+%    \end{macrocode}
+% \end{macro}
 %
 % \subsection{A side-caption environment for \texttt{beamer}}
 %
@@ -3853,6 +4049,383 @@
         \fi
       }{}%
     \fi\fi
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@fit@held}
+% \begin{macro}{\@didactic@fit@setup}
+% A page that ends early for a note ends with a forced break, which goes over
+% any penalty: over a heading's \cs{nobreak}, and over the club and widow
+% penalties.
+%
+% A heading stays with what follows it.
+% That we decide as \textsf{marginfix} decides about its limit, from how high the
+% callout is when the note is found not to fit (\cs{MFX@fit@toohigh}), so each run
+% decides anew and nothing is kept: a warm build comes to what a cold one does.
+% We note where a heading ended (\cs{@didactic@fit@heady}, in |\@afterheading|, with
+% what comes after it on the page), and where the line of each note starts
+% (\cs{@didactic@fit@top@}\meta{box}).
+% If less than |keepafterheading| lines' height lies between them, the note is
+% capped; the warning says why, through \cs{MFX@fit@capwhy}, and for the other
+% notes of that page, which are capped with it.
+% This counts what is there, whatever it is: listing lines set with |\hbox|, a
+% display, other paragraphs.
+% It counts height, so a line twice the height counts twice.
+% A run-in title or the head of a theorem is in the first line of its paragraph,
+% so a break before that line moves it along, and only a break after it counts.
+% An \texttt{.aux} file from before can still make a page end under a heading.
+% We see that when the page is built (\cs{mfx@fit@textht}), and for one run the
+% note doesn't end its page, so that no record is left of it.
+%
+% A lone line we let stand, since the class allows one at a cost, and because
+% holding the note moves it off its mark, which |noteoverflow=break| is there to
+% avoid.
+% We measured both ways, on generated text of plain sentences with footnotes, so
+% the rate says little: over 28 documents, 560 pages either way, holding took away
+% 8 lone lines (5 left by the break, 3 by the pages after it) and carried 8 more
+% notes away from their marks.
+% On 8 real documents, some 810 pages, the case never came up.
+% So the page count doesn't decide, and we keep to what the class says.
+% We warn, and that needs only a count that can say when it can't tell: at the end
+% of the paragraph, |\prevgraf| must be the sum of the lines by height on each of
+% its pages (the first from where the paragraph started, the last from |\pagetotal|).
+% If it isn't, as with a tall line or a display, the warning says we can't tell.
+% With a penalty of 10\,000 the document says no, and then we hold, as long as it
+% says so and the callout keeps its key (\cs{@didactic@fit@held}), since without the
+% break we can't see the line again; unless |noteyieldmaxgap=0| asks for each note to
+% stay by its mark.
+% The fix for a note held back or a lone line is in the text: a shorter note, or
+% moving the mark.
+%    \begin{macrocode}
+\def\@didactic@fit@held#1#2{%
+  \ifx\@newl@bel\@testdef
+    \@ifundefined{@didactic@fh@#1}{\@tempswatrue}{}%
+  \else
+    \global\@namedef{@didactic@fh@#1}{#2}%
+  \fi}
+\newif\if@didactic@fit@inpar
+\newif\if@didactic@fit@title
+\newif\if@didactic@fit@near
+\newdimen\@didactic@fit@heady
+\@didactic@fit@heady=-1sp
+\newdimen\@didactic@fit@d
+\newdimen\@didactic@fit@pstart
+\newdimen\@didactic@fit@b
+\newcount\@didactic@fit@pages
+\newcount\@didactic@fit@rest
+\newcount\@didactic@fit@above
+\def\@didactic@fit@lines#1{\numexpr\dimexpr#1\relax/\@didactic@fit@b\relax}
+\def\@didactic@fit@key#1{%
+  \expandafter\ifx\csname mfx@bk@#1\endcsname\relax\else
+    \csname mfx@bk@#1\endcsname
+  \fi}
+\def\@didactic@fit@isnear#1{%
+  \@didactic@fit@nearfalse
+  \ifnum\@didactic@keepafterheading>\z@
+    \ifdim\@didactic@fit@heady<\z@\else
+      \@didactic@fit@d\dimexpr#1-\@didactic@fit@heady\relax
+      \if@didactic@fit@title\else
+        \advance\@didactic@fit@d-\parskip
+      \fi
+      \ifdim\@didactic@fit@d<\dimexpr
+          \@didactic@keepafterheading\@didactic@keep@L-.5\@didactic@keep@L\relax
+        \ifdim\@didactic@fit@d>-.5\@didactic@keep@L
+          \@didactic@fit@neartrue
+          \if@didactic@fit@title
+            \ifdim\@didactic@fit@d<.5\@didactic@keep@L
+              \@didactic@fit@nearfalse
+            \fi
+          \fi
+        \fi
+      \fi
+    \fi
+  \fi}
+\def\@didactic@fit@afterhead{%
+  \if@didactic@keep@inbox\else\ifvmode\ifinner\else
+    \begingroup\@@par\endgroup
+    \global\@didactic@fit@titlefalse
+    \global\@didactic@fit@heady\dimexpr\pagetotal+\pagedepth\relax
+  \fi\fi\fi}
+\def\@didactic@fit@place{%
+  \@didactic@fit@d\dimexpr\@pageht+\@pagedp\relax
+  \ifnum\outputpenalty=-\@Mii
+    \ifnum\lastnodetype=\@ne
+      \setbox\z@\lastbox
+      \advance\@didactic@fit@d-\ht\z@
+      \advance\@didactic@fit@d-\dp\z@
+      \prevdepth-\@m\p@
+      \box\z@
+    \else
+      \advance\@didactic@fit@d-\Mfx@strutheight
+    \fi
+  \fi
+  \expandafter\xdef\csname @didactic@fit@top@\number\@currbox\endcsname{%
+    \the\@didactic@fit@d}%
+  \@didactic@mfx@place@now}
+\def\@didactic@fit@defer{%
+  \expandafter\global\expandafter\let
+    \csname @didactic@fit@top@\number\@currbox\endcsname\relax
+  \@didactic@mfx@defer@note}
+\def\@didactic@fit@toohigh#1{%
+  \@didactic@MFX@fit@toohigh{#1}%
+  \if@tempswa\else
+    \expandafter\ifx\csname @didactic@fit@top@#1\endcsname\relax\else
+      \@didactic@fit@isnear{\csname @didactic@fit@top@#1\endcsname}%
+      \if@didactic@fit@near
+        \@tempswatrue
+        \expandafter\gdef
+          \csname @didactic@fh@\@didactic@fit@key{#1}\endcsname{h}%
+        \expandafter\gdef\csname @didactic@fp@\the\c@page\endcsname{h}%
+      \fi
+    \fi
+  \fi}
+\def\@didactic@fit@hold#1#2{%
+  \@tempswatrue
+  \if#2c%
+    \ifnum\clubpenalty<\@M\@tempswafalse\fi
+    \def\reserved@a{first line alone at the foot of the page}%
+  \else
+    \ifnum\widowpenalty<\@M\@tempswafalse\fi
+    \def\reserved@a{last line alone at the top of the next page}%
+  \fi
+  \ifdim\mfx@yieldlimit=\maxdimen\@tempswafalse\fi
+  \if@tempswa
+    \if@filesw
+      \immediate\write\@auxout{\string\@didactic@fit@held
+        {\csname mfx@yk@#1\endcsname}{#2}}%
+    \fi
+  \else
+    \PackageWarningNoLine{didactic}{The page ends early for the margin note
+      called\MessageBreak out at \csname mfx@yl@#1\endcsname,\MessageBreak
+      which leaves the \reserved@a}%
+  \fi}
+\def\@didactic@fit@parabegin{%
+  \if@didactic@keep@inbox\else
+    \global\@didactic@fit@inpartrue
+    \global\@didactic@fit@pages\z@
+    \global\@didactic@fit@rest\z@
+    \global\@didactic@fit@above\z@
+    \global\@didactic@fit@pstart\dimexpr\pagetotal+\pagedepth\relax
+    \global\@didactic@fit@b\baselineskip
+    \global\let\@didactic@fit@first\@empty
+    \global\let\@didactic@fit@last\@empty
+    \ifnum\@didactic@keep@headstate=\tw@
+      \@tempswafalse
+      \if@noskipsec\@tempswatrue\fi
+      \if@inlabel\@tempswatrue\fi
+      \if@tempswa
+        \@didactic@fit@isnear{\@didactic@fit@pstart}%
+        \if@didactic@fit@near\else
+          \@didactic@fit@settitle
+        \fi
+      \fi
+    \fi
+  \fi}
+\def\@didactic@fit@settitle{%
+  \global\@didactic@fit@titletrue
+  \global\@didactic@fit@heady\@didactic@fit@pstart}
+\def\@didactic@fit@page{%
+  \let\reserved@a\@empty
+  \ifnum\mfx@fit@lastkern>\MFX@yield@base\relax
+    \edef\reserved@a{\the\numexpr\mfx@fit@lastkern-\MFX@yield@base\relax}%
+    \@didactic@fit@isnear{\mfx@fit@textht}%
+    \if@didactic@fit@near
+      \if@filesw
+        \immediate\write\@auxout{\string\@didactic@fit@held
+          {\csname mfx@yk@\reserved@a\endcsname}{h}}%
+      \fi
+    \fi
+  \fi
+  \if@didactic@fit@inpar
+    \ifnum\@didactic@fit@pages=\z@
+      \global\let\@didactic@fit@first\reserved@a
+      \global\@didactic@fit@above
+        \@didactic@fit@lines{\mfx@fit@textht-\@didactic@fit@pstart}%
+    \else
+      \global\advance\@didactic@fit@rest
+        \numexpr\@didactic@fit@lines{\mfx@fit@textht-\topskip}+1\relax
+    \fi
+    \global\let\@didactic@fit@last\reserved@a
+    \global\advance\@didactic@fit@pages\@ne
+  \fi}
+\def\@didactic@fit@shipped{%
+  \ifdim\@didactic@fit@heady<\z@\else
+    \ifdim\mfx@fit@textht<\@didactic@fit@heady
+      \global\advance\@didactic@fit@heady-\mfx@fit@textht
+    \else
+      \global\@didactic@fit@heady-1sp
+    \fi
+  \fi}
+\def\@didactic@fit@paraafter{%
+  \if@didactic@keep@inbox\else\if@didactic@fit@inpar
+    \global\@didactic@fit@inparfalse
+    \ifnum\@didactic@fit@pages>\z@
+      \edef\reserved@b{\@didactic@fit@first\@didactic@fit@last}%
+      \ifx\reserved@b\@empty\else
+        \@tempcnta\numexpr\@didactic@fit@lines{\pagetotal-\topskip}+1\relax
+        \@tempcntb\@didactic@fit@above
+        \ifnum\numexpr\@tempcntb+\@didactic@fit@rest+\@tempcnta\relax=\prevgraf
+          \ifx\@didactic@fit@first\@empty\else
+            \ifnum\@tempcntb=\@ne
+              \@didactic@fit@hold{\@didactic@fit@first}c%
+            \fi
+          \fi
+          \ifx\@didactic@fit@last\@empty\else
+            \ifnum\@tempcnta=\@ne
+              \ifnum\prevgraf>\@ne
+                \@didactic@fit@hold{\@didactic@fit@last}w%
+              \fi
+            \fi
+          \fi
+        \else
+          \PackageWarningNoLine{didactic}{The page ends early for a margin note
+            called out\MessageBreak in the paragraph that ends near line
+            \the\inputlineno,\MessageBreak and we can't tell if that leaves a
+            line of it alone}%
+        \fi
+      \fi
+    \fi
+  \fi\fi}
+\def\@didactic@fit@mark{%
+  \expandafter\xdef\csname mfx@co@\the\mfx@callid\endcsname{\mfx@overflow}%
+  \expandafter\gdef\csname mfx@cc@\the\mfx@callid\endcsname{}}
+\def\@didactic@fit@callout{%
+  \ifx\mfx@overflow\MFX@break
+    \expandafter\ifx\csname @didactic@fh@\mfx@key\endcsname\relax
+      \@didactic@MFX@fit@callout
+    \else
+      \if\csname @didactic@fh@\mfx@key\endcsname h%
+        \@didactic@fit@mark
+      \else
+        \@tempswatrue
+        \if\csname @didactic@fh@\mfx@key\endcsname c%
+          \ifnum\clubpenalty<\@M\@tempswafalse\fi
+        \else
+          \ifnum\widowpenalty<\@M\@tempswafalse\fi
+        \fi
+        \ifdim\mfx@yieldlimit=\maxdimen\@tempswafalse\fi
+        \if@tempswa
+          \if@filesw
+            \immediate\write\@auxout{\string\@didactic@fit@held{\mfx@key}%
+              {\csname @didactic@fh@\mfx@key\endcsname}}%
+          \fi
+          \@didactic@fit@mark
+        \else
+          \expandafter\global\expandafter\let
+            \csname @didactic@fh@\mfx@key\endcsname\relax
+          \@didactic@MFX@fit@callout
+        \fi
+      \fi
+    \fi
+  \else
+    \@didactic@MFX@fit@callout
+  \fi}
+\def\@didactic@fit@why#1{%
+  \if#1c%
+    leave\MessageBreak the first line alone at the foot of the page%
+  \else\if#1w%
+    leave\MessageBreak the last line alone at the top of the next page%
+  \else
+    part\MessageBreak a heading from what follows it%
+  \fi\fi}
+\def\@didactic@fit@iscapped#1{%
+  \expandafter\ifx\csname mfx@sp@\number#1\endcsname\relax
+    \expandafter\ifx
+        \csname @didactic@fh@\@didactic@fit@key{\number#1}\endcsname\relax
+    \else
+      \expandafter\xdef\csname @didactic@fp@\the\c@page\endcsname{%
+        \csname @didactic@fh@\@didactic@fit@key{\number#1}\endcsname}%
+    \fi
+  \fi
+  \@didactic@MFX@fit@iscapped{#1}}
+\def\@didactic@fit@capwhy#1{%
+  \expandafter\ifx\csname @didactic@fh@\@didactic@fit@key{#1}\endcsname\relax
+    \expandafter\ifx\csname @didactic@fp@\csname mfx@sp@#1\endcsname\endcsname\relax
+      \@didactic@MFX@fit@capwhy{#1}%
+    \else
+      ending that page early for another note\MessageBreak would
+      \@didactic@fit@why{\csname @didactic@fp@\csname mfx@sp@#1\endcsname\endcsname}%
+    \fi
+  \else
+    ending its page early would
+    \@didactic@fit@why{\csname @didactic@fh@\@didactic@fit@key{#1}\endcsname}%
+  \fi}
+\def\@didactic@fit@setup{%
+  \let\@didactic@MFX@fit@callout\MFX@fit@callout
+  \let\MFX@fit@callout\@didactic@fit@callout
+  \let\@didactic@MFX@fit@toohigh\MFX@fit@toohigh
+  \let\MFX@fit@toohigh\@didactic@fit@toohigh
+  \let\@didactic@MFX@fit@iscapped\MFX@fit@iscapped
+  \let\MFX@fit@iscapped\@didactic@fit@iscapped
+  \let\@didactic@MFX@fit@capwhy\MFX@fit@capwhy
+  \let\MFX@fit@capwhy\@didactic@fit@capwhy
+  \let\@didactic@mfx@place@now\mfx@place@now
+  \let\mfx@place@now\@didactic@fit@place
+  \let\@didactic@mfx@defer@note\mfx@defer@note
+  \let\mfx@defer@note\@didactic@fit@defer
+  \g@addto@macro\MFX@fit@page{\@didactic@fit@page}%
+  \g@addto@macro\MFX@fit@after{\@didactic@fit@shipped}%
+  \g@addto@macro\@afterheading{\@didactic@fit@afterhead}%
+  \AddToHook{para/begin}{\@didactic@fit@parabegin}%
+  \AddToHook{para/after}{\@didactic@fit@paraafter}}
+\AtBeginDocument{%
+  \ifdefined\@didactic@keep@headstate
+    \@tempswafalse
+    \ifdefined\pdftexversion\@tempswatrue\fi
+    \ifdefined\directlua\@tempswatrue\fi
+    \if@tempswa
+      \ifdefined\MFX@fit@peek
+        \@didactic@fit@setup
+      \else\ifdefined\MFX@fit@spilled
+        \ifdefstring{\@didactic@noteoverflow}{break}{%
+          \PackageWarningNoLine{didactic}{With this marginfix a page that ends
+            early for a\MessageBreak note can part a heading from what follows
+            it,\MessageBreak unseen: it needs the integration branch of\MessageBreak
+            https://github.com/dbosk/marginfix}%
+        }{}%
+      \fi\fi
+    \fi
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\marginnoteyieldlimit}
+% The limit of |noteyieldmaxgap| is a number of lines, so we set it when 
+% the document starts and |\baselineskip| is that of the text.
+% With 0 we leave \textsf{marginfix}'s limit as it is: none, or your own.
+% We also leave it if it isn't \cs{maxdimen} by then, that is if you have set 
+% your own in the preamble, before or after |\usepackage{didactic}|: yours 
+% wins.
+% And we leave it with an engine where no page can end early for a note, as
+% with Xe\LaTeX: a limit would have \textsf{marginfix} say of each carried note
+% that the limit kept its page from ending early, which isn't the reason.
+%    \begin{macrocode}
+\ifnum\@didactic@noteyieldmaxgap<\z@
+  \@didactic@noteyieldmaxgap=\@didactic@keepmaxgap
+\fi
+\AtBeginDocument{%
+  \ifdefined\marginnoteyieldlimit
+    \ifnum\@didactic@noteyieldmaxgap>\z@
+      \ifdim\mfx@yieldlimit=\maxdimen
+        \ifdefined\pdftexversion
+          \marginnoteyieldlimit{\@didactic@noteyieldmaxgap\baselineskip}%
+        \else\ifdefined\directlua
+          \marginnoteyieldlimit{\@didactic@noteyieldmaxgap\baselineskip}%
+        \fi\fi
+      \fi
+    \fi
+  \else
+    \if@didactic@noteyieldgiven
+      \ifnum\@didactic@noteyieldmaxgap>\z@
+        \PackageWarningNoLine{didactic}{The option noteyieldmaxgap does
+          nothing here:\MessageBreak
+          it needs a marginfix with \string\marginnoteyieldlimit,\MessageBreak
+          from the integration branch of\MessageBreak
+          https://github.com/dbosk/marginfix}%
+      \fi
+    \fi
   \fi}
 %    \end{macrocode}
 % \end{macro}

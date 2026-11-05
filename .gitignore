@@ -16,6 +16,14 @@ test-note-heading.unq
 test-keep.pdf
 test-keep.unq
 test-keep-*.txt
+test-noteyield.pdf
+test-noteyield.unq
+test-noteyield-cap-*.pdf
+test-noteyield-cap-*.unq
+test-noteyield-cap-*.aux.old
+test-yieldkeep-*.pdf
+test-yieldkeep-*.unq
+test-yieldkeep-*.aux.old
 test-keep-once-*.stdout
 test-keep-tall.pdf
 test-keep-tall.unq
@@ -304,6 +312,10 @@ test-frametitle.pdf
 test-frametitle.unq
 test-frametitle-slides.pdf
 test-frametitle-slides.unq
+test-biburl.pdf
+test-biburl.unq
+test-biburl-bbl.pdf
+test-biburl-bbl.unq
 test-marginfloat-cases.pdf
 test-marginfloat-cases.unq
 test-marginfloat-order.pdf

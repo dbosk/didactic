@@ -684,6 +684,9 @@ def check(variant):
     for line in FAILS:
         print(line)
     for w in p.warn.get(None, []):
+        # About the marginfix in use, not a place; its own tests fail on that.
+        if w.startswith("With this marginfix"):
+            continue
         print("FAIL: a warning with no place:", w)
         FAILS.append(w)
     want = sum(1 for _ in all_cases(variant))

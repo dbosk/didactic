@@ -20,6 +20,7 @@ TEST_KEEP_SMALL=	test-keep-style test-keep-columns test-keep-guard \
 			test-keep-pagereset test-keep-nofiles test-keep-nofiles0 test-keep-box \
 			test-keep-addvspace test-keep-club test-keep-club-article
 TEST_NOTEOVERFLOW=	test-noteoverflow test-noteoverflow-carry \
+			test-noteoverflow-cap \
 			test-noteoverflow-draft test-noteoverflow-draftbreak \
 			test-noteoverflow-xe test-noteoverflow-old
 # The order of float numbers, from the pages the floats end up on.
@@ -52,7 +53,8 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-marginfloat-cases.pdf test-marginfloat-order.pdf \
 	test-marginfloat-inorder.pdf test-marginfloat-hidden.pdf \
 	${TEST_FLOATORDER:=.pdf} test-marginfloat-include.pdf \
-	test-format.pdf test-oldkernel-title.pdf check
+	test-format.pdf test-oldkernel-title.pdf check \
+	test-noteyield test-noteyield-cap test-yieldkeep test-yieldkeep-lua test-biburl
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -75,6 +77,7 @@ didactic.pdf: ${SRC} didactic.sty
 	biber didactic
 	${PDFLATEX} ${LATEXFLAGS} $<
 	makeindex -s gglo.ist -o didactic.gls didactic.glo
+	grep -q noteyieldmaxgap didactic.gls
 	grep -q 'work in a source shared' didactic.gls
 	grep -q 'a frame title is a run-in heading' didactic.gls
 	${PDFLATEX} ${LATEXFLAGS} $<
@@ -428,7 +431,8 @@ test-keep-stale.pdf: test-keep-stale.tex test-keep-stale.sh didactic.sty
 # test-noteoverflow-xe, which is about the engine that can't.
 NOTEOVERFLOW_SRC=	test-noteoverflow-contents.tex didactic.sty
 test-noteoverflow.pdf test-noteoverflow-carry.pdf test-noteoverflow-draft.pdf \
-		test-noteoverflow-draftbreak.pdf: PDFLATEX=pdflatex
+		test-noteoverflow-draftbreak.pdf \
+		test-noteoverflow-cap.pdf: PDFLATEX=pdflatex
 define settle_many
 for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do \
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $< || exit 1; \
@@ -447,10 +451,19 @@ test-noteoverflow-carry.pdf test-noteoverflow-draft.pdf: %.pdf: %.tex ${NOTEOVER
 	test "${call count_spill,intended}" -gt 0
 	test "${call count_spill,unresolved}" -eq 0
 	test "$$(grep -c 'mfx@yield' $*.aux)" -eq 0
+test-noteoverflow-cap.pdf: %.pdf: %.tex ${NOTEOVERFLOW_SRC}
+	@${settle_many}
+	! grep '^!' $*.log
+	test "${call count_spill,capped}" -gt 0
+	test "${call count_spill,unresolved}" -eq 0
+	test "$$(grep -c 'keeps page' $*.log)" -eq "${call count_spill,capped}" \
+	  || { echo "$*: capped notes without their warning: marginfix is too old, this" \
+	    "needs its integration branch, https://github.com/dbosk/marginfix"; exit 1; }
 test-noteoverflow-xe.pdf: %.pdf: %.tex ${NOTEOVERFLOW_SRC}
 	@${settle_many}
 	! grep '^!' $*.log
 	test "${call count_spill,unresolved}" -gt 0
+	test "$$(grep -c 'keeps page' $*.log)" -eq 0
 	test "${call count_warn,A margin note from page}" -eq "${call count_spill,unresolved}"
 test-noteoverflow-old.pdf: test-noteoverflow-old.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
@@ -469,6 +482,99 @@ test-margin-log.pdf test-margin-log-article.pdf: %.pdf: %.tex test-margin-log.te
 test-oldkernel.pdf: test-oldkernel.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	grep -q 'didactic-margin: odd=[0-9.]* even=[0-9.]* width=[0-9.]*' test-oldkernel.log
+
+# noteyieldmaxgap: marginfix's \marginnoteyieldlimit in lines, by default
+# keepmaxgap's; one run per case, options:lines (0 for no limit).  Needs
+# a marginfix with \marginnoteyieldlimit (else SKIP, which fails).
+NOTEYIELD_CASES=:5 keepmaxgap=8:8 noteyieldmaxgap=3:3 \
+	keepmaxgap=8,noteyieldmaxgap=2:2 noteyieldmaxgap=0:0 \
+	:own noteyieldmaxgap=3:own
+# With a marginfix too old for \marginnoteyieldlimit: options:warn if the
+# option asks for a limit that can't be honoured, quiet if not.
+NOTEYIELD_OLD_CASES=noteyieldmaxgap=3:warn :quiet keepmaxgap=8:quiet \
+	noteyieldmaxgap=0:quiet
+# The limit is set only where a page can end early, so under pdflatex.
+.PHONY: test-noteyield
+test-noteyield: PDFLATEX=pdflatex
+test-noteyield: test-noteyield.tex didactic.sty
+	for c in ${NOTEYIELD_CASES}; do \
+	  ${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode \
+	    "\\def\\testoptions{$${c%:*}}\\def\\testlines{$${c#*:}}\\input{$<}" \
+	    >/dev/null; \
+	  grep 'didactic noteyield test:' test-noteyield.log || exit 1; \
+	  ! grep -q 'didactic noteyield test:.*\(FAIL\|SKIP\)' \
+	    test-noteyield.log || exit 1; \
+	done
+	for c in ${NOTEYIELD_OLD_CASES}; do \
+	  ${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode \
+	    "\\def\\testoptions{$${c%:*}}\\def\\testlines{old}\\input{$<}" \
+	    >/dev/null; \
+	  grep 'didactic noteyield test:.*OLD' test-noteyield.log || exit 1; \
+	  case $$c in \
+	    *:warn) grep -q '^Package didactic Warning: .*noteyieldmaxgap' \
+	      test-noteyield.log || { echo "no warning: $$c"; exit 1; };; \
+	    *) ! grep -q '^Package didactic Warning: .*noteyieldmaxgap' \
+	      test-noteyield.log || { echo "warning: $$c"; exit 1; };; \
+	  esac; \
+	done
+
+# The cap in the layout, under pdflatex whatever PDFLATEX is: under xelatex
+# the page can't end early.  Fails, saying so, with a marginfix too old for it.
+.PHONY: test-noteyield-cap
+test-noteyield-cap: test-noteyield-cap.tex test-noteyield-cap.sh didactic.sty
+	./test-noteyield-cap.sh
+
+# What a page that ends early for a note does to a heading and to lone lines,
+# under pdflatex whatever PDFLATEX is.
+.PHONY: test-yieldkeep
+test-yieldkeep: test-yieldkeep.tex test-yieldkeep-slides.tex test-yieldkeep.sh \
+		didactic.sty
+	./test-yieldkeep.sh
+
+# The same under LuaLaTeX, the other engine where a page can end early, on the
+# cases that tell its branches apart.
+.PHONY: test-yieldkeep-lua
+test-yieldkeep-lua: test-yieldkeep.tex test-yieldkeep-slides.tex test-yieldkeep.sh \
+		didactic.sty
+	ENGINE=lualatex CASES="heading headingoff headlist club widowforbid middle runin warmoff" \
+	  ./test-yieldkeep.sh
+
+# biburlpenalty and bibemergencystretch: biblatex's URL break penalties and
+# the bibliography's \emergencystretch, with biblatex loaded before didactic,
+# after it or not at all; one run per case, order:options:penalty set in
+# the preamble:expected penalty:stretch set in the preamble:expected stretch.
+BIBURL_CASES=before:::9000::3em after:::9000::3em \
+	before:biburlpenalty=500::500::3em after:biburlpenalty=0::0::3em \
+	before::100:100::3em after::100:100::3em between::100:100::3em \
+	before:bibemergencystretch=1em::9000::1em \
+	after:bibemergencystretch=0pt::9000::0pt \
+	before:::9000:2em:2em after:::9000:2em:2em none:::0::
+.PHONY: test-biburl
+test-biburl: test-biburl.tex test-biburl-bbl.tex test-biburl.bib didactic.sty
+	for c in ${BIBURL_CASES}; do \
+	  IFS=:; set -- $$c; unset IFS; ${RM} test-biburl.aux; \
+	  ${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode \
+	    "\\def\\testorder{$$1}\\def\\testoptions{$$2}\\def\\testset{$$3}\\def\\testexpect{$$4}\\def\\testsetstretch{$$5}\\def\\testexpectstretch{$$6}\\input{$<}" \
+	    >/dev/null; \
+	  grep 'didactic biburl test:' test-biburl.log || exit 1; \
+	  ! grep -q 'didactic biburl test:.*FAIL' test-biburl.log || exit 1; \
+	done
+	${RM} test-biburl-bbl.bbl test-biburl-bbl.aux
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode test-biburl-bbl \
+	  >/dev/null
+	biber --quiet test-biburl-bbl
+	for c in :none biburlpenalty=0:some bibemergencystretch=0pt:some; do \
+	  ${RM} test-biburl-bbl.pdf; \
+	  for i in 1 2; do \
+	    ${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode \
+	      "\\def\\testoptions{$${c%:*}}\\input{test-biburl-bbl}" >/dev/null; \
+	  done; \
+	  pdftotext test-biburl-bbl.pdf - | grep -q 'example.org' \
+	    || { echo "no URL in the bibliography: $$c"; exit 1; }; \
+	  n=$$(grep -c 'Overfull .hbox' test-biburl-bbl.log); \
+	  echo "didactic biburl bbl test: [$${c%:*}] $$n Overfull, $${c#*:} wanted"; \
+	  case $${c#*:},$$n in none,0|some,[1-9]*) ;; *) exit 1;; esac; \
+	done
 
 VERSION=$(shell sed -En "s/^.*v([0-9]+(\.[0-9]+)+) didactic.*$$/\1/p" didactic.dtx)
 .PHONY: release
@@ -565,6 +671,21 @@ clean:
 	${RM} test-margin-log-article.log test-margin-log-article.unq
 	${RM} test-margin-log-article.pytxcode
 	${RM} -R _minted-test-keep
+	${RM} test-noteyield.pdf test-noteyield.aux test-noteyield.log
+	${RM} test-noteyield.unq test-noteyield.pytxcode
+	${RM} test-yieldkeep-*.pdf test-yieldkeep-*.aux test-yieldkeep-*.log
+	${RM} test-yieldkeep-*.aux.old test-yieldkeep-*.unq test-yieldkeep-*.pytxcode
+	${RM} test-yieldkeep-*.nav test-yieldkeep-*.snm test-yieldkeep-*.toc
+	${RM} test-yieldkeep-*.out
+	${RM} test-noteyield-cap-*.pdf test-noteyield-cap-*.aux
+	${RM} test-noteyield-cap-*.log test-noteyield-cap-*.aux.old
+	${RM} test-noteyield-cap-*.unq test-noteyield-cap-*.pytxcode
+	${RM} test-biburl.pdf test-biburl.aux test-biburl.log test-biburl.unq
+	${RM} test-biburl.bcf test-biburl.run.xml test-biburl.pytxcode
+	${RM} test-biburl-bbl.pdf test-biburl-bbl.aux test-biburl-bbl.log
+	${RM} test-biburl-bbl.bbl test-biburl-bbl.bcf test-biburl-bbl.blg
+	${RM} test-biburl-bbl.run.xml test-biburl-bbl.unq
+	${RM} test-biburl-bbl.pytxcode
 	${RM} _minted/*.minted
 	${RM} ${TEST_FRAMETITLE_CASES:=.pdf} ${TEST_FRAMETITLE_CASES:=.aux}
 	${RM} ${TEST_FRAMETITLE_CASES:=.log} ${TEST_FRAMETITLE_CASES:=.toc}

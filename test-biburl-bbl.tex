@@ -1,0 +1,19 @@
+% Test of biburlpenalty and bibemergencystretch on a real bibliography: long
+% URLs and long hyphenated names through biber's .bbl.  The only text is the
+% bibliography, so any Overfull \hbox in the log is in it.  \testoptions are
+% options of didactic.  See the Makefile, which fails on an Overfull \hbox,
+% and fails if there is none with either feature turned off, since then the
+% document no longer tests it.
+\documentclass[a4paper]{memoir}
+% Before didactic: the \Bbbk clash under xelatex is a bug of its own.
+\usepackage{amssymb}
+\ifdefined\testoptions\else\def\testoptions{}\fi
+\expandafter\PassOptionsToPackage\expandafter{\testoptions}{didactic}
+\usepackage[backend=biber,style=alphabetic]{biblatex}
+\addbibresource{test-biburl.bib}
+\usepackage{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\begin{document}
+\nocite{*}
+\printbibliography
+\end{document}
