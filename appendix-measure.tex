@@ -305,6 +305,60 @@ document's last page ends by itself, that takes the breaks at
 $-200$ from 37 to 0, those after a chunk at $-301$ from 60 to 76, and those inside a chunk at 301 from
 93 to 112: 19 more, against the smaller gaps in the table.
 
+\texttt{keepmaxgap=0} also keeps \apcs{nwdocspar}, so the two were measured apart: the limit on with
+the break kept, by taking the \apcs{let} out of a copy of the package, and the limit off with the
+break dropped, by a \apcs{let} in the preamble.
+
+\begin{center}\small
+\begin{tabular}{@{}lllrrrrr@{}}
+\toprule
+Chunks & \texttt{keepmaxgap} & \apcs{nwdocspar} & Pages & Mean $e$ & Largest $e$ & $e\ge3$ & $e\ge5$ \\
+\midrule
+noweb & 5 & dropped (current) & 210 & 0.65 & 5.6 & 20 & 1 \\
+noweb & 5 & kept & 211 & 0.95 & 7.6 & 33 & 4 \\
+noweb & 0 & dropped & 210 & 0.65 & 5.6 & 21 & 1 \\
+noweb & 0 & kept & 211 & 0.95 & 7.6 & 33 & 4 \\
+minted & 5 & dropped (current) & 194 & 0.71 & 4.5 & 17 & 0 \\
+minted & 5 & kept & 196 & 1.01 & 6.2 & 28 & 3 \\
+minted & 0 & dropped & 196 & 1.44 & 10.5 & 39 & 14 \\
+minted & 0 & kept & 197 & 1.48 & 8.9 & 43 & 17 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+With \textsf{noweb} chunks all of 7.6 against 5.6 is \apcs{nwdocspar}, and the limit changes one
+page's count in $e\ge3$, as those chunks can break anywhere at a moderate penalty.
+With \textsf{minted} chunks, which the package keeps together, the limit does the larger part, and
+dropping the break matters only along with it.
+
+\subsection{Build time}
+
+One \LaTeX\ pass at v2.13 (\texttt{743a025}), before the keep options, against the current code, with
+each \texttt{.aux} settled first and three passes in turn for each version, by
+\texttt{measure-real/timing.py}.
+CPU seconds are the mean of the three, with their range.
+
+\begin{center}\small
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+& \multicolumn{2}{c}{Pages} & \multicolumn{2}{c}{\texttt{.aux}, kB} & \multicolumn{2}{c}{CPU s} \\
+Document & v2.13 & current & v2.13 & current & v2.13 & current \\
+\midrule
+Lecture notes & 67 & 68 & 150 & 179 & 31.8 (26.6--37.8) & 33.3 (24.0--38.6) \\
+Literate program & 77 & 78 & 45 & 63 & 13.8 (11.5--15.2) & 13.9 (12.2--17.2) \\
+Paper & 121 & 122 & 156 & 188 & 35.6 (32.7--38.6) & 35.0 (26.2--39.6) \\
+Generated, 3000 sections & 250 & 250 & 318 & 710 & 4.9 (4.2--5.3) & 5.8 (5.6--6.0) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+On the real documents no difference shows above the noise.
+Other jobs held the load at 8 to 17 on an 8-core machine, and passes of one version vary by up to half,
+so a real difference under about 20 per cent on these documents wouldn't show.
+The generated document, with a section every few lines, has an \texttt{.aux} over twice the size and is
+about a fifth slower here, not twice.
+The paper's 122 pages come from settling with only four passes.
+
 \subsection{Checks a new measurement must do}
 
 Each of these went wrong once, without showing in the page count.

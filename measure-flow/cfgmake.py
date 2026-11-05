@@ -41,4 +41,12 @@ PAIR=r"\AtBeginDocument{\clubpenalty=%d \csname @clubpenalty\endcsname=%d \widow
 for s,(c,w) in {'A':(1000,10000),'B':(10000,10000),'W':(1000,1001)}.items():
     cfg['n'+s]=dict(pre=ART+NW+dd()+BC+PAIR%(c,c,w))
     cfg['m'+s]=dict(pre=ART+dd()+MINTNW+PAIR%(c,c,w),minted=True)
+# keepmaxgap and noweb's \nwdocspar apart.  The K ones are for a copy of the package with
+# its \let\nwdocspar\relax taken out, see measure-real/README.md: the limit on, the break
+# kept.  The D ones: the limit off, the break dropped anyway.
+DROP=r"\AtBeginDocument{\let\nwdocspar\relax}"
+cfg['nK']=dict(pre=ART+NW+dd()+BC)
+cfg['mK']=dict(pre=ART+dd()+MINTNW,minted=True)
+cfg['nD']=dict(pre=ART+NW+dd(',keepmaxgap=0')+BC+DROP)
+cfg['mD']=dict(pre=ART+dd(',keepmaxgap=0')+MINTNW+DROP,minted=True)
 json.dump(cfg,open('cfg.json','w'))
