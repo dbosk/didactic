@@ -171,6 +171,9 @@ def marginfloat(c):
     """test-marginfloat.tex; the numbers are those of its header."""
     c.num_pages(1)                                   # no \FloatBlock page break
     c.clean_log()
+    # beamerarticle is loaded before didactic here, and titles still run in.
+    c.ok(c.same_line(c.one("waits"), c.one("PENDINGANCHOR")),
+         "the frame title runs in with PENDINGANCHOR")
     c.has_text("Figure 1: PENDINGCAP,")              # 1
     c.above("REFS", "PENDINGCAP")
     c.in_margin("beside", "PENDINGANCHOR")           # 2
@@ -318,6 +321,153 @@ def marginfloat_hidden(c):
     c.has_text("Table 1: TABVISIBLE")
 
 
+def frametitle(c):
+    """test-frametitle.tex; the numbers are those of its header."""
+    c.num_pages(1)
+    c.clean_log()
+    c.ok(c.same_line(c.one("TITLEA"), c.one("TEXTA")),    # 1
+         "TITLEA and TEXTA are on one line")
+    c.has_text("TITLEB \u2013 SUBB TEXTB,")               # 2
+    c.has_text("TITLEC \u2013 SUBC")                      # 3
+    c.above("TITLEC", "ITEMC")
+    c.ok(c.one("TEXTD")["xmin"] > c.one("TITLEA")["xmin"],  # 4, indented
+         "TEXTD starts a paragraph of its own")
+    c.above("TITLEE", "PROSEF")                           # 5
+    c.has_text("Figure 0.1: FIGE,")
+    c.above("TITLEG", "EXAMPLEG")                         # 6
+    c.ok(c.one("TEXTH")["xmin"] > c.one("TITLEA")["xmin"],  # 7
+         "TEXTH has no heading in front of it")
+    c.absent("SLIDEONLY")
+
+
+def oldkernel_title(c):
+    """test-oldkernel-title.tex; see its header."""
+    c.clean_log()
+    c.above("OLDTITLE", "Contents")
+
+
+def frametitle_slides(c):
+    """test-frametitle-slides.tex: the frames as beamer makes them."""
+    c.num_pages(7)
+    c.clean_log()
+    c.absent("PROSEF")
+    c.above("TITLEA", "TEXTA")
+    c.above("TITLEB", "SUBB")
+    c.above("SUBB", "TEXTB")
+    c.above("TITLEC", "SUBC")
+    c.above("SUBC", "ITEMC")
+    c.above("TITLEE", "FIGE")
+    c.above("TITLEG", "EXAMPLEG")
+    c.above("SLIDEONLY", "TEXTH")
+    c.has_text("Figure: FIGE,")
+
+
+def frametitle_overlay(c):
+    """test-frametitle-overlay.tex; the numbers are those of its header."""
+    c.num_pages(1)
+    c.clean_log()
+    c.above("OVERA", "OVERB")                        # 1
+    c.has_text("OVERB TEXTOVER")
+    c.above("ONLYA", "ONLYB")                        # 2
+    c.has_text("ONLYB TEXTONLY")
+    plain, empty = c.one("PLAINPARA"), c.one("TEXTEMPTY")  # 3
+    c.ok(abs(plain["xmin"] - empty["xmin"]) < 0.5,
+         f"TEXTEMPTY starts like a paragraph: {empty['xmin'] - plain['xmin']:.1f}pt")
+    c.has_text("SUBONLY TEXTSUBONLY")                # 4
+    c.absent("\u2013")
+
+
+def frametitle_floats(c):
+    """test-frametitle-floats.tex; the numbers are those of its header."""
+    c.num_pages(2)
+    c.clean_log()
+    c.above("TITLEH", "FIGH")                        # 1
+    c.above("TITLEBIGH", "FIGBIGH")                  # 2
+    c.above("TITLETAB", "TABH")                      # 3
+    c.above("TITLETEXT", "FIGT")                     # 4
+    c.above("FIGT", "TEXTT")
+    c.ok(c.same_line(c.one("FLOATPROSE"), c.one("PROSEAFTER")),  # 5
+         "FLOATPROSE still runs in with PROSEAFTER")
+    c.above("TITLESTARFIG", "FIGSTAR")               # 6
+    c.above("TITLESTARTAB", "TABSTAR")
+
+
+def frametitle_boxes(c):
+    """test-frametitle-boxes.tex; the numbers are those of its header."""
+    c.clean_log()
+    for title, first in (("TIMG", "A"), ("TCENTRE", "B"), ("TPLAIN", "TABWORD"),   # 1
+                         ("TTABS", "TABSWORD"), ("TTABX", "TABXWORD"),
+                         ("TTIKZ", "TIKZWORD"), ("TMINI", "MINIWORD"),
+                         ("TCOLS", "COLWORD"), ("TBYTEXT", "BYTEXTWORD"),
+                         ("TMINTED", "print")):
+        title_word = c.one(title)
+        below = [w for w in c.pages[title_word["page"] - 1]
+                 if w["text"].split("(")[0] == first]
+        c.ok(any(w["ymin"] >= title_word["ymax"] - 1 for w in below),
+             f"{title} is on a line of its own, above {first}")
+    heading = max(c.words("Contents"), key=lambda w: w["ymax"] - w["ymin"])
+    toc_title = c.one("TTOC")
+    c.ok((toc_title["page"], toc_title["ymax"] - 1) <= (heading["page"], heading["ymin"]),
+         "TTOC is on a line of its own, above the heading Contents")
+    c.ok(abs(c.one("TCENTRE")["xmin"] - c.one("TIMG")["xmin"]) < 0.5,  # 2
+         "TCENTRE is flush left, like TIMG")
+    c.absent("THIDDEN")                              # 3
+    c.absent("currentsection")
+    c.ok(c.same_line(c.one("TFBOX"), c.one("FBOXWORD")),  # 4
+         "TFBOX and FBOXWORD are on one line")
+    c.ok(c.same_line(c.one("PROSEHEAD"), c.one("PROSETAB")),  # 5
+         "PROSEHEAD and PROSETAB are on one line")
+
+
+def frametitle_end(c):
+    """test-frametitle-end.tex; the numbers are those of its header."""
+    c.num_pages(1)
+    c.clean_log()
+    c.above("TENVEMPTY", "PROSEA")                   # 1
+    c.above("TCMDEMPTY", "PROSEB")
+    c.above("TENVNOTE", "PROSEC")                    # 2
+    c.above("TCMDNOTE", "PROSED")
+    c.ok(c.same_line(c.one("TCMDTEXT"), c.one("TEXTCMD")),  # 3
+         "TCMDTEXT runs in with TEXTCMD")
+    indent = c.one("PROSEA")["xmin"]                 # 4
+    for word in "PROSEB", "PROSEC", "PROSED", "PROSEE":
+        c.ok(abs(c.one(word)["xmin"] - indent) < 0.5,
+             f"{word} starts like an ordinary paragraph")
+    c.absent("THIDENV")                              # 5
+    c.absent("THICMD")
+    c.ok(c.same_line(c.one("TAFTER"), c.one("TEXTAFTER")),
+         "TAFTER runs in with TEXTAFTER")
+    c.one("TWICE")                                   # 6
+
+
+def frametitle_template(c):
+    """test-frametitle-template.tex and -template-after.tex."""
+    c.num_pages(1)
+    c.clean_log()
+    c.has_text("USERTEMPLATE TITLETPL")
+    c.above("TITLETPL", "TEXTTPL")
+
+
+def frametitle_noarticle(c):
+    """test-frametitle-noarticle.tex."""
+    c.num_pages(1)
+    c.clean_log()
+    c.above("TITLENOA", "TEXTNOA")
+    c.above("TITLESUB", "SUBNOA")
+    c.above("SUBNOA", "TEXTSUB")
+    c.absent("\u2013")
+
+
+def frametitle_article(c):
+    """test-frametitle-article.tex."""
+    c.num_pages(1)
+    c.clean_log()
+    c.has_text("TITLEART TEXTART")
+    c.has_text("TITLESUBART \u2013 SUBART TEXTSUBART")
+    c.above("TITLELIST", "ITEMART")
+    c.above("TITLEIMG", "FIGIMG")
+
+
 CHECKS = {
     "test-marginfloat": marginfloat,
     "test-marginfloat-slides": marginfloat_slides,
@@ -330,6 +480,17 @@ CHECKS = {
     "test-marginfloat-kinds": marginfloat_kinds,
     "test-marginfloat-article": marginfloat_article,
     "test-marginfloat-hidden": marginfloat_hidden,
+    "test-oldkernel-title": oldkernel_title,
+    "test-frametitle": frametitle,
+    "test-frametitle-slides": frametitle_slides,
+    "test-frametitle-overlay": frametitle_overlay,
+    "test-frametitle-floats": frametitle_floats,
+    "test-frametitle-boxes": frametitle_boxes,
+    "test-frametitle-end": frametitle_end,
+    "test-frametitle-template": frametitle_template,
+    "test-frametitle-template-after": frametitle_template,
+    "test-frametitle-noarticle": frametitle_noarticle,
+    "test-frametitle-article": frametitle_article,
     "test-marginfloat-include": marginfloat_include,
     "test-marginfloat-include-all": marginfloat_include_all,
 }

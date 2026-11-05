@@ -1,0 +1,37 @@
+% Test of frame titles (didactic) in the notes: several titles in a frame, and
+% empty titles.  The title waits for the next paragraph, and by then the frame
+% may have another title.
+%
+% Expected in the resulting PDF:
+%   1  OVERA, then OVERB with TEXTOVER on its line: each title once, with the
+%      overlay specification.
+%   2  The same for ONLYA and ONLYB, in \only.
+%   3  TEXTEMPTY starts where PLAINPARA, an ordinary paragraph, starts: an empty
+%      title makes no heading.
+%   4  "SUBONLY TEXTSUBONLY": a subtitle without a title makes a heading of its
+%      own, and no en dash anywhere in this PDF.
+\documentclass[a4paper]{memoir}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\begin{document}
+\begin{frame}
+  \frametitle<1>{OVERA}
+  \frametitle<2>{OVERB}
+  TEXTOVER has two titles.
+\end{frame}
+\begin{frame}
+  \only<1>{\frametitle{ONLYA}}
+  \only<2>{\frametitle{ONLYB}}
+  TEXTONLY has two titles.
+\end{frame}
+
+PLAINPARA is an ordinary paragraph.
+
+\begin{frame}{}
+  TEXTEMPTY has an empty title.
+\end{frame}
+\begin{frame}{}{SUBONLY}
+  TEXTSUBONLY has only a subtitle.
+\end{frame}
+\end{document}

@@ -3,6 +3,15 @@ PDFLATEX?=xelatex -pdf
 LATEXFLAGS=-shell-escape
 PYTHONTEX=python3 $(shell which pythontex) --interpreter python:python3
 
+# A failed check leaves no PDF, so that the next make doesn't call it up to date.
+.DELETE_ON_ERROR:
+
+# The cases of frame titles, one file per kind; see the header of each file.
+TEST_FRAMETITLE_CASES=	test-frametitle-overlay test-frametitle-floats \
+			test-frametitle-boxes test-frametitle-end \
+			test-frametitle-template \
+			test-frametitle-template-after \
+			test-frametitle-noarticle test-frametitle-article
 # The order of float numbers, from the pages the floats end up on.
 TEST_FLOATORDER=	test-marginfloat-samepar test-marginfloat-moved \
 			test-marginfloat-chapters test-marginfloat-kinds \
@@ -16,9 +25,12 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-note-heading.pdf test-pair.pdf test-pair-slides.pdf \
 	test-sidecap.pdf test-sidecap-off.pdf \
 	test-marginfloat.pdf test-marginfloat-slides.pdf \
+	test-frametitle.pdf test-frametitle-slides.pdf \
+	${TEST_FRAMETITLE_CASES:=.pdf} \
 	test-marginfloat-cases.pdf test-marginfloat-order.pdf \
 	test-marginfloat-inorder.pdf test-marginfloat-hidden.pdf \
-	${TEST_FLOATORDER:=.pdf} test-marginfloat-include.pdf check
+	${TEST_FLOATORDER:=.pdf} test-marginfloat-include.pdf \
+	test-format.pdf test-oldkernel-title.pdf check
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -33,6 +45,7 @@ didactic.pdf: ${SRC} didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} $<
 	makeindex -s gglo.ist -o didactic.gls didactic.glo
 	grep -q 'work in a source shared' didactic.gls
+	grep -q 'a frame title is a run-in heading' didactic.gls
 	${PDFLATEX} ${LATEXFLAGS} $<
 
 # docstrip asks before overwriting, so remove the old file first.
@@ -125,10 +138,28 @@ test-marginfloat-include.pdf: test-marginfloat-include.tex \
 # on PDFs that are up to date.
 CHECKED_TESTS=	test-marginfloat test-marginfloat-slides test-marginfloat-cases \
 		test-marginfloat-order test-marginfloat-inorder \
-		test-marginfloat-hidden ${TEST_FLOATORDER} ${TEST_INCLUDE}
+		test-marginfloat-hidden test-frametitle test-frametitle-slides \
+		${TEST_FRAMETITLE_CASES} ${TEST_FLOATORDER} ${TEST_INCLUDE} \
+		test-oldkernel-title
 .PHONY: check
 check: test-check.py ${CHECKED_TESTS:=.pdf}
 	python3 test-check.py ${CHECKED_TESTS}
+
+# a format from before the hooks we use: the warning from didactic itself, so
+# right after the log opens the file, since other packages ask for releases too.
+test-format.pdf: test-format.tex didactic.sty
+	-${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	grep -A2 'didactic.sty$$' test-format.log | grep -q 'You have requested release'
+
+# frame titles, in the notes and on the slides, from one source; twice, since
+# beamer asks for a rerun for its outline.
+test-frametitle.pdf test-frametitle-slides.pdf: %.pdf: %.tex didactic.sty \
+		test-frametitle-contents.tex
+	${PDFLATEX} ${LATEXFLAGS} $<
+	${PDFLATEX} ${LATEXFLAGS} $<
+${TEST_FRAMETITLE_CASES:=.pdf} test-oldkernel-title.pdf: %.pdf: %.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} $<
+	${PDFLATEX} ${LATEXFLAGS} $<
 
 # code side by side, in the notes and on the slides; minted needs
 # -shell-escape and a run after pythontex to insert the highlighted code.
@@ -187,6 +218,18 @@ clean:
 	${RM} test-marginfloat-slides.log test-marginfloat-slides.nav
 	${RM} test-marginfloat-slides.snm test-marginfloat-slides.toc
 	${RM} test-marginfloat-slides.out test-marginfloat-slides.unq
+	${RM} test-frametitle.pdf test-frametitle.aux test-frametitle.log
+	${RM} test-frametitle.unq
+	${RM} test-frametitle-slides.pdf test-frametitle-slides.aux
+	${RM} test-frametitle-slides.log test-frametitle-slides.nav
+	${RM} test-frametitle-slides.snm test-frametitle-slides.toc
+	${RM} test-frametitle-slides.out test-frametitle-slides.unq
+	${RM} ${TEST_FRAMETITLE_CASES:=.pdf} ${TEST_FRAMETITLE_CASES:=.aux}
+	${RM} ${TEST_FRAMETITLE_CASES:=.log} ${TEST_FRAMETITLE_CASES:=.toc}
+	${RM} ${TEST_FRAMETITLE_CASES:=.lof} ${TEST_FRAMETITLE_CASES:=.lot}
+	${RM} ${TEST_FRAMETITLE_CASES:=.unq} ${TEST_FRAMETITLE_CASES:=.out}
+	${RM} ${TEST_FRAMETITLE_CASES:=.pytxcode} test-frametitle.pytxcode
+	${RM} test-frametitle-slides.pytxcode
 	${RM} test-marginfloat-cases.pdf test-marginfloat-cases.aux
 	${RM} test-marginfloat-cases.log test-marginfloat-cases.out
 	${RM} test-marginfloat-cases.unq
@@ -210,4 +253,8 @@ clean:
 	${RM} ${TEST_INCLUDE:=.pdf} ${TEST_INCLUDE:=.aux} ${TEST_INCLUDE:=.log}
 	${RM} ${TEST_INCLUDE:=.out} ${TEST_INCLUDE:=.unq} ${TEST_INCLUDE:=.pytxcode}
 	${RM} test-marginfloat-include-a.aux test-marginfloat-include-b.aux
+	${RM} test-format.pdf test-format.aux test-format.log test-format.unq
+	${RM} test-format.pytxcode
+	${RM} test-oldkernel-title.pdf test-oldkernel-title.aux test-oldkernel-title.log
+	${RM} test-oldkernel-title.unq test-oldkernel-title.pytxcode test-oldkernel-title.toc
 	latexmk -C test.tex

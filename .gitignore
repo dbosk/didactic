@@ -13,6 +13,10 @@ test-run.pdf
 test-run.unq
 test-note-heading.pdf
 test-note-heading.unq
+test-format.pdf
+test-format.unq
+test-oldkernel-title.pdf
+test-oldkernel-title.unq
 didactic.tar.gz
 didactic.unq
 didactic.hd
@@ -278,6 +282,10 @@ test-marginfloat.pdf
 test-marginfloat.unq
 test-marginfloat-slides.pdf
 test-marginfloat-slides.unq
+test-frametitle.pdf
+test-frametitle.unq
+test-frametitle-slides.pdf
+test-frametitle-slides.unq
 test-marginfloat-cases.pdf
 test-marginfloat-cases.unq
 test-marginfloat-order.pdf
@@ -286,5 +294,7 @@ test-marginfloat-inorder.pdf
 test-marginfloat-inorder.unq
 test-marginfloat-hidden.pdf
 test-marginfloat-hidden.unq
+test-frametitle-*.pdf
+test-frametitle-*.unq
 test-marginfloat-*.pdf
 test-marginfloat-*.unq

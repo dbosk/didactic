@@ -1,0 +1,14 @@
+% Test of frame titles (didactic): a frametitle template of the user's own wins
+% when it is set after both packages too.
+%
+% Expected: as in test-frametitle-template.tex.
+\documentclass[a4paper]{memoir}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\setbeamertemplate{frametitle}{USERTEMPLATE \insertframetitle\par}
+\begin{document}
+\begin{frame}{TITLETPL}
+  TEXTTPL is under the template's title.
+\end{frame}
+\end{document}
