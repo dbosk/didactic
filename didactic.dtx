@@ -1311,7 +1311,9 @@
 %   for three.
 %   \emph{Reopens:} a reader study on lines under a heading, or real documents where 2
 %   costs pages against 1.
-%   \emph{Measured, rejected:} 1 changes no word on any page of the real documents.
+%   \emph{Measured, rejected:} 1 changes no word on any page of the real documents,
+%   which have no heading with a first paragraph of one line at the foot of a page; on
+%   such a heading it stays with that line, and 2 moves or keeps two.
 %   3 wasn't measured in pages; the support is weaker.} \\
 % \midrule
 % A heading is never parted from what follows & Yes &
@@ -1376,7 +1378,8 @@
 % \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} leaving the default; the
 %   maintainer's choice.
 %   \emph{Reopens:} a reason to treat a list as a paragraph.
-%   It wasn't measured to help.} \\
+%   It wasn't measured to help: at commit dd90b97 it changed no word on any page of the
+%   real documents.} \\
 % \midrule
 % Club and widow penalties & As the class has them &
 %   1000 and 1000 under \textsf{memoir}, 150 and 150 under |article|. \\*
@@ -1385,7 +1388,7 @@
 %   \emph{Reopens:} a reader study on lone lines, or a change in those page counts.
 %   \emph{Measured, rejected:} 1000 and 10000 ties on the real documents, 814, and has no
 %   lone last line against 10, and 4 lone first lines against 3; on about 1630 generated
-%   pages it is 4 longer.
+%   pages it is 4 longer, 3 of them in \textsf{memoir} without this package.
 %   10000 and 10000 adds a page, 815.
 %   Under \texttt{article}, 1000 and 1000 is 3 pages longer than 150 and 150, 610 to 607,
 %   in generated text.} \\
@@ -1396,7 +1399,8 @@
 %   ours.
 %   \emph{Reopens:} a change in those numbers.
 %   \emph{Measured, rejected:} keeping it, with \texttt{keepmaxgap=0}, leaves up to 7.6 lines and
-%   33 pages with three or more, against 5.6 and 20, in about 210 pages.} \\
+%   33 pages with three or more, against 5.6 and 20, in about 210 pages, and 19 fewer
+%   breaks inside chunks.} \\
 % \midrule
 % What can't be kept warns & Always &
 %   Mostly silent. \\*
@@ -1421,13 +1425,20 @@
 % Plain \LaTeX\ reaches two for a paragraph of two lines or more, and
 % \textsf{memoir} is the same.
 % For two the support is moderate for a craft rule, for three weak.
-% Nor would one line change a page: with |keepafterheading=1| every one of eight real
-% documents has the same words on each page.\footnote{\Cref{app:pb-measure}.}
+% What the option decides is narrower than its name: the estimate before a heading asks
+% for one line at either setting, since it can't know what follows, \LaTeX\ keeps two
+% lines of a longer paragraph anyway, and a list under a heading has what \LaTeX\ gives
+% it.
+% So it decides what the chain holds after a first paragraph of one line.
+% There, in generated text, at a room of 4 to 4.5 lines 1 stays with that line and 2
+% moves, and at 5 lines 2 stays with two lines.
+% With |keepafterheading=1| every one of eight real documents has the same words on each
+% page, since none has such a heading at the foot of a page.\footnote{\Cref{app:pb-measure}.}
 % Those are real documents and not a controlled sample, and eight is few.
 % They were built from a snapshot, with their last woven source, some of them older
 % than their \textsf{noweb}, and with the output of PythonTeX from before.
 % What this option adds to \LaTeX\ at two is the second line under a one-line
-% paragraph or a list, as far as a chain of penalties can hold it.
+% paragraph, as far as a chain of penalties can hold it.
 %
 % \paragraph{A heading stays with its first paragraph.}
 % This has broad support, as practice and not as a measured effect, and \LaTeX\
@@ -1471,7 +1482,9 @@
 % On those eight real documents, 814 pages, with the same limits, 1000 and 1000 gave the
 % same pages as 1000 and 10000, document by document, and 10000 and 10000 added
 % one;\footnote{\Cref{app:pb-measure}.} in generated documents of about 1630 pages 1000
-% and 1000 was 4 pages shorter than 1000 and 10000.
+% and 1000 was 4 pages shorter than 1000 and 10000, 1627 against 1631.
+% Three of those are in plain \textsf{memoir} without this package, and one is a
+% document woven for |minted| whose last page holds about a line.
 % Under |article|, lifting 150 to 1000 costs pages in generated text, 607 against
 % 610 for six documents of each kind, so we don't do that either.
 % The price is stated too: on those real documents 10 last lines alone at the top of a
@@ -1564,7 +1577,8 @@
 % That is fewer than the sample's two lines, and goes against the two-line rule, which
 % stays for a heading over a paragraph.
 % It is the maintainer's choice, for leaving a default where it is; it wasn't measured
-% to help.
+% to help: at commit dd90b97, letting that item stay with one line changed no word on
+% any page of those eight documents.
 %
 % \paragraph{Reckoning as \TeX\ does, and warnings.}
 % These are ours, not from the sources.
@@ -1581,7 +1595,8 @@
 %   \Cref{app:pb-measure}; \texttt{measure-flow} in the sources has the generator.}
 % With the chunks that \textsf{noweb} sets, keeping it, with |keepmaxgap=0|, leaves at
 % most 7.6 empty lines, 33 pages with three or more and 4 with five or more; dropping it
-% leaves 5.6, 20 and 1; plain \textsf{noweb} with |breakcode| has 6.2, 31 and 2.
+% leaves 5.6, 20 and 1, for 19 more breaks inside chunks; plain \textsf{noweb} with
+% |breakcode| has 6.2, 31 and 2.
 % With the chunks woven for |minted|, which most decks are, plain has a mean of 0.96
 % empty lines a page, 28 pages with three or more and at most 6.2, and we have 0.71, 17
 % and 4.5.
