@@ -6385,7 +6385,6 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \def\@didactic@keep@ifbreakless{%
   \@tempswatrue
   \ifnum\lastnodetype=11 \@tempswafalse\fi
-  \ifdim\lastskip=\z@\else\@tempswafalse\fi
   \ifnum\lastpenalty=\z@\else\ifnum\lastpenalty=\@M\else\@tempswafalse\fi\fi
   \ifdim\dimexpr\pagetotal+\pagedepth\relax>\@didactic@keep@pend\@tempswafalse\fi
   \ifnum\outputpenalty=\@didactic@keep@pendout\else\@tempswafalse\fi}

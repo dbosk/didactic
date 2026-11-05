@@ -239,6 +239,9 @@ CASES = {
     # a lead-in of three lines and a listing, on a page that stretches
     "sv3": lambda k: r"\vspace{0pt plus 40pt}" + "\nS.\n\n" + para(k, 3, "P") + "\n" + verbatim(k, 8) + TAIL,
     "lb1": lambda k: para(k, 1, "P") + "\n\n" + r"\bigskip" + "\n" + items(k, 8, 1) + TAIL,
+    # the same when TeX has already put that space on the page, by a blank line
+    "lc1": lambda k: para(k, 1, "P") + "\n\n" + r"\bigskip" + "\n\n" + items(k, 8, 1) + TAIL,
+    "lP1": lambda k: para(k, 1, "P") + "\n\n" + r"\penalty100" + "\n" + items(k, 8, 1) + TAIL,
     "lm1": lambda k: para(k, 1, "P") + "\n\n" + r"\marginpar{note}" + "\n\n" + items(k, 8, 1) + TAIL,
     "lf1": lambda k: para(k, 1, "P") + "\n\n" + r"\begin{figure}[h]\rule{1pt}{2\baselineskip}\caption{f}\end{figure}"
         + "\n\n" + items(k, 8, 1) + TAIL,
@@ -256,6 +259,7 @@ CASES = {
     "chp": lambda k: chapter(k) + "\n" + para(k, 16) + TAIL,
     "chv": lambda k: chapter(k) + "\n" + verbatim(k, 5) + TAIL,
     "chv1": lambda k: chapter(k) + "\n" + para(k, 1, "P") + "\n" + verbatim(k, 3) + TAIL,
+    "chn": lambda k: chapter(k).replace("chapter*", "chapter") + "\n" + verbatim(k, 5) + TAIL,
     "chi1": lambda k: chapter(k) + "\n" + para(k, 1, "P") + "\n" + items(k, 8, 1) + TAIL,
     "hT3": lambda k: heading(k) + "\n" + para(k, 3, "P") + "\n" + tallitem(k) + TAIL,
     # all the stretch above the heading: all of it goes, and only the heading's warning says so
@@ -319,7 +323,7 @@ CASES = {
 SHRINKLISTS = {"hs1", "hs2", "hs3"}
 TALLITEMS = {"lT1", "lS1"}
 # a place to break between them, whatever the penalty: parted within the limit, with a warning
-PLACED = {"lv1", "lb1", "lm1", "lf1", "dv1", "dl1", "tv1", "tl1"}
+PLACED = {"lc1", "lP1", "lv1", "lb1", "lm1", "lf1", "dv1", "dl1", "tv1", "tl1"}
 # the end of a list is a place to break that nobody warns about
 AFTERLIST = {"tv1", "tl1"}
 ASKED = {"lp1", "lB1"}
@@ -330,7 +334,7 @@ M3ROWS = {"p", "pl", "pL"}
 ABOVE = {"hM3", "sv3", "sv6", "rh", "dh", "vlv1"}
 # with space between paragraphs
 PARSKIPROWS = {"s", "p", "pl", "hv", "ll1", "ll3"}
-CHAPTERROWS = {"chp", "chv", "chv1", "chi1"}
+CHAPTERROWS = {"chp", "chv", "chv1", "chi1", "chn"}
 # under a heading too, where the last lines of the lead-in can go along with it
 HEADTALL = {"hT3", "hS3", "hM3"}
 HEADLISTS = SHRINKLISTS | {"hll1", "hll2", "hll3", "hll6"}
@@ -344,7 +348,7 @@ NOT_COMPARED = DIDACTIC_ONLY | {"e", "ei", "eI", "se", "e1", "cp", "f", "rti"}
 LISTINGS = {"hv1", "hv2", "hv3", "v1", "v3", "v8", "hn1", "hn3", "n3", "hw1", "hw3", "w3",
             "hj1", "j3", "n6", "w6", "v6", "wL1", "cw0", "cw1", "cw2", "cw3", "cw4",
             "ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3", "hNv1", "chv1", "chi1", "sv3", "sv6", "vlv1", "ln1"} | HEADLISTS | TALLITEMS | HEADTALL | PLACED | ASKED
-ITEMLISTS = HEADLISTS | TALLITEMS | HEADTALL | ASKED | {"ln1", "lv1", "lb1", "lm1", "lf1", "dl1", "tl1", "chi1", "ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3"}
+ITEMLISTS = HEADLISTS | TALLITEMS | HEADTALL | ASKED | {"lc1", "lP1", "ln1", "lv1", "lb1", "lm1", "lf1", "dl1", "tl1", "chi1", "ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3"}
 # L2: a list right under a heading follows LaTeX, so a line is enough.
 DIRECTLISTS = {"l", "L", "ri", "fi", "fI", "ei", "eI"}
 NOHEADING = TALLITEMS | PLACED | ASKED | {"ln1", "sv3", "sv6", "vlv1", "v1", "v3", "v8", "n3", "w3", "j3", "n6", "w6", "v6", "wL1",
@@ -372,8 +376,10 @@ def all_cases(variant="m"):
             rooms = [x for x in rooms if x >= 2]  # the rig's own lines need that with the space
         if name in ("hS3", "hM3"):
             rooms = [x / 4 for x in range(21, 57)]
+        if name in ("rh", "dh"):
+            rooms = [x / 20 for x in range(80, 150)]  # an estimate that is off by a fifth of a line
         for r in rooms:
-            yield name, f"{name}Q{int(4 * r)}", r
+            yield name, f"{name}Q{int(20 * r) if name in ('rh', 'dh') else int(4 * r)}", r
 
 
 def gen(variant):
@@ -531,7 +537,7 @@ def check_case(p, ref, name, case, K, tied=None):
             if m and name in ("s", "ss") and int(m[1]) != count:
                 fail(case, f"D8: says only {m[1]} fit, {count} there")
         # R9: past the limit a short listing breaks under its heading, and says so
-        if name in ("hv", "hw", "hv8", "rv", "chv") and over and not moved:
+        if name in ("hv", "hw", "hv8", "rv", "chv", "chn") and over and not moved:
             last = p.on("C8" if name == "hv8" else "C5", case)
             says_breaks = [w for w in warns if "breaks under" in w]
             if p.on("C1", case) == h and last > h and not says_breaks:
@@ -564,7 +570,7 @@ def check_case(p, ref, name, case, K, tied=None):
             # is stated in the docs.
             if not pm and not moved and count < pc and K > 2 and name == "pL" and warns:
                 pass
-            elif not pm and not moved and count < pc and name not in ("hv", "hw", "hv8", "hv3l", "rv", "chv"):
+            elif not pm and not moved and count < pc and name not in ("hv", "hw", "hv8", "hv3l", "rv", "chv", "chn"):
                 bad = True
                 text = f"D4: {count} lines under the heading, plain LaTeX has {pc}"
             elif not pm and moved and pc >= K \
