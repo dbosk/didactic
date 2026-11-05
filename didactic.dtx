@@ -3549,6 +3549,7 @@
     \ifdefined\marginnotedeferrable\marginnotedeferrable\fi
     \setlength{\parindent}{2em}%
     \@afterindentfalse\@afterheading #1%
+    \global\@didactic@nobreak
   }%
   \global\@didactic@nobreak
 }
@@ -3562,6 +3563,9 @@
 % So a note placed between a heading and its first paragraph would indent 
 % that paragraph.
 % That's why we save the flag before the note and restore it after.
+% We restore it at the end of the note as well, while its box is being set, since
+% \LaTeX\ looks at the flag when the note goes to the page, in the output routine, and
+% adds a place to break if it is clear: between a heading and what follows it.
 %
 % If the \textsf{corrigenda} package is loaded (before or after us), we let it 
 % use |\indentedmarginpar| for its margin notes.
