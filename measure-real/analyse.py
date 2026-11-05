@@ -26,6 +26,8 @@ def lp(s, d):
             L.append(dict(id=int(t[1]), para=int(t[2]), typ=t[3], depth=int(t[4]), nb=int(t[5]), page=int(t[6])))
         elif t and t[0] == "G" and len(t) == 6:
             G[int(t[1])] = (int(t[2]), float(t[3][:-2]), float(t[4][:-2]), float(t[5][:-2]))
+    if len({g[3] for g in G.values()}) > 1:
+        raise SystemExit(f"{d.name}, {s}: the unit of a line varies between pages: an old probe?")
     return P, L, G
 
 
