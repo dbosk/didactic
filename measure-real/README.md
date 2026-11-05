@@ -27,7 +27,9 @@ and minted output is reused.
     python3 build.py   --conf ~/measure-real.conf --work $W --sty ../didactic.sty --jobs 6
     python3 analyse.py --conf ~/measure-real.conf --work $W
 
-To compare commits, build each under `--tag COMMIT` with its `didactic.sty`, and
+Give `audit.py` and `build.py` `--also path/to/marginfix.sty` for a version of a
+package other than TeX's own; the build checks its own `didactic.sty` loaded, and the
+log says which of the others. To compare commits, build each under `--tag COMMIT` with its `didactic.sty`, and
 pass the same `--tag` to `analyse.py`. Never run two builds on one work directory
 and tag at once, and don't kill `build.py` with `timeout`: its LaTeX children
 outlive it, and collide with the next build.

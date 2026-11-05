@@ -2,7 +2,7 @@
 P=$(dirname "$(readlink -f "$0")")
 name=$1; ver=$2; eng=${3:-pdflatex}
 d=$P/r/$name; rm -rf "$d"; mkdir -p "$d/_minted"; cd "$d" || exit 1
-if [ "$ver" != no ]; then cp "$P/../v/$ver/didactic.sty" .; fi
+if [ "$ver" != no ]; then cp "$P/../v/$ver/"*.sty .; fi
 python3 "$P/gen.py" t.tex "$P/cfg.json" "$name"
 for i in 1 2 3 4; do
   old=$(md5sum t.aux 2>/dev/null)

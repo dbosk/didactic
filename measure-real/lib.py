@@ -1,5 +1,5 @@
 """Shared by the scripts of measure-real: the configuration and the settings."""
-import argparse, configparser, os, re, subprocess
+import argparse, configparser, os, re, shutil, subprocess
 
 # The settings are small changes to a copy of the package's didactic.sty, in
 # one of two ways: `defaults` rewrites a line that sets a default, and fails if
@@ -29,6 +29,9 @@ SETTINGS = {
     # The estimate before a heading asks for two lines, not one, as before the package's
     # rule for a list under a heading: what that rule changed.
     "estimate-2": {"replace": [(r"<\dimexpr#1+\@didactic@keep@L\relax", r"<\dimexpr#1+2\@didactic@keep@L\relax")]},
+    # A margin note that doesn't fit: end the page early, up to a limit, or let the note move.
+    "note-carry": {"text": [(r"{\renewcommand\@didactic@noteoverflow{break}}", r"{\renewcommand\@didactic@noteoverflow{carry}}")]},
+    "yield-uncapped": {"text": [(r"\@didactic@noteyieldmaxgap=\m@ne", r"\@didactic@noteyieldmaxgap=\z@")]},
     # The break before a list's first item, without the package's own rule.
     "list-rule-off": {"tail": NOTIE},
     "list-rule-off-noprobe": {"tail": NOTIE, "probe": False},  # read the parted lists in its text
@@ -36,7 +39,7 @@ SETTINGS = {
     "list-10000": {"tail": NOTIE + "\n" + beginpar(r"\@M")},
 }
 PAPER = ["keep-off", "keepleadin-off", "current", "pair-1000-10000", "pair-10000-10000",
-         "afterheading-1", "estimate-2", "list-rule-off", "list-0", "list-10000"]
+         "afterheading-1", "estimate-2", "note-carry", "yield-uncapped", "list-rule-off", "list-0", "list-10000"]
 
 # What shows in the log when a build isn't a result: a full disk or a quota.
 BAD = re.compile(r"quota exceeded|No space left|I can't write on file|Disk quota", re.I)
@@ -89,6 +92,15 @@ def args(description, *extra):
 def run(cmd, cwd=None, timeout=900, **kw):
     return subprocess.run(cmd, cwd=cwd, timeout=timeout, stdin=subprocess.DEVNULL,
                           capture_output=True, errors="replace", **kw)
+
+
+def also(cwd, files):
+    """Put a copy of these files next to the document, ahead of what TeX would find."""
+    for f in files or []:
+        t = os.path.join(cwd, os.path.basename(f))
+        if os.path.exists(t):
+            os.remove(t)
+        shutil.copy(f, t)
 
 
 def latex(doc, cwd, recorder=False, timeout=900):

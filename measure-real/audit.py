@@ -8,9 +8,10 @@ when minted reads them.  Prints FAIL for what makes the row wrong and NOTE for
 what limits it.  Exits with 1 on any FAIL.
 """
 import collections, os, re, shutil, subprocess
-from lib import args, latex, pages_of, run
+from lib import also, args, latex, pages_of, run
 
-a, docs = args(__doc__, ("--sty", dict(required=True, help="the didactic.sty to use")))
+a, docs = args(__doc__, ("--sty", dict(required=True, help="the didactic.sty to use")),
+               ("--also", dict(action="append", help="another file to put next to the document")))
 home = os.path.expanduser("~")
 dist = [run(["kpsewhich", "--var-value=" + v]).stdout.strip()
         for v in ("TEXMFDIST", "TEXMFSYSVAR", "TEXMFSYSCONFIG", "TEXMFVAR", "TEXMFCONFIG", "TEXMFLOCAL")]
@@ -42,6 +43,7 @@ for d in docs:
     if os.path.exists(sty):
         os.remove(sty)
     shutil.copy(a.sty, sty)
+    also(cwd, a.also)
     latex(d, cwd, recorder=True)
     base = os.path.join(cwd, d.out, d.main)
     fls = open(base + ".fls", errors="replace").read()

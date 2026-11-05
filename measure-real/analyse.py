@@ -146,6 +146,19 @@ if all(have("list-rule-off", d) for d in docs):
                 print("     after: ", " / ".join(t[:70] for t in head))
     print()
 
+print("## Margin notes that don't fit\n")
+rows = []
+for s in sett:
+    if not all(have(s, d) for d in docs):
+        continue
+    st = [json.load(open(R(s, d, ".json"))) for d in docs]
+    if all("yields" in x for x in st):
+        rows.append([s] + [f"{x['yields']}/{x['holds']}/{x['spills']['intended']}/{x['spills']['capped']}/{x['spills']['unresolved']}" for x in st]
+                    + [sum(x["yields"] for x in st), sum(x["holds"] for x in st),
+                       sum(x["spills"]["capped"] + x["spills"]["unresolved"] for x in st)])
+table(["setting (yields/holds/carried by mode/capped/unresolved)"] + [d.name for d in docs]
+      + ["yields", "holds", "capped or unresolved"], rows)
+
 print("## Warnings\n")
 rows = []
 for s in sett:

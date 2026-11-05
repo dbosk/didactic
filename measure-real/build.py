@@ -6,13 +6,14 @@ quota or full disk, a log cut short, an .aux that doesn't settle) is marked as
 such, with its log.  Never run two of these on one work directory and tag.
 """
 import concurrent.futures as cf, hashlib, json, os, re, shutil, subprocess
-from lib import BAD, PAPER, SETTINGS, args, latex, pages_of, run
+from lib import BAD, PAPER, SETTINGS, also, args, latex, pages_of, run
 from probe import style
 
 a, docs = args(__doc__,
                ("--sty", dict(required=True, help="the didactic.sty to measure")),
                ("--setting", dict(action="append", help="a setting; default all of them")),
-               ("--jobs", dict(type=int, default=4)))
+               ("--jobs", dict(type=int, default=4)),
+               ("--also", dict(action="append", help="another file to put next to the document, such as marginfix.sty")))
 wanted = a.setting or ["noprobe", "pair-1000-1001"] + PAPER
 for s in wanted:
     if s not in SETTINGS:
@@ -41,6 +42,7 @@ def build(d, name):
     if os.path.exists(sty):
         os.remove(sty)
     open(sty, "w", errors="replace").write(style(a.sty, SETTINGS[name]))
+    also(cwd, a.also)
     aux = os.path.join(out, d.main + ".aux")
     settled, rc, passes = False, None, 0
     for passes in range(1, 7):
@@ -58,6 +60,13 @@ def build(d, name):
     status = dict(document=d.name, setting=name, engine=d.engine, passes=passes, rc=rc, settled=settled,
                   errors=len(re.findall(r"^!", log, re.M)), bad=bool(BAD.search(log)), loaded=loaded,
                   whole=whole, pages=pages_of(base + ".pdf"))
+    # What marginfix did for notes that don't fit: pages ended early, and what it held back.
+    atext = open(aux, errors="replace").read() if os.path.exists(aux) else ""
+    joined = log.replace("\n", "")
+    status.update(yields=len(set(re.findall(r"\\mfx@yield\{([^}]*)\}", atext))),
+                  holds=len(set(re.findall(r"\\mfx@noyield(?:at|firm)\{([^}]*)\}", atext))),
+                  spills={k: len(re.findall(r"marginfix-spill: page=\d+\s*to=\d+\s*" + k, joined))
+                          for k in ("intended", "capped", "unresolved")})
     status["ok"] = (settled and rc == 0 and not status["errors"] and not status["bad"]
                     and loaded and whole and status["pages"] is not None)
     # The numbers, before anything is deleted.

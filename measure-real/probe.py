@@ -60,7 +60,7 @@ def style(source, setting):
                        lambda m: r"\@didactic@%s=%d" % (name, value), s)
         if n != 1:
             raise SystemExit(f"{name}: the default is set {n} times in {source}, expected 1")
-    for old, new in setting.get("replace", []):
+    for old, new in setting.get("replace", []) + setting.get("text", []):
         if s.count(old) != 1:
             raise SystemExit(f"{old}: found {s.count(old)} times in {source}, expected 1")
         s = s.replace(old, new)
