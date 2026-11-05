@@ -21,7 +21,7 @@ TEST_INCLUDE=		test-marginfloat-include-all test-marginfloat-include
 # Warnings from where listings ended up.
 TEST_KEEPCHECK=		test-keep-leadin test-keep-leadin-off test-keep-overfull \
 			test-keep-multicol test-keep-twocol test-keep-noweb \
-			test-keep-noweb-break
+			test-keep-noweb-break test-keep-first
 
 .PHONY: all
 all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
@@ -246,7 +246,8 @@ test-keep-noweb.pdf test-keep-noweb-break.pdf: %.pdf: %.tex \
 test-keep-leadin.pdf test-keep-leadin-off.pdf: %.pdf: %.tex \
 		test-keep-leadin-body.tex didactic.sty
 	@${latex_until_settled}
-test-keep-overfull.pdf test-keep-multicol.pdf test-keep-twocol.pdf: %.pdf: %.tex didactic.sty
+test-keep-overfull.pdf test-keep-multicol.pdf test-keep-twocol.pdf \
+		test-keep-first.pdf: %.pdf: %.tex didactic.sty
 	@${latex_until_settled}
 
 test-keep-blank.pdf: test-keep-blank.tex didactic.sty
@@ -254,6 +255,10 @@ test-keep-blank.pdf: test-keep-blank.tex didactic.sty
 	! grep 'didactic blank test: WRONG' test-keep-blank.log
 	test "$$(grep -c 'didactic blank test: right' test-keep-blank.log)" -eq 25
 	grep -q 'didactic blank test: all ran' test-keep-blank.log
+
+# multicol from the distribution: noweb's examples, in a texmf tree, have an old copy,
+# with no multicols*.
+test-keep-multicol.pdf: export TEXINPUTS:=$(shell kpsewhich -var-value=TEXMFDIST)/tex/latex/tools::
 
 test-keep-huge.pdf: test-keep-huge.tex didactic.sty
 	@${latex_until_settled}
@@ -341,6 +346,7 @@ clean:
 	${RM} ${TEST_KEEPCHECK:=.unq} ${TEST_KEEPCHECK:=.out}
 	${RM} ${TEST_KEEPCHECK:=.pytxcode} ${TEST_KEEPCHECK:=-?.txt}
 	${RM} test-keep-leadin-*.txt test-keep-leadin-off-*.txt
+	${RM} test-keep-multicol-*.txt test-keep-overfull-*.txt
 	${RM} test-keep-huge.pdf test-keep-huge.aux test-keep-huge.log
 	${RM} test-keep-huge.unq test-keep-huge.pytxcode test-keep-huge-h.txt
 	${RM} test-keep-blank.pdf test-keep-blank.aux test-keep-blank.log

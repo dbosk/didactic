@@ -332,10 +332,11 @@ def keep_leadin(c):
          f"results for all cases: {sorted(set(pages) ^ set(lines))}, "
          f"{len(pages)} of them")
     # What is asked for, or isn't a lead-in: different pages, and no warning.
-    asked = {"g", "x", "y", "t", "o"}
+    asked = {"g", "x", "y", "t", "o", "gc", "sm", "ma", "sc", "mc", "bc", "fc", "pa"}
     # Cases where the lead-in and the first line must be parted; if a change of
     # layout parts them no more, the case tests nothing, and that should show.
-    for n in (list("mnfhsbruljipw") + ["fr", "ee", "pc"]
+    for n in (list("mnfhsbruljipw") + ["fr", "ee", "pc", "ca", "qu", "fl", "aw",
+                                       "it", "fw", "pr", "pe", "ga"]
               + (["k"] if "k" in pages else [])):
         c.ok(pages[n][0] < pages[n][1], f"case {n} is on two pages: {pages[n]}")
     for n in asked:
@@ -385,9 +386,9 @@ def keep_overfull(c):
         c.ok(found.get(lines[n]) == pages[n],
              f"case {n} names page {found.get(lines[n])}, it is on {pages[n]}")
     c.ok(lines["c"] not in found, "the control doesn't warn")
-    # A pair's page can run off the paper without TeX's message, so at least.
+    # All cases but P, whose depth gives no message: see the header.
     n = len(re.findall(r"Overfull \\vbox", c.log))
-    c.ok(n >= 4 and n <= len(found), f"{n} overfull pages, {len(found)} warnings")
+    c.ok(n == 5 and len(found) == 6, f"{n} overfull pages, {len(found)} warnings")
 
 
 def keep_twocol(c):
@@ -396,6 +397,8 @@ def keep_twocol(c):
     w = [x for x in warnings(c) if "apart from what leads" in x]
     c.ok(any(f"input line {lines['m']}" in x for x in w), f"case m warns: {w}")
     c.ok(not any(f"input line {lines['c']}" in x for x in w), "case c doesn't")
+    o = [x for x in warnings(c) if "doesn't fit" in x and f"input line {lines['o']}" in x]
+    c.ok(len(o) == 1 and "page 3 is overfull" in o[0], f"case o names page 3: {o}")
     c.ok(c.one("LEADM")["xmin"] < 200 and c.one("LISTM")["xmin"] > 200,
          "LISTM starts the second column, away from LEADM")
 
@@ -403,7 +406,7 @@ def keep_twocol(c):
 def keep_noweb(c):
     """test-keep-noweb.tex and -break: warnings against the pages of the words."""
     lines = keep_results(c, "noweb")
-    c.ok(len(lines) == 14, f"14 cases, has {len(lines)}")
+    c.ok(len(lines) == 16, f"16 cases, has {len(lines)}")
     apart, full = {}, {}
     for w in warnings(c):
         m = re.search(r"input line (\d+)", w)
@@ -415,7 +418,7 @@ def keep_noweb(c):
     for n, line in sorted(lines.items()):
         lead, code = c.one("LEAD" + n.upper()), c.one("CODE" + n.upper())
         two = lead["page"] < code["page"]
-        if n in "mnfsuh" or n in asked:
+        if n in "mnfsuhz" or n in asked:
             c.ok(two, f"case {n} is on two pages")
         if n in "qare":
             c.ok(not two, f"case {n} is on one page")
@@ -433,15 +436,21 @@ def keep_noweb(c):
     c.ok(not set(apart) - set(lines.values()), "no warning elsewhere")
 
 
+def keep_first(c):
+    """test-keep-first.tex; see its header."""
+    c.ok(c.one("FIRSTLINE")["page"] == 1, "the listing is on page 1")
+    c.ok(not warnings(c), f"no warning: {warnings(c)}")
+
+
 def keep_multicol(c):
     """test-keep-multicol.tex; see its header."""
     lines = keep_results(c, "multicol")
     c.ok(not re.search(r"Overfull \\vbox", c.log), "no Overfull \\vbox")
     w = [x for x in warnings(c) if "multicols" in x]
-    for n in "abp":
-        c.ok(any(f"input line {lines[n]}" in x for x in w),
-             f"case {n}, line {lines[n]}, warns")
-    c.ok(len(w) == 3, f"three warnings about multicols, has {len(w)}: {w}")
+    for n in ("a", "b", "p", "pl", "s"):
+        c.ok(sum(f"input line {lines[n]}" in x for x in w) == 1,
+             f"case {n}, line {lines[n]}, warns once")
+    c.ok(len(w) == 5, f"five warnings about multicols, has {len(w)}: {w}")
     for lead, first in (("LEADA", "alpha"), ("LEADB", "beta")):
         # In its own column, it's above it with no stretch; in the next one, it's
         # at the top of it.
@@ -630,6 +639,7 @@ CHECKS = {
     "test-keep-overfull": keep_overfull,
     "test-keep-multicol": keep_multicol,
     "test-keep-twocol": keep_twocol,
+    "test-keep-first": keep_first,
     "test-keep-noweb": keep_noweb,
     "test-keep-noweb-break": keep_noweb,
     "test-oldkernel-title": oldkernel_title,

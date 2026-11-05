@@ -5,6 +5,8 @@
 %   M  A lead-in at the foot of the first column, a note, and a listing: the listing
 %      starts the second column, and warns.
 %   C  Control: a lead-in and a listing with nothing between: they go along.
+%   O  A column overfull with what can't part: no page is shipped out at the end of the
+%      column, so the warning names the page of the listing, not the last page shipped.
 \documentclass[a4paper,twocolumn]{memoir}
 \usepackage[british]{babel}
 \usepackage{amsmath,amssymb,amsthm}
@@ -29,5 +31,19 @@ LEADC in.
 LISTC
 line 2
 line 3
+\end{Verbatim}
+\clearpage
+Tall lead-in O in. \rule{1pt}{0.9\textheight}
+\case{o}\begin{Verbatim}
+line 1
+line 2
+line 3
+line 4
+line 5
+line 6
+line 7
+line 8
+line 9
+line 10
 \end{Verbatim}
 \end{document}
