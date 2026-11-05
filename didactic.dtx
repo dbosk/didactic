@@ -164,8 +164,9 @@
 % }
 % \changes{v2.16}{2026/10/24}{%
 %   A page no longer ends early for a margin note where that parts a heading
-%   from the lines \texttt{keepafterheading} owes it, or leaves a paragraph's
-%   first or last line alone: the note moves, with a warning that says why.
+%   from the lines \texttt{keepafterheading} owes it: the note moves, with a
+%   warning that says why.  One that leaves a paragraph's first or last line
+%   alone gets a warning, and moves only if the document forbids that line.
 % }
 % \changes{v2.15}{2026/10/23}{%
 %   Adds \texttt{noteyieldmaxgap}, passed on to \textsf{marginfix}'s 
@@ -680,12 +681,15 @@
 % in the next run, so that line and its note start the next page.
 % It does so only as far as |noteyieldmaxgap| below allows, so on a page where
 % that line is high up, the notes still move, with a warning for each.
-% The break goes over any penalty, so it also doesn't end a page where that would
-% part a heading from the lines |keepafterheading| owes it, or leave a paragraph's
-% first line alone at the foot of the page or its last line alone at the top of
-% the next: such a note moves too, in the next run, with a warning that says why.
-% Only |keepafterheading=0| lets a page end under a heading, and with
-% |noteyieldmaxgap=0| a lone line stays, with a warning, and the note by its mark.
+% The break goes over any penalty, so it doesn't end a page where that would part
+% a heading from the lines |keepafterheading| owes it: such a note moves too, in
+% the next run, with a warning that says why; only |keepafterheading=0| lets a page
+% end under a heading.
+% If the break leaves a paragraph's first line alone at the foot of the page or its
+% last line alone at the top of the next, it stands and we warn: the class allows
+% such a line at a cost, and the note stays by its mark.
+% Only if your document forbids that line, with a |\clubpenalty| or |\widowpenalty|
+% of 10\,000, does the note move instead, unless you asked for |noteyieldmaxgap=0|.
 % That can move more text and more notes, so a page dense with notes can take 
 % several runs, up to about ten; \LaTeX\ asks for a rerun until they are done.
 % A page that ends that early is a little shorter, but its margin is full; 
@@ -3924,9 +3928,11 @@
 % A page that ends early for a note ends with a forced break, which goes over
 % any penalty: over the lines owed to a heading, and over the club and widow
 % penalties.
-% So we look at what such a break did, and hold the note back in the next runs:
-% it doesn't end its page but is capped, as \textsf{marginfix} does for a note
-% that hits the limit, and we warn why.
+% So we look at what such a break did.  If it parts a heading from its lines, we
+% hold the note back in the next runs: it doesn't end its page but is capped, as
+% \textsf{marginfix} does for a note that hits the limit, and we warn why.
+% If it leaves a lone line, we warn, and hold the note back only if the document
+% forbids that line.
 % Where a callout falls among the lines of its paragraph isn't known when it is
 % read, only when the paragraph is done, so we can't decide before we have seen
 % it, but this holds back only a note that really does the harm.
@@ -3961,8 +3967,19 @@
 % again.
 % A heading's lines count whatever |noteyieldmaxgap| says, and |keepafterheading=0|
 % asks for none.
-% With no limit at all (|noteyieldmaxgap=0|) we don't hold a note for a lone line,
-% since that asks for each note to stay by its mark, but we warn.
+%
+% A lone line we let stand, since the class allows one at a cost, and because
+% holding the note moves it off its mark, which |noteoverflow=break| is there to
+% avoid.
+% We measured both ways, on generated text of plain sentences with footnotes, so
+% the rate says little: over 28 documents, 560 pages either way, holding took away
+% 8 lone lines (5 left by the break, 3 by the pages after it) and carried 8 more
+% notes away from their marks.
+% On 8 real documents, 814 pages either way, the case never came up.
+% So the page count doesn't decide, and we keep to what the class says.
+% With a penalty of 10\,000 the class or the document says no, and then we hold,
+% unless |noteyieldmaxgap=0| asks for each note to stay by its mark.
+%
 % A note called out in vertical mode while a heading's lines are due can't end
 % its page either, and for that we need no earlier run.
 % \textsf{marginfix} warns about each note that is capped, and through
@@ -4014,26 +4031,26 @@
   \fi
   \reserved@b}
 \def\@didactic@fit@hold#1#2{%
+  \@tempswatrue
   \if#2h\else
-    \ifdim\mfx@yieldlimit=\maxdimen
-      \if#2c%
-        \def\reserved@a{first line alone at the foot of the page}%
-      \else
-        \def\reserved@a{last line alone at the top of the next page}%
-      \fi
-      \PackageWarningNoLine{didactic}{The page ends early for the margin note
-        called\MessageBreak out at \csname mfx@yl@#1\endcsname,\MessageBreak
-        which leaves the \reserved@a}%
-    \fi
-  \fi
-  \if@filesw
-    \ifdim\mfx@yieldlimit=\maxdimen
-      \if#2h\immediate\write\@auxout{\string\@didactic@fit@held
-        {\csname mfx@yk@#1\endcsname}{#2}}\fi
+    \if#2c%
+      \ifnum\clubpenalty<\@M\@tempswafalse\fi
+      \def\reserved@a{first line alone at the foot of the page}%
     \else
+      \ifnum\widowpenalty<\@M\@tempswafalse\fi
+      \def\reserved@a{last line alone at the top of the next page}%
+    \fi
+    \ifdim\mfx@yieldlimit=\maxdimen\@tempswafalse\fi
+  \fi
+  \if@tempswa
+    \if@filesw
       \immediate\write\@auxout{\string\@didactic@fit@held
         {\csname mfx@yk@#1\endcsname}{#2}}%
     \fi
+  \else
+    \PackageWarningNoLine{didactic}{The page ends early for the margin note
+      called\MessageBreak out at \csname mfx@yl@#1\endcsname,\MessageBreak
+      which leaves the \reserved@a}%
   \fi}
 \def\@didactic@fit@parabegin{%
   \if@didactic@keep@inbox\else

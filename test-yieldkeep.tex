@@ -21,6 +21,16 @@
 \def\theoremcase{theorem}\def\headlist{headlist}\def\withother{withother}
 \def\tallheading{tallheading}\def\tallclub{tallclub}\def\tallwidow{tallwidow}
 \def\tallmiddle{tallmiddle}\def\split{split}\def\headthm{headthm}
+% As club and widow, with a document that forbids the lone line.
+\def\clubforbid{clubforbid}\def\widowforbid{widowforbid}
+\ifx\testcase\clubforbid
+  \let\testcase\club
+  \AtBeginDocument{\clubpenalty=10000 \csname @clubpenalty\endcsname=10000 }
+\fi
+\ifx\testcase\widowforbid
+  \let\testcase\widow
+  \AtBeginDocument{\widowpenalty=10000 }
+\fi
 \newcommand\tall{\rule{0pt}{4\baselineskip}}
 \newtheorem{thmx}{THMX}
 \begin{document}
@@ -73,7 +83,7 @@
 \fi
 \ifx\testcase\tallwidow
   FIRSTLINE \filler\ Now the last line of the paragraph, with its
-  note\yieldnote{}\tall.
+  note\yieldnote{}\rule{0pt}{3\baselineskip}.
 \fi
 \ifx\testcase\tallmiddle
   FIRSTLINE \filler\ \filler\yieldnote{} \filler\tall\ \filler\tall\ \filler

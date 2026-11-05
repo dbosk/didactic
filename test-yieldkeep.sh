@@ -1,7 +1,8 @@
 #!/bin/bash
 # Check test-yieldkeep.tex: a page must not end early for a margin note where
-# that parts a heading from the lines it is owed, or leaves a paragraph's first
-# or last line alone; the note is then capped, with a warning that says why.
+# that parts a heading from the lines it is owed, or leaves a lone line that the
+# document forbids; the note is then capped, with a warning that says why.
+# A lone line the document allows stays, with a warning.
 # Calls pdflatex itself: only there can a page end early.  Each job runs until
 # its .aux file stops changing and the last run asks for no other.
 job=test-yieldkeep
@@ -75,8 +76,8 @@ check headlist headlist 7 '' "hold:$parted"
 check headthm headthm 7 '' "hold:$parted"
 check withother withother 8 '' "hold:another note"
 check tallheading tallheading 11 '' "hold:$parted"
-check tallclub tallclub 4 '' "hold:$first"
-check tallwidow tallwidow 9 '' "hold:$last"
+check tallclub tallclub 4 '' "warnlone:$first"
+check tallwidow tallwidow 8 '' "warnlone:$last"
 check tallmiddle tallmiddle 9 '' yield
 check second second 9 '' "hold:$parted"
 check vertical vertical 7 '' "hold:$parted"
@@ -85,9 +86,11 @@ check headingoff heading 7 'keepafterheading=0' parted
 check runin runin 4 '' yield
 check theorem theorem 4 '' yield
 check runintwo runintwo 7 '' "hold:$parted"
-check club club 4 '' "hold:$first"
-check widow widow 7 '' "hold:$last"
-check clubzero club 4 'noteyieldmaxgap=0' "warnlone:$first"
+check club club 4 '' "warnlone:$first"
+check widow widow 7 '' "warnlone:$last"
+check clubforbid clubforbid 4 '' "hold:$first"
+check widowforbid widowforbid 7 '' "hold:$last"
+check clubzero clubforbid 4 'noteyieldmaxgap=0' "warnlone:$first"
 check middle middle 9 '' yield
 check split split 4 '' clean
 rm -f "$job-slides.aux"
