@@ -1,0 +1,47 @@
+% Test of the order of float numbers (didactic) in a document with chapters: the
+% numbers start over in every chapter and the page numbers at \mainmatter, and
+% figures and tables have counters of their own.
+%
+% Build: see the Makefile.
+%
+% Expected in the resulting PDF and log, with exactly one warning from didactic:
+%   1  In chapter 1, FIGLATE (Figure 1.1) on a later page than EARLY (Figure 1.2):
+%      the warning names both numbers and both pages.
+%   2  In chapter 2, TWOA (Figure 2.1) and TWOB (Figure 2.2) come after Figure 1.2
+%      with lower numbers than it in the counter's own terms: no warning.
+%   3  In chapter 3, TABLELATE (Table 3.1) on a later page than TABMARGIN (Figure
+%      3.1): a figure and a table, no warning.
+%   4  FRONT in the front matter, on a page with the number i: no warning from
+%      the page numbers that start over.
+\documentclass[a4paper]{memoir}
+\usepackage{lipsum}
+\usepackage{didactic}
+\begin{document}
+\frontmatter
+\begin{figure}[h]
+  \centering\rule{2cm}{5mm}\caption{FRONT}
+\end{figure}
+Text in the front matter.
+\clearpage
+\mainmatter
+\chapter{One}
+\begin{figure}[p]
+  \centering\rule{4cm}{4cm}\caption{FIGLATE}
+\end{figure}
+Text of chapter one.
+\begin{marginfigure}\rule{2cm}{5mm}\caption{EARLY}\end{marginfigure}
+\lipsum[1]
+\chapter{Two}
+\begin{figure}[h]
+  \centering\rule{2cm}{5mm}\caption{TWOA}
+\end{figure}
+Text of chapter two.
+\begin{marginfigure}\rule{2cm}{5mm}\caption{TWOB}\end{marginfigure}
+\chapter{Three}
+\begin{table}[p]
+  \centering\rule{4cm}{4cm}\caption{TABLELATE}
+\end{table}
+Text of chapter three.
+\begin{marginfigure}\rule{2cm}{5mm}\caption{TABMARGIN}\end{marginfigure}
+\lipsum[2]
+\end{document}
