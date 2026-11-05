@@ -151,6 +151,28 @@
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
 % }
+% \changes{v2.15}{2026/11/05}{%
+%   A list stays with what leads into it, as a listing does: within
+%   \texttt{keepmaxgap} a page no longer breaks before its first item, and past that
+%   only if the item doesn't fit, with a warning, as there is when space, a note or a
+%   float between them gives a place to break.
+%   A list right under a heading has what \LaTeX\ gives it.
+% }
+% \changes{v2.15}{2026/11/05}{%
+%   Under \texttt{keepmaxgap} the break that \textsf{noweb} offers after a chunk is
+%   dropped.
+%   In the notes, a run-in title right before a list, a block or a listing takes a
+%   line of its own, and isn't parted from it.
+%   A margin note right under a heading doesn't part them.
+%   A chapter that doesn't start a page, under \textsf{memoir}'s \texttt{article}, has
+%   the limit of \texttt{keepmaxgap} as any heading.
+% }
+% \changes{v2.15}{2026/11/05}{%
+%   Lowers the default of \texttt{keepends} to 2.
+%   Warnings about a released tie, a listing that breaks under a heading, or what moves
+%   along, come from the pages, and name the source's file and line, also for what
+%   comes from \textsf{minted}'s or PythonTeX's files.
+% }
 % \changes{v2.15}{2026/10/23}{%
 %   In the article mode of \texttt{beamer}, the titles of \texttt{block}, 
 %   \texttt{alertblock} and \texttt{exampleblock} are run-in headings too, like 
@@ -1270,6 +1292,34 @@
 %   says that this \emph{can} leave more than |keepmaxgap| lines empty, as it can't
 %   tell how many lines went.
 % \end{itemize}
+%
+% \subsection{What changes from v2.13}\label{PageBreakChanges}
+%
+% The page breaks of a document that uses \textsf{memoir} or another class outside
+% |beamer| change with this version, in these ways, and how much is measured in
+% \cref{app:pb-measure}: with these options off the eight real documents there have
+% 811 pages, with them 814.
+% \begin{itemize}
+% \item A listing of at most |keeplines| lines doesn't break, and a longer one leaves
+%   |keepends| lines on each side of a break.
+% \item What leads into a listing stays with it, and now also what leads into a list:
+%   the bonus of $-51$ for a break before a list's first item is gone, within
+%   |keepmaxgap|.
+% \item A heading has |keepafterheading| lines under it where \LaTeX\ has fewer, after a
+%   one-line paragraph.
+%   It never parts from what follows it, also not with a margin note between them.
+% \item Under |keepmaxgap|, the break that \textsf{noweb} offers after a chunk with
+%   |\nwdocspar| is dropped.
+% \item In the notes, a frame's title or another run-in heading right before a list, a
+%   block or a listing takes a line of its own, and it stays with what follows.
+% \item Warnings say what the page did where it can't do what these options ask; see
+%   the options above.
+% \item The club and widow penalties stay as the class has them.
+% \end{itemize}
+% In |beamer| nothing changes: the keep options are off there.
+% A plain |article| gets the same rules, so its page breaks change only where they
+% apply, which on two documents we compared, with a real |beamer| deck, was nowhere: the
+% words stay in the same boxes.
 %
 % \subsection{Why pages break where they do}\label{PageBreakDecisions}
 %

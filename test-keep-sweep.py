@@ -622,9 +622,10 @@ def check_case(p, ref, name, case, K, tied=None):
         # Against what plain LaTeX does with the break forbidden and no limit.
         if tied is not None and name in tied.covers and name not in PLACED | ASKED:
             tr = tied.on("R", case)
-            if parted and name in ITEMLISTS and name not in AFTERLIST and tied.on(code_label, case) == tr:
+            tcode, tlead = tied.on(code_label, case), tied.on("P1", case)
+            if parted and name in ITEMLISTS and name not in AFTERLIST and tcode == tr:
                 fail(case, "L1: parted, and its first item stays on the page when that is forbidden")
-            if parted and tied.on(code_label, case) > tr and tied.on("P1", case) > tr \
+            if parted and None not in (tcode, tlead) and tcode > tr and tlead > tr \
                     and tied.empty.get(tr, LIMIT + 1) < LIMIT - 0.01 and name in NOHEADING:
                 fail(case, f"D6: parted, and moving all leaves {tied.empty[tr]:.1f} lines")
         # Within a tenth, for the depth of the line above; TeX may choose that by itself.
@@ -663,7 +664,7 @@ def check(variant):
     # keepends: a listing that breaks leaves two lines at each end
     twos = sum(1 for name, case, r in all_cases(variant) if name == "wL1"
                and p.on("C2", case) == p.on("R", case) and p.on("C3", case) != p.on("R", case))
-    if variant[0] != "e" and not twos:
+    if not twos and any(name == "wL1" for name, case, r in all_cases(variant)):
         print("FAIL: no listing of 15 lines breaks after two")
         FAILS.append("keepends")
     for line in FAILS:
