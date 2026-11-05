@@ -72,6 +72,7 @@ last='last line alone'
 check heading heading 7 '' "hold:$parted"
 check stacked stacked 9 '' "hold:$parted"
 check headlist headlist 7 '' "hold:$parted"
+check headthm headthm 7 '' "hold:$parted"
 check withother withother 8 '' "hold:another note"
 check tallheading tallheading 11 '' "hold:$parted"
 check tallclub tallclub 4 '' "hold:$first"

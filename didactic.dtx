@@ -3933,6 +3933,8 @@
 %
 % While a paragraph that counts for a heading is read, we note what it owes
 % (|para/begin|, which is after \cs{@didactic@keep@parabegin}).
+% A list right under a heading owes it nothing by that count, since it has a rule
+% of its own, but its first line still can't part from the heading.
 % For a page built during the paragraph, \cs{MFX@fit@page} tells us if it ended
 % for a note, and we count this paragraph's lines at the foot of that page, from
 % a copy of the text: a line, then the glue between lines, up to the two glues
@@ -3948,7 +3950,8 @@
 % break leaves the last line alone at the top of the next page.
 % A run-in title or the head of a theorem is in the paragraph's first line, so
 % a break before that line parts nothing, unless a heading of its own line came
-% just before it (|\if@nobreak| is still true then).
+% just before it (|\@afterheading|, which we note), as with a list or a theorem
+% right under a heading.
 % Something in the list between two lines that isn't a line, like a |\mark|, ends
 % the count there, so that we hold back too much rather than too little.
 %
@@ -3980,6 +3983,7 @@
   \fi}
 \newif\if@didactic@fit@inpar
 \newif\if@didactic@fit@title
+\newif\if@didactic@fit@own
 \newcount\@didactic@fit@owed
 \newcount\@didactic@fit@pages
 \newcount\@didactic@fit@rest
@@ -4035,7 +4039,7 @@
   \if@didactic@keep@inbox\else
     \global\@didactic@fit@inpartrue
     \global\@didactic@fit@titlefalse
-    \if@nobreak\else
+    \if@didactic@fit@own\else
       \if@noskipsec
         \global\@didactic@fit@titletrue
       \else\if@inlabel
@@ -4048,7 +4052,11 @@
     \global\@didactic@fit@owed\z@
     \ifnum\@didactic@keep@headstate=\tw@
       \global\@didactic@fit@owed\@didactic@keep@owed
-    \fi
+    \else\if@didactic@fit@own
+      \ifnum\@didactic@keepafterheading>\z@
+        \global\@didactic@fit@owed\@ne
+      \fi
+    \fi\fi
     \global\let\@didactic@fit@first\@empty
     \global\let\@didactic@fit@last\@empty
   \fi}
@@ -4070,6 +4078,7 @@
   \fi}
 \def\@didactic@fit@paraafter{%
   \if@didactic@keep@inbox\else\if@didactic@fit@inpar
+    \global\@didactic@fit@ownfalse
     \ifnum\Mfx@yield@count>\@didactic@fit@yields
       \begingroup\@@par\endgroup
     \fi
@@ -4170,6 +4179,8 @@
   \let\@didactic@MFX@fit@capwhy\MFX@fit@capwhy
   \let\MFX@fit@capwhy\@didactic@fit@capwhy
   \g@addto@macro\MFX@fit@page{\@didactic@fit@page}%
+  \g@addto@macro\@afterheading{%
+    \if@didactic@keep@inbox\else\global\@didactic@fit@owntrue\fi}%
   \AddToHook{para/begin}{\@didactic@fit@parabegin}%
   \AddToHook{para/after}{\@didactic@fit@paraafter}}
 \AtBeginDocument{%

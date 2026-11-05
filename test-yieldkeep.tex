@@ -20,7 +20,7 @@
 \def\middle{middle}
 \def\theoremcase{theorem}\def\headlist{headlist}\def\withother{withother}
 \def\tallheading{tallheading}\def\tallclub{tallclub}\def\tallwidow{tallwidow}
-\def\tallmiddle{tallmiddle}\def\split{split}
+\def\tallmiddle{tallmiddle}\def\split{split}\def\headthm{headthm}
 \newcommand\tall{\rule{0pt}{4\baselineskip}}
 \newtheorem{thmx}{THMX}
 \begin{document}
@@ -77,6 +77,12 @@
 \fi
 \ifx\testcase\tallmiddle
   FIRSTLINE \filler\ \filler\yieldnote{} \filler\tall\ \filler\tall\ \filler
+\fi
+\ifx\testcase\headthm
+  \section{HEADINGX}
+  \begin{thmx}
+  FIRSTLINE\yieldnote{} \filler\ \filler
+  \end{thmx}
 \fi
 \ifx\testcase\headlist
   \section{HEADINGX}
