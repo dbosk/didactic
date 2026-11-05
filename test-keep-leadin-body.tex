@@ -150,6 +150,81 @@ Text.
 \makeatother
 \fi
 
+% A list that wraps the listing starts with a place to break, the one of the class,
+% before the first line: nothing asked for that.
+\roomfor{2}
+Lead-in CA, to a listing in center.\label{ca}
+\begin{center}
+\case{ca}\testlisting{ca}{3}
+\end{center}
+Text.
+
+\roomfor{2}
+Lead-in QU, to a listing in quote.\label{qu}
+\begin{quote}
+\case{qu}\testlisting{qu}{3}
+\end{quote}
+Text.
+
+\roomfor{2}
+Lead-in FL, to a listing in flushleft.\label{fl}
+\begin{flushleft}
+\case{fl}\testlisting{fl}{3}
+\end{flushleft}
+Text.
+
+\roomfor{2}
+Lead-in AW, to a listing in adjustwidth.\label{aw}
+\begin{adjustwidth}{1em}{1em}
+\case{aw}\testlisting{aw}{3}
+\end{adjustwidth}
+Text.
+
+\roomfor{2}
+Lead-in IT, to a listing in an item.\label{it}
+\begin{itemize}
+\item \case{it}\testlisting{it}{3}
+\end{itemize}
+Text.
+
+\roomfor{2}
+Lead-in FW, to a listing over the full width in center.\label{fw}
+\begin{center}
+\testfile{fw}{3}{|}{|}%
+\case{fw}\lstexample*{text}{\jobname-fw.txt}
+\end{center}
+Text.
+
+\roomfor{2}
+Lead-in PR, to a pair in center.\label{pr}
+\begin{center}
+\case{pr}\begin{didacticpair}{2}
+  \rule{1pt}{8\baselineskip}\label{prL} & right
+\end{didacticpair}
+\end{center}
+Text.
+
+% The page ended before a pair even comes, and a note on the empty page.
+\roomfor{2}
+Lead-in PE, and then more space than fits.\label{pe}
+
+\vspace{700pt}\penalty0
+\marginpar{note PE}
+\case{pe}\begin{didacticpair}{2}
+  \rule{1pt}{8\baselineskip}\label{peL} & right
+\end{didacticpair}
+Text.
+
+% A \goodbreak long before says nothing about the list that wraps the listing.
+\roomfor{3}
+Text.\goodbreak
+
+Lead-in GA, a new paragraph since the goodbreak.\label{ga}
+\begin{center}
+\case{ga}\testlisting{ga}{3}
+\end{center}
+Text.
+
 % With a frame, which comes before the first line.
 \roomfor{2}
 Lead-in Y2, to a listing in a frame.\label{fr}
@@ -267,6 +342,66 @@ Lead-in Y, by clearpage.\label{y}
 \case{y}\testlisting{y}{3}
 Text.
 
+\roomfor{2}
+Lead-in GC, by goodbreak, to a listing in center.\label{gc}
+\goodbreak
+\begin{center}
+\case{gc}\testlisting{gc}{3}
+\end{center}
+Text.
+
+\roomfor{2}
+Lead-in SM, by smallbreak.\label{sm}
+\smallbreak
+\case{sm}\testlisting{sm}{3}
+Text.
+
+\roomfor{2}
+Lead-in MA, by medbreak.\label{ma}
+\medbreak
+\case{ma}\testlisting{ma}{3}
+Text.
+
+\roomfor{2}
+Lead-in SC, by smallbreak, to a listing in center.\label{sc}
+\smallbreak
+\begin{center}
+\case{sc}\testlisting{sc}{3}
+\end{center}
+Text.
+
+\roomfor{2}
+Lead-in MC, by medbreak, to a listing in center.\label{mc}
+\medbreak
+\begin{center}
+\case{mc}\testlisting{mc}{3}
+\end{center}
+Text.
+
+\roomfor{2}
+Lead-in BC, by bigbreak, to a listing in center.\label{bc}
+\bigbreak
+\begin{center}
+\case{bc}\testlisting{bc}{3}
+\end{center}
+Text.
+
+\roomfor{2}
+Lead-in FC, by filbreak, to a listing in center.\label{fc}
+\filbreak
+\begin{center}
+\case{fc}\testlisting{fc}{3}
+\end{center}
+Text.
+
+\roomfor{2}
+Lead-in PA, by pagebreak[1], to a listing in center.\label{pa}
+\pagebreak[1]
+\begin{center}
+\case{pa}\testlisting{pa}{3}
+\end{center}
+Text.
+
 % No lead-in: the end of a list is a place to break, so these are on their own.
 \roomfor{2}
 \begin{itemize}\item An item.\label{t}\end{itemize}
@@ -286,6 +421,9 @@ Text.
 \makeatletter
 \ifdefined\nwbegincode\results{k}\fi
 \results{fr}\results{ee}\results{pc}
+\results{ca}\results{qu}\results{fl}\results{aw}\results{it}\results{fw}\results{pr}
+\results{pe}\results{gc}\results{sm}\results{ma}
+\results{sc}\results{mc}\results{bc}\results{fc}\results{pa}\results{ga}
 \makeatother
 \results{c}\results{a}\results{d}\results{q}\results{e}\results{z}\results{g}
 \results{v}\results{fs}\results{hh}\results{vz}\typeout{leadin result qb lead=\getpagerefnumber{q2}

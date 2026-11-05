@@ -235,6 +235,12 @@ CASES = {
     "lv1": lambda k: para(k, 1, "P") + "\n" + r"\vspace{6pt}" + "\n" + items(k, 8, 1) + TAIL,
     # a break that is asked for parts them and says nothing
     "lp1": lambda k: para(k, 1, "P") + "\n\n" + r"\penalty-200" + "\n" + items(k, 8, 1) + TAIL,
+    "lg1": lambda k: para(k, 1, "P") + "\n\n" + r"\goodbreak" + "\n" + items(k, 8, 1) + TAIL,
+    "lh1": lambda k: para(k, 1, "P") + "\n\n" + r"\filbreak" + "\n" + items(k, 8, 1) + TAIL,
+    "lk1": lambda k: para(k, 1, "P") + "\n\n" + r"\smallbreak" + "\n" + items(k, 8, 1) + TAIL,
+    # after the end of another list: a list and a listing
+    "qi1": lambda k: r"\begin{itemize}\item " + para(k, 1, "P") + r"\end{itemize}" + "\n" + items(k, 8, 1) + TAIL,
+    "qv1": lambda k: r"\begin{itemize}\item " + para(k, 1, "P") + r"\end{itemize}" + "\n" + verbatim(k, 3) + TAIL,
     "lB1": lambda k: para(k, 1, "P") + "\n\n" + r"\pagebreak[1]" + "\n" + items(k, 8, 1) + TAIL,
     # a lead-in of three lines and a listing, on a page that stretches
     "sv3": lambda k: r"\vspace{0pt plus 40pt}" + "\nS.\n\n" + para(k, 3, "P") + "\n" + verbatim(k, 8) + TAIL,
@@ -323,10 +329,10 @@ CASES = {
 SHRINKLISTS = {"hs1", "hs2", "hs3"}
 TALLITEMS = {"lT1", "lS1"}
 # a place to break between them, whatever the penalty: parted within the limit, with a warning
-PLACED = {"lc1", "lP1", "lv1", "lb1", "lm1", "lf1", "dv1", "dl1", "tv1", "tl1"}
+PLACED = {"qi1", "qv1", "lc1", "lP1", "lv1", "lb1", "lm1", "lf1", "dv1", "dl1", "tv1", "tl1"}
 # the end of a list is a place to break that nobody warns about
-AFTERLIST = {"tv1", "tl1"}
-ASKED = {"lp1", "lB1"}
+AFTERLIST = {"tv1", "tl1", "qi1", "qv1"}
+ASKED = {"lp1", "lB1", "lg1", "lh1", "lk1"}
 # keepafterheading=3 under memoir: enough to compare with plain LaTeX
 M3ROWS = {"p", "pl", "pL"}
 # Something comes between the rig's room and the heading or lead-in, so what counts is
@@ -348,7 +354,7 @@ NOT_COMPARED = DIDACTIC_ONLY | {"e", "ei", "eI", "se", "e1", "cp", "f", "rti"}
 LISTINGS = {"hv1", "hv2", "hv3", "v1", "v3", "v8", "hn1", "hn3", "n3", "hw1", "hw3", "w3",
             "hj1", "j3", "n6", "w6", "v6", "wL1", "cw0", "cw1", "cw2", "cw3", "cw4",
             "ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3", "hNv1", "chv1", "chi1", "sv3", "sv6", "vlv1", "ln1"} | HEADLISTS | TALLITEMS | HEADTALL | PLACED | ASKED
-ITEMLISTS = HEADLISTS | TALLITEMS | HEADTALL | ASKED | {"lc1", "lP1", "ln1", "lv1", "lb1", "lm1", "lf1", "dl1", "tl1", "chi1", "ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3"}
+ITEMLISTS = HEADLISTS | TALLITEMS | HEADTALL | ASKED | {"qi1", "lc1", "lP1", "ln1", "lv1", "lb1", "lm1", "lf1", "dl1", "tl1", "chi1", "ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3"}
 # L2: a list right under a heading follows LaTeX, so a line is enough.
 DIRECTLISTS = {"l", "L", "ri", "fi", "fI", "ei", "eI"}
 NOHEADING = TALLITEMS | PLACED | ASKED | {"ln1", "sv3", "sv6", "vlv1", "v1", "v3", "v8", "n3", "w3", "j3", "n6", "w6", "v6", "wL1",
@@ -615,6 +621,8 @@ def check_case(p, ref, name, case, K, tied=None):
                 fail(case, "D8: two warnings for a heading that moves")
         if name in ASKED and [w for w in warns if "moves along" in w or "goes to the next page" in w]:
             fail(case, f"D8: a break that is asked for warns: {warns[0][:50]}")
+        if name in AFTERLIST and says:
+            fail(case, f"D8: a break after a list warns: {says[0][:50]}")
         if parted and not says and name not in AFTERLIST and name not in ASKED:
             fail(case, f"D6: lead-in on {lead_last}, code on {code}, no warning")
         if name in AFTERCHUNK and p.on("A1", case) > r:

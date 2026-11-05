@@ -1,6 +1,9 @@
 % Test of listings in multicols (didactic): its columns are set later, from what
 % it has collected, so what keeps listings together can't know their height.
-% The listings are left alone, and each one says so, with its line.
+% The listings are left alone, and each one says so, with its line, once: a listing in
+% a box (MP, a minipage, and MQ with a pair) has nothing to say, and a pair is
+% one warning, whatever is in its cells (PL).  The same in multicols* (S).  A listing
+% taller than \textheight (TL) says nothing about that, which isn't the limit here.
 %
 % Build: see the Makefile; test-check.py checks that there is no Overfull \vbox,
 % that the lead-in stays near its listing (not stretched away from it), and that
@@ -40,7 +43,48 @@ Text after.
 \case{p}\begin{didacticpair}{2}
   \rule{1pt}{2\baselineskip} & right
 \end{didacticpair}
+
+\case{pl}\begin{didacticpair}{2}
+  \VerbatimInput{\jobname-alpha.txt} & right
+\end{didacticpair}
+
+\case{mp}\begin{minipage}{\linewidth}
+\VerbatimInput{\jobname-alpha.txt}
+\end{minipage}
+
+\case{mq}\begin{minipage}{\linewidth}
+\begin{didacticpair}{2}
+  \rule{1pt}{2\baselineskip} & right
+\end{didacticpair}
+\end{minipage}
 \end{multicols}
+\clearpage
+\begin{multicols}{2}
+\makeatletter
+\immediate\openout\@mcol@out=\jobname-tall.txt
+\@mcol@i\z@
+\@whilenum\@mcol@i<3\do{\advance\@mcol@i\@ne
+  \immediate\write\@mcol@out{tall tall tall tall tall tall tall tall tall tall tall tall
+    tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+    tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+    tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+    tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+    tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+    tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+    tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+    tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+    tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+    tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+    tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+    tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+    tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall}}
+\immediate\closeout\@mcol@out
+\makeatother
+\case{tl}\VerbatimInput[breaklines]{\jobname-tall.txt}
+\end{multicols}
+\begin{multicols*}{2}
+\case{s}\testlisting{star}
+\end{multicols*}
 After the columns, a listing is kept again.
 \testlisting{gamma}
 \end{document}

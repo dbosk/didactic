@@ -31,7 +31,7 @@ TEST_INCLUDE=		test-marginfloat-include-all test-marginfloat-include
 # Warnings from where listings ended up.
 TEST_KEEPCHECK=		test-keep-leadin test-keep-leadin-off test-keep-overfull \
 			test-keep-multicol test-keep-twocol test-keep-noweb \
-			test-keep-noweb-break test-keep-once test-keep-enumitem
+			test-keep-noweb-break test-keep-once test-keep-enumitem test-keep-first
 
 .PHONY: all
 all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
@@ -52,7 +52,7 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-marginfloat-cases.pdf test-marginfloat-order.pdf \
 	test-marginfloat-inorder.pdf test-marginfloat-hidden.pdf \
 	${TEST_FLOATORDER:=.pdf} test-marginfloat-include.pdf \
-	test-format.pdf check
+	test-format.pdf test-oldkernel-title.pdf check
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -75,6 +75,8 @@ didactic.pdf: ${SRC} didactic.sty
 	biber didactic
 	${PDFLATEX} ${LATEXFLAGS} $<
 	makeindex -s gglo.ist -o didactic.gls didactic.glo
+	grep -q 'work in a source shared' didactic.gls
+	grep -q 'a frame title is a run-in heading' didactic.gls
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
 	! grep -E 'Empty bibliography|Citation .*undefined|could not be found' didactic.log
@@ -173,7 +175,7 @@ CHECKED_TESTS=	test-marginfloat test-marginfloat-slides test-marginfloat-cases \
 		test-marginfloat-order test-marginfloat-inorder \
 		test-marginfloat-hidden test-frametitle test-frametitle-slides \
 		test-block-nested ${TEST_FRAMETITLE_CASES} ${TEST_FLOATORDER} ${TEST_INCLUDE} \
-		${TEST_KEEPCHECK}
+		${TEST_KEEPCHECK} test-oldkernel-title
 # Deliberate breaks of the source, and which tests catch them: see test-mutants.txt.
 # Not part of all: it takes hours.
 .PHONY: mutants
@@ -196,7 +198,7 @@ test-frametitle.pdf test-frametitle-slides.pdf: %.pdf: %.tex didactic.sty \
 		test-frametitle-contents.tex
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
-test-block-nested.pdf ${TEST_FRAMETITLE_CASES:=.pdf}: %.pdf: %.tex didactic.sty
+test-block-nested.pdf ${TEST_FRAMETITLE_CASES:=.pdf} test-oldkernel-title.pdf: %.pdf: %.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
 
@@ -278,7 +280,8 @@ test-keep-noweb.pdf test-keep-noweb-break.pdf: %.pdf: %.tex \
 test-keep-leadin.pdf test-keep-leadin-off.pdf: %.pdf: %.tex \
 		test-keep-leadin-body.tex didactic.sty
 	@${latex_until_settled}
-test-keep-enumitem.pdf test-keep-once.pdf test-keep-overfull.pdf test-keep-multicol.pdf test-keep-twocol.pdf: %.pdf: %.tex didactic.sty
+test-keep-enumitem.pdf test-keep-once.pdf test-keep-overfull.pdf test-keep-multicol.pdf test-keep-twocol.pdf \
+		test-keep-first.pdf: %.pdf: %.tex didactic.sty
 	@${latex_until_settled}
 
 # The whole document first: the .aux files of what the second leaves out are its input.
@@ -299,6 +302,10 @@ test-keep-blank.pdf: test-keep-blank.tex didactic.sty
 	! grep 'didactic blank test: WRONG' test-keep-blank.log
 	test "$$(grep -c 'didactic blank test: right' test-keep-blank.log)" -eq 25
 	grep -q 'didactic blank test: all ran' test-keep-blank.log
+
+# multicol from the distribution: noweb's examples, in a texmf tree, have an old copy,
+# with no multicols*.
+test-keep-multicol.pdf: export TEXINPUTS:=$(shell kpsewhich -var-value=TEXMFDIST)/tex/latex/tools::
 
 test-keep-huge.pdf: test-keep-huge.tex didactic.sty
 	@${latex_until_settled}
@@ -545,6 +552,7 @@ clean:
 	${RM} test-keep-include-a.aux test-keep-include-b.aux
 	${RM} test-keep-include-all.unq test-keep-include.unq test-keep-include-all.pytxcode
 	${RM} test-keep-include.pytxcode
+	${RM} test-keep-multicol-*.txt test-keep-overfull-*.txt
 	${RM} test-keep-huge.pdf test-keep-huge.aux test-keep-huge.log
 	${RM} test-keep-huge.unq test-keep-huge.pytxcode test-keep-huge-h.txt
 	${RM} test-keep-blank.pdf test-keep-blank.aux test-keep-blank.log
@@ -590,4 +598,6 @@ clean:
 	${RM} test-marginfloat-include-a.aux test-marginfloat-include-b.aux
 	${RM} test-format.pdf test-format.aux test-format.log test-format.unq
 	${RM} test-format.pytxcode
+	${RM} test-oldkernel-title.pdf test-oldkernel-title.aux test-oldkernel-title.log
+	${RM} test-oldkernel-title.unq test-oldkernel-title.pytxcode test-oldkernel-title.toc
 	latexmk -C test.tex

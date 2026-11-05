@@ -160,6 +160,28 @@ code three
 Text after T.
 \nwenddocs{}
 
+% In a box on an empty page, which is no sign of a full page.
+\clearpage
+\begin{minipage}{\linewidth}
+LEADI in.
+\case{i}\nwbegincode{31}\moddef{I}\endmoddef\nwstartdeflinemarkup\nwenddeflinemarkup
+CODEI one
+code two
+\nwendcode{}\nwbegindocs{32}\nwdocspar
+\nwenddocs{}
+\end{minipage}
+
+% In a list, whose start is a place to break.
+\roomfor{0}
+LEADZ in.
+\begin{center}
+\case{z}\nwbegincode{33}\moddef{Z}\endmoddef\nwstartdeflinemarkup\nwenddeflinemarkup
+CODEZ one
+code two
+\nwendcode{}\nwbegindocs{34}\nwdocspar
+\nwenddocs{}
+\end{center}
+
 % In multicols it says that it isn't tied.
 \clearpage
 \begin{multicols}{2}

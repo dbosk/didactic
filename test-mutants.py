@@ -31,15 +31,19 @@ RULES = ["test-keep-heading", "test-keep-nogap", "test-keep-style", "test-keep-c
          "test-keep-once", "test-keep-enumitem", "test-keep-include", "test-keep-nofiles0"]
 KEEP = ["test-keep", "test-keep-tall", "test-keep-tall100", "test-keep-chain", "test-keep-huge",
         "test-keep-blank", "test-keep-leadin", "test-keep-leadin-off", "test-keep-overfull",
-        "test-keep-multicol", "test-keep-twocol", "test-keep-once"]
+        "test-keep-multicol", "test-keep-twocol", "test-keep-once", "test-keep-first",
+        "test-keep-noweb", "test-keep-noweb-break"]
 # group: documents to build, test-check.py names, sweep variants
 GROUPS = {
-    "include": (["test-marginfloat-include"],
-                ["test-marginfloat-include", "test-marginfloat-include-all"], []),
-    "title": (["test-frametitle-floats"], ["test-frametitle-floats"], []),
+    "include": (["test-marginfloat-samepar", "test-marginfloat-include"],
+                ["test-marginfloat-samepar", "test-marginfloat-include",
+                 "test-marginfloat-include-all"], []),
+    "title": (["test-frametitle-floats", "test-frametitle-boxes"],
+              ["test-frametitle-floats", "test-frametitle-boxes"], []),
     "format": (["test-format"], [], []),
     "keep": (KEEP, ["test-keep-leadin", "test-keep-leadin-off", "test-keep-overfull",
-                    "test-keep-multicol", "test-keep-twocol", "test-keep-once"], []),
+                    "test-keep-multicol", "test-keep-twocol", "test-keep-once", "test-keep-first",
+                    "test-keep-noweb", "test-keep-noweb-break"], []),
     "noweb": (["test-keep-noweb", "test-keep-noweb-break"],
               ["test-keep-noweb", "test-keep-noweb-break"], []),
     "rules": (RULES, ["test-keep-once", "test-keep-enumitem"], ["m", "s", "k", "m3", "c"]),
