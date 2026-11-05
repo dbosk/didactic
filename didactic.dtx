@@ -7168,6 +7168,14 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \fi\fi
   \fi
   \@didactic@startsection{#1}{#2}{#3}{#4}{#5}{#6}}
+\def\@didactic@keep@chapterstart{%
+  \ifvmode\ifinner\else
+    \par
+    \ifdim\pagegoal<\maxdimen
+      \@didactic@keep@headrecord
+      \global\@didactic@keep@ownlinetrue
+    \fi
+  \fi\fi}
 \def\@didactic@keep@forcetitle#1{%
   \if@noskipsec
     \global\@didactic@keep@titleonlytrue
@@ -7262,6 +7270,12 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \let\@didactic@FV@LeaveVMode\FV@LeaveVMode
   \def\FV@LeaveVMode{\@didactic@keep@titlewaits\@didactic@FV@LeaveVMode}%
   \g@addto@macro\@afterheading{\@didactic@keep@afterheading}%
+  \ifdefined\@makechapterhead
+    \let\@didactic@makechapterhead\@makechapterhead
+    \def\@makechapterhead{\@didactic@keep@chapterstart\@didactic@makechapterhead}%
+    \let\@didactic@makeschapterhead\@makeschapterhead
+    \def\@makeschapterhead{\@didactic@keep@chapterstart\@didactic@makeschapterhead}%
+  \fi
   \everydisplay\expandafter{\the\everydisplay\@didactic@keep@display}%
   \ifdefined\LT@start
     \let\@didactic@LT@start\LT@start
