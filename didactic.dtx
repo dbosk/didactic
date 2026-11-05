@@ -2362,6 +2362,11 @@
 % One that the user set before |didactic|, after |beamerarticle|, wins because we
 % only replace |beamerarticle|'s default: |\ifx| compares what is set to what
 % setting the default makes.
+%
+% |\tableofcontents| doesn't get a hook, but we set the title in front of it at the
+% beginning of the document, after the classes and packages have defined it:
+% before the kernel of 2023-06, the hook on |beamerarticle|'s |\tableofcontents| fails
+% with an illegal parameter number, and we ask for an older kernel than that.
 %    \begin{macrocode}
 \if@didactic@article
 \newcommand\@didactic@articletitles{%
@@ -2384,7 +2389,10 @@
   \@didactic@titlefirst{env/tikzpicture}%
   \@didactic@titlefirst{env/columns}%
   \@didactic@titlefirst{cmd/includegraphics}%
-  \@didactic@titlefirst{cmd/tableofcontents}%
+  \AtBeginDocument{%
+    \let\@didactic@tableofcontents\tableofcontents
+    \def\tableofcontents{%
+      \@didactic@flushframetitle\@didactic@tableofcontents}}%
 }
 \@ifpackageloaded{beamerarticle}
   {\@didactic@articletitles}

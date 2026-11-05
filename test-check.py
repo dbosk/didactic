@@ -340,6 +340,12 @@ def frametitle(c):
     c.absent("SLIDEONLY")
 
 
+def oldkernel_title(c):
+    """test-oldkernel-title.tex; see its header."""
+    c.clean_log()
+    c.above("OLDTITLE", "Contents")
+
+
 def frametitle_slides(c):
     """test-frametitle-slides.tex: the frames as beamer makes them."""
     c.num_pages(7)
@@ -474,6 +480,7 @@ CHECKS = {
     "test-marginfloat-kinds": marginfloat_kinds,
     "test-marginfloat-article": marginfloat_article,
     "test-marginfloat-hidden": marginfloat_hidden,
+    "test-oldkernel-title": oldkernel_title,
     "test-frametitle": frametitle,
     "test-frametitle-slides": frametitle_slides,
     "test-frametitle-overlay": frametitle_overlay,
