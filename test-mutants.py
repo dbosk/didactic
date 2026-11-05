@@ -48,6 +48,9 @@ GROUPS = {
               ["test-keep-noweb", "test-keep-noweb-break"], []),
     "rules": (RULES, ["test-keep-once", "test-keep-enumitem"], ["m", "s", "k", "m3", "c"]),
 }
+# All with pdflatex, for speed, but the frame titles with the Makefile's xelatex:
+# test-frametitle-boxes reads a letter inside a picture, whose box in pdftotext's output
+# depends on the engine.
 BROKEN = re.compile(r"No space left|Disk quota|I can't write on file")
 
 
@@ -141,7 +144,8 @@ def tests(group, d, timeout):
     if status != 0:
         return ["ERROR: didactic.ins"]
     for t in docs:
-        status, out = sh(f'make -o didactic.sty {t}.pdf "{FLAGS}" PDFLATEX=pdflatex', d, timeout)
+        engine = "" if group == "title" else "PDFLATEX=pdflatex"
+        status, out = sh(f'make -o didactic.sty {t}.pdf "{FLAGS}" {engine}', d, timeout)
         if BROKEN.search(out):
             return ["ERROR: disk"]
         if status != 0:

@@ -24,7 +24,8 @@
 #   noweb    test-keep-noweb, -noweb-break, and test-check.py on them (a minute)
 #   rules    the small test-keep documents, test-keep, -heading, -nogap, -once, and the
 #            sweep in variants m and s, against plain LaTeX's version (three to eight)
-# All with pdflatex, for speed; make all uses xelatex.
+# All with pdflatex, for speed, where make all uses xelatex, but title with xelatex: its
+# check reads a letter inside a picture, whose box depends on the engine.
 #
 # A kill needs a named reason: the targets are named, and a full disk is an ERROR.  A
 # mutant that breaks a build also fails, so these keep the document compiling.
