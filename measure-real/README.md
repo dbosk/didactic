@@ -63,6 +63,8 @@ times passes in turn with two versions. Run nothing else of yours meanwhile.
   the probe changes a page count.
 
 `probe.py` holds the code added to the copy of the package.
+`test_probe.py --sty ../didactic.sty` checks that a page output inside a small font
+gets the same unit of a line as the others.
 
 ## What went wrong before, which these checks are for
 
@@ -75,6 +77,9 @@ times passes in turn with two versions. Run nothing else of yours meanwhile.
 - `biber` with a wrong path emptied the `.bbl`, which shows only as fewer pages.
 - Builds deleted before their numbers were read, and a quota reached on the
   scratch disk while `df` still showed free space.
+- The probe took a line as `\normalbaselineskip` when the page was output, which is
+  9.5pt rather than 12pt inside a listing's small font, so gaps looked a quarter larger
+  on such pages. `analyse.py` now stops if the unit varies.
 - Builds killed by a timeout whose LaTeX children kept running and wrote into the
   next build of that directory.
 
