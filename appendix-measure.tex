@@ -39,6 +39,7 @@ A setting is a small change to a copy of \texttt{didactic.sty}:
   The documents need the package's macros, so this is the nearest to plain \LaTeX\ with the
   package's fonts and margins.
 \item[keepafterheading=1] that option's default changed.
+\item[estimate of two lines] the estimate before a heading asks for two lines of room rather than one.
 \item[list rule off] without the package's rule that keeps a list with its lead-in, so that the
   penalty before a list's first item is \textsf{memoir}'s $-51$.
 \item[list 0, list 10000] the same, with that penalty changed for \texttt{itemize},
@@ -180,9 +181,40 @@ They differ where the rule is released past \texttt{keepmaxgap}, which doesn't h
 
 With \texttt{keepafterheading=1}, instead of 2, every document has the same words on every page, and
 the same 814 pages.
-The estimate before a heading asks for one line either way, so the option decides only what the
-first paragraph's chain holds, and on these documents that changes nothing on the page.
-It gives 20 warnings with the probe, against 21.
+That isn't a setting lost on the way: a trace in the build of the lecture notes and of the course
+notes, where the words changed at the earlier commit below, shows 1 or 2 reaching
+\apcs{@didactic@keep@room} and the lines owed in the first paragraph.
+On a generated heading the setting does change the page, when the first paragraph has one line:
+
+\begin{center}\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+Under the heading & Room in lines & \texttt{keepafterheading=1} & \texttt{keepafterheading=2} \\
+\midrule
+A paragraph of many lines & 4--6 & the same & the same \\
+A list of one-line items & 4--6 & the same & the same \\
+One line, then a paragraph & 4--4.5 & stays with that line & moves \\
+One line, then a paragraph & 5 & stays with that line & stays with two lines \\
+One line, then a paragraph & 5.5--6 & the same & the same \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+So the setting decides only what the chain holds after a first paragraph of one line, since \LaTeX\
+already keeps two lines of a longer one, and a list under a heading has what \LaTeX\ gives it.
+None of these documents has a heading like that at the foot of a page.
+
+At commit \texttt{dd90b97}, before the rule for a list under a heading, the setting changed the words
+on 10 pages, with 118 and 70 pages of $e\ge3$ and $e>5$ against 114 and 68.
+There the estimate before a heading asked for \texttt{keepafterheading} lines of room, and now it
+asks for one, as it can't know what follows.
+The row with an estimate of two lines shows what that change did at the current code: 814 pages,
+with words differing on 4 pages (3 in one set of lecture notes, 1 in the course notes), and 116 and 68 pages of $e\ge3$ and $e>5$ against 118 and 69.
+On one of them, the heading of an exercise with two lines at the foot of a page moves to the next page.
+
+A list directly under a heading was measured at \texttt{dd90b97} with a scratch change that let its
+first item stay with one line, against the two-line rule: no page differed in words.
+That is now the package's rule.
 
 \subsection{Warnings}
 
@@ -190,6 +222,46 @@ Without the probe, \emph{current} gives 19 warnings on all eight documents: 12 a
 that a tie is released, and 1 other.
 With the keep options off there are none, and with \texttt{keepleadin} off 12, all about headings, both with the probe.
 With the list rule off there are 25 against 21, both with the probe.
+
+\subsection{The pair of penalties on generated text}
+
+The real documents tie, so the choice between the pairs rests on generated text.
+These are \texttt{measure-flow/} at the current code, with \textsf{noweb} or \textsf{minted} chunks,
+and \texttt{queries/pen.py}: 6 seeds of 300 paragraphs in \textsf{memoir} and \textsf{article}, with
+and without headings, with no package, which doesn't depend on the commit.
+
+\begin{center}\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Pages & 1000/1000 & 1000/10000 & 10000/10000 \\
+\midrule
+Flows, \textsf{noweb} chunks & 210 & 210 & 210 \\
+Flows, \textsf{minted} chunks & 194 & 195 & 195 \\
+\texttt{pen.py}, \textsf{memoir} & 613 & 616 & 617 \\
+\texttt{pen.py}, \textsf{article} & 610 & 610 & 610 \\
+\midrule
+Total & 1627 & 1631 & 1632 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+So 1000/1000 is 4 pages shorter than 1000/10000 in about 1630.
+Three of those 4 are in \texttt{pen.py} in \textsf{memoir}, and one is a flow whose last page holds
+about a line.
+The price is in lone lines:
+
+\begin{center}\small
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+& \multicolumn{2}{c}{1000/1000} & \multicolumn{2}{c}{1000/10000} & \multicolumn{2}{c}{10000/10000} \\
+Lone lines & first & last & first & last & first & last \\
+\midrule
+Flows, \textsf{noweb} chunks & 2 & 3 & 1 & 0 & 0 & 0 \\
+Flows, \textsf{minted} chunks & 4 & 7 & 2 & 0 & 0 & 0 \\
+\texttt{pen.py} & 55 & 59 & 63 & 0 & 0 & 0 \\
+\bottomrule
+\end{tabular}
+\end{center}
 
 \subsection{Generated literate programs}
 
@@ -226,6 +298,66 @@ With it the package leaves fewer short pages than plain.
 6.2 lines short.
 The one page over \texttt{keepmaxgap} with \textsf{noweb} chunks ends after a chunk, at
 \textsf{noweb}'s own penalty.
+
+The package drops \textsf{noweb}'s \apcs{nwdocspar} under \texttt{keepmaxgap}.
+With \textsf{noweb} chunks and \texttt{breakcode}, in 210 pages, which have 198 breaks since a
+document's last page ends by itself, that takes the breaks at
+$-200$ from 37 to 0, those after a chunk at $-301$ from 60 to 76, and those inside a chunk at 301 from
+93 to 112: 19 more, against the smaller gaps in the table.
+
+\texttt{keepmaxgap=0} also keeps \apcs{nwdocspar}, so the two were measured apart: the limit on with
+the break kept, by taking the \apcs{let} out of a copy of the package, and the limit off with the
+break dropped, by a \apcs{let} in the preamble.
+
+\begin{center}\small
+\begin{tabular}{@{}lllrrrrr@{}}
+\toprule
+Chunks & \texttt{keepmaxgap} & \apcs{nwdocspar} & Pages & Mean $e$ & Largest $e$ & $e\ge3$ & $e\ge5$ \\
+\midrule
+noweb & 5 & dropped (current) & 210 & 0.65 & 5.6 & 20 & 1 \\
+noweb & 5 & kept & 211 & 0.95 & 7.6 & 33 & 4 \\
+noweb & 0 & dropped & 210 & 0.65 & 5.6 & 21 & 1 \\
+noweb & 0 & kept & 211 & 0.95 & 7.6 & 33 & 4 \\
+minted & 5 & dropped (current) & 194 & 0.71 & 4.5 & 17 & 0 \\
+minted & 5 & kept & 196 & 1.01 & 6.2 & 28 & 3 \\
+minted & 0 & dropped & 196 & 1.44 & 10.5 & 39 & 14 \\
+minted & 0 & kept & 197 & 1.48 & 8.9 & 43 & 17 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+With \textsf{noweb} chunks all of 7.6 against 5.6 is \apcs{nwdocspar}, and the limit changes one
+page's count in $e\ge3$, as those chunks can break anywhere at a moderate penalty.
+With \textsf{minted} chunks, which the package keeps together, the limit does the larger part, and
+dropping the break matters only along with it.
+
+\subsection{Build time}
+
+One \LaTeX\ pass at v2.13 (\texttt{743a025}), before the keep options, against the current code, with
+each \texttt{.aux} settled first and three passes in turn for each version, by
+\texttt{measure-real/timing.py}.
+CPU seconds are the mean of the three, with their range.
+
+\begin{center}\small
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+& \multicolumn{2}{c}{Pages} & \multicolumn{2}{c}{\texttt{.aux}, kB} & \multicolumn{2}{c}{CPU s} \\
+Document & v2.13 & current & v2.13 & current & v2.13 & current \\
+\midrule
+Lecture notes & 67 & 68 & 150 & 179 & 31.8 (26.6--37.8) & 33.3 (24.0--38.6) \\
+Literate program & 77 & 78 & 45 & 63 & 13.8 (11.5--15.2) & 13.9 (12.2--17.2) \\
+Paper & 121 & 122 & 156 & 188 & 35.6 (32.7--38.6) & 35.0 (26.2--39.6) \\
+Generated, 3000 sections & 250 & 250 & 318 & 710 & 4.9 (4.2--5.3) & 5.8 (5.6--6.0) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+On the real documents no difference shows above the noise.
+Other jobs held the load at 8 to 17 on an 8-core machine, and passes of one version vary by up to half,
+so a real difference under about 20 per cent on these documents wouldn't show.
+The generated document, with a section every few lines, has an \texttt{.aux} over twice the size and is
+about a fifth slower here, not twice.
+The paper's 122 pages come from settling with only four passes.
 
 \subsection{Checks a new measurement must do}
 

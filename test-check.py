@@ -72,6 +72,25 @@ class Check:
             r"Package didactic Warning: (\S+) (\S+) on page (\S+) comes after "
             r"\S+ (\S+) on page (\S+):", self.log)
 
+    def order_lines(self, *captions):
+        """Each warning about the order names the input lines of its two
+        captions: pairs of (later number, earlier number), each the caption's
+        text in the source, as (text, file) in another file, or a line number."""
+        def line(caption):
+            if isinstance(caption, int):
+                return str(caption)
+            word, name = caption if isinstance(caption, tuple) else (caption, self.name)
+            with open(name + ".tex", encoding="utf-8") as src:
+                for number, text in enumerate(src, 1):
+                    if "{" + word + "}" in text:
+                        return str(number)
+            return f"no {word}"
+        expected = [(line(a), line(b)) for a, b in captions]
+        found = re.findall(
+            r"captions at input\n\(didactic\)\s+lines (\d+) and (\d+)\)", self.log)
+        self.ok(found == expected,
+                f"the warnings name the lines {found}, expected {expected}")
+
     def clean_log(self, order=()):
         """No errors, undefined references or requests for another run, and no
         warnings about the order of float numbers but the expected ones."""
@@ -226,6 +245,7 @@ def marginfloat_samepar(c):
     c.clean_log(order=[("figure", "0.1", "2", "0.2", "1")])
     c.ok(c.one("MARGINAL")["page"] == 1, "the margin figure is on page 1")
     c.ok(c.one("ORDINARY")["page"] == 2, "the ordinary figure is on page 2")
+    c.order_lines(("ORDINARY", "MARGINAL"))
 
 
 def marginfloat_moved(c):
@@ -233,6 +253,7 @@ def marginfloat_moved(c):
     c.clean_log(order=[("figure", "0.1", "2", "0.2", "1")])
     c.ok(c.one("MOVED")["page"] == 2, "marginfix moved MOVED to page 2")
     c.ok(c.one("STAYS")["page"] == 1, "STAYS is on page 1")
+    c.order_lines(("MOVED", "STAYS"))
 
 
 def marginfloat_chapters(c):
@@ -240,6 +261,7 @@ def marginfloat_chapters(c):
     late, early = c.one("FIGLATE"), c.one("EARLY")
     c.ok(late["page"] > early["page"], "FIGLATE is on a later page than EARLY")
     c.clean_log(order=[("figure", "1.1", "2", "1.2", "1")])
+    c.order_lines(("FIGLATE", "EARLY"))
     c.has_text("Figure 2.1: TWOA")
     with open(c.name + ".aux", encoding="latin-1") as aux:
         # Only floats are recorded: chapters go to the ToC and have counters too.
@@ -257,6 +279,9 @@ def marginfloat_kinds(c):
                    ("listing", "1", "4", "2", "3"),
                    ("table", "0.1", "6", "0.2", "5")],
          f"warnings about the order: {found}")
+    # A side caption is set at \\end{sidecaption}, two lines below its text.
+    c.order_lines((19, "MARGINONE"), ("LISTLATE", "LISTHERE"),
+                  ("TABLATE", "TABHERE"))
 
 
 def marginfloat_article(c):
@@ -266,6 +291,8 @@ def marginfloat_article(c):
                    ("floatone", "1", "4", "2", "3"),
                    ("table", "1", "6", "2", "5")],
          f"warnings about the order: {found}")
+    c.order_lines(("LATEFIG", "HEREFIG"), ("LATEONE", "HEREONE"),
+                  ("LATETAB", "LONGTAB"))
 
 
 def marginfloat_include(c):
@@ -274,6 +301,8 @@ def marginfloat_include(c):
     late, early = c.one("BLATE"), c.one("BEARLY")
     c.ok(late["page"] > early["page"], "BLATE is on a later page than BEARLY")
     c.clean_log(order=[("figure", "2.2", "7", "2.3", "6")])  # 1, 2
+    chapter = "test-marginfloat-include-b"
+    c.order_lines((("BLATE", chapter), ("BEARLY", chapter)))
 
 
 def marginfloat_include_all(c):
@@ -303,15 +332,17 @@ def keep_leadin(c):
          f"results for all cases: {sorted(set(pages) ^ set(lines))}, "
          f"{len(pages)} of them")
     # What is asked for, or isn't a lead-in: different pages, and no warning.
-    asked = {"g", "x", "y", "t", "o"}
+    asked = {"g", "x", "y", "t", "o", "gc", "sm", "ma", "sc", "mc", "bc", "fc", "pa"}
     # Cases where the lead-in and the first line must be parted; if a change of
     # layout parts them no more, the case tests nothing, and that should show.
-    for n in (list("mnfhsbruljipw") + ["fr", "ee", "pc"]
+    for n in (list("mnfhsbruljipw") + ["fr", "ee", "pc", "ca", "qu", "fl", "aw",
+                                       "fw", "pr", "pe", "ga"]
               + (["k"] if "k" in pages else [])):
         c.ok(pages[n][0] < pages[n][1], f"case {n} is on two pages: {pages[n]}")
     for n in asked:
         c.ok(pages[n][0] < pages[n][1], f"case {n} is on two pages: {pages[n]}")
-    for n in ("c", "a", "d", "q", "e", "z", "v", "qb", "fs", "hh", "vz"):
+    # "it", a listing in an item: the lead-in goes along, by the rule of a list.
+    for n in ("c", "a", "d", "q", "e", "z", "v", "qb", "fs", "hh", "vz", "it"):
         c.ok(pages[n][0] == pages[n][1], f"case {n} is on one page: {pages[n]}")
     found = {}
     for w in warnings(c):
@@ -356,9 +387,9 @@ def keep_overfull(c):
         c.ok(found.get(lines[n]) == pages[n],
              f"case {n} names page {found.get(lines[n])}, it is on {pages[n]}")
     c.ok(lines["c"] not in found, "the control doesn't warn")
-    # A pair's page can run off the paper without TeX's message, so at least.
+    # All cases but P, whose depth gives no message: see the header.
     n = len(re.findall(r"Overfull \\vbox", c.log))
-    c.ok(n >= 4 and n <= len(found), f"{n} overfull pages, {len(found)} warnings")
+    c.ok(n == 5 and len(found) == 6, f"{n} overfull pages, {len(found)} warnings")
 
 
 def keep_twocol(c):
@@ -367,6 +398,15 @@ def keep_twocol(c):
     w = [x for x in warnings(c) if "apart from what leads" in x]
     c.ok(any(f"input line {lines['m']}" in x for x in w), f"case m warns: {w}")
     c.ok(not any(f"input line {lines['c']}" in x for x in w), "case c doesn't")
+    o = [x for x in warnings(c) if "doesn't fit" in x and f"input line {lines['o']}" in x]
+    page = c.one("LEADO")["page"]
+    c.ok(len(o) == 1 and f"page {page} is overfull" in o[0], f"case o names page {page}: {o}")
+    r = [x for x in warnings(c) if "doesn't fit" in x and f"input line {lines['r']}" in x]
+    page = c.one("LEADR")["page"]
+    c.ok(len(r) == 1 and f"page {page} is overfull" in r[0], f"case r names page {page}: {r}")
+    t = [x for x in warnings(c) if "doesn't fit" in x and f"input line {lines['t']}" in x]
+    page = c.one("LEADT")["page"]
+    c.ok(len(t) == 1 and f"page {page} is overfull" in t[0], f"case t names page {page}: {t}")
     c.ok(c.one("LEADM")["xmin"] < 200 and c.one("LISTM")["xmin"] > 200,
          "LISTM starts the second column, away from LEADM")
 
@@ -377,7 +417,7 @@ def keep_noweb(c, overfull=True):
     With the limit of keepmaxgap, in -break, no page is overfull: the tie is released.
     """
     lines = keep_results(c, "noweb")
-    c.ok(len(lines) == 14, f"14 cases, has {len(lines)}")
+    c.ok(len(lines) == 16, f"16 cases, has {len(lines)}")
     apart, full = {}, {}
     for w in warnings(c):
         m = re.search(r"input line (\d+)", w)
@@ -389,7 +429,7 @@ def keep_noweb(c, overfull=True):
     for n, line in sorted(lines.items()):
         lead, code = c.one("LEAD" + n.upper()), c.one("CODE" + n.upper())
         two = lead["page"] < code["page"]
-        if n in "mnfsuh" or n in asked:
+        if n in "mnfsuhz" or n in asked:
             c.ok(two, f"case {n} is on two pages")
         if n in "qare":
             c.ok(not two, f"case {n} is on one page")
@@ -428,15 +468,39 @@ def keep_once(c):
     c.ok(c.one("LEADB")["page"] == c.one("ITEMB")["page"], "case B is on one page")
 
 
+def keep_enumitem(c):
+    """test-keep-enumitem.tex; see its header."""
+    lines = keep_results(c, "enumitem")
+    c.ok(set(lines) == set("abdf"), f"four cases, has {sorted(lines)}")
+    w = warnings(c)
+    for n in "ab":
+        c.ok(c.one("LEAD" + n.upper())["page"] == c.one("FIRST" + n.upper())["page"],
+             f"case {n} stays with its lead-in")
+    for n in "df":
+        c.ok(c.one("LEAD" + n.upper())["page"] < c.one("FIRST" + n.upper())["page"],
+             f"case {n} is on two pages")
+    c.ok(not [x for x in w if f"line {lines['d']} " in x], f"case d says nothing: {w}")
+    here = [x for x in w if "goes to the next page" in x and f"line {lines['f']} " in x]
+    c.ok(len(here) == 1, f"case f warns once: {w}")
+    c.ok(len([x for x in w if "goes to the next page" in x]) == 1, f"no warning elsewhere: {w}")
+
+
+def keep_first(c):
+    """test-keep-first.tex; see its header."""
+    c.ok(c.one("FIRSTLINE")["page"] == 1, "the listing is on page 1")
+    c.ok(not warnings(c), f"no warning: {warnings(c)}")
+
+
 def keep_multicol(c):
     """test-keep-multicol.tex; see its header."""
     lines = keep_results(c, "multicol")
     c.ok(not re.search(r"Overfull \\vbox", c.log), "no Overfull \\vbox")
     w = [x for x in warnings(c) if "multicols" in x]
-    for n in "abp":
-        c.ok(any(f"input line {lines[n]}" in x for x in w),
-             f"case {n}, line {lines[n]}, warns")
-    c.ok(len(w) == 3, f"three warnings about multicols, has {len(w)}: {w}")
+    c.ok(not [x for x in warnings(c) if "too tall" in x], "nothing is too tall")
+    for n in ("a", "b", "p", "pl", "tl", "s"):
+        c.ok(sum(f"input line {lines[n]}" in x for x in w) == 1,
+             f"case {n}, line {lines[n]}, warns once")
+    c.ok(len(w) == 6, f"six warnings about multicols, has {len(w)}: {w}")
     for lead, first in (("LEADA", "alpha"), ("LEADB", "beta")):
         # In its own column, it's above it with no stretch; in the next one, it's
         # at the top of it.
@@ -496,6 +560,12 @@ def blocks_nested(c):
     c.ok(c.same_line(c.one("ALERTTWO"), c.one("TEXTTWO")),
          "a block after a frame title has its title run in")
     c.above("FRAMETWO", "ALERTTWO")
+
+
+def oldkernel_title(c):
+    """test-oldkernel-title.tex; see its header."""
+    c.clean_log()
+    c.above("OLDTITLE", "Contents")
 
 
 def frametitle_slides(c):
@@ -637,9 +707,12 @@ CHECKS = {
     "test-keep-overfull": keep_overfull,
     "test-keep-multicol": keep_multicol,
     "test-keep-once": keep_once,
+    "test-keep-enumitem": keep_enumitem,
     "test-keep-twocol": keep_twocol,
+    "test-keep-first": keep_first,
     "test-keep-noweb": keep_noweb,
     "test-keep-noweb-break": lambda c: keep_noweb(c, overfull=False),
+    "test-oldkernel-title": oldkernel_title,
     "test-frametitle": frametitle,
     "test-block-nested": blocks_nested,
     "test-frametitle-slides": frametitle_slides,

@@ -28,21 +28,25 @@ RULES = ["test-keep-heading", "test-keep-nogap", "test-keep-style", "test-keep-c
          "test-keep-guard", "test-keep-pagereset", "test-keep-nofiles", "test-keep-box",
          "test-keep-addvspace", "test-keep-club", "test-keep-club-article",
          "test-keep-breakcode-late", "test-keep-filbreak", "test-keep-flush", "test-keep",
-         "test-keep-once"]
+         "test-keep-once", "test-keep-enumitem", "test-keep-include", "test-keep-nofiles0"]
 KEEP = ["test-keep", "test-keep-tall", "test-keep-tall100", "test-keep-chain", "test-keep-huge",
         "test-keep-blank", "test-keep-leadin", "test-keep-leadin-off", "test-keep-overfull",
-        "test-keep-multicol", "test-keep-twocol", "test-keep-once"]
+        "test-keep-multicol", "test-keep-twocol", "test-keep-once", "test-keep-first",
+        "test-keep-noweb", "test-keep-noweb-break"]
 # group: documents to build, test-check.py names, sweep variants
 GROUPS = {
-    "include": (["test-marginfloat-include"],
-                ["test-marginfloat-include", "test-marginfloat-include-all"], []),
-    "title": (["test-frametitle-floats"], ["test-frametitle-floats"], []),
+    "include": (["test-marginfloat-samepar", "test-marginfloat-include"],
+                ["test-marginfloat-samepar", "test-marginfloat-include",
+                 "test-marginfloat-include-all"], []),
+    "title": (["test-frametitle-floats", "test-frametitle-boxes"],
+              ["test-frametitle-floats", "test-frametitle-boxes"], []),
     "format": (["test-format"], [], []),
     "keep": (KEEP, ["test-keep-leadin", "test-keep-leadin-off", "test-keep-overfull",
-                    "test-keep-multicol", "test-keep-twocol", "test-keep-once"], []),
+                    "test-keep-multicol", "test-keep-twocol", "test-keep-once", "test-keep-first",
+                    "test-keep-noweb", "test-keep-noweb-break"], []),
     "noweb": (["test-keep-noweb", "test-keep-noweb-break"],
               ["test-keep-noweb", "test-keep-noweb-break"], []),
-    "rules": (RULES, ["test-keep-once"], ["m", "s"]),
+    "rules": (RULES, ["test-keep-once", "test-keep-enumitem"], ["m", "s", "k", "m3", "c"]),
 }
 BROKEN = re.compile(r"No space left|Disk quota|I can't write on file")
 
@@ -56,7 +60,7 @@ def parse(path):
         if line.startswith("#:"):
             group = line[2:].strip()
         elif line.startswith("#="):
-            expected = line[2:].split()[0]
+            expected = line[2:].split()
         elif line.startswith("#"):
             continue
         elif line.strip():
@@ -72,7 +76,11 @@ def parse(path):
 
 
 def tracked():
-    out = subprocess.run(["git", "ls-files"], cwd=HERE, capture_output=True, text=True, check=True)
+    try:
+        out = subprocess.run(["git", "ls-files"], cwd=HERE, capture_output=True, text=True,
+                             check=True)
+    except (OSError, subprocess.CalledProcessError):
+        sys.exit("test-mutants.py copies the files that git tracks, so it needs a git tree")
     return [f for f in out.stdout.splitlines() if os.path.isfile(os.path.join(HERE, f))]
 
 
@@ -103,7 +111,11 @@ def sweep(variant, d, timeout):
     status, out = sh(gen, d, timeout)
     if status is None:
         return None, ""
-    return sh(f"python3 test-keep-sweep.py check {variant}", d, timeout)
+    status, out = sh(f"python3 test-keep-sweep.py check {variant}", d, timeout)
+    over, _ = sh(f"! grep 'Overfull .vbox' test-keep-sweep-{variant}.log", d, timeout)
+    if status == 0 and over != 0:
+        return 1, "Overfull 1 failed"
+    return status, out
 
 
 def disk_trouble(d):
@@ -149,11 +161,12 @@ def tests(group, d, timeout):
 def references(top, files, variants, timeout):
     """Plain LaTeX's version of the sweep, which each check compares with."""
     d = fresh(top, "references", files)
-    sh("latex -interaction=batchmode didactic.ins", d, timeout)
-    for v in variants:
-        status, out = sh(f"python3 test-keep-sweep.py gen {v}p > test-keep-sweep-{v}p.tex; "
+    names = {v[0] + "p" for v in variants}
+    names |= {v[0] + "q" for v in variants if v[0] in "ams"}
+    for v in sorted(names):
+        status, out = sh(f"python3 test-keep-sweep.py gen {v} > test-keep-sweep-{v}.tex; "
                          f"for i in 1 2; do pdflatex -shell-escape -interaction=nonstopmode "
-                         f"test-keep-sweep-{v}p >/dev/null 2>&1; done", d, timeout)
+                         f"test-keep-sweep-{v} >/dev/null 2>&1; done", d, timeout)
     return d
 
 
@@ -167,7 +180,7 @@ def run(m, top, files, refs, timeout):
             f.write(text.replace(m["old"], m["new"]))
         if GROUPS[m["group"]][2]:
             for name in os.listdir(refs):
-                if re.match(r"test-keep-sweep-.p\.(aux|log|tex)$", name):
+                if re.match(r"test-keep-sweep-.[pq]\.(aux|log|tex)$", name):
                     shutil.copy(os.path.join(refs, name), d)
         return m, tests(m["group"], d, timeout), time.time() - begin
     finally:
@@ -208,7 +221,7 @@ def main():
             begin = time.time()
             if GROUPS[g][2]:
                 for name in os.listdir(refs):
-                    if re.match(r"test-keep-sweep-.p\.(aux|log|tex)$", name):
+                    if re.match(r"test-keep-sweep-.[pq]\.(aux|log|tex)$", name):
                         shutil.copy(os.path.join(refs, name), d)
             failed = tests(g, d, a.timeout)
             print(f"baseline {g}: {'green' if not failed else 'RED ' + ' '.join(failed)}"
@@ -223,11 +236,15 @@ def main():
                 if any(f.startswith("ERROR") for f in failed):
                     verdict, match = " ".join(failed), False
                 elif failed:
-                    verdict, match = "killed by " + " ".join(failed), m["expected"] == "killed"
+                    verdict = "killed by " + " ".join(failed)
+                    # by which tests: how many cases of a sweep fail may vary
+                    names = {f.split(":")[0] for f in failed}
+                    want = {f.split(":")[0] for f in m["expected"][1:]}
+                    match = m["expected"][0] == "killed" and (not want or names == want)
                 else:
-                    verdict, match = "survived", m["expected"] == "survived"
+                    verdict, match = "survived", m["expected"][0] == "survived"
                 ok = ok and match
-                note = "" if match else " -- EXPECTED " + str(m["expected"])
+                note = "" if match else " -- EXPECTED " + " ".join(m["expected"] or ["?"])
                 print(f"{m['label']} ({m['group']}, {took:.0f} s): {verdict}{note}", flush=True)
     finally:
         shutil.rmtree(top, ignore_errors=True)

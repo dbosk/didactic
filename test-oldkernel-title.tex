@@ -1,0 +1,17 @@
+% Test of frame titles on the oldest kernel that didactic asks for, rolled back with
+% latexrelease, in article + beamerarticle: no LaTeX error, and the frame title above
+% the table of contents, whose hook failed there.
+%
+% Build: see the Makefile; test-check.py checks the log and the PDF.
+\RequirePackage[2021-06-01]{latexrelease}
+\documentclass{article}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\begin{document}
+\begin{frame}{OLDTITLE}
+  \tableofcontents
+\end{frame}
+\section{OLDSECTION}
+Text.
+\end{document}

@@ -44,6 +44,9 @@ temporary directory, and give each document a `root` pointing at its copy, such 
 `root = /path/to/snapshot/src/notes-1`. A document's last build at source may also
 be cleaned, and then `prepare.py` refuses it.
 
+For build time, `timing.py --sty old=PATH --sty new=PATH --doc NAME --generated 3000`
+times passes in turn with two versions. Run nothing else of yours meanwhile.
+
 ## The steps
 
 - `prepare.py` copies each document, with what its last build read from outside
@@ -60,6 +63,8 @@ be cleaned, and then `prepare.py` refuses it.
   the probe changes a page count.
 
 `probe.py` holds the code added to the copy of the package.
+`test_probe.py --sty ../didactic.sty` checks that a page output inside a small font
+gets the same unit of a line as the others.
 
 ## What went wrong before, which these checks are for
 
@@ -72,6 +77,9 @@ be cleaned, and then `prepare.py` refuses it.
 - `biber` with a wrong path emptied the `.bbl`, which shows only as fewer pages.
 - Builds deleted before their numbers were read, and a quota reached on the
   scratch disk while `df` still showed free space.
+- The probe took a line as `\normalbaselineskip` when the page was output, which is
+  9.5pt rather than 12pt inside a listing's small font, so gaps looked a quarter larger
+  on such pages. `analyse.py` now stops if the unit varies.
 - Builds killed by a timeout whose LaTeX children kept running and wrote into the
   next build of that directory.
 
@@ -95,5 +103,12 @@ needs no documents of yours:
     ./run.sh none no; ./run.sh bc no; ./run.sh mintp no           # plain
     ./run.sh n current; ./run.sh nn current; ./run.sh m current   # the package
     python3 stats.py none bc mintp n nn m
+    python3 pages.py none bc mintp n nn m                         # pages per document
 
 The names are in `cfgmake.py`: `n` is breakcode, `nn` no option, `m` minted chunks.
+`nK` and `mK` are for a copy of the package without its `\let\nwdocspar\relax`, in
+`v/kept/`: `sed 's/\\let\\nwdocspar\\relax/\\relax/' didactic.sty`. `nD` and `mD` are the
+limit off with that break dropped.
+`nA`, `nB`, `nW`, and `mA`, `mB`, `mW` are the pairs 1000/10000, 10000/10000 and
+1000/1001, which tells lone last lines from first ones. `queries/pen.py` is the same
+comparison with no package: `python3 queries/pen.py EMPTYDIR 300`.

@@ -3,7 +3,7 @@
 P <id> <page>            the last line of a paragraph
 L <id> <para> <type> <depth> <afterheading> <page>
                          the first item of an itemize, enumerate or description
-G <page> <penalty> <goal> <natural> <baselineskip>
+G <page> <penalty> <goal> <natural> <the text's baselineskip>
                          a page, with the penalty it broke at
 
 Whatsits written at shipout, like a label, not text extraction.  Traps it avoids:
@@ -11,6 +11,10 @@ a whatsit makes a line of an empty paragraph (\\noindent\\par, as noweb has), so
 tests \\lastnodetype; one on the vertical list stops the package's handling of
 listing lines (tried: it changed more pages), so it stays in the paragraph; and
 \\the\\count0 takes the following space.
+
+The unit of a line is \\baselineskip at the start of the document: a page can be
+output inside a listing's small font, where \\normalbaselineskip is 9.5pt, not 12pt,
+and gaps would look a quarter larger.  test_probe.py checks that.
 
 Known limit: on two of the documents it still moves some lines between pages, with
 the same page count (the whatsit in the paragraph hook does it, not the rest).
@@ -38,8 +42,10 @@ PROBE = r"""
 \AddToHook{env/description/begin}{\gdef\lp@pending{d}}
 \def\lp@measure{\ifnum\outputpenalty>-10001 {\setbox0\vbox{\unvcopy255}%
   \immediate\write\lp@out{G \the\count0 \space\the\outputpenalty\space\the\ht255 \space
-    \the\dimexpr\ht0+\dp0\relax\space\the\normalbaselineskip}}\fi}
+    \the\dimexpr\ht0+\dp0\relax\space\the\lp@line}}\fi}
+\newdimen\lp@line
 \AtBeginDocument{\immediate\openout\lp@out=\jobname.lp
+  \global\lp@line\baselineskip
   \output\expandafter{\expandafter\lp@measure\the\output}%
   \let\lp@orig@item\@item
   \def\@item[#1]{\lp@orig@item[\lp@mark#1]}}
@@ -54,6 +60,10 @@ def style(source, setting):
                        lambda m: r"\@didactic@%s=%d" % (name, value), s)
         if n != 1:
             raise SystemExit(f"{name}: the default is set {n} times in {source}, expected 1")
+    for old, new in setting.get("replace", []):
+        if s.count(old) != 1:
+            raise SystemExit(f"{old}: found {s.count(old)} times in {source}, expected 1")
+        s = s.replace(old, new)
     if setting.get("leadin", True) is False:
         a = "\\@didactic@keepleadintrue\n\\DeclareOptionX{keeplines}"
         if s.count(a) != 1:

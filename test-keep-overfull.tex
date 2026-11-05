@@ -3,14 +3,17 @@
 %
 % Build: see the Makefile; test-check.py checks that each case below warns, with
 % its input line (the line in this file, not in the listing's file or minted's) and
-% the page that is overfull, from the label, and as often as the log has an Overfull
-% \vbox.
+% the page that is overfull, from the label.  The log has an Overfull \vbox for each
+% case but P: marginfix re-wraps the page in \@outputbox, whose depth is real, and
+% \@makecol's \vskip-\dimen@ takes it all off, so the pair's great depth gives no
+% message although the page runs off the paper.
 %   V  A listing kept whole, by \VerbatimInput.
 %   E  The same by \lstexample*, whose lines come from minted's file.
 %   L  A long listing, 30 lines: only its first lines can't part from the lead-in.
 %   T  A listing made long by the height of its lines.
 %   P  Code side by side, one box.
-%   F  The same as V, with a float page shipped out just before the full page.
+%   F  The same as V, with \newpage for \clearpage before it, so that the float page is
+%      shipped out right after the full page, which the warning must name.
 %   C  Control: the same as V, in room: no warning.
 \documentclass[a4paper,oneside]{memoir}
 \usepackage[british]{babel}
@@ -75,7 +78,7 @@ Tall lead-in P:\label{p} \rule{1pt}{0.9\textheight}
 \end{didacticpair}
 Text after P.
 
-\clearpage
+\newpage
 \begin{figure}[p]\rule{4cm}{0.8\textheight}\caption{A float page after the full page.}\end{figure}
 Tall lead-in F:\label{f} \rule{1pt}{0.9\textheight}
 \testfile{f}{10}{floating}%
