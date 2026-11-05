@@ -398,9 +398,14 @@ def keep_twocol(c):
     c.ok(any(f"input line {lines['m']}" in x for x in w), f"case m warns: {w}")
     c.ok(not any(f"input line {lines['c']}" in x for x in w), "case c doesn't")
     o = [x for x in warnings(c) if "doesn't fit" in x and f"input line {lines['o']}" in x]
-    c.ok(len(o) == 1 and "page 3 is overfull" in o[0], f"case o names page 3: {o}")
+    page = c.one("LEADO")["page"]
+    c.ok(len(o) == 1 and f"page {page} is overfull" in o[0], f"case o names page {page}: {o}")
     r = [x for x in warnings(c) if "doesn't fit" in x and f"input line {lines['r']}" in x]
-    c.ok(len(r) == 1 and "page 4 is overfull" in r[0], f"case r names page 4: {r}")
+    page = c.one("LEADR")["page"]
+    c.ok(len(r) == 1 and f"page {page} is overfull" in r[0], f"case r names page {page}: {r}")
+    t = [x for x in warnings(c) if "doesn't fit" in x and f"input line {lines['t']}" in x]
+    page = c.one("LEADT")["page"]
+    c.ok(len(t) == 1 and f"page {page} is overfull" in t[0], f"case t names page {page}: {t}")
     c.ok(c.one("LEADM")["xmin"] < 200 and c.one("LISTM")["xmin"] > 200,
          "LISTM starts the second column, away from LEADM")
 
@@ -449,10 +454,11 @@ def keep_multicol(c):
     lines = keep_results(c, "multicol")
     c.ok(not re.search(r"Overfull \\vbox", c.log), "no Overfull \\vbox")
     w = [x for x in warnings(c) if "multicols" in x]
-    for n in ("a", "b", "p", "pl", "s"):
+    c.ok(not [x for x in warnings(c) if "too tall" in x], "nothing is too tall")
+    for n in ("a", "b", "p", "pl", "tl", "s"):
         c.ok(sum(f"input line {lines[n]}" in x for x in w) == 1,
              f"case {n}, line {lines[n]}, warns once")
-    c.ok(len(w) == 5, f"five warnings about multicols, has {len(w)}: {w}")
+    c.ok(len(w) == 6, f"six warnings about multicols, has {len(w)}: {w}")
     for lead, first in (("LEADA", "alpha"), ("LEADB", "beta")):
         # In its own column, it's above it with no stretch; in the next one, it's
         # at the top of it.

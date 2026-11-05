@@ -5,11 +5,13 @@
 %   M  A lead-in at the foot of the first column, a note, and a listing: the listing
 %      starts the second column, and warns.
 %   C  Control: a lead-in and a listing with nothing between: they go along.
-%   O  A column overfull with what can't part: no page is shipped out at the end of the
-%      column, so the warning names the page of the listing, not the last page shipped.
-%      The \nobreak leaves no place to break before the lead-in, which would fill the
-%      first column with nothing and ship out the page.
+%   O  A first column overfull with what can't part: no page is shipped out at the end of
+%      the column, so the warning names the page of the listing, not the last page
+%      shipped.  Two columns of rules come first, so that the lead-in starts the column
+%      by a break of the page's own: right after \clearpage, it would first end a column
+%      with nothing in it, and ship out the page at the second.
 %   R  The same with code side by side.
+%   T  A second column overfull: then a page is shipped out, the one it names.
 \documentclass[a4paper,twocolumn]{memoir}
 \usepackage[british]{babel}
 \usepackage{amsmath,amssymb,amsthm}
@@ -36,8 +38,9 @@ line 2
 line 3
 \end{Verbatim}
 \clearpage
-\nobreak
-Tall lead-in O in. \rule{1pt}{0.9\textheight}
+\noindent\rule{1pt}{0.95\textheight}\par
+\noindent\rule{1pt}{0.95\textheight}\par
+LEADO in. \rule{1pt}{0.9\textheight}
 \case{o}\begin{Verbatim}
 line 1
 line 2
@@ -51,9 +54,25 @@ line 9
 line 10
 \end{Verbatim}
 \clearpage
-\nobreak
-Tall lead-in R in. \rule{1pt}{0.9\textheight}
+\noindent\rule{1pt}{0.95\textheight}\par
+\noindent\rule{1pt}{0.95\textheight}\par
+LEADR in. \rule{1pt}{0.9\textheight}
 \case{r}\begin{didacticpair}{2}
   \rule{1pt}{8\baselineskip} & right
 \end{didacticpair}
+\clearpage
+\noindent\rule{1pt}{0.95\textheight}\par
+LEADT in. \rule{1pt}{0.9\textheight}
+\case{t}\begin{Verbatim}
+line 1
+line 2
+line 3
+line 4
+line 5
+line 6
+line 7
+line 8
+line 9
+line 10
+\end{Verbatim}
 \end{document}

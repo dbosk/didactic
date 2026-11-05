@@ -5298,6 +5298,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \newif\if@didactic@keep@emptystart
 \newif\if@didactic@keep@head
 \newif\if@didactic@keep@cols
+\newif\if@didactic@keep@asked
 \@ifclassloaded{beamer}{\@didactic@keepfalse}{\@didactic@keeptrue}
 \let\@didactic@keep@notelist\relax
 \if@didactic@keep
@@ -5638,7 +5639,6 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \setbox\@didactic@keep@out\box\voidb@x
   \setbox\@didactic@keep@rest\box\voidb@x
   \@didactic@keep@headfalse
-  \global\let\@didactic@keep@shipped\relax
   \global\@didactic@keep@watchtrue
   \ifinner\global\@didactic@keep@watchfalse\fi
   \@didactic@keep@i\@didactic@keep@n
@@ -5818,7 +5818,6 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \newcount\@didactic@keep@nwstate
 \newcount\@didactic@keep@listpen
 \let\@didactic@keep@listnoted\relax
-\newif\if@didactic@keep@asked
 \def\@didactic@keep@notelist{%
   \ifx\@didactic@keep@listnoted\relax
     \def\@didactic@keep@listnoted{}%
@@ -5938,13 +5937,18 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \global\@didactic@keep@lastpen\outputpenalty
     \xdef\@didactic@keep@shipped{\thepage}%
   \fi}
+\def\@didactic@keep@fullpage{%
+  \if@twocolumn
+    \if@firstcolumn\@didactic@keep@shipped\else\thepage\fi
+  \else
+    \@didactic@keep@shipped
+  \fi}
 \def\@didactic@keep@check#1{%
   \if@didactic@keep@watch
     \ifdim\pagegoal=\maxdimen
       \PackageWarningNoLine{didactic}{%
         #1 doesn't fit on a page with what is kept\MessageBreak
-        with it, so page \ifx\@didactic@keep@shipped\relax\thepage\else
-        \@didactic@keep@shipped\fi\space is overfull. Put a place to\MessageBreak
+        with it, so page \@didactic@keep@fullpage\space is overfull. Put a place to\MessageBreak
         break before it, such as \string\goodbreak, on input line
         \@didactic@keep@inputline}%
     \else
@@ -5989,7 +5993,6 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \@didactic@keep@notelist
   \@didactic@keep@atstart
   \@didactic@keep@noteempty
-  \global\let\@didactic@keep@shipped\relax
   \ifinner\else
     \if@didactic@keep@cols
       \PackageWarningNoLine{didactic}{%
