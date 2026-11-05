@@ -5641,7 +5641,6 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \global\let\@didactic@keep@shipped\relax
   \global\@didactic@keep@watchtrue
   \ifinner\global\@didactic@keep@watchfalse\fi
-  \if@didactic@keep@cols\global\@didactic@keep@watchfalse\fi
   \@didactic@keep@i\@didactic@keep@n
   \@didactic@keep@tail\z@
   \global\@didactic@keep@run\z@
@@ -5835,7 +5834,6 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \AddToHook{cmd/smallbreak/before}{\global\@didactic@keep@askedtrue}
 \AddToHook{cmd/medbreak/before}{\global\@didactic@keep@askedtrue}
 \AddToHook{cmd/bigbreak/before}{\global\@didactic@keep@askedtrue}
-\AddToHook{cmd/filbreak/before}{\global\@didactic@keep@askedtrue}
 \AddToHook{cmd/pagebreak/before}{\global\@didactic@keep@askedtrue}
 \newdimen\@didactic@keep@startpt
 \newdimen\@didactic@keep@pre
@@ -5870,7 +5868,6 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \global\@didactic@keep@emptystartfalse
   \fi}
 \AddToHook{env/multicols/begin}{\@didactic@keep@colstrue\@didactic@keepleadinfalse}
-\AddToHook{env/multicols*/begin}{\@didactic@keep@colstrue\@didactic@keepleadinfalse}
 %    \end{macrocode}
 % \end{macro}
 % \end{macro}
@@ -6011,7 +6008,6 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \def\@didactic@keep@pairend{%
   \global\@didactic@keep@watchtrue
   \ifinner\global\@didactic@keep@watchfalse\fi
-  \if@didactic@keep@cols\global\@didactic@keep@watchfalse\fi
   \ifinner\else
     \ifdim\pagetotal>\pagegoal
       \penalty\@endparpenalty
@@ -6032,7 +6028,6 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 %    \begin{macrocode}
 \let\@didactic@FV@ListVSpace\FV@ListVSpace
 \def\FV@ListVSpace{%
-  \global\@didactic@keep@nwstate\z@
   \@didactic@keep@notelist
   \@didactic@keep@atstart
   \if@didactic@keepleadin
@@ -6072,8 +6067,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % twice as tall as |\topskip|.
 % The page can't end within that first line: \textsf{noweb} makes the spaces in code
 % unbreakable, so a line doesn't wrap.
-% A chunk woven for |minted| sets |\@didactic@keep@nwstate| to 0 when its list starts,
-% and gets the check of a listing.
+% A chunk woven for |minted| has no such lines, and gets the check of a listing.
 % \textsf{noweb} is usually loaded after us, so we patch it at the beginning 
 % of the document, if it's loaded.
 % |\patchcmd| reads the patched macro anew with the category codes of the 
@@ -6114,7 +6108,6 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \def\@didactic@keep@nwcheck{%
   \global\@didactic@keep@watchtrue
   \ifinner\global\@didactic@keep@watchfalse\fi
-  \if@didactic@keep@cols\global\@didactic@keep@watchfalse\fi
   \global\@didactic@keep@top\dimexpr\topskip
     +\@didactic@keep@nwc-\@didactic@keep@nwb
     +(\@didactic@keep@nwb-\@didactic@keep@nwa)/2

@@ -7,6 +7,9 @@
 %   C  Control: a lead-in and a listing with nothing between: they go along.
 %   O  A column overfull with what can't part: no page is shipped out at the end of the
 %      column, so the warning names the page of the listing, not the last page shipped.
+%      The \nobreak leaves no place to break before the lead-in, which would fill the
+%      first column with nothing and ship out the page.
+%   R  The same with code side by side.
 \documentclass[a4paper,twocolumn]{memoir}
 \usepackage[british]{babel}
 \usepackage{amsmath,amssymb,amsthm}
@@ -33,6 +36,7 @@ line 2
 line 3
 \end{Verbatim}
 \clearpage
+\nobreak
 Tall lead-in O in. \rule{1pt}{0.9\textheight}
 \case{o}\begin{Verbatim}
 line 1
@@ -46,4 +50,10 @@ line 8
 line 9
 line 10
 \end{Verbatim}
+\clearpage
+\nobreak
+Tall lead-in R in. \rule{1pt}{0.9\textheight}
+\case{r}\begin{didacticpair}{2}
+  \rule{1pt}{8\baselineskip} & right
+\end{didacticpair}
 \end{document}

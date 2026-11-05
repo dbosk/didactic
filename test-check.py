@@ -399,6 +399,8 @@ def keep_twocol(c):
     c.ok(not any(f"input line {lines['c']}" in x for x in w), "case c doesn't")
     o = [x for x in warnings(c) if "doesn't fit" in x and f"input line {lines['o']}" in x]
     c.ok(len(o) == 1 and "page 3 is overfull" in o[0], f"case o names page 3: {o}")
+    r = [x for x in warnings(c) if "doesn't fit" in x and f"input line {lines['r']}" in x]
+    c.ok(len(r) == 1 and "page 4 is overfull" in r[0], f"case r names page 4: {r}")
     c.ok(c.one("LEADM")["xmin"] < 200 and c.one("LISTM")["xmin"] > 200,
          "LISTM starts the second column, away from LEADM")
 
