@@ -1,0 +1,16 @@
+% Test of a document that starts with a listing (didactic): no page ended before it, and
+% it has no lead-in, so no warning.
+%
+% Build: see the Makefile; test-check.py checks the log.
+\documentclass[a4paper,oneside]{memoir}
+\usepackage[british]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\begin{document}
+\begin{Verbatim}
+FIRSTLINE
+line 2
+\end{Verbatim}
+Text.
+\end{document}

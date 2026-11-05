@@ -1,0 +1,18 @@
+% Test that a listing or a pair that ends up on another page than its lead-in
+% warns, with keepleadin, from where they ended up (didactic).  Something on its
+% own between them gives a place to break: a note, a float, or space.
+%
+% Build: see the Makefile; test-check.py compares the warnings with the pages of
+% the labels: there's a warning, naming the line and the page, for each case whose
+% lead-in and first line are on different pages, and for no other, except the
+% breaks that are asked for (\goodbreak, \pagebreak, \clearpage) and what follows
+% the end of a list (it isn't a lead-in, and the end of a list is a place to break).
+% At least one case of each kind must be on different pages.
+\documentclass[a4paper,oneside]{memoir}
+\usepackage[british]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\usepackage{refcount}
+\IfFileExists{noweb.sty}{\usepackage[minted]{noweb}}{}
+\input{test-keep-leadin-body.tex}
