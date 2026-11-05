@@ -61,6 +61,7 @@ VARIANTS = {
     "c": MEMOIR.replace("oneside", "oneside,article") + NOWEB + DIDACTIC + BEAMER + BREAKCODE,
     "cp": MEMOIR.replace("oneside", "oneside,article") + MIMIC + PLAIN + NOWEB + BREAKCODE
           + r"\usepackage{fancyvrb}",
+    "m3": MEMOIR + NOWEB + DIDACTIC.replace("outer", "outer,keepafterheading=3") + BEAMER + BREAKCODE,
     "e": MEMOIR + NOWEB + DIDACTIC + BEAMER + BREAKCODE + r"\usepackage{enumitem}",
     "ep": MEMOIR + MIMIC + PLAIN + NOWEB + BREAKCODE + r"\usepackage{fancyvrb}\usepackage{enumitem}",
 }
@@ -212,6 +213,11 @@ CASES = {
     "lT1": lambda k: para(k, 1, "P") + "\n" + tallitem(k) + TAIL,
     # what gives a place to break between a lead-in and a list: it warns from the pages
     "lv1": lambda k: para(k, 1, "P") + "\n" + r"\vspace{6pt}" + "\n" + items(k, 8, 1) + TAIL,
+    # a break that is asked for parts them and says nothing
+    "lp1": lambda k: para(k, 1, "P") + "\n\n" + r"\penalty-200" + "\n" + items(k, 8, 1) + TAIL,
+    "lB1": lambda k: para(k, 1, "P") + "\n\n" + r"\pagebreak[1]" + "\n" + items(k, 8, 1) + TAIL,
+    # a lead-in of three lines and a listing, on a page that stretches
+    "sv3": lambda k: r"\vspace{0pt plus 40pt}" + "\nS.\n\n" + para(k, 3, "P") + "\n" + verbatim(k, 8) + TAIL,
     "lb1": lambda k: para(k, 1, "P") + "\n\n" + r"\bigskip" + "\n" + items(k, 8, 1) + TAIL,
     "lm1": lambda k: para(k, 1, "P") + "\n\n" + r"\marginpar{note}" + "\n\n" + items(k, 8, 1) + TAIL,
     "lf1": lambda k: para(k, 1, "P") + "\n\n" + r"\begin{figure}[h]\rule{1pt}{2\baselineskip}\caption{f}\end{figure}"
@@ -296,11 +302,14 @@ TALLITEMS = {"lT1", "lS1"}
 PLACED = {"lv1", "lb1", "lm1", "lf1", "dv1", "dl1", "tv1", "tl1"}
 # the end of a list is a place to break that nobody warns about
 AFTERLIST = {"tv1", "tl1"}
+ASKED = {"lp1", "lB1"}
+# keepafterheading=3 under memoir: enough to compare with plain LaTeX
+M3ROWS = {"p", "pl", "pL"}
 CHAPTERROWS = {"chp", "chv", "chv1", "chi1"}
 # under a heading too, where the last lines of the lead-in can go along with it
 HEADTALL = {"hT3", "hS3", "hM3"}
 HEADLISTS = SHRINKLISTS | {"hll1", "hll2", "hll3", "hll6"}
-FINE = HEADLISTS | TALLITEMS | HEADTALL | PLACED | CHAPTERROWS | {"hN", "hNv1", "ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3", "qq3", "lq3", "rti",
+FINE = HEADLISTS | TALLITEMS | HEADTALL | PLACED | CHAPTERROWS | ASKED | {"sv3", "hN", "hNv1", "ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3", "qq3", "lq3", "rti",
         "d", "wL1", "hv", "hw", "hn", "hv8", "hv3l", "f", "r", "rr", "ri", "re", "rv", "fp", "fe", "fx", "fi", "fI",
         "e", "ei", "eI", "se", "e1", "cp"}
 # Without didactic these don't exist, or frames set their titles another way.
@@ -309,11 +318,11 @@ DIDACTIC_ONLY = {"hN", "hNv1", "hj1", "j3", "fp", "fe", "fx", "fi", "fI", "fl1",
 NOT_COMPARED = DIDACTIC_ONLY | {"e", "ei", "eI", "se", "e1", "cp", "f", "rti"}
 LISTINGS = {"hv1", "hv2", "hv3", "v1", "v3", "v8", "hn1", "hn3", "n3", "hw1", "hw3", "w3",
             "hj1", "j3", "n6", "w6", "v6", "wL1", "cw0", "cw1", "cw2", "cw3", "cw4",
-            "ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3", "hNv1", "chv1", "chi1"} | HEADLISTS | TALLITEMS | HEADTALL | PLACED
-ITEMLISTS = HEADLISTS | TALLITEMS | HEADTALL | {"lv1", "lb1", "lm1", "lf1", "dl1", "tl1", "chi1", "ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3"}
+            "ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3", "hNv1", "chv1", "chi1", "sv3"} | HEADLISTS | TALLITEMS | HEADTALL | PLACED | ASKED
+ITEMLISTS = HEADLISTS | TALLITEMS | HEADTALL | ASKED | {"lv1", "lb1", "lm1", "lf1", "dl1", "tl1", "chi1", "ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3"}
 # L2: a list right under a heading follows LaTeX, so a line is enough.
 DIRECTLISTS = {"l", "L", "ri", "fi", "fI", "ei", "eI"}
-NOHEADING = TALLITEMS | PLACED | {"v1", "v3", "v8", "n3", "w3", "j3", "n6", "w6", "v6", "wL1",
+NOHEADING = TALLITEMS | PLACED | ASKED | {"sv3", "v1", "v3", "v8", "n3", "w3", "j3", "n6", "w6", "v6", "wL1",
              "ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "qq3", "lq3",
              "cw0", "cw1", "cw2", "cw3", "cw4"}
 AFTERCHUNK = {"cw0", "cw1", "cw2", "cw3", "cw4"}
@@ -326,6 +335,8 @@ def all_cases(variant="m"):
         if (variant[0] == "c") != (name in CHAPTERROWS):
             continue
         if variant[0] == "e" and name not in ENUMITEM_CASES:
+            continue
+        if variant == "m3" and name not in M3ROWS:
             continue
         rooms = FINEROOMS if name in FINE else ROOMS
         if name in ("hS3", "hM3"):
@@ -448,7 +459,7 @@ def check_case(p, ref, name, case, K):
         return
     over = room > LIMIT + 0.01
     r = p.on("R", case)
-    if name == "hM3":
+    if name in ("hM3", "sv3"):
         over = p.empty.get(r, 0) > LIMIT + 0.01  # a line of text comes before the heading
     if name not in NOHEADING:
         h = p.on("H", case)
@@ -513,7 +524,12 @@ def check_case(p, ref, name, case, K):
             if name in ("hw", "hn"):
                 pc -= 1     # the header of a chunk is no code line
             bad = False
-            if not pm and not moved and count < pc and name not in ("hv", "hw", "hv8", "hv3l", "rv", "chv"):
+            # Asking for three lines under memoir, the first lines of a list's first item
+            # are tied, so one line less can stay than plain LaTeX has, and that warns; it
+            # is stated in the docs.
+            if not pm and not moved and count < pc and K > 2 and name == "pL" and warns:
+                pass
+            elif not pm and not moved and count < pc and name not in ("hv", "hw", "hv8", "hv3l", "rv", "chv"):
                 bad = True
                 text = f"D4: {count} lines under the heading, plain LaTeX has {pc}"
             elif not pm and moved and pc >= K \
@@ -555,7 +571,9 @@ def check_case(p, ref, name, case, K):
                      "lines empty, no warning")
             if not kept and along:
                 fail(case, "D8: two warnings for a heading that moves")
-        if parted and not says and name not in AFTERLIST:
+        if name in ASKED and [w for w in warns if "moves along" in w or "goes to the next page" in w]:
+            fail(case, f"D8: a break that is asked for warns: {warns[0][:50]}")
+        if parted and not says and name not in AFTERLIST and name not in ASKED:
             fail(case, f"D6: lead-in on {lead_last}, code on {code}, no warning")
         if name in AFTERCHUNK and p.on("A1", case) > r:
             return  # the first chunk moved, and what warns is about that
@@ -565,7 +583,7 @@ def check_case(p, ref, name, case, K):
             fail(case, f"D8: {says[0][:50]}, but it stays")
         if says and not parted:
             fail(case, f"D8: {says[0][:50]}, but what leads into it goes along")
-        if name in ITEMLISTS and name not in TALLITEMS | HEADTALL | PLACED and parted and p.empty.get(lead_last, 0) >= 2:
+        if name in ITEMLISTS and name not in TALLITEMS | HEADTALL | PLACED | ASKED and parted and p.empty.get(lead_last, 0) >= 2:
             fail(case, f"L1: parted, with {p.empty[lead_last]:.1f} lines left for its first item")
         # 8pt of shrink out of the topsep and the line that the first item needs, and the
         # topsep can shrink too
@@ -577,7 +595,7 @@ def check_case(p, ref, name, case, K):
             fail(case, f"L1: all moved, {p.empty[r]:.1f} lines empty")
         moving = n if n <= 3 else 2
         if parted and room - n + moving <= LIMIT - 0.3 and name in NOHEADING | {"fl1", "fl3"} \
-                and name not in AFTERCHUNK and name not in PLACED:
+                and name not in AFTERCHUNK and name not in PLACED and name not in ASKED:
             fail(case, f"D6: parted at room {room:.1f}, within the limit")
         if name == "lS1" and lead_first > r and p.empty.get(r, 0) > LIMIT + 0.01 and not along:
             fail(case, "D8: the lead-in moves along past the limit, no warning")

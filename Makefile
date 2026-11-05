@@ -17,7 +17,7 @@ TEST_KEEP_CHAPTER=	test-keep-chapter-article test-keep-chapter-memoir \
 TEST_KEEP_NOWEB=	test-keep-filbreak test-keep-breakcode \
 			test-keep-breakcode-late test-keep-filbreak-nogap
 TEST_KEEP_SMALL=	test-keep-style test-keep-columns test-keep-guard \
-			test-keep-pagereset test-keep-nofiles test-keep-box \
+			test-keep-pagereset test-keep-nofiles test-keep-nofiles0 test-keep-box \
 			test-keep-addvspace test-keep-club test-keep-club-article
 TEST_NOTEOVERFLOW=	test-noteoverflow test-noteoverflow-carry \
 			test-noteoverflow-draft test-noteoverflow-draftbreak \
@@ -31,7 +31,7 @@ TEST_INCLUDE=		test-marginfloat-include-all test-marginfloat-include
 # Warnings from where listings ended up.
 TEST_KEEPCHECK=		test-keep-leadin test-keep-leadin-off test-keep-overfull \
 			test-keep-multicol test-keep-twocol test-keep-noweb \
-			test-keep-noweb-break test-keep-once
+			test-keep-noweb-break test-keep-once test-keep-enumitem
 
 .PHONY: all
 all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
@@ -41,7 +41,7 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-marginfloat.pdf test-marginfloat-slides.pdf \
 	test-frametitle.pdf test-frametitle-slides.pdf \
 	test-keep.pdf test-keep-tall.pdf test-keep-tall100.pdf \
-	test-keep-chain.pdf test-keep-huge.pdf test-keep-blank.pdf \
+	test-keep-chain.pdf test-keep-huge.pdf test-keep-blank.pdf test-keep-include.pdf \
 		test-keep-heading.pdf test-keep-heading3.pdf \
 		test-keep-nogap.pdf test-keep-nogap3.pdf test-keep-sweep \
 		${TEST_KEEP_NOWEB:=.pdf} ${TEST_KEEP_SMALL:=.pdf} \
@@ -278,8 +278,21 @@ test-keep-noweb.pdf test-keep-noweb-break.pdf: %.pdf: %.tex \
 test-keep-leadin.pdf test-keep-leadin-off.pdf: %.pdf: %.tex \
 		test-keep-leadin-body.tex didactic.sty
 	@${latex_until_settled}
-test-keep-once.pdf test-keep-overfull.pdf test-keep-multicol.pdf test-keep-twocol.pdf: %.pdf: %.tex didactic.sty
+test-keep-enumitem.pdf test-keep-once.pdf test-keep-overfull.pdf test-keep-multicol.pdf test-keep-twocol.pdf: %.pdf: %.tex didactic.sty
 	@${latex_until_settled}
+
+# The whole document first: the .aux files of what the second leaves out are its input.
+test-keep-include-all.pdf: test-keep-include-all.tex test-keep-include-a.tex \
+		test-keep-include-b.tex didactic.sty
+	${RM} test-keep-include-a.aux test-keep-include-b.aux
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+test-keep-include.pdf: test-keep-include.tex test-keep-include-all.pdf
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	! grep -q 'didactic@hn@' test-keep-include.log
+	test "${call count_warn,The heading in a file left out}" -eq 1
 
 test-keep-blank.pdf: test-keep-blank.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
@@ -323,8 +336,8 @@ test-keep-nogap3.pdf: NOGAP_HEADINGS=1
 
 # page breaks around headings and listings, room by room, against plain LaTeX with
 # the same fonts and margins: see test-keep-sweep.py.  pdflatex, for those fonts.
-SWEEP=m a s s3 e
-SWEEP_ALL=${SWEEP} mp ap sp ep
+SWEEP=m a s s3 e c m3
+SWEEP_ALL=${SWEEP} mp ap sp ep cp
 ${SWEEP_ALL:%=test-keep-sweep-%.tex}: test-keep-sweep-%.tex: test-keep-sweep.py
 	python3 $< gen $* > $@
 ${SWEEP_ALL:%=test-keep-sweep-%.pdf}: PDFLATEX=pdflatex
@@ -372,7 +385,7 @@ test-keep-pagereset.pdf: test-keep-pagereset.tex didactic.sty
 	@${latex_until_settled}
 	test "$$(grep -c 'keepafterheading): it moves' test-keep-pagereset.log)" -eq 2
 	! grep "heading in test-keep-pagereset, line $$(grep -n 'Stays, number raised' test-keep-pagereset.tex | cut -d: -f1)" test-keep-pagereset.log
-test-keep-nofiles.pdf: test-keep-nofiles.tex didactic.sty
+test-keep-nofiles.pdf test-keep-nofiles0.pdf: %.pdf: %.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	test "${call count_warn,With .nofiles}" -eq 1
 test-keep-box.pdf test-keep-club.pdf test-keep-club-article.pdf: %.pdf: %.tex didactic.sty
@@ -527,6 +540,11 @@ clean:
 	${RM} ${TEST_KEEPCHECK:=.pytxcode} ${TEST_KEEPCHECK:=-?.txt}
 	${RM} test-keep-leadin-*.txt test-keep-leadin-off-*.txt
 	${RM} test-keep-once-m.txt test-keep-once-g.stdout
+	${RM} test-keep-include-all.pdf test-keep-include-all.aux test-keep-include-all.log
+	${RM} test-keep-include.pdf test-keep-include.aux test-keep-include.log
+	${RM} test-keep-include-a.aux test-keep-include-b.aux
+	${RM} test-keep-include-all.unq test-keep-include.unq test-keep-include-all.pytxcode
+	${RM} test-keep-include.pytxcode
 	${RM} test-keep-huge.pdf test-keep-huge.aux test-keep-huge.log
 	${RM} test-keep-huge.unq test-keep-huge.pytxcode test-keep-huge-h.txt
 	${RM} test-keep-blank.pdf test-keep-blank.aux test-keep-blank.log

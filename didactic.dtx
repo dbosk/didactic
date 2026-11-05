@@ -1151,9 +1151,10 @@
 %   headings of the blocks (|example|, |exercise|, |solution| and so on),
 %   but not for |\chapter|.
 %   That usually starts a page.
-%   Under the option |article| of \textsf{memoir} it doesn't, and it has what
-%   \LaTeX\ gives every heading: the first two lines of a paragraph stay with it,
-%   or it moves.
+%   Under the option |article| of \textsf{memoir} it doesn't, and then the limit of
+%   |keepmaxgap| holds for it as for any heading, what is tied to it breaks there or
+%   warns; it asks no lines of its own, and the first two lines of a paragraph stay
+%   with it because \LaTeX\ keeps them.
 %   A table of \textsf{longtable} that starts on the next page, leaving the 
 %   heading behind, takes the heading along in the next run.
 %   When the page no longer needs that, or with this option off, the heading 
@@ -1168,6 +1169,9 @@
 %   |keepends|, if it has the lines for that.
 %   A list right under a heading has what \LaTeX\ gives it: its first item, also
 %   of one line.
+%   At |keepafterheading=3|, not the default, a one-line paragraph and a list after it
+%   can end up with one line less than \LaTeX\ keeps, since the first lines of the first
+%   item are tied; a warning says so.
 %   Whenever a heading has too few lines, or moves past the limit, a warning gives
 %   the file and the line of the heading and says what the page did.
 %   That comes from the pages, so it takes the |.aux| file: with |\nofiles| a warning
@@ -1255,6 +1259,12 @@
 %   last line without hiding that space from what comes next.
 %   So we take the page at the time of the tie, and if \TeX\ then takes that line along
 %   to the next page, the warning says that what starts there is parted when it isn't.
+% \item Pages are all it looks at for a list, so a list that moves to the next column
+%   of |twocolumn|, away from its lead-in, says nothing.
+% \item A place to break after the end of another list doesn't warn, as it is one of
+%   the places where \LaTeX\ means a page to break.
+%   So a display or a |center| between a lead-in and what follows warns, unless that
+%   ends in a list, which |center| does.
 % \item That the first line of a list fits is reckoned by a line of the text.
 %   If it is taller, \TeX\ may take the lead-in along past the limit, and the warning
 %   says that this \emph{can} leave more than |keepmaxgap| lines empty, as it can't
@@ -1452,9 +1462,9 @@
 % subhead at the bottom of a page.}\cite[fig.~A.3]{chicago2010manual}
 % So our five is a line more than the only number there is, and that is a choice,
 % with a reason that holds for the fonts of the notes, \textsf{memoir} at 10\,pt: a
-% |\section| with its two lines fits from a room of 5.25 lines there, a |\subsection|
+% |\section| with its two lines fits from a room of 5.27 lines there, a |\subsection|
 % from 5.0, and with \textsf{memoir} at 11\,pt from 5.5, with |article| at 10\,pt from
-% 5.75.
+% 5.84.
 % Below that a single heading moves in plain \LaTeX\ too, so between four and five
 % our limit changes a warning, not the page.
 % It changes the page only for a heading over a one-line paragraph or a list, which
@@ -7125,6 +7135,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % line: glue or a penalty that \TeX\ still has, what it has already put on the page, by
 % its height, or a note or a float, by |\outputpenalty|.
 % If so, we take the page from the tie instead.
+% If the list has another penalty there than the document's, by the key |beginpenalty|
+% of \textsf{enumitem} say, it is yours, and we leave it.
 % The penalty is local to the list, and what starts in an item would inherit it, a
 % quote, say, so every |\@trivlist| first takes it back, |\@didactic@keep@forbidden|.
 % And right under a heading, a list has what \LaTeX\ gives it: its first item stays
@@ -7234,6 +7246,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \def\@didactic@keep@listtie{%
   \if@didactic@keep@itemlist
     \@didactic@keep@itemlistfalse
+    \ifnum\@beginparpenalty=\@didactic@keep@bpdefault\relax
     \if@didactic@keep@inbox\else\ifinner\else
       \ifnum\@didactic@keep@headstate=\@ne
         \global\@didactic@keep@headstate\z@
@@ -7264,7 +7277,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
         \fi
       \fi
     \fi\fi
+    \fi
   \fi}
+\AtBeginDocument{\edef\@didactic@keep@bpdefault{\the\@beginparpenalty}}
 \def\@didactic@keep@itemlistbegin{\@didactic@keep@itemlisttrue}
 \AddToHook{env/itemize/begin}{\@didactic@keep@itemlistbegin}
 \AddToHook{env/enumerate/begin}{\@didactic@keep@itemlistbegin}
@@ -7412,7 +7427,10 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \string\providecommand\string\@didactic@keep@bua[1]{}%
       \string\providecommand\string\@didactic@keep@bub[3]{}}%
   \else
-    \ifnum\@didactic@keepafterheading>\z@
+    \@tempswafalse
+    \ifnum\@didactic@keepafterheading>\z@\@tempswatrue\fi
+    \if@didactic@keepleadin\@tempswatrue\fi
+    \if@tempswa
       \PackageWarningNoLine{didactic}{%
         With \string\nofiles, no warning can say what the pages\MessageBreak
         did to headings and listings, as they come from the\MessageBreak
@@ -7472,7 +7490,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \def\@didactic@keep@tellhead#1#2{%
   \ifx\@newl@bel\@testdef
     \PackageWarningNoLine{didactic}{%
-      The heading in \@nameuse{@didactic@hn@#1}\MessageBreak
+      The heading in \@ifundefined{@didactic@hn@#1}{a file left out of this
+      run}{\@nameuse{@didactic@hn@#1}}\MessageBreak
       (keepafterheading): #2}%
   \fi}
 \let\@didactic@keep@headkey\@empty

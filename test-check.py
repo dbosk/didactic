@@ -428,6 +428,23 @@ def keep_once(c):
     c.ok(c.one("LEADB")["page"] == c.one("ITEMB")["page"], "case B is on one page")
 
 
+def keep_enumitem(c):
+    """test-keep-enumitem.tex; see its header."""
+    lines = keep_results(c, "enumitem")
+    c.ok(set(lines) == set("abdf"), f"four cases, has {sorted(lines)}")
+    w = warnings(c)
+    for n in "ab":
+        c.ok(c.one("LEAD" + n.upper())["page"] == c.one("FIRST" + n.upper())["page"],
+             f"case {n} stays with its lead-in")
+    for n in "df":
+        c.ok(c.one("LEAD" + n.upper())["page"] < c.one("FIRST" + n.upper())["page"],
+             f"case {n} is on two pages")
+    c.ok(not [x for x in w if f"line {lines['d']} " in x], f"case d says nothing: {w}")
+    here = [x for x in w if "goes to the next page" in x and f"line {lines['f']} " in x]
+    c.ok(len(here) == 1, f"case f warns once: {w}")
+    c.ok(len([x for x in w if "goes to the next page" in x]) == 1, f"no warning elsewhere: {w}")
+
+
 def keep_multicol(c):
     """test-keep-multicol.tex; see its header."""
     lines = keep_results(c, "multicol")
@@ -637,6 +654,7 @@ CHECKS = {
     "test-keep-overfull": keep_overfull,
     "test-keep-multicol": keep_multicol,
     "test-keep-once": keep_once,
+    "test-keep-enumitem": keep_enumitem,
     "test-keep-twocol": keep_twocol,
     "test-keep-noweb": keep_noweb,
     "test-keep-noweb-break": lambda c: keep_noweb(c, overfull=False),
