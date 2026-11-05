@@ -45,6 +45,7 @@ didactic.pdf: ${SRC} didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} $<
 	makeindex -s gglo.ist -o didactic.gls didactic.glo
 	grep -q 'work in a source shared' didactic.gls
+	grep -q 'a frame title is a run-in heading' didactic.gls
 	${PDFLATEX} ${LATEXFLAGS} $<
 
 # docstrip asks before overwriting, so remove the old file first.
