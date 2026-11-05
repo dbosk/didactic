@@ -5971,6 +5971,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \newif\if@didactic@keep@direct
 \newif\if@didactic@keep@columnswarned
 \newif\if@didactic@keep@itemlist
+\newif\if@didactic@keep@relplaced
 \@didactic@keep@movabletrue
 \let\@didactic@keep@tie\relax
 \newcommand\@didactic@keep@hpage[2]{}
@@ -5981,6 +5982,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \newcommand\@didactic@keep@pa[1]{}
 \newcommand\@didactic@keep@pm[3]{}
 \newcommand\@didactic@keep@pp[3]{}
+\newcommand\@didactic@keep@pq[3]{}
 \newcommand\@didactic@keep@bua[1]{}
 \newcommand\@didactic@keep@bub[3]{}
 \newcommand\@didactic@keep@headbreak[1]{}
@@ -6295,8 +6297,11 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \xdef\@didactic@keep@relline{\@didactic@keep@where}%
   \xdef\@didactic@keep@tiepage{\number\numexpr\ReadonlyShipoutCounter+\@ne\relax}%
   \global\let\@didactic@keep@relpageis\@didactic@keep@tiepage
+  \global\@didactic@keep@relplacedfalse
   \if@filesw
-    \ifnum\lastnodetype=11 \else
+    \@didactic@keep@ifbreakless
+    \ifnum\lastpenalty<\z@\@tempswatrue\fi
+    \if@tempswa
       \count@\lastpenalty
       \protected@write\@auxout{\let\@didactic@keep@cpage\relax}{%
         \string\@didactic@keep@pa{\@didactic@keep@cpage}}%
@@ -6304,9 +6309,17 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \gdef\@didactic@keep@relpageis{\string\@didactic@keep@relpage}%
     \fi
   \fi}
+\def\@didactic@keep@ifbreakless{%
+  \@tempswatrue
+  \ifnum\lastnodetype=11 \@tempswafalse\fi
+  \ifdim\lastskip=\z@\else\@tempswafalse\fi
+  \ifnum\lastpenalty=\z@\else\ifnum\lastpenalty=\@M\else\@tempswafalse\fi\fi
+  \ifdim\dimexpr\pagetotal+\pagedepth\relax>\@didactic@keep@pend\@tempswafalse\fi
+  \ifnum\outputpenalty=\@didactic@keep@pendout\else\@tempswafalse\fi}
 \def\@didactic@keep@relmove{%
   \if@filesw
-    \ifnum\lastnodetype=11 \else
+    \@didactic@keep@ifbreakless
+    \if@tempswa
       \count@\lastpenalty
       \protected@write\@auxout{\let\@didactic@keep@cpage\relax}{%
         \string\@didactic@keep@pm{\@didactic@keep@tiepage}%
@@ -6319,12 +6332,26 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \global\@didactic@keep@relduefalse
     \if@filesw
       \protected@write\@auxout{\let\@didactic@keep@cpage\relax}{%
-        \string\@didactic@keep@pp{\@didactic@keep@relpageis}%
+        \if@didactic@keep@relplaced
+          \string\@didactic@keep@pq
+        \else
+          \string\@didactic@keep@pp
+        \fi
+        {\@didactic@keep@relpageis}%
           {\@didactic@keep@cpage}{\@didactic@keep@relline}}%
       \ifvmode\nobreak\fi
     \fi
   \fi}
 \def\@didactic@keep@pa#1{\gdef\@didactic@keep@relpage{#1}}
+\def\@didactic@keep@pq#1#2#3{%
+  \ifnum#2>#1\relax
+    \ifx\@newl@bel\@testdef
+      \PackageWarningNoLine{didactic}{%
+        What starts at #3 goes to the next page, apart\MessageBreak
+        from what leads into it: a note, a float or space\MessageBreak
+        between them gave a place to break}%
+    \fi
+  \fi}
 \def\@didactic@keep@pm#1#2#3{%
   \ifnum#2>#1\relax
     \ifnum#2=\@didactic@keep@lastmoved\relax\else
@@ -7088,6 +7115,16 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % written only if they could leave too much, and if the heading went as well, the
 % heading's warning says it and this one keeps quiet (|\@didactic@keep@lastmoved|).
 % Only that penalty changes: between the items \LaTeX\ goes on as ever.
+% What comes between the lead-in and the list, space, a note or a float, is a place
+% to break that this penalty can't take away, as for a listing, and the list then
+% goes to the next page without its lead-in, so we write the pages down here too, and
+% that warns, unless what comes before is the end of another list, as for a listing.
+% Where that page is written matters: after such a place it would be on the next page
+% too, and nothing would seem parted.
+% So |\@didactic@keep@ifbreakless| looks whether anything came after the lead-in's last
+% line: glue or a penalty that \TeX\ still has, what it has already put on the page, by
+% its height, or a note or a float, by |\outputpenalty|.
+% If so, we take the page from the tie instead.
 % The penalty is local to the list, and what starts in an item would inherit it, a
 % quote, say, so every |\@trivlist| first takes it back, |\@didactic@keep@forbidden|.
 % And right under a heading, a list has what \LaTeX\ gives it: its first item stays
@@ -7204,6 +7241,10 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
         \if@didactic@keepleadin
           \@didactic@keep@tie
           \if@didactic@keep@movable
+            \if@endpe\else
+              \@didactic@keep@relstart
+              \global\@didactic@keep@relplacedtrue
+            \fi
             \@didactic@keep@forbid\@M
           \else
             \@didactic@keep@relstart
@@ -7367,6 +7408,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \string\providecommand\string\@didactic@keep@pa[1]{}%
       \string\providecommand\string\@didactic@keep@pm[3]{}%
       \string\providecommand\string\@didactic@keep@pp[3]{}%
+      \string\providecommand\string\@didactic@keep@pq[3]{}%
       \string\providecommand\string\@didactic@keep@bua[1]{}%
       \string\providecommand\string\@didactic@keep@bub[3]{}}%
   \else
@@ -7662,6 +7704,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \newdimen\@didactic@keep@ptotal
 \newdimen\@didactic@keep@pstart
 \newdimen\@didactic@keep@pend
+\newcount\@didactic@keep@pendout
 \let\@didactic@keep@owedkey\@empty
 \def\@didactic@keep@headwaits{%
   \ifnum\@didactic@keepafterheading>\z@
@@ -7793,6 +7836,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \def\@didactic@keep@paraafter{%
   \if@didactic@keep@inbox\else
     \global\@didactic@keep@pend\dimexpr\pagetotal+\pagedepth\relax
+    \global\@didactic@keep@pendout\outputpenalty
     \if@didactic@keep@titleonly
       \global\@didactic@keep@titleonlyfalse
       \global\clubpenalties\z@
