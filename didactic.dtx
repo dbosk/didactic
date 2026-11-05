@@ -6785,7 +6785,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       any text can, \@didactic@keep@place}%
   \fi
   \@didactic@keep@noteempty
-  \global\@didactic@keep@pre\dimexpr\pagetotal-\@didactic@keep@startpt\relax}
+  \global\@didactic@keep@pre\dimexpr\pagetotal-\@didactic@keep@startpt\relax
+  \ifdim\@didactic@keep@pre<\z@\global\@didactic@keep@pre\z@\fi}
 \def\@didactic@keep@noteempty{%
   \ifdim\pagegoal=\maxdimen
     \global\@didactic@keep@emptystarttrue
