@@ -1394,6 +1394,17 @@
 %   If it is taller, \TeX\ may take the lead-in along past the limit, and the warning
 %   says that this \emph{can} leave more than |keepmaxgap| lines empty, as it can't
 %   tell how many lines went.
+% \item A margin note that would end its page under a heading is found by height: at
+%   least |keepafterheading| lines' height must lie between the heading and the note's
+%   line.  So a line twice the height counts as two lines: after one tall line under a
+%   heading, a note can end the page with only that line there.
+% \item If a heading goes to the next page after we noted where it ended, we take off
+%   the height of the page before.  It matters only where at most a few lines' room is
+%   left under a heading at the top of a page, and it has no test: we couldn't build a
+%   case where the limit of |noteyieldmaxgap| didn't answer first.
+% \item Where your document forbids a lone line, a note held back for it stays so while
+%   its callout keeps its place in the source, even if the text moves: without the
+%   break we can't see the line again.
 % \end{itemize}
 %
 % \subsection{What changes from v2.13}\label{PageBreakChanges}
@@ -1418,6 +1429,15 @@
 % \item Warnings say what the page did where it can't do what these options ask; see
 %   the options above.
 % \item The club and widow penalties stay as the class has them.
+% \item With |noteoverflow=break|, now the default, a page can end early for a margin
+%   note that doesn't fit, so notes and page ends move compared with v2.13, where the
+%   note moved instead.
+%   The option |draft| keeps the notes moving, and doesn't reflow.
+%   A page ends early only as far as |noteyieldmaxgap| allows, and never under a
+%   heading; a note that can't end its page moves, with a warning that says why.
+%   If it leaves a paragraph's first or last line alone it stands, with a warning,
+%   unless your document forbids that line with a penalty of 10\,000, when the note
+%   moves too.
 % \end{itemize}
 % It takes no longer that we can see: on three real documents no difference shows in one
 % pass, though the machine was loaded, so that under about 20 per cent wouldn't show; a
