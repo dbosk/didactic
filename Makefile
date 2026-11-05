@@ -336,8 +336,8 @@ test-keep-nogap3.pdf: NOGAP_HEADINGS=1
 
 # page breaks around headings and listings, room by room, against plain LaTeX with
 # the same fonts and margins: see test-keep-sweep.py.  pdflatex, for those fonts.
-SWEEP=m a s s3 e c m3
-SWEEP_ALL=${SWEEP} mp ap sp ep cp
+SWEEP=m a s s3 e c m3 k
+SWEEP_ALL=${SWEEP} mp ap sp ep cp kp mq aq sq
 ${SWEEP_ALL:%=test-keep-sweep-%.tex}: test-keep-sweep-%.tex: test-keep-sweep.py
 	python3 $< gen $* > $@
 ${SWEEP_ALL:%=test-keep-sweep-%.pdf}: PDFLATEX=pdflatex
