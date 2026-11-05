@@ -4,10 +4,15 @@
 % \testroom lines of the page for the text of the case.  See test-yieldkeep.sh,
 % which runs each case and checks the outcome.  Needs pdflatex: under xelatex no
 % page ends early.
-\documentclass[a4paper]{memoir}
+\ifdefined\testclass\else\def\testclass{memoir}\fi
+\documentclass[a4paper]{\testclass}
+\ifdefined\testoptions\else\def\testoptions{}\fi
+\ifdefined\testcase\else\def\testcase{}\fi
+\ifdefined\testtall\else\def\testtall{.97}\fi
 \expandafter\PassOptionsToPackage\expandafter{\testoptions}{didactic}
 \usepackage{didactic}
 \usepackage[noamsthm,notheorems]{beamerarticle}
+\ifdefined\testpre\testpre\fi
 \newcommand\yieldnote{\marginpar{NOTEY}}
 \newcommand\filler{Some words to fill up the rest of this line of the text and
   also quite a few of the next one, as the words of a paragraph do when it goes
@@ -46,7 +51,8 @@
   \noindent x\marginpar{ORDINARY} text
   \par\noindent\rule{1cm}{.1\textheight}\par
 \else
-\noindent x\marginpar{TALL\par\rule{1pt}{.97\textheight}} text
+\noindent x\marginpar{TALL\par\rule{1pt}{\testtall\textheight}} text
+\ifdefined\testfootnotefirst\footnote{FOOTA}\fi
 \par\noindent\rule{1cm}{\dimexpr\textheight-\testroom\baselineskip-1\baselineskip}\par
 \fi
 \ifx\testcase\heading
@@ -69,6 +75,7 @@
   \yieldnote{}
   FIRSTLINE \filler\ \filler
 \fi
+\ifdefined\testbody\testbody\fi
 \ifx\testcase\withother
   \section{HEADINGX}
   FIRSTLINE\yieldnote{} \oneline\ more words\marginpar{NOTEZ} \filler

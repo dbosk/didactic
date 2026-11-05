@@ -44,6 +44,8 @@
 \fi
 \ifx\testsetstretch\empty\else
   \setlength\emergencystretch{\testsetstretch}%
+  % In the preamble's font: em isn't the same in the bibliography's.
+  \edef\testexpectstretch{\the\emergencystretch}%
 \fi
 \begin{document}
 \makeatletter

@@ -54,7 +54,7 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-marginfloat-inorder.pdf test-marginfloat-hidden.pdf \
 	${TEST_FLOATORDER:=.pdf} test-marginfloat-include.pdf \
 	test-format.pdf check \
-	test-noteyield test-noteyield-cap test-yieldkeep test-biburl
+	test-noteyield test-noteyield-cap test-yieldkeep test-yieldkeep-lua test-biburl
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -510,6 +510,14 @@ test-noteyield-cap: test-noteyield-cap.tex test-noteyield-cap.sh didactic.sty
 test-yieldkeep: test-yieldkeep.tex test-yieldkeep-slides.tex test-yieldkeep.sh \
 		didactic.sty
 	./test-yieldkeep.sh
+
+# The same under LuaLaTeX, the other engine where a page can end early, on the
+# cases that tell its branches apart.
+.PHONY: test-yieldkeep-lua
+test-yieldkeep-lua: test-yieldkeep.tex test-yieldkeep-slides.tex test-yieldkeep.sh \
+		didactic.sty
+	ENGINE=lualatex CASES="heading headingoff headlist club widowforbid middle runin warmoff" \
+	  ./test-yieldkeep.sh
 
 # biburlpenalty and bibemergencystretch: biblatex's URL break penalties and
 # the bibliography's \emergencystretch, with biblatex loaded before didactic,
