@@ -1316,6 +1316,11 @@
 %   the options above.
 % \item The club and widow penalties stay as the class has them.
 % \end{itemize}
+% It takes no longer that we can see: on three real documents no difference shows in one
+% pass, though the machine was loaded, so that under about 20 per cent wouldn't show; a
+% generated one with a section every few lines was about a fifth slower.
+% The |.aux| file grows, by 20 to 40 per cent on those three, as what warns writes the
+% pages there.\footnote{\Cref{app:pb-measure}.}
 % In |beamer| nothing changes: the keep options are off there.
 % A plain |article| gets the same rules, so its page breaks change only where they
 % apply, which on two documents we compared, with a real |beamer| deck, was nowhere: the
@@ -1391,8 +1396,11 @@
 %   past the limit become common: there are 19 on the eight, 12 of them about a heading.
 %   \emph{Measured, rejected:} 4 leaves a room of 4.5 to 5 lines where a heading and two
 %   lines neither fit nor may move.
-%   0, no limit, on generated documents leaves up to 7.6 lines with \textsf{noweb}'s
-%   chunks, against 5.6, and 8.9 with those woven for \texttt{minted}, against 4.5.} \\
+%   0, no limit, on generated chunks woven for \texttt{minted}, leaves up to 8.9 lines,
+%   against 6.2 with the limit alone, and 4.5 with \textsf{noweb}'s break dropped as well;
+%   dropping that break without the limit leaves 10.5.
+%   With the chunks \textsf{noweb} sets, which can break anywhere, the limit changes one
+%   page's count.} \\
 % \midrule
 % Short listings whole, \texttt{keeplines} & 10 &
 %   Listings break at any line; \textsf{noweb} keeps a chunk whole by |\filbreak|. \\*
@@ -1458,9 +1466,11 @@
 % \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} measured on generated documents;
 %   ours.
 %   \emph{Reopens:} a change in those numbers.
-%   \emph{Measured, rejected:} keeping it, with \texttt{keepmaxgap=0}, leaves up to 7.6 lines and
-%   33 pages with three or more, against 5.6 and 20, in about 210 pages, and 19 fewer
-%   breaks inside chunks.} \\
+%   \emph{Measured, rejected:} with the chunks \textsf{noweb} sets, keeping it leaves up
+%   to 7.6 lines and 33 pages with three or more, against 5.6 and 20, in about 210 pages,
+%   and 19 fewer breaks inside chunks.
+%   With those woven for \texttt{minted}, under the limit, 6.2 and 28, against 4.5 and 17;
+%   it helps only along with the limit.} \\
 % \midrule
 % What can't be kept warns & Always &
 %   Mostly silent. \\*
@@ -1653,13 +1663,16 @@
 % We measured that on twelve generated documents, in \textsf{memoir}'s |article|, with
 % the mix of chunk lengths of real ones, of about 210 pages.\footnote{%
 %   \Cref{app:pb-measure}; \texttt{measure-flow} in the sources has the generator.}
-% With the chunks that \textsf{noweb} sets, keeping it, with |keepmaxgap=0|, leaves at
-% most 7.6 empty lines, 33 pages with three or more and 4 with five or more; dropping it
-% leaves 5.6, 20 and 1, for 19 more breaks inside chunks; plain \textsf{noweb} with
-% |breakcode| has 6.2, 31 and 2.
-% With the chunks woven for |minted|, which most decks are, plain has a mean of 0.96
-% empty lines a page, 28 pages with three or more and at most 6.2, and we have 0.71, 17
-% and 4.5.
+% With the chunks that \textsf{noweb} sets, keeping it leaves at most 7.6 empty lines,
+% 33 pages with three or more and 4 with five or more; dropping it leaves 5.6, 20 and 1,
+% for 19 more breaks inside chunks; plain \textsf{noweb} with |breakcode| has 6.2, 31
+% and 2.
+% All of that is this break: those chunks can break anywhere, and the limit changes one
+% page's count.
+% With the chunks woven for |minted|, which most decks are and which we keep together,
+% the limit does the larger part: with it and with this break kept we leave at most 6.2,
+% without either 8.9, with this break dropped and no limit 10.5, and with both 4.5, 17
+% pages with three or more and a mean of 0.71 a page, where plain has 6.2, 28 and 0.96.
 % The same documents without |breakcode| leave up to 41 lines empty, which is why
 % we warn about that.
 %
