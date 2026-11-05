@@ -436,7 +436,9 @@ test-noteoverflow-cap.pdf: %.pdf: %.tex ${NOTEOVERFLOW_SRC}
 	! grep '^!' $*.log
 	test "${call count_spill,capped}" -gt 0
 	test "${call count_spill,unresolved}" -eq 0
-	test "$$(grep -c 'keeps page' $*.log)" -eq "${call count_spill,capped}"
+	test "$$(grep -c 'keeps page' $*.log)" -eq "${call count_spill,capped}" \
+	  || { echo "$*: capped notes without their warning: marginfix is too old, this" \
+	    "needs its integration branch, https://github.com/dbosk/marginfix"; exit 1; }
 test-noteoverflow-xe.pdf: %.pdf: %.tex ${NOTEOVERFLOW_SRC}
 	@${settle_many}
 	! grep '^!' $*.log
