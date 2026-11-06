@@ -13,6 +13,10 @@
 % S2  \pagebreak[1] in the first line of a lead-in of three lines: p1, at rooms 4 to 7,
 %     before a listing in a center, a quote or an item, code side by side in a center,
 %     an itemize and an enumerate; p2 in the first line of one of two lines, room 4.
+% S3  After the end of a list, a listing in a center (f1a), a quote (f1b) or an item
+%     (f1c), and code side by side in a center (f1d); after a center (f1e), a quote
+%     (f1f), a listing (f1g) and code side by side (f1h), a listing in a center; after
+%     code side by side (f1i) and a center (f1j), a listing.  Room 3.
 %
 % Build: see the Makefile, with pdflatex; test-check.py compares the warnings with the
 % pages of the words.
@@ -155,5 +159,63 @@ Consider LEADN5B this:
 \roomfor{4}
 \pbshort\ LEADP2B.
 \case{P2B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{3}
+\begin{itemize}\item LEADF1A last\end{itemize}
+\begin{center}
+\case{F1A}{free}\code
+\end{center}
+
+\roomfor{3}
+\begin{itemize}\item LEADF1B last\end{itemize}
+\begin{quote}
+\case{F1B}{free}\code
+\end{quote}
+
+\roomfor{3}
+\begin{itemize}\item LEADF1C last\end{itemize}
+\begin{itemize}\item
+\case{F1C}{free}\code
+\end{itemize}
+
+\roomfor{3}
+\begin{itemize}\item LEADF1D last\end{itemize}
+\begin{center}
+\case{F1D}{free}\pair
+\end{center}
+
+\roomfor{3}
+\begin{center}LEADF1E\end{center}
+\begin{center}
+\case{F1E}{free}\code
+\end{center}
+
+\roomfor{3}
+\begin{quote}LEADF1F\end{quote}
+\begin{center}
+\case{F1F}{free}\code
+\end{center}
+
+\roomfor{3}
+\begin{Verbatim}
+LEADF1G
+\end{Verbatim}
+\begin{center}
+\case{F1G}{free}\code
+\end{center}
+
+\roomfor{3}
+\begin{didacticpair}{2}LEADF1H & x\end{didacticpair}
+\begin{center}
+\case{F1H}{free}\code
+\end{center}
+
+\roomfor{3}
+\begin{didacticpair}{2}LEADF1I & x\end{didacticpair}
+\case{F1I}{free}\code
+
+\roomfor{3}
+\begin{center}LEADF1J\end{center}
+\case{F1J}{free}\code
 
 \end{document}

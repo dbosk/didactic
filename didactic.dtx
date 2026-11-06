@@ -1131,9 +1131,11 @@
 %   To keep them together, write a note in the paragraph that leads into the
 %   listing, without a blank line, and a float before that paragraph.
 %   A break that you ask for doesn't warn, with |\pagebreak| or |\goodbreak|
-%   say, and nor does one after a list.
+%   say, and nor does one after a list, a listing or code side by side, which end
+%   in a place to break.
 %   The start of a list around the listing, such as |center|, gives a place to break
-%   too, and that warns.
+%   too, and that warns, but not right after the end of another list, where nothing
+%   leads into it.
 %   The header line of a code chunk of \textsf{noweb} stays with its code
 %   too.
 %   What moves with the listing is at least the last line of that paragraph,
@@ -1293,7 +1295,8 @@
 % \item Pages are all it looks at for a list, so a list that moves to the next column
 %   of |twocolumn|, away from its lead-in, says nothing.
 % \item A place to break after the end of another list doesn't warn, for a list or a
-%   listing, as it is one of the places where \LaTeX\ means a page to break.
+%   listing, wrapped in a |center| or not, or code side by side, as it is one of the
+%   places where \LaTeX\ means a page to break.
 %   So a display between a lead-in and what follows warns, but a |center| doesn't, as
 %   that ends in a list.
 % \item That the first line of a list fits is reckoned by a line of the text.
@@ -6065,6 +6068,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \newif\if@didactic@keep@itemlist
 \newif\if@didactic@keep@relplaced
 \newif\if@didactic@keep@endlist
+\newif\if@didactic@keep@pastlist
 \@didactic@keep@movabletrue
 \let\@didactic@keep@tie\relax
 \newcommand\@didactic@keep@hpage[2]{}
@@ -6885,6 +6889,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \ifx\@didactic@keep@listnoted\relax
     \def\@didactic@keep@listnoted{}%
     \global\@didactic@keep@listpen\@M
+    \global\@didactic@keep@pastlistfalse
+    \if@didactic@keep@endlist\global\@didactic@keep@pastlisttrue\fi
     \if@newlist
       \if@didactic@keep@asked\else
         \global\@didactic@keep@listpen\@beginparpenalty
@@ -6990,6 +6996,11 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 %   of its own, |\@didactic@keep@pp|.
 %   If the page was empty already when the first line came, |\outputpenalty| may be from 
 %   a note since then; so we keep the value from the last page that was shipped out.
+% \item Right after the end of another list, also of a listing, a center or code side
+%   by side, nothing leads into it: that is a place to break where \LaTeX\ means one,
+%   whatever wraps the listing and whatever penalty the page ended at, a list's or
+%   the note that ends code side by side, so nothing warns
+%   (|\if@didactic@keep@pastlist|, noted with the list's penalty).
 % \end{itemize}
 %    \begin{macrocode}
 \let\@didactic@FV@EndList\FV@EndList
@@ -7022,6 +7033,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
         break before it, such as \string\goodbreak, on input line
         \@didactic@keep@inputline\space of \@didactic@keep@inputfile}%
     \else
+      \if@didactic@keep@pastlist\else
       \if@didactic@keepleadin\if@didactic@keep@movable
         \ifdim\dimexpr\pagetotal+\pagedepth\relax
             <\dimexpr\@didactic@keep@top+.5\baselineskip\relax
@@ -7039,7 +7051,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
               \@didactic@keep@inputline\space of \@didactic@keep@inputfile}%
           \fi
         \fi
-      \fi\fi
+      \fi\fi\fi
     \fi
   \fi}
 %    \end{macrocode}

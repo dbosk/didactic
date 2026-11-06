@@ -449,6 +449,13 @@ o_asked didactic.dtx
 - \if@didactic@keep@endlist\else\if@didactic@keep@asked\else\if@didactic@keepleadin
 + \if@didactic@keep@endlist\else\iffalse\else\if@didactic@keepleadin
 
+# a listing in a center after the end of a list, and a listing after code side by side
+#: parted
+#= killed check-test-keep-parted
+S3pastlist didactic.dtx
+-     \if@didactic@keep@endlist\global\@didactic@keep@pastlisttrue\fi
++     \relax
+
 # the end of a list in a note, a footnote or a box in the lead-in
 #: parted
 #= killed check-test-keep-parted
