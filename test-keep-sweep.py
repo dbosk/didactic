@@ -223,14 +223,20 @@ CASES = {
     # a rule above a heading has no depth to reckon with, a line with descenders has
     "rh": lambda k: r"\noindent\rule{\linewidth}{.4pt}\par\nointerlineskip" + "\n" + heading(k) + "\n" + para(k, 16) + TAIL,
     "dh": lambda k: "gjpqy,\n\n" + heading(k) + "\n" + para(k, 16) + TAIL,
+    # a box of two lines above a heading, which goes to the next page with the heading
+    "bh": lambda k: r"\noindent\rule{2pt}{2\baselineskip}\par" + "\n" + heading(k) + "\n" + para(k, 16) + TAIL,
     # what is kept with \nobreak stays so, past what is written to the .aux
     "ln1": lambda k: para(k, 1, "P") + "\n\n" + r"\nobreak" + "\n" + items(k, 8, 1) + TAIL,
     # a page you end leaves nothing due
     "pn": lambda k: heading(k) + "\n" + para(k, 1, "P") + "\n\n" + r"\newpage" + "\n" + para(k, 16) + TAIL,
+    # and if you end it right under the heading, that is said once
+    "hP": lambda k: heading(k) + "\n" + r"\newpage" + "\n" + para(k, 1, "P") + "\n\n" + para(k, 16) + TAIL,
+    "hC": lambda k: heading(k) + "\n" + r"\clearpage" + "\n" + para(k, 1, "P") + "\n\n" + para(k, 16) + TAIL,
     # a longer lead-in on a page that stretches: two of its lines can go along
     "sv6": lambda k: r"\vspace{0pt plus 40pt}" + "\nS.\n\n" + para(k, 6, "P") + "\n" + verbatim(k, 8) + TAIL,
-    # a lead-in between two listings
+    # a lead-in between two listings, and with a listing after it that breaks
     "vlv1": lambda k: verbatim(k, 2).replace("C1X", "A1X").replace("C2X", "A2X") + "\n" + para(k, 1, "P") + "\n" + verbatim(k, 3) + TAIL,
+    "vLv1": lambda k: verbatim(k, 2).replace("C1X", "A1X").replace("C2X", "A2X") + "\n" + para(k, 1, "P") + "\n" + verbatim(k, 8) + TAIL,
     # what gives a place to break between a lead-in and a list: it warns from the pages
     "lv1": lambda k: para(k, 1, "P") + "\n" + r"\vspace{6pt}" + "\n" + items(k, 8, 1) + TAIL,
     # a break that is asked for parts them and says nothing
@@ -337,7 +343,7 @@ ASKED = {"lp1", "lB1", "lg1", "lh1", "lk1"}
 M3ROWS = {"p", "pl", "pL"}
 # Something comes between the rig's room and the heading or lead-in, so what counts is
 # what stays empty, from the page.
-ABOVE = {"hM3", "sv3", "sv6", "rh", "dh", "vlv1"}
+ABOVE = {"hM3", "sv3", "sv6", "rh", "dh", "vlv1", "vLv1", "bh"}
 # with space between paragraphs
 PARSKIPROWS = {"s", "p", "pl", "hv", "ll1", "ll3"}
 CHAPTERROWS = {"chp", "chv", "chv1", "chi1", "chn"}
@@ -353,14 +359,16 @@ DIDACTIC_ONLY = {"hN", "hNv1", "hj1", "j3", "fp", "fe", "fx", "fi", "fI", "fl1",
 NOT_COMPARED = DIDACTIC_ONLY | {"e", "ei", "eI", "se", "e1", "cp", "f", "rti"}
 LISTINGS = {"hv1", "hv2", "hv3", "v1", "v3", "v8", "hn1", "hn3", "n3", "hw1", "hw3", "w3",
             "hj1", "j3", "n6", "w6", "v6", "wL1", "cw0", "cw1", "cw2", "cw3", "cw4",
-            "ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3", "hNv1", "chv1", "chi1", "sv3", "sv6", "vlv1", "ln1"} | HEADLISTS | TALLITEMS | HEADTALL | PLACED | ASKED
+            "ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3", "hNv1", "chv1", "chi1", "sv3", "sv6", "vlv1", "vLv1", "ln1"} | HEADLISTS | TALLITEMS | HEADTALL | PLACED | ASKED
 ITEMLISTS = HEADLISTS | TALLITEMS | HEADTALL | ASKED | {"qi1", "lc1", "lP1", "ln1", "lv1", "lb1", "lm1", "lf1", "dl1", "tl1", "chi1", "ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3"}
 # L2: a list right under a heading follows LaTeX, so a line is enough.
 DIRECTLISTS = {"l", "L", "ri", "fi", "fI", "ei", "eI"}
-NOHEADING = TALLITEMS | PLACED | ASKED | {"ln1", "sv3", "sv6", "vlv1", "v1", "v3", "v8", "n3", "w3", "j3", "n6", "w6", "v6", "wL1",
+NOHEADING = TALLITEMS | PLACED | ASKED | {"ln1", "sv3", "sv6", "vlv1", "vLv1", "v1", "v3", "v8", "n3", "w3", "j3", "n6", "w6", "v6", "wL1",
              "ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "qq3", "lq3",
              "cw0", "cw1", "cw2", "cw3", "cw4"}
 AFTERCHUNK = {"cw0", "cw1", "cw2", "cw3", "cw4"}
+# A page you end under the heading: parted, as you asked.
+FORCED = {"hP", "hC"}
 # Enough to test lists under enumitem.
 ENUMITEM_CASES = ITEMLISTS | {"l", "L", "pl", "pL"}
 
@@ -515,11 +523,15 @@ def check_case(p, ref, name, case, K, tied=None):
             if p.on(lab, case) is not None:
                 first = p.on(lab, case)
                 break
-        if first != h and not (name == "f" and warns) and name != "d":
+        if first != h and not (name == "f" and warns) and name != "d" and name not in FORCED:
             fail(case, f"D2: heading on {h}, first line on {first}")
         if p.on("B", case) is not None and p.on("B", case) != first:
             fail(case, f"D2: inner heading on {p.on('B', case)}, first line on {first}")
         moved = h > r
+        # What fits on one page doesn't spread over three: a page in between would
+        # hold only what came before the heading.
+        if h > r + 1:
+            fail(case, f"D8: heading on page {h}, two pages after the room on {r}")
         says_moved = [w for w in warns if "it moves to the next page" in w]
         # D8: a move past the limit warns, and only that does.
         if moved and over and not says_moved:
@@ -531,6 +543,9 @@ def check_case(p, ref, name, case, K, tied=None):
             fail(case, f"D8: moved, {p.empty[r]:.1f} lines empty, no warning")
         if name == "pn" and warns:
             fail(case, f"D8: a page you end leaves nothing due: {warns[0][:50]}")
+        heads = [w for w in warns if "(keepafterheading):" in w]
+        if name in FORCED and len(heads) != 1:
+            fail(case, f"D8: a heading parted by a page you end warns once, not {len(heads)} times")
         # D8: only n of its lines
         count = p.lines_under(name, case)
         for w in warns:
