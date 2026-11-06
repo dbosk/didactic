@@ -10,6 +10,9 @@
 %     doesn't make the list after it follow the end of a list.
 %     n1 \ltnote, n2 \footnote, n3 \marginpar, n4 a minipage holding a center,
 %     n5 a figure holding a center and no caption, after the lead-in (and in it: S4).
+% S2  \pagebreak[1] in the first line of a lead-in of three lines: p1, at rooms 4 to 7,
+%     before a listing in a center, a quote or an item, code side by side in a center,
+%     an itemize and an enumerate; p2 in the first line of one of two lines, room 4.
 %
 % Build: see the Makefile, with pdflatex; test-check.py compares the warnings with the
 % pages of the words.
@@ -23,33 +26,134 @@
  \vspace*{\dimexpr\pagegoal-\pagetotal-#1\baselineskip-2\baselineskip\relax}\par
  \noindent A line above, that a page can end after.\par
  \noindent And another.\par}
-\newcommand\case[2]{\typeout{parted case #1 #2 line \the\inputlineno}}
-\makeatother
-% A list whose first item has eight lines, and a listing of eight lines.
-\newcommand\items[1]{\item FIRST#1 first\\ more\\ more\\ more\\ more\\ more\\ more\\
+% \case{name}{kind}, on the line where what the lead-in leads into starts.
+\newcommand\case[2]{\typeout{parted case #1 #2 line \the\inputlineno}\def\casename{#1}}
+% What a lead-in leads into: the first item of a list, a listing and code side by
+% side, each of eight lines, the first with FIRST<case>.
+\newcommand\items{\item FIRST\casename\ first\\ more\\ more\\ more\\ more\\ more\\ more\\
   more\item second}
+\newwrite\@parted@out
+\immediate\openout\@parted@out=\jobname-v.txt
+\immediate\write\@parted@out{FIRST\string\casename}
+\@tempcnta\@ne
+\@whilenum\@tempcnta<8\do{\advance\@tempcnta\@ne
+  \immediate\write\@parted@out{c\the\@tempcnta}}
+\immediate\closeout\@parted@out
+\newcommand\code{\VerbatimInput[commandchars=\\\{\}]{\jobname-v.txt}}
+\newcommand\pair{\begin{didacticpair}{2}
+  \begin{minipage}{.4\linewidth}FIRST\casename\\b\\c\\d\\e\\f\\g\\h\end{minipage} & x\\
+  \end{didacticpair}}
+% A lead-in of three lines, with a break allowed after its first line.
+\newcommand\pblead{Start \pagebreak[1] words words words words words words words words
+  words words words words words words words words words words words words words words
+  words words words words words words words words words words words words words words
+  words words words words words words words words words words words words words}
+% And one of two lines.
+\newcommand\pbshort{Start \pagebreak[1] words words words words words words words
+  words words words words words words words words words words words words words
+  words words words words words words words words words words}
+\makeatother
 \begin{document}
 
 \roomfor{2}
 Consider LEADN1A this\ltnote{Why:\begin{itemize}\item x\end{itemize}}:
-\case{N1A}{tie}\begin{itemize}\items{N1A}\end{itemize}
+\case{N1A}{tie}\begin{itemize}\items\end{itemize}
 
 \roomfor{2}
 Consider LEADN2A this\footnote{See\begin{itemize}\item x\end{itemize}}:
-\case{N2A}{tie}\begin{itemize}\items{N2A}\end{itemize}
+\case{N2A}{tie}\begin{itemize}\items\end{itemize}
 
 \roomfor{2}
 Consider LEADN3A this\marginpar{See\begin{itemize}\item x\end{itemize}}:
-\case{N3A}{tie}\begin{itemize}\items{N3A}\end{itemize}
+\case{N3A}{tie}\begin{itemize}\items\end{itemize}
 
 \roomfor{2}
 Consider LEADN4A \begin{minipage}[t]{2cm}\begin{center}c\end{center}\end{minipage}:
-\case{N4A}{tie}\begin{itemize}\items{N4A}\end{itemize}
+\case{N4A}{tie}\begin{itemize}\items\end{itemize}
 
 \roomfor{2}
 Consider LEADN5B this:
 
 \begin{figure}[b]\begin{center}c\end{center}\end{figure}
-\case{N5B}{tie}\begin{itemize}\items{N5B}\end{itemize}
+\case{N5B}{tie}\begin{itemize}\items\end{itemize}
+
+
+\roomfor{4}
+\pblead\ LEADP1A.
+\begin{center}
+\case{P1A}{tie}\code
+\end{center}
+
+\roomfor{4}
+\pblead\ LEADP1B.
+\begin{quote}
+\case{P1B}{tie}\code
+\end{quote}
+
+\roomfor{4}
+\pblead\ LEADP1C.
+\begin{itemize}\item
+\case{P1C}{tie}\code
+\end{itemize}
+
+\roomfor{4}
+\pblead\ LEADP1D.
+\begin{center}
+\case{P1D}{tie}\pair
+\end{center}
+
+\roomfor{4}
+\pblead\ LEADP1E.
+\case{P1E}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{4}
+\pblead\ LEADP1F.
+\case{P1F}{tie}\begin{enumerate}\items\end{enumerate}
+
+\roomfor{5}
+\pblead\ LEADP1G.
+\begin{center}
+\case{P1G}{tie}\code
+\end{center}
+
+\roomfor{6}
+\pblead\ LEADP1H.
+\begin{center}
+\case{P1H}{tie}\code
+\end{center}
+
+\roomfor{7}
+\pblead\ LEADP1I.
+\begin{center}
+\case{P1I}{tie}\code
+\end{center}
+
+\roomfor{5}
+\pblead\ LEADP1J.
+\case{P1J}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{6}
+\pblead\ LEADP1K.
+\case{P1K}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{7}
+\pblead\ LEADP1L.
+\case{P1L}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{6}
+\pblead\ LEADP1N.
+\begin{quote}
+\case{P1N}{tie}\code
+\end{quote}
+
+\roomfor{4}
+\pbshort\ LEADP2A.
+\begin{center}
+\case{P2A}{tie}\code
+\end{center}
+
+\roomfor{4}
+\pbshort\ LEADP2B.
+\case{P2B}{tie}\begin{itemize}\items\end{itemize}
 
 \end{document}

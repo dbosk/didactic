@@ -6896,7 +6896,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \AddToHook{cmd/smallbreak/before}{\global\@didactic@keep@askedtrue}
 \AddToHook{cmd/medbreak/before}{\global\@didactic@keep@askedtrue}
 \AddToHook{cmd/bigbreak/before}{\global\@didactic@keep@askedtrue}
-\AddToHook{cmd/pagebreak/before}{\global\@didactic@keep@askedtrue}
+\AddToHook{cmd/pagebreak/before}{\ifvmode\global\@didactic@keep@askedtrue\fi}
 \newdimen\@didactic@keep@startpt
 \newdimen\@didactic@keep@pre
 \let\@didactic@keep@started\relax
@@ -6982,6 +6982,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 %   page that can't stretch.
 %   So the commands for it set |\if@didactic@keep@asked|, until the next paragraph
 %   starts, and then we don't note the value.
+%   |\pagebreak| only in vertical mode: in a paragraph it is a |\vadjust|, a break
+%   between the lines of the lead-in, not one before what it leads into.
+%   The others end the paragraph first.
 %   A note, a float or glue gives a penalty of 0 or more, and then we warn, unless
 %   we released the tie ourselves (|\if@didactic@keep@movable|): that has a warning
 %   of its own, |\@didactic@keep@pp|.

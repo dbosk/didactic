@@ -143,7 +143,14 @@ A18big didactic.dtx
 #: keep
 #= killed
 A20page didactic.dtx
-- \AddToHook{cmd/pagebreak/before}{\global\@didactic@keep@askedtrue}
+- \AddToHook{cmd/pagebreak/before}{\ifvmode\global\@didactic@keep@askedtrue\fi}
+
+# \pagebreak in the lead-in's paragraph
+#: parted
+#= killed check-test-keep-parted
+S2vmode didactic.dtx
+- \AddToHook{cmd/pagebreak/before}{\ifvmode\global\@didactic@keep@askedtrue\fi}
++ \AddToHook{cmd/pagebreak/before}{\global\@didactic@keep@askedtrue}
 
 #: keep
 #= killed
