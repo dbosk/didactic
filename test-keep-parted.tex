@@ -1,0 +1,55 @@
+% A lead-in and what it leads into, a list, a listing or code side by side, on
+% one page or parted (didactic): correct or warn.  Each case has a kind:
+%   tie   parted only with a warning that names its line, and together without one;
+%   free  it follows the end of a list, which is a place to break that LaTeX means,
+%         so it is parted here, and nothing warns.
+% The words LEAD<case> and FIRST<case> are the last line of the lead-in and the
+% first line of what it leads into.
+%
+% S1  A list inside a box in the lead-in (a note, a footnote, a minipage, a float)
+%     doesn't make the list after it follow the end of a list.
+%     n1 \ltnote, n2 \footnote, n3 \marginpar, n4 a minipage holding a center,
+%     n5 a figure holding a center and no caption, after the lead-in (and in it: S4).
+%
+% Build: see the Makefile, with pdflatex; test-check.py compares the warnings with the
+% pages of the words.
+\documentclass[a4paper,10pt,oneside]{memoir}
+\usepackage{didactic}
+\pagestyle{empty}
+\makeatletter
+% \roomfor{n}: a new page with n lines of room, under two lines that a page can end
+% after.
+\newcommand\roomfor[1]{\clearpage\noindent\mbox{}R\par
+ \vspace*{\dimexpr\pagegoal-\pagetotal-#1\baselineskip-2\baselineskip\relax}\par
+ \noindent A line above, that a page can end after.\par
+ \noindent And another.\par}
+\newcommand\case[2]{\typeout{parted case #1 #2 line \the\inputlineno}}
+\makeatother
+% A list whose first item has eight lines, and a listing of eight lines.
+\newcommand\items[1]{\item FIRST#1 first\\ more\\ more\\ more\\ more\\ more\\ more\\
+  more\item second}
+\begin{document}
+
+\roomfor{2}
+Consider LEADN1A this\ltnote{Why:\begin{itemize}\item x\end{itemize}}:
+\case{N1A}{tie}\begin{itemize}\items{N1A}\end{itemize}
+
+\roomfor{2}
+Consider LEADN2A this\footnote{See\begin{itemize}\item x\end{itemize}}:
+\case{N2A}{tie}\begin{itemize}\items{N2A}\end{itemize}
+
+\roomfor{2}
+Consider LEADN3A this\marginpar{See\begin{itemize}\item x\end{itemize}}:
+\case{N3A}{tie}\begin{itemize}\items{N3A}\end{itemize}
+
+\roomfor{2}
+Consider LEADN4A \begin{minipage}[t]{2cm}\begin{center}c\end{center}\end{minipage}:
+\case{N4A}{tie}\begin{itemize}\items{N4A}\end{itemize}
+
+\roomfor{2}
+Consider LEADN5B this:
+
+\begin{figure}[b]\begin{center}c\end{center}\end{figure}
+\case{N5B}{tie}\begin{itemize}\items{N5B}\end{itemize}
+
+\end{document}

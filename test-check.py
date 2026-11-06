@@ -491,6 +491,39 @@ def keep_first(c):
     c.ok(not warnings(c), f"no warning: {warnings(c)}")
 
 
+PARTED_WARNINGS = ("apart from what leads", "goes to the next page", "moves along")
+
+
+def keep_parted(c):
+    """test-keep-parted.tex: parted only with a warning, after a list never one."""
+    cases = {n: (k, int(l)) for n, k, l in
+             re.findall(r"parted case (\w+) (\w+) line (\d+)", c.log)}
+    c.ok(len(cases) >= 5, f"{len(cases)} cases")
+    named = {}
+    for w in warnings(c):
+        if not any(s in w for s in PARTED_WARNINGS):
+            continue
+        m = re.search(r"input line (\d+) of test-keep-parted|"
+                      r"test-keep-parted, line (\d+)", w)
+        c.ok(m, f"names a line of this file: {w}")
+        if m:
+            named.setdefault(int(m.group(1) or m.group(2)), []).append(w)
+    for n, (kind, line) in sorted(cases.items()):
+        lead, first = c.one("LEAD" + n), c.one("FIRST" + n)
+        parted = lead["page"] < first["page"]
+        warned = line in named
+        where = f"case {n} ({kind}), line {line}, pages {lead['page']} and {first['page']}"
+        if kind == "tie":
+            c.ok(parted == warned, f"{where}: {'a' if warned else 'no'} warning")
+        elif kind == "free":
+            c.ok(parted, f"{where}: parted")
+            c.ok(not warned, f"{where}: no warning: {named.get(line)}")
+        else:
+            c.ok(False, f"{where}: unknown kind")
+    others = sorted(set(named) - {line for _, line in cases.values()})
+    c.ok(not others, f"no warning elsewhere: {others}")
+
+
 def keep_multicol(c):
     """test-keep-multicol.tex; see its header."""
     lines = keep_results(c, "multicol")
@@ -710,6 +743,7 @@ CHECKS = {
     "test-keep-enumitem": keep_enumitem,
     "test-keep-twocol": keep_twocol,
     "test-keep-first": keep_first,
+    "test-keep-parted": keep_parted,
     "test-keep-noweb": keep_noweb,
     "test-keep-noweb-break": lambda c: keep_noweb(c, overfull=False),
     "test-oldkernel-title": oldkernel_title,

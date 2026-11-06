@@ -31,7 +31,8 @@ TEST_INCLUDE=		test-marginfloat-include-all test-marginfloat-include
 # Warnings from where listings ended up.
 TEST_KEEPCHECK=		test-keep-leadin test-keep-leadin-off test-keep-overfull \
 			test-keep-multicol test-keep-twocol test-keep-noweb \
-			test-keep-noweb-break test-keep-once test-keep-enumitem test-keep-first
+			test-keep-noweb-break test-keep-once test-keep-enumitem test-keep-first \
+			test-keep-parted
 
 .PHONY: all
 all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
@@ -281,8 +282,10 @@ test-keep-leadin.pdf test-keep-leadin-off.pdf: %.pdf: %.tex \
 		test-keep-leadin-body.tex didactic.sty
 	@${latex_until_settled}
 test-keep-enumitem.pdf test-keep-once.pdf test-keep-overfull.pdf test-keep-multicol.pdf test-keep-twocol.pdf \
-		test-keep-first.pdf: %.pdf: %.tex didactic.sty
+		test-keep-first.pdf test-keep-parted.pdf: %.pdf: %.tex didactic.sty
 	@${latex_until_settled}
+# The cases are set for the fonts of pdflatex.
+test-keep-parted.pdf: PDFLATEX=pdflatex
 
 # The whole document first: the .aux files of what the second leaves out are its input.
 test-keep-include-all.pdf: test-keep-include-all.tex test-keep-include-a.tex \

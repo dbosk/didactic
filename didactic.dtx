@@ -7252,6 +7252,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % Right after the end of another list there is nothing to tie it to: that is a place
 % to break where \LaTeX\ means one, and nothing warns, as for a listing there.
 % (|\if@endpe| can't tell, as |\begin| clears it before we get here.)
+% Only a list that ends on the page counts, not one in a box (|\ifinner|): a list in
+% a note, a footnote, a minipage or a float in the lead-in ends in a list of its own,
+% and the list after the lead-in is still tied to it.
 % Where that page is written matters: after such a place it would be on the next page
 % too, and nothing would seem parted.
 % So |\@didactic@keep@ifbreakless| looks whether anything came after the lead-in's last
@@ -7404,7 +7407,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \AddToHook{cmd/filbreak/before}{\global\@didactic@keep@askedtrue}
 \AddToHook{para/begin}{\global\@didactic@keep@endlistfalse}
 \AtBeginDocument{%
-  \g@addto@macro\@endparenv{\global\@didactic@keep@endlisttrue}}
+  \g@addto@macro\@endparenv{\ifinner\else\global\@didactic@keep@endlisttrue\fi}}
 \def\@didactic@keep@itemlistbegin{\@didactic@keep@itemlisttrue}
 \AddToHook{env/itemize/begin}{\@didactic@keep@itemlistbegin}
 \AddToHook{env/enumerate/begin}{\@didactic@keep@itemlistbegin}

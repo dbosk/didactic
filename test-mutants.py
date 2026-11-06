@@ -46,6 +46,7 @@ GROUPS = {
                     "test-keep-noweb", "test-keep-noweb-break"], []),
     "noweb": (["test-keep-noweb", "test-keep-noweb-break"],
               ["test-keep-noweb", "test-keep-noweb-break"], []),
+    "parted": (["test-keep-parted"], ["test-keep-parted"], []),
     "rules": (RULES, ["test-keep-once", "test-keep-enumitem"], ["m", "s", "k", "m3", "c"]),
 }
 # All with pdflatex, for speed, but the frame titles with the Makefile's xelatex:

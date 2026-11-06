@@ -22,6 +22,7 @@
 #            -overfull, -multicol, -twocol, -once, and test-check.py on those with a check
 #            (three to five minutes)
 #   noweb    test-keep-noweb, -noweb-break, and test-check.py on them (a minute)
+#   parted   test-keep-parted, and test-check.py on it (a quarter of a minute)
 #   rules    the small test-keep documents, test-keep, -heading, -nogap, -once, and the
 #            sweep in variants m and s, against plain LaTeX's version (three to eight)
 # All with pdflatex, for speed, where make all uses xelatex, but title with xelatex: its
@@ -440,6 +441,13 @@ o_endlist didactic.dtx
 o_asked didactic.dtx
 - \if@didactic@keep@endlist\else\if@didactic@keep@asked\else\if@didactic@keepleadin
 + \if@didactic@keep@endlist\else\iffalse\else\if@didactic@keepleadin
+
+# the end of a list in a note, a footnote or a box in the lead-in
+#: parted
+#= killed check-test-keep-parted
+S1inner didactic.dtx
+- \g@addto@macro\@endparenv{\ifinner\else\global\@didactic@keep@endlisttrue\fi}}
++ \g@addto@macro\@endparenv{\global\@didactic@keep@endlisttrue}}
 
 #: rules
 #= killed
