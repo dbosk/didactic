@@ -17,6 +17,11 @@
 %     (f1c), and code side by side in a center (f1d); after a center (f1e), a quote
 %     (f1f), a listing (f1g) and code side by side (f1h), a listing in a center; after
 %     code side by side (f1i) and a center (f1j), a listing.  Room 3.
+% S4  A float or a note that ends the lead-in's paragraph, then a list (n5a, t1a to
+%     t2c), at rooms 1.25 to 5; p3a and p3b: \pagebreak[1] that ends the lead-in is a
+%     break asked for.
+% S5  Code side by side whose page ended before it, so a note on the next page sets
+%     \outputpenalty: after \vspace (q1), a display (q2) or in a center (q3, p1m).
 %
 % Build: see the Makefile, with pdflatex; test-check.py compares the warnings with the
 % pages of the words.
@@ -320,5 +325,57 @@ words words words words words words words words words, of which the last line go
 along LEADT2C.
 
 \case{T2C}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{5}
+\pblead\ LEADP1M.
+\begin{center}
+\case{P1M}{tie}\pair
+\end{center}
+
+\roomfor{1}
+LEADQ1A lead-in.
+
+\vspace{6pt}
+\case{Q1A}{tie}\pair
+
+\roomfor{1.25}
+LEADQ1B lead-in.
+
+\vspace{6pt}
+\case{Q1B}{tie}\pair
+
+\roomfor{1.5}
+LEADQ1C lead-in.
+
+\vspace{6pt}
+\case{Q1C}{tie}\pair
+
+\roomfor{3}
+LEADQ2A lead-in.
+\[ x = y \]
+\case{Q2A}{tie}\pair
+
+\roomfor{3.5}
+LEADQ2B lead-in.
+\[ x = y \]
+\case{Q2B}{tie}\pair
+
+\roomfor{1}
+LEADQ3A lead-in.
+\begin{center}
+\case{Q3A}{tie}\pair
+\end{center}
+
+\roomfor{1.25}
+LEADQ3B lead-in.
+\begin{center}
+\case{Q3B}{tie}\pair
+\end{center}
+
+\roomfor{1.5}
+LEADQ3C lead-in.
+\begin{center}
+\case{Q3C}{tie}\pair
+\end{center}
 
 \end{document}

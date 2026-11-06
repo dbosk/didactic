@@ -6933,6 +6933,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \newdimen\@didactic@keep@startpt
 \newdimen\@didactic@keep@pre
 \let\@didactic@keep@started\relax
+\def\@didactic@keep@startship{0}
 \def\@didactic@keep@atstart{%
   \ifx\@didactic@keep@started\relax
     \def\@didactic@keep@started{}%
@@ -6943,6 +6944,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \fi
     \xdef\@didactic@keep@inputfile{\@didactic@keep@srcfile}%
     \global\@didactic@keep@startpt\pagetotal
+    \xdef\@didactic@keep@startship{\the\ReadonlyShipoutCounter}%
   \fi}
 \def\@didactic@keep@place{near page \thepage\space on input line
   \@didactic@keep@inputline\space of \@didactic@keep@inputfile}
@@ -7036,6 +7038,10 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 %   of its own, |\@didactic@keep@pp|.
 %   If the page was empty already when the first line came, |\outputpenalty| may be from 
 %   a note since then; so we keep the value from the last page that was shipped out.
+%   The same if a page was shipped out since the listing started
+%   (|\@didactic@keep@startship|): code side by side blocks the margin with a note
+%   after its start, and if the page ended before that, the note sets
+%   |\outputpenalty| on the next page, to a value that looks as if you asked.
 % \item Right after the end of another list, also of a listing, a center or code side
 %   by side, nothing leads into it: that is a place to break where \LaTeX\ means one,
 %   whatever wraps the listing and whatever penalty the page ended at, a list's or
@@ -7081,6 +7087,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
             \@tempcnta\@didactic@keep@lastpen
           \else
             \@tempcnta\outputpenalty
+          \fi
+          \ifnum\ReadonlyShipoutCounter>\@didactic@keep@startship\relax
+            \@tempcnta\@didactic@keep@lastpen
           \fi
           \ifnum\@tempcnta=\@didactic@keep@listpen\@tempcnta\z@\fi
           \ifnum\@tempcnta<\z@\else
