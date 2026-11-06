@@ -24,7 +24,8 @@
 #   noweb    test-keep-noweb, -noweb-break, and test-check.py on them (a minute)
 #   parted   test-keep-parted, and test-check.py on it (a quarter of a minute)
 #   rules    the small test-keep documents, test-keep, -heading, -nogap, -once, and the
-#            sweep in variants m and s, against plain LaTeX's version (three to eight)
+#            sweep in variants m, s, k, m3, c and k3, against plain LaTeX's version
+#            (three to eight)
 # All with pdflatex, for speed, where make all uses xelatex, but title with xelatex: its
 # check reads a letter inside a picture, whose box depends on the engine.
 #
@@ -593,7 +594,7 @@ x_two didactic.dtx
 - \advance\dimen@2\@didactic@keep@L
 + \advance\dimen@1\@didactic@keep@L
 
-# survives: a lead-in of at most three lines that started on the page before can't all move, so what it adds only makes the release sooner
+# survives: what it adds counts only for a lead-in of at most three lines that started on the page before, which needs a line about as tall as the page above it, and no row has one; such a lead-in can't all move, so it only makes the release sooner
 #: rules
 #= survived
 x_lead didactic.dtx
@@ -606,7 +607,7 @@ x_pstart didactic.dtx
 - \dimen@\dimexpr\pagegoal-\@didactic@keep@pstart\relax
 + \relax
 
-# survives: it needs a chained lead-in of at most three lines across a page, with more than the limit left at the heading, which a chain doesn't reach
+# survives: it needs a chained lead-in of at most three lines across a page, with more than the limit left at the heading, which takes a line about as tall as the page, and no row has one
 #: rules
 #= survived
 x_headtotal didactic.dtx
@@ -615,9 +616,9 @@ x_headtotal didactic.dtx
 -     \fi\fi
 + \fi
 
-# survives: a page that only fits by shrinking breaks before the heading either way
+# a box above a heading that doesn't fit: bh
 #: rules
-#= survived
+#= killed
 x_overfull didactic.dtx
 - \ifdim\pagetotal>\pagegoal\else
 -           \@didactic@keep@tmp\dimexpr\pagegoal-\pagetotal\relax
@@ -653,14 +654,25 @@ x_rule didactic.dtx
 - \@didactic@keep@tmpb.8\@didactic@keep@tmpb
 + \relax
 
-# survives: only at keepafterheading=3, past the limit, with \parskip: half a line in what a warning says
+# the \parskip of the first paragraph is on the page already when we measure: k3
 #: rules
-#= survived
+#= killed sweep-k3
 x_parskip didactic.dtx
-- \@didactic@keep@tmp\dimexpr\pagegoal-\pagetotal+\pageshrink-\parskip\relax
-+ \@didactic@keep@tmp\dimexpr\pagegoal-\pagetotal+\pageshrink\relax
+-       \@didactic@keep@tmp\dimexpr\pagegoal-\pagetotal+\pageshrink\relax
+-       \ifdim\@didactic@keep@tmp<\@didactic@keepafterheading\@didactic@keep@L
++       \@didactic@keep@tmp\dimexpr\pagegoal-\pagetotal+\pageshrink-\parskip\relax
++       \ifdim\@didactic@keep@tmp<\@didactic@keepafterheading\@didactic@keep@L
 
-# survives: only at keepafterheading=3, past the limit, with room for less than two lines; they don't fit whichever is owed
+# a second paragraph that owes lines, with \parskip
+#: rules
+#= killed sweep-k3
+x_remeasure didactic.dtx
+-       \else
+-         \@didactic@keep@remeasure
++       \else
++         \relax
+
+# survives: with room for less than two lines a first paragraph of two lines doesn't fit, whichever is owed, and after one of one line the next is measured again (\@didactic@keep@remeasure); in k3 the review's case that killed it was the \parskip that x_parskip is about
 #: rules
 #= survived
 x_owed2 didactic.dtx
@@ -685,8 +697,17 @@ x_newpage didactic.dtx
 - \global\let\@didactic@keep@owedkey\@empty
 -   \ifnum\@didactic@keep@headstate=\thr@@
 -     \global\@didactic@keep@headstate\z@
+-     \global\let\@didactic@keep@shortmsg\@empty
 -   \fi}
 + \relax}
+
+# what was too little for keepafterheading is said only if the lines were due
+#: rules
+#= killed sweep-m3
+x_shortdrop didactic.dtx
+-     \global\@didactic@keep@headstate\z@
+-     \global\let\@didactic@keep@shortmsg\@empty
++     \global\@didactic@keep@headstate\z@
 
 #: rules
 #= killed sweep-m:5 sweep-s:5
@@ -719,9 +740,9 @@ x_newlist didactic.dtx
 - \AddToHook{env/#1/begin}{\@didactic@keep@itemlistbegin}}
 + \relax}
 
-# survives: where a listing ended moves the start of the next lead-in by less than a line, and no row shows that
+# a lead-in between a listing and one that breaks: vLv1
 #: rules
-#= survived
+#= killed
 x_flushpend didactic.dtx
 - \begingroup\@@par\endgroup
 -     \global\@didactic@keep@pend\dimexpr\pagetotal+\pagedepth\relax
@@ -737,9 +758,9 @@ x_afterlist didactic.dtx
 + \iffalse\else
 +             \if@didactic@keepleadin
 
-# survives: no heading has two such records that we could find; the guard stays against that
+# a heading, \newpage and a paragraph of one line: hP, hC
 #: rules
-#= survived
+#= killed
 x_haonce didactic.dtx
 - \global\@namedef{@didactic@ha@#1}{}%
 -           \@didactic@keep@tellhead{#1}{\ifcase#3 its first paragraph

@@ -7884,9 +7884,20 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % At the start of the first paragraph the heading is on the page, so we can 
 % measure, in vertical mode (|para/before|), again counting what the page can 
 % shrink.
+% The |\parskip| above the paragraph is on the page by then, if it gets one: \TeX\
+% adds it before |\everypar|, where the hook runs, and after a heading of
+% \textsf{memoir} there is none.
 % If the lines don't fit, the chain will move the heading to the next page, 
 % and if that is over |keepmaxgap| the limit wins: we ask for as many lines as 
 % fit, and warn.
+% If the first paragraph has fewer lines than that, the next one owes the rest, and
+% it has a |\parskip| of its own, so at its start we measure again
+% (|\@didactic@keep@remeasure|): if the rest doesn't fit we ask for what does, and
+% warn, so that no more lines are owed than fit and no fewer stay than \LaTeX\
+% would keep.
+% That warning waits until the lines are done (|\@didactic@keep@short|), at the start
+% of the next paragraph that owes none: if you end the page before that, with
+% |\newpage|, nothing is due, and it says nothing.
 % But never for fewer than \LaTeX\ keeps: |\@afterheading| forbids a break after 
 % the first line of the paragraph, so with room for less than two lines, the 
 % heading moves if the paragraph has them, however much that leaves empty.
@@ -7944,7 +7955,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \global\@didactic@keep@owed\@didactic@keepafterheading
   \if@didactic@keep@overlimit
     \ifdim\pagegoal<\maxdimen
-      \@didactic@keep@tmp\dimexpr\pagegoal-\pagetotal+\pageshrink-\parskip\relax
+      \@didactic@keep@tmp\dimexpr\pagegoal-\pagetotal+\pageshrink\relax
       \ifdim\@didactic@keep@tmp<\@didactic@keepafterheading\@didactic@keep@L
         \@didactic@keep@tmpc\@didactic@keep@tmp
         \divide\@didactic@keep@tmpc\@didactic@keep@L
@@ -7954,17 +7965,41 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
           \fi
         \else
           \global\@didactic@keep@owed\@didactic@keep@tmpc
-          \PackageWarning{didactic}{%
-            Only \the\@didactic@keep@tmpc\space of the
-            \the\@didactic@keepafterheading\space lines of keepafterheading
-            \MessageBreak fit after a heading: moving it would leave
-            more\MessageBreak than keepmaxgap lines empty, near page
-            \the\c@page}%
+          \@didactic@keep@short{\the\@didactic@keep@tmpc}%
         \fi
       \fi
     \fi
   \fi
   \global\@didactic@keep@asked\@didactic@keep@owed}
+\def\@didactic@keep@remeasure{%
+  \if@didactic@keep@overlimit\ifdim\pagegoal<\maxdimen
+    \@didactic@keep@tmp\dimexpr\pagegoal-\pagetotal+\pageshrink\relax
+    \ifdim\@didactic@keep@tmp<\z@\@didactic@keep@tmp\z@\fi
+    \@didactic@keep@tmpc\@didactic@keep@tmp
+    \divide\@didactic@keep@tmpc\@didactic@keep@L
+    \ifnum\@didactic@keep@tmpc<\@didactic@keep@owed
+      \global\advance\@didactic@keep@asked
+        \numexpr\@didactic@keep@tmpc-\@didactic@keep@owed\relax
+      \global\@didactic@keep@owed\@didactic@keep@tmpc
+      \@didactic@keep@short{\the\@didactic@keep@asked}%
+    \fi
+  \fi\fi}
+\let\@didactic@keep@shortmsg\@empty
+\def\@didactic@keep@short#1{%
+  \xdef\@didactic@keep@shortmsg{\noexpand\@didactic@keep@tellshort{#1}%
+    {\the\c@page}{\the\inputlineno}}}
+\def\@didactic@keep@tellshort#1#2#3{%
+  \PackageWarningNoLine{didactic}{%
+    Only #1 of the \the\@didactic@keepafterheading\space lines of keepafterheading
+    \MessageBreak fit after a heading: moving it would leave
+    more\MessageBreak than keepmaxgap lines empty, near page #2
+    on input line #3}}
+\def\@didactic@keep@flushshort{%
+  \ifx\@didactic@keep@shortmsg\@empty\else
+    \@didactic@keep@shortmsg
+    \global\let\@didactic@keep@shortmsg\@empty
+  \fi}
+\AtEndDocument{\@didactic@keep@flushshort}
 \def\@didactic@keep@blockend{%
   \global\@didactic@keep@headstate\z@
   \global\clubpenalties\z@
@@ -7984,6 +8019,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \fi
   \if@didactic@keep@inbox\else
     \global\let\@didactic@keep@adjust\@empty
+    \ifnum\@didactic@keep@headstate=\thr@@\else\@didactic@keep@flushshort\fi
     \global\@didactic@keep@afterlistingfalse
     \global\@didactic@keep@pstart\dimexpr\pagetotal+\pagedepth\relax
     \ifdim\@didactic@keep@pend<\@didactic@keep@pstart
@@ -8009,6 +8045,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \global\@didactic@keep@ptotal\pagetotal
       \ifdim\pagegoal=\maxdimen
         \global\let\@didactic@keep@owedkey\@empty
+      \else
+        \@didactic@keep@remeasure
       \fi
     \or
       \@didactic@keep@movecheck
@@ -8111,6 +8149,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \global\let\@didactic@keep@owedkey\@empty
   \ifnum\@didactic@keep@headstate=\thr@@
     \global\@didactic@keep@headstate\z@
+    \global\let\@didactic@keep@shortmsg\@empty
   \fi}
 \def\@didactic@keep@display{\global\clubpenalties\z@}
 \AddToHook{para/before}{\@didactic@keep@parabefore}

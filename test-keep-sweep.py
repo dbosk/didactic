@@ -6,7 +6,8 @@
 
 `gen` writes a document with each case of CASES at each room from 1 to 14 lines,
 with didactic (m memoir, a article, s memoir with \\sloppybottom, s3 that with
-keepafterheading=3) or without it (mp, ap, sp: the same fonts and margins, so the
+keepafterheading=3; k with \\parskip, k3 that with keepafterheading=3) or without
+it (mp, ap, sp, kp: the same fonts and margins, so the
 same pages but for what didactic does).  `check` reads the pages from the .aux and the warnings from the .log, of
 the variant and its plain reference, and holds them to the rules below; it prints
 a FAIL line per broken rule and exits non-zero if any broke or if a case is missing.
@@ -70,6 +71,8 @@ VARIANTS = {
     "sq": MEMOIR + MIMIC + PLAIN + NOWEB + BREAKCODE + r"\usepackage{fancyvrb}" + TIED + SLOPPY,
     "k": MEMOIR + NOWEB + DIDACTIC + BEAMER + BREAKCODE + PARSKIP,
     "kp": MEMOIR + MIMIC + PLAIN + NOWEB + BREAKCODE + r"\usepackage{fancyvrb}" + PARSKIP,
+    "k3": MEMOIR + NOWEB + DIDACTIC.replace("outer", "outer,keepafterheading=3") + BEAMER + BREAKCODE
+          + PARSKIP,
     "m3": MEMOIR + NOWEB + DIDACTIC.replace("outer", "outer,keepafterheading=3") + BEAMER + BREAKCODE,
     "e": MEMOIR + NOWEB + DIDACTIC + BEAMER + BREAKCODE + r"\usepackage{enumitem}",
     "ep": MEMOIR + MIMIC + PLAIN + NOWEB + BREAKCODE + r"\usepackage{fancyvrb}\usepackage{enumitem}",
@@ -339,8 +342,9 @@ PLACED = {"qi1", "qv1", "lc1", "lP1", "lv1", "lb1", "lm1", "lf1", "dv1", "dl1", 
 # the end of a list is a place to break that nobody warns about
 AFTERLIST = {"tv1", "tl1", "qi1", "qv1"}
 ASKED = {"lp1", "lB1", "lg1", "lh1", "lk1"}
-# keepafterheading=3 under memoir: enough to compare with plain LaTeX
-M3ROWS = {"p", "pl", "pL"}
+# keepafterheading=3 under memoir: enough to compare with plain LaTeX, and a page you
+# end before the lines are done
+M3ROWS = {"p", "pl", "pL", "pn"}
 # Something comes between the rig's room and the heading or lead-in, so what counts is
 # what stays empty, from the page.
 ABOVE = {"hM3", "sv3", "sv6", "rh", "dh", "vlv1", "vLv1", "bh"}
