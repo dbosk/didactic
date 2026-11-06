@@ -6,6 +6,8 @@
 %      at it, and nothing warns.
 %   F  Space before the list, by before=, gives a place to break: that parts them, and
 %      warns once, naming this line.
+%   G  A listing in the first item of such a list: the penalty is yours there too,
+%      and nothing warns.
 \documentclass[a4paper,10pt,oneside]{memoir}
 \usepackage{didactic}
 \usepackage{enumitem}
@@ -35,5 +37,17 @@ After.
 \roomfor{2}
 LEADF in.
 \case{f}\begin{itemize}[before=\vspace{4pt}]\item FIRSTF\item second\end{itemize}
+After.
+
+\roomfor{2}
+LEADG in.
+\begin{itemize}[beginpenalty=-500]\item
+\case{g}\begin{Verbatim}
+FIRSTG
+line 2
+line 3
+line 4
+\end{Verbatim}
+\end{itemize}
 After.
 \end{document}

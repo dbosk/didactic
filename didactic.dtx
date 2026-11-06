@@ -6898,7 +6898,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \if@didactic@keep@endlist\global\@didactic@keep@pastlisttrue\fi
     \if@newlist
       \if@didactic@keep@asked\else
-        \global\@didactic@keep@listpen\@beginparpenalty
+        \ifnum\@beginparpenalty=\@didactic@keep@bpdefault\relax
+          \global\@didactic@keep@listpen\@beginparpenalty
+        \fi
       \fi
     \fi
   \fi}
@@ -7011,6 +7013,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 %   penalty too, |\@beginparpenalty|, which nobody asked for.
 %   So when the listing comes first in a list (|\if@newlist|), we note that value,
 %   |\@didactic@keep@listpen|, and such a penalty counts as none.
+%   Only if it is the document's, though: another one, by the key |beginpenalty| of
+%   \textsf{enumitem} say, is yours, as it is for a list (|\@didactic@keep@listtie|).
 %   We note it once, for the outermost thing we set up, before that changes the value.
 %   A break you ask for right before such a list ends the page at the list's penalty all
 %   the same, for \TeX\ takes the last of breaks that cost the same, as all do on a

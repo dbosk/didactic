@@ -112,9 +112,9 @@ A12newlist didactic.dtx
 #= killed
 A13asked didactic.dtx
 -       \if@didactic@keep@asked\else
--         \global\@didactic@keep@listpen\@beginparpenalty
+-         \ifnum\@beginparpenalty=\@didactic@keep@bpdefault\relax
 +       \ifnum0=0
-+         \global\@didactic@keep@listpen\@beginparpenalty
++         \ifnum\@beginparpenalty=\@didactic@keep@bpdefault\relax
 
 #: keep
 #= killed
@@ -498,6 +498,15 @@ S5ship didactic.dtx
 +           \ifnum\ReadonlyShipoutCounter>\@didactic@keep@startship\relax
 +             \relax
 
+# a listing in a list whose beginpenalty is yours
+#: rules
+#= killed check-test-keep-enumitem
+M_bpyours didactic.dtx
+-         \ifnum\@beginparpenalty=\@didactic@keep@bpdefault\relax
+-           \global\@didactic@keep@listpen\@beginparpenalty
++         \ifnum0=0
++           \global\@didactic@keep@listpen\@beginparpenalty
+
 # a listing in a center after the end of a list, and a listing after code side by side
 #: parted
 #= killed check-test-keep-parted
@@ -521,7 +530,9 @@ o_filbreak didactic.dtx
 #: rules
 #= killed check-test-keep-enumitem
 o_bpdefault didactic.dtx
+-     \@didactic@keep@itemlistfalse
 -     \ifnum\@beginparpenalty=\@didactic@keep@bpdefault\relax
++     \@didactic@keep@itemlistfalse
 +     \ifnum0=0
 
 #: rules
