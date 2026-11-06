@@ -530,10 +530,13 @@ def keep_multicol(c):
     c.ok(not re.search(r"Overfull \\vbox", c.log), "no Overfull \\vbox")
     w = [x for x in warnings(c) if "multicols" in x]
     c.ok(not [x for x in warnings(c) if "too tall" in x], "nothing is too tall")
-    for n in ("a", "b", "p", "pl", "tl", "s"):
+    for n in ("a", "b", "p", "pl", "tl", "s", "sh"):
         c.ok(sum(f"input line {lines[n]}" in x for x in w) == 1,
              f"case {n}, line {lines[n]}, warns once")
-    c.ok(len(w) == 6, f"six warnings about multicols, has {len(w)}: {w}")
+    c.ok(len(w) == 7, f"seven warnings about multicols, has {len(w)}: {w}")
+    cols = {(w["page"], w["xmin"] < 200) for w in c.words("short")}
+    c.ok(len(cols) == 2, f"a short listing at the foot of a column breaks as fancyvrb "
+         f"lets it: in {len(cols)} columns")
     for lead, first in (("LEADA", "alpha"), ("LEADB", "beta")):
         # In its own column, it's above it with no stretch; in the next one, it's
         # at the top of it.
