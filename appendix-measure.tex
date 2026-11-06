@@ -5,8 +5,8 @@
 \section{Measurements on real documents}\label{app:pb-measure}
 
 This section reports what the page-break defaults do to real documents.
-The numbers are from the package at commit \texttt{de43f08}.
-At \texttt{3c059c3}, which adds one \texttt{.aux} write and a whatsit after a lead-in, every page of
+The numbers are from the package at commit \texttt{3044d4e}.
+At \texttt{73fe0fd}, which adds one \texttt{.aux} write and a whatsit after a lead-in, every page of
 all eight documents has the same words, with and without the probe, so the tables hold there too.
 A rerun of the two settings on all eight took 15 minutes with 8 jobs, on a loaded 8-core machine,
 and of all eleven settings 75 minutes with 6 jobs.
@@ -204,7 +204,7 @@ So the setting decides only what the chain holds after a first paragraph of one 
 already keeps two lines of a longer one, and a list under a heading has what \LaTeX\ gives it.
 None of these documents has a heading like that at the foot of a page.
 
-At commit \texttt{dd90b97}, before the rule for a list under a heading, the setting changed the words
+At commit \texttt{9083677}, before the rule for a list under a heading, the setting changed the words
 on 10 pages, with 118 and 70 pages of $e\ge3$ and $e>5$ against 114 and 68.
 There the estimate before a heading asked for \texttt{keepafterheading} lines of room, and now it
 asks for one, as it can't know what follows.
@@ -212,7 +212,7 @@ The row with an estimate of two lines shows what that change did at the current 
 with words differing on 4 pages (3 in one set of lecture notes, 1 in the course notes), and 116 and 68 pages of $e\ge3$ and $e>5$ against 118 and 69.
 On one of them, the heading of an exercise with two lines at the foot of a page moves to the next page.
 
-A list directly under a heading was measured at \texttt{dd90b97} with a scratch change that let its
+A list directly under a heading was measured at \texttt{9083677} with a scratch change that let its
 first item stay with one line, against the two-line rule: no page differed in words.
 That is now the package's rule.
 
@@ -246,6 +246,9 @@ Total & 1627 & 1631 & 1632 \\
 \end{center}
 
 So 1000/1000 is 4 pages shorter than 1000/10000 in about 1630.
+With \textsf{article}'s own 150/150, \texttt{pen.py} in \textsf{article} has 607 pages, 3 fewer
+than with 1000/1000 (\texttt{queries/pen-results.txt}, the sum of the runs with and without
+headings).
 Three of those 4 are in \texttt{pen.py} in \textsf{memoir}, and one is a flow whose last page holds
 about a line.
 The price is in lone lines:

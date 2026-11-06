@@ -1133,6 +1133,11 @@
 %   A break that you ask for doesn't warn, with |\pagebreak| or |\goodbreak|
 %   say, and nor does one after a list, a listing or code side by side, which end
 %   in a place to break.
+%   Ask with those, not with a bare |\penalty|: we don't see that one asked.
+%   Before a listing on its own it says nothing, as the page ended at a negative
+%   penalty, but before a list around the listing, such as |center|, \TeX\ often ends
+%   the page at the list's own penalty instead, the last of breaks that cost the
+%   same, and then it warns, and blames a note, a float or space.
 %   The start of a list around the listing, such as |center|, gives a place to break
 %   too, and that warns, but not right after the end of another list, where nothing
 %   leads into it.
@@ -1275,6 +1280,12 @@
 %   with no warning.
 % \item A break with no penalty, |\pagebreak[0]| or |\allowbreak|, looks like the break
 %   after a note, and warns.
+%   Inside a list around the listing, such as |center|, it says nothing if \TeX\ ends
+%   the page at the list's own penalty before it instead.
+% \item Under |\flushbottom|, as in a document with two sides, code side by side at
+%   full width in a |center| can warn after a |\goodbreak|: there a place to break
+%   after the start of the pair, where its margin is blocked, makes a page that
+%   stretches better than yours.
 % \item In two columns, no page is shipped out between them.
 %   So when a column ended before a listing even started, the break it looks at is
 %   the end of the last page, and a break you asked for there can warn, or one you
@@ -1314,6 +1325,11 @@
 % |beamer| change with this version, in these ways, and how much is measured in
 % \cref{app:pb-measure}: with these options off the eight real documents there have
 % 811 pages, with them 814.
+% The options off aren't v2.13: what is left of them still changes some pages, so these
+% two counts aren't a comparison with v2.13, which the measurement of build time in the
+% appendix makes for three of the documents, one page more on each.
+% These figures are from before the last fixes, and are measured again before the
+% release.
 % \begin{itemize}
 % \item A listing of at most |keeplines| lines doesn't break, and a longer one leaves
 %   |keepends| lines on each side of a break.
@@ -1338,8 +1354,7 @@
 % pages there.\footnote{\Cref{app:pb-measure}.}
 % In |beamer| nothing changes: the keep options are off there.
 % A plain |article| gets the same rules, so its page breaks change only where they
-% apply, which on two documents we compared, with a real |beamer| deck, was nowhere: the
-% words stay in the same boxes.
+% apply.
 %
 % \subsection{Why pages break where they do}\label{PageBreakDecisions}
 %
@@ -1407,9 +1422,10 @@
 % \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} the same sample's
 %   \enquote{up to four lines short}, one house's, and what \LaTeX\ does; the
 %   maintainer's choice.
-%   \emph{Reopens:} a reader study on short pages, or real documents where the warnings
-%   past the limit become common: there are 19 on the eight, 12 of them about a heading.
-%   \emph{Measured, rejected:} 4 leaves a room of 4.5 to 5 lines where a heading and two
+%   \emph{Reopens:} a reader study on short pages, or real documents with twice as many
+%   warnings past the limit as the eight have, which is 19 in 814 pages, 12 of them about
+%   a heading: so one in about 20 pages.
+%   \emph{Measured, rejected:} 4 leaves a room of 4.25 to 5 lines where a heading and two
 %   lines neither fit nor may move.
 %   0, no limit, on generated chunks woven for \texttt{minted}, leaves up to 8.9 lines,
 %   against 6.2 with the limit alone, and 4.5 with \textsf{noweb}'s break dropped as well;
@@ -1421,8 +1437,12 @@
 %   Listings break at any line; \textsf{noweb} keeps a chunk whole by |\filbreak|. \\*
 % \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} ours; the nearest is
 %   \textsf{CWEB}'s dozen lines, about a unit and not about pages.
-%   \emph{Reopens:} a reader study on listings across pages, or a page count that this
-%   costs on real documents.
+%   \emph{Reopens:} a reader study on listings across pages, or a page count on real
+%   documents, which no one has made for this option alone: the eight with
+%   \texttt{keeplines=0} and all else as it is, against the package, in pages and pages
+%   with three lines or more empty.
+%   If 10 costs more pages there than the three that all the options cost together, it
+%   reopens.
 %   \emph{Measured:} 0 on generated chunks woven for \texttt{minted} has the same 194
 %   pages, and 15 pages with three lines or more empty, against 17.
 %   No other value was compared.} \\
@@ -1440,7 +1460,9 @@
 %   Off; a bonus for that break in a list, $-51$. \\*
 % \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} by analogy only, weak; the
 %   maintainer's choice.
-%   \emph{Reopens:} a reader study on it, or if its cost on real documents grows.
+%   \emph{Reopens:} a reader study on it, or if its cost on real documents grows to
+%   twice what it is on the eight: 3 pages in 811 and 21 more pages with three lines or
+%   more empty.
 %   \emph{Measured:} off, the real documents have 811 pages, not 814; pages with three
 %   lines or more empty go from 118 to 97, with more than five from 69 to 62.
 %   Rejected all the same: that is what the option is for.} \\
@@ -1461,7 +1483,7 @@
 % \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} leaving the default; the
 %   maintainer's choice.
 %   \emph{Reopens:} a reason to treat a list as a paragraph.
-%   It wasn't measured to help: at commit dd90b97 it changed no word on any page of the
+%   It wasn't measured to help: at commit 9083677 it changed no word on any page of the
 %   real documents.} \\
 % \midrule
 % Club and widow penalties & As the class has them &
@@ -1474,23 +1496,25 @@
 %   pages it is 4 longer, 3 of them in \textsf{memoir} without this package.
 %   10000 and 10000 adds a page, 815.
 %   Under \texttt{article}, 1000 and 1000 is 3 pages longer than 150 and 150, 610 to 607,
-%   in generated text.} \\
+%   in the generated text of \texttt{pen.py}.} \\
 % \midrule
 % Under |breakcode| \textsf{noweb}'s break after a chunk goes & Yes, with a limit &
 %   Not \LaTeX's: \textsf{noweb} offers it, at $-200$. \\*
 % \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} measured on generated documents;
 %   ours.
-%   \emph{Reopens:} a change in those numbers.
+%   \emph{Reopens:} generated flows where keeping the break no longer leaves more empty
+%   than dropping it, against the numbers below, measured again as \cref{app:pb-measure}
+%   says.
 %   \emph{Measured, rejected:} with the chunks \textsf{noweb} sets, keeping it leaves up
 %   to 7.6 lines and 33 pages with three or more, against 5.6 and 20, in about 210 pages,
 %   and 19 fewer breaks inside chunks.
 %   With those woven for \texttt{minted}, under the limit, 6.2 and 28, against 4.5 and 17;
 %   it helps only along with the limit.} \\
 % \midrule
-% What can't be kept warns & Always &
+% What can't be kept warns & Where it can see it &
 %   Mostly silent. \\*
 % \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} ours; a layout is correct or
-%   says that it isn't.
+%   says that it isn't, but for what it can't see, listed in \cref{KeepListingsUsage}.
 %   \emph{Reopens:} a warning that is false, which is a bug, with a test
 %   (\texttt{test-keep-sweep.py}).} \\
 % \bottomrule
@@ -1662,7 +1686,7 @@
 % That is fewer than the sample's two lines, and goes against the two-line rule, which
 % stays for a heading over a paragraph.
 % It is the maintainer's choice, for leaving a default where it is; it wasn't measured
-% to help: at commit dd90b97, letting that item stay with one line changed no word on
+% to help: at commit 9083677, letting that item stay with one line changed no word on
 % any page of those eight documents.
 %
 % \paragraph{Reckoning as \TeX\ does, and warnings.}

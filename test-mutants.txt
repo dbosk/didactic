@@ -9,9 +9,9 @@
 #   #= killed|survived    what it did at the last full run, with what killed it
 # test-mutants.py fails if a mutant does something else than that says.
 #
-# Last full run: at 3c059c3, with 3 jobs, on a loaded 8-core machine, about two hours
+# Last full run: at 73fe0fd, with 3 jobs, on a loaded 8-core machine, about two hours
 # (six if one at a time), and it took about 100 MB of disk at a time; o_lastmoved at
-# b9c6721, with the row added for it.  After a change to the code or to the tests that
+# 0c0e0f4, with the row added for it.  After a change to the code or to the tests that
 # a mutant looks at, its outcome below is from before that.
 #
 # Groups, in test-mutants.py, with the time for one mutant on a loaded machine:
