@@ -1294,6 +1294,9 @@
 %   to the next page, the warning says that what starts there is parted when it isn't.
 % \item Pages are all it looks at for a list, so a list that moves to the next column
 %   of |twocolumn|, away from its lead-in, says nothing.
+% \item A |\pagebreak| at the end of the lead-in is a break you asked for only if
+%   nothing but space follows it in the paragraph; after it, a footnote or a |\label|
+%   makes it a break within the lead-in, and what is then parted from it warns.
 % \item A place to break after the end of another list doesn't warn, for a list or a
 %   listing, wrapped in a |center| or not, or code side by side, as it is one of the
 %   places where \LaTeX\ means a page to break.
@@ -6069,6 +6072,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \newif\if@didactic@keep@relplaced
 \newif\if@didactic@keep@endlist
 \newif\if@didactic@keep@pastlist
+\newif\if@didactic@keep@parfloat
 \@didactic@keep@movabletrue
 \let\@didactic@keep@tie\relax
 \newcommand\@didactic@keep@hpage[2]{}
@@ -6412,7 +6416,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \ifnum\lastnodetype=11 \@tempswafalse\fi
   \ifnum\lastpenalty=\z@\else\ifnum\lastpenalty=\@M\else\@tempswafalse\fi\fi
   \ifdim\dimexpr\pagetotal+\pagedepth\relax>\@didactic@keep@pend\@tempswafalse\fi
-  \ifnum\outputpenalty=\@didactic@keep@pendout\else\@tempswafalse\fi}
+  \ifnum\outputpenalty=\@didactic@keep@pendout\else\@tempswafalse\fi
+  \if@didactic@keep@parfloat\@tempswafalse\fi}
 \def\@didactic@keep@relmove{%
   \if@filesw
     \@didactic@keep@ifbreakless
@@ -6902,7 +6907,29 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \AddToHook{cmd/smallbreak/before}{\global\@didactic@keep@askedtrue}
 \AddToHook{cmd/medbreak/before}{\global\@didactic@keep@askedtrue}
 \AddToHook{cmd/bigbreak/before}{\global\@didactic@keep@askedtrue}
-\AddToHook{cmd/pagebreak/before}{\ifvmode\global\@didactic@keep@askedtrue\fi}
+\let\@didactic@keep@adjust\@empty
+\def\@didactic@keep@adjp{p}
+\def\@didactic@keep@adjf{f}
+\AddToHook{cmd/pagebreak/before}{%
+  \ifvmode
+    \global\@didactic@keep@askedtrue
+  \else
+    \global\let\@didactic@keep@adjust\@didactic@keep@adjp
+  \fi}
+\AtBeginDocument{%
+  \g@addto@macro\end@float{%
+    \ifhmode\global\let\@didactic@keep@adjust\@didactic@keep@adjf\fi}}
+\def\@didactic@keep@lastadjust{%
+  \if@didactic@keep@inbox\else
+    \ifx\@didactic@keep@adjust\@empty\else
+      \unskip
+      \ifnum\lastpenalty=\@M\unpenalty\unskip\fi
+      \ifnum\lastnodetype=6 \else
+        \global\let\@didactic@keep@adjust\@empty
+      \fi
+    \fi
+  \fi}
+\AddToHook{para/end}{\@didactic@keep@lastadjust}
 \newdimen\@didactic@keep@startpt
 \newdimen\@didactic@keep@pre
 \let\@didactic@keep@started\relax
@@ -6988,9 +7015,22 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 %   page that can't stretch.
 %   So the commands for it set |\if@didactic@keep@asked|, until the next paragraph
 %   starts, and then we don't note the value.
-%   |\pagebreak| only in vertical mode: in a paragraph it is a |\vadjust|, a break
-%   between the lines of the lead-in, not one before what it leads into.
-%   The others end the paragraph first.
+%   The others end the paragraph first, but |\pagebreak| in a paragraph is a
+%   |\vadjust|: a break between the lines of the lead-in, not one before what it leads
+%   into, unless nothing follows it in the paragraph.
+%   We can tell that only at the end of the paragraph, so in a paragraph it notes that
+%   it came (|\@didactic@keep@adjust|), and at the end we look at the last thing in the
+%   paragraph (|\@didactic@keep@lastadjust|).
+%   If that is a |\vadjust| and the last one was ours, the break is after the last
+%   line, and the paragraph's end sets |\if@didactic@keep@asked|.
+%   (\LaTeX\ ends the paragraph with |\nobreak| and |\parfillskip| anyway, so the
+%   |\nobreak| and the space that |\@Esphack| adds after a float can go.)
+%   A float or a margin note in a paragraph is a |\vadjust| too, which ends in a place
+%   to break (|\addpenalty| in |\@specialoutput|), and it comes on the page before the
+%   paragraph has ended, so the check of a list can't see it there; so a float or a
+%   note that ends the lead-in notes it too (|\if@didactic@keep@parfloat|).
+%   What else ends the paragraph after a |\pagebreak|, a footnote, say, makes it count
+%   as a break within the lead-in, and then what is parted warns.
 %   A note, a float or glue gives a penalty of 0 or more, and then we warn, unless
 %   we released the tie ourselves (|\if@didactic@keep@movable|): that has a warning
 %   of its own, |\@didactic@keep@pp|.
@@ -7274,7 +7314,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % too, and nothing would seem parted.
 % So |\@didactic@keep@ifbreakless| looks whether anything came after the lead-in's last
 % line: glue or a penalty that \TeX\ still has, what it has already put on the page, by
-% its height, or a note or a float, by |\outputpenalty|.
+% its height, or a note or a float, by |\outputpenalty|, or by
+% |\if@didactic@keep@parfloat| if it ended the lead-in's paragraph, for then it was on
+% the page before the paragraph ended.
 % If so, we take the page from the tie instead.
 % If the list has another penalty there than the document's, by the key |beginpenalty|
 % of \textsf{enumitem} say, it is yours, and we leave it.
@@ -7932,6 +7974,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \@didactic@keep@inboxtrue
   \fi
   \if@didactic@keep@inbox\else
+    \global\let\@didactic@keep@adjust\@empty
     \global\@didactic@keep@afterlistingfalse
     \global\@didactic@keep@pstart\dimexpr\pagetotal+\pagedepth\relax
     \ifdim\@didactic@keep@pend<\@didactic@keep@pstart
@@ -7999,6 +8042,12 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \if@didactic@keep@inbox\else
     \global\@didactic@keep@pend\dimexpr\pagetotal+\pagedepth\relax
     \global\@didactic@keep@pendout\outputpenalty
+    \global\@didactic@keep@parfloatfalse
+    \ifx\@didactic@keep@adjust\@didactic@keep@adjp
+      \global\@didactic@keep@askedtrue
+    \else\ifx\@didactic@keep@adjust\@didactic@keep@adjf
+      \global\@didactic@keep@parfloattrue
+    \fi\fi
     \if@didactic@keep@titleonly
       \global\@didactic@keep@titleonlyfalse
       \global\clubpenalties\z@

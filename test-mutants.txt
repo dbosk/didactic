@@ -143,14 +143,51 @@ A18big didactic.dtx
 #: keep
 #= killed
 A20page didactic.dtx
-- \AddToHook{cmd/pagebreak/before}{\ifvmode\global\@didactic@keep@askedtrue\fi}
+- \AddToHook{cmd/pagebreak/before}{%
+-   \ifvmode
+-     \global\@didactic@keep@askedtrue
++ \AddToHook{cmd/pagebreak/before}{%
++   \ifvmode
++     \relax
 
-# \pagebreak in the lead-in's paragraph
+# \pagebreak in the lead-in's paragraph, before its last line, and at its end
 #: parted
 #= killed check-test-keep-parted
 S2vmode didactic.dtx
-- \AddToHook{cmd/pagebreak/before}{\ifvmode\global\@didactic@keep@askedtrue\fi}
-+ \AddToHook{cmd/pagebreak/before}{\global\@didactic@keep@askedtrue}
+-     \global\@didactic@keep@askedtrue
+-   \else
+-     \global\let\@didactic@keep@adjust\@didactic@keep@adjp
++     \global\@didactic@keep@askedtrue
++   \else
++     \global\@didactic@keep@askedtrue
+
+#: parted
+#= killed check-test-keep-parted
+S2end didactic.dtx
+-     \ifx\@didactic@keep@adjust\@didactic@keep@adjp
+-       \global\@didactic@keep@askedtrue
++     \ifx\@didactic@keep@adjust\@didactic@keep@adjp
++       \relax
+
+# what \@Esphack leaves after a float at the end of a paragraph
+#: parted
+#= killed check-test-keep-parted
+S2nobreak didactic.dtx
+-       \ifnum\lastpenalty=\@M\unpenalty\unskip\fi
++       \relax
+
+# a float or a note at the end of the lead-in, then a list
+#: parted
+#= killed check-test-keep-parted
+S4parfloat didactic.dtx
+-   \if@didactic@keep@parfloat\@tempswafalse\fi}
++   }
+
+#: parted
+#= killed check-test-keep-parted
+S4endfloat didactic.dtx
+-     \ifhmode\global\let\@didactic@keep@adjust\@didactic@keep@adjf\fi}}
++     \relax}}
 
 #: keep
 #= killed
@@ -496,8 +533,8 @@ o_nofiles didactic.dtx
 #: rules
 #= killed sweep-m:14 sweep-s:6
 o_ifout didactic.dtx
--   \ifnum\outputpenalty=\@didactic@keep@pendout\else\@tempswafalse\fi}
-+   \relax}
+-   \ifnum\outputpenalty=\@didactic@keep@pendout\else\@tempswafalse\fi
++   \relax
 
 #: rules
 #= killed
