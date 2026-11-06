@@ -6073,6 +6073,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \newif\if@didactic@keep@endlist
 \newif\if@didactic@keep@pastlist
 \newif\if@didactic@keep@parfloat
+\newif\if@didactic@keep@chaphead
 \@didactic@keep@movabletrue
 \let\@didactic@keep@tie\relax
 \newcommand\@didactic@keep@hpage[2]{}
@@ -7418,6 +7419,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \par
     \ifdim\pagegoal<\maxdimen
       \@didactic@keep@headrecord
+      \global\@didactic@keep@chapheadtrue
       \global\@didactic@keep@ownlinetrue
     \fi
   \fi\fi}
@@ -7697,6 +7699,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \newdimen\@didactic@keep@headtotal
 \newdimen\@didactic@keep@headdepth
 \def\@didactic@keep@headrecord{%
+  \global\@didactic@keep@chapheadfalse
   \ifnum\@didactic@keepafterheading>\z@
     \global\@didactic@keep@afterlistingfalse
     \ifx\@didactic@keep@headkey\@empty
@@ -7894,6 +7897,10 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % If the lines don't fit, the chain will move the heading to the next page, 
 % and if that is over |keepmaxgap| the limit wins: we ask for as many lines as 
 % fit, and warn.
+% A chapter that doesn't start a page, under \textsf{memoir}'s |article|, asks no
+% lines of its own (|\if@didactic@keep@chaphead|, which every heading clears): \LaTeX\
+% keeps the first two lines of its paragraph with it, and we only see to it that the
+% paragraph starts on its page.
 % If the first paragraph has fewer lines than that, the next one owes the rest, and
 % it has a |\parskip| of its own, so at its start we measure again
 % (|\@didactic@keep@remeasure|): if the rest doesn't fit we ask for what does, and
@@ -7957,7 +7964,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \fi}
 \def\@didactic@keep@measure{%
   \global\@didactic@keep@owed\@didactic@keepafterheading
-  \if@didactic@keep@overlimit
+  \if@didactic@keep@chaphead
+    \global\@didactic@keep@owed\z@
+  \else\if@didactic@keep@overlimit
     \ifdim\pagegoal<\maxdimen
       \@didactic@keep@tmp\dimexpr\pagegoal-\pagetotal+\pageshrink\relax
       \ifdim\@didactic@keep@tmp<\@didactic@keepafterheading\@didactic@keep@L
@@ -7973,7 +7982,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
         \fi
       \fi
     \fi
-  \fi
+  \fi\fi
   \global\@didactic@keep@asked\@didactic@keep@owed}
 \def\@didactic@keep@remeasure{%
   \if@didactic@keep@overlimit\ifdim\pagegoal<\maxdimen

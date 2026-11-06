@@ -712,6 +712,13 @@ x_newpage didactic.dtx
 -   \fi}
 + \relax}
 
+# a chapter that doesn't start a page asks no lines of its own
+#: rules
+#= killed sweep-c
+x_chaphead didactic.dtx
+-       \global\@didactic@keep@chapheadtrue
++       \relax
+
 # what was too little for keepafterheading is said only if the lines were due
 #: rules
 #= killed sweep-m3

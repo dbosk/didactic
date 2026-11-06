@@ -272,6 +272,7 @@ CASES = {
     "hNv1": lambda k: heading(k) + "\n" + r"\ltnote{note}" + "\n" + para(k, 1, "P") + "\n" + verbatim(k, 3) + TAIL,
     # a chapter that doesn't start a page, under memoir's option article
     "chp": lambda k: chapter(k) + "\n" + para(k, 16) + TAIL,
+    "chp1": lambda k: chapter(k) + "\n" + para(k, 1, "P") + "\n\n" + para(k, 16) + TAIL,
     "chv": lambda k: chapter(k) + "\n" + verbatim(k, 5) + TAIL,
     "chv1": lambda k: chapter(k) + "\n" + para(k, 1, "P") + "\n" + verbatim(k, 3) + TAIL,
     "chn": lambda k: chapter(k).replace("chapter*", "chapter") + "\n" + verbatim(k, 5) + TAIL,
@@ -350,7 +351,7 @@ M3ROWS = {"p", "pl", "pL", "pn"}
 ABOVE = {"hM3", "sv3", "sv6", "rh", "dh", "vlv1", "vLv1", "bh"}
 # with space between paragraphs
 PARSKIPROWS = {"s", "p", "pl", "hv", "ll1", "ll3"}
-CHAPTERROWS = {"chp", "chv", "chv1", "chi1", "chn"}
+CHAPTERROWS = {"chp", "chp1", "chv", "chv1", "chi1", "chn"}
 # under a heading too, where the last lines of the lead-in can go along with it
 HEADTALL = {"hT3", "hS3", "hM3"}
 HEADLISTS = SHRINKLISTS | {"hll1", "hll2", "hll3", "hll6"}
@@ -548,6 +549,9 @@ def check_case(p, ref, name, case, K, tied=None):
         if name == "pn" and warns:
             fail(case, f"D8: a page you end leaves nothing due: {warns[0][:50]}")
         heads = [w for w in warns if "(keepafterheading):" in w]
+        # A chapter asks no lines of its own: what follows it is what LaTeX keeps.
+        if name in CHAPTERROWS and [w for w in heads if "follow" in w]:
+            fail(case, f"D8: a chapter asks no lines: {heads[0][:60]}")
         if name in FORCED and len(heads) != 1:
             fail(case, f"D8: a heading parted by a page you end warns once, not {len(heads)} times")
         # D8: only n of its lines
@@ -578,7 +582,7 @@ def check_case(p, ref, name, case, K, tied=None):
             fail(case, f"D1: {count} lines under the heading within the limit")
         if not moved and not tall and name not in ("e1", "pn") and count < K and not warns \
                 and name not in ("hv", "hw", "hn", "hv8", "hv3l", "rv") \
-                and name not in DIRECTLISTS:
+                and name not in DIRECTLISTS and name not in CHAPTERROWS:
             fail(case, f"D8: {count} lines under the heading, no warning")
         # D4: never fewer than plain LaTeX
         # A lead-in and a listing are left out: the listing is kept whole by
