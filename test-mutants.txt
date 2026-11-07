@@ -537,6 +537,15 @@ M_yourpen didactic.dtx
 -           \ifnum\@tempcnta=\@didactic@keep@yourpen\@tempcnta\m@ne\fi
 +           \relax
 
+# the heading's depth that the first line takes back, in the room for keepafterheading (round 6)
+#: rules
+#= killed sweep-m3
+x_prevdepth didactic.dtx
+-       \ifdim\prevdepth>-\@m\p@\advance\@didactic@keep@tmp\prevdepth\fi
+-       \ifdim\@didactic@keep@tmp<\@didactic@keepafterheading\@didactic@keep@L
++       \relax
++       \ifdim\@didactic@keep@tmp<\@didactic@keepafterheading\@didactic@keep@L
+
 # a box after the end of a list leads into what follows (round 6)
 #: parted
 #= killed check-test-keep-parted
@@ -760,8 +769,10 @@ x_rule didactic.dtx
 #= killed sweep-k3:2
 x_parskip didactic.dtx
 -       \@didactic@keep@tmp\dimexpr\pagegoal-\pagetotal+\pageshrink\relax
+-       \ifdim\prevdepth>-\@m\p@\advance\@didactic@keep@tmp\prevdepth\fi
 -       \ifdim\@didactic@keep@tmp<\@didactic@keepafterheading\@didactic@keep@L
 +       \@didactic@keep@tmp\dimexpr\pagegoal-\pagetotal+\pageshrink-\parskip\relax
++       \ifdim\prevdepth>-\@m\p@\advance\@didactic@keep@tmp\prevdepth\fi
 +       \ifdim\@didactic@keep@tmp<\@didactic@keepafterheading\@didactic@keep@L
 
 # a second paragraph that owes lines, with \parskip
@@ -773,7 +784,7 @@ x_remeasure didactic.dtx
 +       \else
 +         \relax
 
-# survives: with room for less than two lines a first paragraph of two lines doesn't fit, whichever is owed, so the heading moves either way; after one of one line the mutant owes 2 and measures the next paragraph again, asking for what fits, 0 or 1 lines, which holds no more than the 1 line owed without it: the same pages, and a true warning either way (that only n of the lines fit, or that only n lines follow it).  The review's case in k3 that killed it was the \parskip counted twice, which x_parskip is about and b3afd07 fixed
+# survives, and is equivalent in pages since the round-6 fix: the room is now measured as TeX reckons it, with the heading's depth that the first line's glue takes back (\prevdepth; without it two lines that fit were taken for one, and the cap dropped the third line silently, the review's p2 and pp at room 5.25).  With room for less than two lines, a first paragraph of two lines doesn't fit whichever is owed; after one of one line, the mutant owes two and measures the next paragraph again, asking for what fits, which holds no more than the one line owed without it.  The pages are the same, and the warnings differ but are both true: "only 1 of the 3 lines fit" against "only 1 line follows it"
 #: rules
 #= survived
 x_owed2 didactic.dtx

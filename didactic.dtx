@@ -8040,6 +8040,10 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % The |\parskip| above the paragraph is on the page by then, if it gets one: \TeX\
 % adds it before |\everypar|, where the hook runs, and after a heading of
 % \textsf{memoir} there is none.
+% The depth of the line before, the heading's, is on the page too, but the glue
+% above the first line takes it back, as |\baselineskip| is from baseline to
+% baseline: so each line takes a line of the text, and the first one that less
+% |\prevdepth|, which we add to the room.
 % If the lines don't fit, the chain will move the heading to the next page, 
 % and if that is over |keepmaxgap| the limit wins: we ask for as many lines as 
 % fit, and warn.
@@ -8118,6 +8122,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \else\if@didactic@keep@overlimit
     \ifdim\pagegoal<\maxdimen
       \@didactic@keep@tmp\dimexpr\pagegoal-\pagetotal+\pageshrink\relax
+      \ifdim\prevdepth>-\@m\p@\advance\@didactic@keep@tmp\prevdepth\fi
       \ifdim\@didactic@keep@tmp<\@didactic@keepafterheading\@didactic@keep@L
         \@didactic@keep@tmpc\@didactic@keep@tmp
         \divide\@didactic@keep@tmpc\@didactic@keep@L
@@ -8137,6 +8142,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \ifnum\@didactic@keep@owed>\@ne
   \if@didactic@keep@overlimit\ifdim\pagegoal<\maxdimen
     \@didactic@keep@tmp\dimexpr\pagegoal-\pagetotal+\pageshrink\relax
+    \ifdim\prevdepth>-\@m\p@\advance\@didactic@keep@tmp\prevdepth\fi
     \ifdim\@didactic@keep@tmp<\z@\@didactic@keep@tmp\z@\fi
     \@didactic@keep@tmpc\@didactic@keep@tmp
     \divide\@didactic@keep@tmpc\@didactic@keep@L

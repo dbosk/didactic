@@ -174,6 +174,11 @@ CASES = {
     "s": lambda k: heading(k) + "\n" + para(k, 16) + TAIL,
     "ss": lambda k: heading(k) + rf"\subsection*{{Sub}}\label{{BX{k}}}" + "\n" + para(k, 16) + TAIL,
     "p": lambda k: heading(k) + "\n" + para(k, 1, "P") + "\n\n" + para(k, 16) + TAIL,
+    # under a heading with descenders, whose depth the next line's glue takes back: a
+    # first paragraph of two lines, and two of one line, then a long one
+    "p2": lambda k: heading(k).replace("Head", "Heady") + "\n" + para(k, 2, "P") + "\n\n" + para(k, 16) + TAIL,
+    "pp": lambda k: heading(k).replace("Head", "Heady") + "\n" + para(k, 1, "P") + "\n\n" + para(k, 1, "T") + "\n\n"
+        + para(k, 16) + TAIL,
     # lists
     "pl": lambda k: heading(k) + "\n" + para(k, 1, "P") + "\n" + items(k, 8, 1) + TAIL,
     "pL": lambda k: heading(k) + "\n" + para(k, 1, "P") + "\n" + items(k, 5, 3) + TAIL,
@@ -345,7 +350,7 @@ AFTERLIST = {"tv1", "tl1", "qi1", "qv1"}
 ASKED = {"lp1", "lB1", "lg1", "lh1", "lk1"}
 # keepafterheading=3 under memoir: enough to compare with plain LaTeX, and a page you
 # end before the lines are done
-M3ROWS = {"p", "pl", "pL", "pn"}
+M3ROWS = {"p", "pl", "pL", "pn", "p2", "pp"}
 # Something comes between the rig's room and the heading or lead-in, so what counts is
 # what stays empty, from the page.
 ABOVE = {"hM3", "sv3", "sv6", "rh", "dh", "vlv1", "vLv1", "bh"}
@@ -355,7 +360,7 @@ CHAPTERROWS = {"chp", "chp1", "chv", "chv1", "chi1", "chn"}
 # under a heading too, where the last lines of the lead-in can go along with it
 HEADTALL = {"hT3", "hS3", "hM3"}
 HEADLISTS = SHRINKLISTS | {"hll1", "hll2", "hll3", "hll6"}
-FINE = HEADLISTS | TALLITEMS | HEADTALL | PLACED | CHAPTERROWS | ASKED | {"rh", "dh", "ln1", "sv6", "vlv1", "sv3", "hN", "hNv1", "ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3", "qq3", "lq3", "rti",
+FINE = HEADLISTS | TALLITEMS | HEADTALL | PLACED | CHAPTERROWS | ASKED | {"p2", "pp", "rh", "dh", "ln1", "sv6", "vlv1", "sv3", "hN", "hNv1", "ll1", "ll2", "ll3", "ll6", "lL1", "lL3", "lE2", "lD2", "nN2", "nN3", "fl1", "fl3", "qq3", "lq3", "rti",
         "d", "wL1", "hv", "hw", "hn", "hv8", "hv3l", "f", "r", "rr", "ri", "re", "rv", "fp", "fe", "fx", "fi", "fI",
         "e", "ei", "eI", "se", "e1", "cp"}
 # Without didactic these don't exist, or frames set their titles another way.
