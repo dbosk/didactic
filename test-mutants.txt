@@ -530,6 +530,25 @@ R6notes didactic.dtx
 +   \ifnum\z@=\z@
 +     \global\@didactic@keep@floatat\@didactic@keep@holdat
 
+# glue before a rule after the lead-in (round 6)
+#: parted
+#= killed check-test-keep-parted
+R6vspaced didactic.dtx
+-   \if@didactic@keep@vspaced\@tempswafalse\fi
++   \relax
+
+#: parted
+#= killed check-test-keep-parted
+R6stretch didactic.dtx
+-   \ifdim\@didactic@keep@stretch=\@didactic@keep@pendstretch\else\@tempswafalse\fi
++   \relax
+
+#: parted
+#= killed check-test-keep-parted
+R6nobreakvs didactic.dtx
+-     \ifnum\lastpenalty=\@M\else\global\@didactic@keep@vspacedtrue\fi
++     \global\@didactic@keep@vspacedtrue
+
 # code side by side whose page ended before it, a note after that
 #: parted
 #= killed check-test-keep-parted
@@ -611,7 +630,7 @@ o_ifpend didactic.dtx
 #: parted
 #= killed check-test-keep-parted
 R_pendrule didactic.dtx
--   \ifnum\lastnodetype=\thr@@\advance\@didactic@keep@pendrule.4\p@\fi
+-   \ifnum\lastnodetype=\thr@@\@didactic@keep@pendrule\maxdimen\fi
 +   \relax
 
 #: rules

@@ -28,7 +28,8 @@
 %     them, so the list and the lead-in move together, silently.  But after space and a
 %     thicker rule (r3a to r3c) there is a place to break.
 % Round 6.  L1, L2: \ltnote or \marginpar ends the lead-in: no place to break, together.
-%     G1, G2: glue, then a rule, no blank line: a place to break before the rule.
+%     G1, G2: glue, then a rule, no blank line: a place to break before the rule; G3 the
+%     same after a blank line, and g3e after \nobreak, where the glue is no place to break.
 %     F3: a float in the middle of a one-line lead-in; F4, F5: a float at its end, then
 %     \label or \footnote.  B1: after a list, \centerline and its kin lead into a
 %     listing in a center: that is a lead-in.  M1: \pagebreak[1] in the last (only) line
@@ -679,5 +680,39 @@ Consider LEADP4A this:\pagebreak[1]\begin{figure}[t]\caption{F}\end{figure}
 Consider LEADP4B this:\pagebreak[1]\begin{figure}[t]\caption{F}\end{figure}
 
 \case{P4B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.5}
+Consider LEADG2C this:
+\vfil\hrule
+\case{G2C}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.5}
+Consider LEADG3A this:
+
+\vspace{6pt}\hrule
+\case{G3A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.5}
+Consider LEADG3B this:
+
+\vspace{0pt}\hrule
+\case{G3B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.5}
+Consider LEADG3C this:
+
+\bigskip\hrule
+\case{G3C}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.5}
+Consider LEADG3D this:
+
+\vfil\hrule
+\case{G3D}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.5}
+Consider LEADG3E this:
+\par\nobreak\vspace{3pt}\hrule
+\case{G3E}{tie}\begin{itemize}\items\end{itemize}
 
 \end{document}

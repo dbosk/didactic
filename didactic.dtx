@@ -1305,6 +1305,9 @@
 %   to the next page, the warning says that what starts there is parted when it isn't.
 % \item Pages are all it looks at for a list, so a list that moves to the next column
 %   of |twocolumn|, away from its lead-in, says nothing.
+% \item Glue of the primitive |\vskip|, of a fixed size, between the lead-in and a rule
+%   before a list: the rule hides it, and a list parted there says nothing.
+%   With |\vspace| it warns.
 % \item A |\pagebreak| at the end of the lead-in is a break you asked for only if
 %   nothing but space follows it in the paragraph; after it, a footnote or a |\label|
 %   makes it a break within the lead-in, and what is then parted from it warns.
@@ -6098,6 +6101,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \newif\if@didactic@keep@pastlist
 \newif\if@didactic@keep@parfloat
 \newif\if@didactic@keep@chaphead
+\newif\if@didactic@keep@vspaced
 \@didactic@keep@movabletrue
 \let\@didactic@keep@tie\relax
 \newcommand\@didactic@keep@hpage[2]{}
@@ -6437,10 +6441,25 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \fi
   \fi}
 \newdimen\@didactic@keep@pendrule
+\newdimen\@didactic@keep@pendstretch
+\def\@didactic@keep@stretch{%
+  \dimexpr\pagestretch+\pagefilstretch+\pagefillstretch+\pagefilllstretch
+    +\pageshrink\relax}
+\def\@didactic@keep@vspacenote{%
+  \ifvmode\ifinner\else
+    \ifnum\lastpenalty=\@M\else\global\@didactic@keep@vspacedtrue\fi
+  \fi\fi}
+\AddToHook{cmd/vspace/before}{\@didactic@keep@vspacenote}
+\AddToHook{cmd/addvspace/before}{\@didactic@keep@vspacenote}
+\AtBeginDocument{%
+  \g@addto@macro\@endparenv{\ifinner\else\global\@didactic@keep@vspacedfalse\fi}}
 \def\@didactic@keep@ifbreakless{%
+  \ifvmode\ifinner\else\begingroup\@@par\endgroup\fi\fi
   \@tempswatrue
+  \if@didactic@keep@vspaced\@tempswafalse\fi
+  \ifdim\@didactic@keep@stretch=\@didactic@keep@pendstretch\else\@tempswafalse\fi
   \@didactic@keep@pendrule\@didactic@keep@pend
-  \ifnum\lastnodetype=\thr@@\advance\@didactic@keep@pendrule.4\p@\fi
+  \ifnum\lastnodetype=\thr@@\@didactic@keep@pendrule\maxdimen\fi
   \ifnum\lastnodetype=11 \@tempswafalse\fi
   \ifnum\lastpenalty=\z@\else\ifnum\lastpenalty=\@M\else\@tempswafalse\fi\fi
   \ifdim\dimexpr\pagetotal+\pagedepth\relax>\@didactic@keep@pendrule\@tempswafalse\fi
@@ -7416,11 +7435,19 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % its height, or a note or a float, by |\outputpenalty|, or by
 % |\if@didactic@keep@parfloat| if it ended the lead-in's paragraph, for then it was on
 % the page before the paragraph ended.
-% A rule of the default height, 0.4\,pt, right after the lead-in's last line is no place
-% to break, as nothing comes between them, so if the last thing on the page is a rule
-% (|\lastnodetype| 3, which looks at the page when \TeX\ has put everything there) we
-% allow it that much height (|\@didactic@keep@pendrule|); glue before it, or a thicker
-% rule, still takes the page from the tie.
+% A rule right after the lead-in's last line is no place to break, as nothing comes
+% between them, so if the last thing on the page is a rule (|\lastnodetype| 3, which
+% looks at the page when \TeX\ has put everything there) we don't count its height
+% (|\@didactic@keep@pendrule|), nor that of glue after |\nobreak| before it.
+% A rule hides what came before it, though, so glue before it we see otherwise: we let
+% \TeX\ put everything on the page first, with a |\par| in a group, which builds the
+% page and changes nothing else; glue that can stretch or shrink changes the page's
+% stretch and shrink from what they were at the end of the lead-in
+% (|\@didactic@keep@pendstretch|), and |\vspace| or |\addvspace| after the lead-in notes
+% that it came (|\if@didactic@keep@vspaced|), unless right after |\nobreak|, where the
+% glue is no place to break, or as the end of a list.
+% Glue of the primitive |\vskip| that neither stretches nor shrinks, before a rule, we
+% still can't see.
 % If so, we take the page from the tie instead.
 % If the list has another penalty there than the document's, by the key |beginpenalty|
 % of \textsf{enumitem} say, it is yours, and we leave it.
@@ -8198,6 +8225,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \if@didactic@keep@inbox\else
     \global\@didactic@keep@pend\dimexpr\pagetotal+\pagedepth\relax
     \global\@didactic@keep@pendout\outputpenalty
+    \global\@didactic@keep@pendstretch\@didactic@keep@stretch
+    \global\@didactic@keep@vspacedfalse
     \global\@didactic@keep@parfloatfalse
     \ifx\@didactic@keep@adjust\@didactic@keep@adjp
       \global\@didactic@keep@askedtrue
