@@ -976,10 +976,16 @@ o_guard didactic.dtx
 #= killed check-test-keep-once
 o_skip didactic.dtx
 -     \@didactic@keep@ifbreakless
--     \ifnum\lastpenalty<\z@\@tempswatrue\fi
--     \if@tempswa
+-     \ifnum\lastpenalty<\z@
 +     \@tempswatrue
-+     \if@tempswa
++     \ifnum\lastpenalty<\z@
+
+# a \pagebreak in the lead-in's last line, before an itemize (round 6)
+#: parted
+#= killed check-test-keep-parted
+M_pbwithin didactic.dtx
+-         \if@didactic@keep@parfloat\else\@tempswatrue\fi
++         \@tempswatrue
 
 # the line of the generated file, not the source's
 #: rules

@@ -36,7 +36,8 @@
 %     lead-in.  M1: \pagebreak[1] in the last (only) line
 %     of the lead-in, not at its end, is a break within it, before a center listing and
 %     an itemize alike; and \pagebreak[0] there (m1g to m1i).  P4: \pagebreak[1] and then a
-%     float end the lead-in: the float makes it no break asked for.
+%     float end the lead-in: the float makes it no break asked for.  M2: the same in the
+%     last line of a long lead-in, before a center listing and an itemize, rooms 4 to 7.
 %
 % Build: see the Makefile, with pdflatex; test-check.py compares the warnings with the
 % pages of the words.
@@ -760,5 +761,45 @@ Consider LEADG3E this:
 \begin{itemize}\item x\end{itemize}
 \centerline{LEADB1G Title:}
 \case{B1G}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{4}
+Lead words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words LEADM2A words \pagebreak[1] end.
+\begin{center}
+\case{M2A}{tie}\code
+\end{center}
+
+\roomfor{5}
+Lead words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words LEADM2B words \pagebreak[1] end.
+\begin{center}
+\case{M2B}{tie}\code
+\end{center}
+
+\roomfor{6}
+Lead words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words LEADM2C words \pagebreak[1] end.
+\begin{center}
+\case{M2C}{tie}\code
+\end{center}
+
+\roomfor{7}
+Lead words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words LEADM2D words \pagebreak[1] end.
+\begin{center}
+\case{M2D}{tie}\code
+\end{center}
+
+\roomfor{4}
+Lead words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words LEADM2E words \pagebreak[1] end.
+\case{M2E}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{5}
+Lead words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words LEADM2F words \pagebreak[1] end.
+\case{M2F}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{6}
+Lead words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words LEADM2G words \pagebreak[1] end.
+\case{M2G}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{7}
+Lead words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words LEADM2H words \pagebreak[1] end.
+\case{M2H}{tie}\begin{itemize}\items\end{itemize}
 
 \end{document}

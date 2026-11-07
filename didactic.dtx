@@ -6344,7 +6344,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % |\nobreak| follows it; after the last line a break was legal anyway.
 % |\@didactic@keep@relstart| writes to the |.aux| file the page that the last
 % line of the lead-in ends up on, when the tie is released, for \TeX\ may yet take
-% that line along by itself and then nothing is parted, and
+% that line along by itself and then nothing is parted (after a negative penalty
+% too, which is a break that was asked for, unless it came from the lead-in's own
+% paragraph, a |\pagebreak| in its last line, which is a break within it), and
 % |\@didactic@keep@relend| writes the page that the
 % first line ended up on, whatever comes first: a listing, the header of a chunk,
 % or code side by side.
@@ -6431,7 +6433,11 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \global\@didactic@keep@relplacedfalse
   \if@filesw
     \@didactic@keep@ifbreakless
-    \ifnum\lastpenalty<\z@\@tempswatrue\fi
+    \ifnum\lastpenalty<\z@
+      \if@didactic@keep@asked\@tempswatrue\else
+        \if@didactic@keep@parfloat\else\@tempswatrue\fi
+      \fi
+    \fi
     \if@tempswa
       \count@\lastpenalty
       \protected@write\@auxout{\let\@didactic@keep@cpage\relax}{%
