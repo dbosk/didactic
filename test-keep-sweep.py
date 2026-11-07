@@ -554,6 +554,9 @@ def check_case(p, ref, name, case, K, tied=None):
         if name == "pn" and warns:
             fail(case, f"D8: a page you end leaves nothing due: {warns[0][:50]}")
         heads = [w for w in warns if "(keepafterheading):" in w]
+        # One heading, one warning: that only n of the lines fit says it all.
+        if heads and [w for w in warns if re.search(r"Only \d+ of the", w)]:
+            fail(case, f"D8: two warnings for one heading: {heads[0][:60]}")
         # A chapter asks no lines of its own: what follows it is what LaTeX keeps.
         if name in CHAPTERROWS and [w for w in heads if "follow" in w]:
             fail(case, f"D8: a chapter asks no lines: {heads[0][:60]}")

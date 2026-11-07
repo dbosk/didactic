@@ -571,6 +571,13 @@ rv7_nbglue didactic.dtx
 +     \@didactic@keep@pendrule\maxdimen
 +   \else
 
+# one warning for a heading whose lines don't all fit (round 7, m-3)
+#: rules
+#= killed sweep-m3 sweep-k3
+rv7_shortonce didactic.dtx
+-   \global\@namedef{@didactic@ha@#4}{}%
++   \relax
+
 # a box after the end of a list leads into what follows (round 6)
 #: parted
 #= killed check-test-keep-parted

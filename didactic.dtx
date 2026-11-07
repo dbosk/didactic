@@ -8099,6 +8099,11 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % That warning waits until the lines are done (|\@didactic@keep@short|), at the start
 % of the next paragraph that owes none: if you end the page before that, with
 % |\newpage|, nothing is due, and it says nothing.
+% It is the heading's only warning: when it has been given, the pages at the end of the
+% run don't add that only so many lines follow the heading (|\@didactic@ha@|\meta{key},
+% the guard of |\@didactic@keep@after|).
+% Both would be true, as a paragraph of one line and a club penalty can keep fewer
+% lines than fit, but together they read as if they disagreed.
 % But never for fewer than \LaTeX\ keeps: |\@afterheading| forbids a break after 
 % the first line of the paragraph, so with room for less than two lines, the 
 % heading moves if the paragraph has them, however much that leaves empty.
@@ -8193,8 +8198,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \let\@didactic@keep@shortmsg\@empty
 \def\@didactic@keep@short#1{%
   \xdef\@didactic@keep@shortmsg{\noexpand\@didactic@keep@tellshort{#1}%
-    {\the\c@page}{\the\inputlineno}}}
-\def\@didactic@keep@tellshort#1#2#3{%
+    {\the\c@page}{\the\inputlineno}{\@didactic@keep@headkey}}}
+\def\@didactic@keep@tellshort#1#2#3#4{%
+  \global\@namedef{@didactic@ha@#4}{}%
   \PackageWarningNoLine{didactic}{%
     Only #1 of the \the\@didactic@keepafterheading\space lines of keepafterheading
     \MessageBreak fit after a heading: moving it would leave
