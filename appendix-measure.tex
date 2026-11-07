@@ -94,39 +94,39 @@ With a list's penalty at 0 the total is also 813.
 \toprule
 Club/widow & First line alone at the foot & Last line alone at the top \\
 \midrule
-1000/1000 (current) & 3 & 10 \\
-1000/10000 & 4 & 0 \\
+1000/1000 (current) & 3 & 8 \\
+1000/10000 & 3 & 0 \\
 10000/10000 & 0 & 0 \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-These are on the 676 pages that go through the main output routine, of 813; a page of floats isn't
+These are on the 675 pages that go through the main output routine, of 813; a page of floats isn't
 counted.
-A paragraph of two lines broken in the middle would count on both sides; none is.
+A paragraph of two lines broken in the middle counts on both sides; one is, in a literate program.
 
 \begin{center}\small
 \begin{tabular}{@{}lrrr@{}}
 \toprule
 Setting & Pages $e\ge3$ & Pages $e>5$ & Largest $e$ \\
 \midrule
-keep options off & 104 & 62 & 48.6 \\
-keepleadin off & 97 & 62 & 45.0 \\
-current & 118 & 69 & 49.2 \\
-1000/10000 & 120 & 69 & 49.2 \\
-10000/10000 & 122 & 71 & 51.0 \\
-keepafterheading=1 & 118 & 69 & 49.2 \\
-list rule off & 118 & 70 & 49.2 \\
-list 0 & 116 & 71 & 49.2 \\
-list 10000 & 118 & 69 & 49.2 \\
+keep options off & 102 & 62 & 48.6 \\
+keepleadin off & 94 & 62 & 45.0 \\
+current & 114 & 64 & 49.2 \\
+1000/10000 & 117 & 64 & 49.2 \\
+10000/10000 & 121 & 68 & 51.0 \\
+keepafterheading=1 & 114 & 64 & 49.2 \\
+list rule off & 113 & 65 & 49.2 \\
+list 0 & 111 & 66 & 49.2 \\
+list 10000 & 114 & 64 & 49.2 \\
 \bottomrule
 \end{tabular}
 \end{center}
 
 The largest values are the last pages of chapters and of documents, so compare the rows, not the
 values.
-Compared with the keep options off, \emph{current} has 14 more pages with $e\ge3$ and 7 more with
-$e>5$, of 676.
+Compared with the keep options off, \emph{current} has 12 more pages with $e\ge3$ and 2 more with
+$e>5$, of 675.
 
 \subsection{A list and its lead-in}
 
