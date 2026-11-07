@@ -18,7 +18,7 @@ How to measure them again, or other documents, is in \texttt{measure-real/README
 Eight documents, all built before with the package on \textsf{memoir}: three sets of
 lecture notes, one set of course notes, a book, two literate programs and a paper.
 One is built with Xe\TeX, the others with pdf\TeX.
-Together they have 814 pages and 249 lists.
+Together they have 813 pages and 249 lists.
 
 Each document is copied once, with the generated files of its last build, and those are reused:
 PythonTeX output, biber's and minted's.
@@ -70,21 +70,22 @@ Lecture notes & 67 & 67 & 68 & 68 & 68 & 68 & 68 & 68 \\
 Lecture notes & 108 & 108 & 108 & 108 & 108 & 108 & 108 & 108 \\
 Course notes & 101 & 101 & 101 & 101 & 101 & 101 & 101 & 101 \\
 Book & 124 & 124 & 124 & 124 & 124 & 124 & 124 & 124 \\
-Literate program & 93 & 92 & 93 & 93 & 93 & 93 & 93 & 93 \\
+Literate program & 93 & 92 & 92 & 92 & 92 & 92 & 92 & 92 \\
 Literate program & 77 & 77 & 78 & 78 & 78 & 78 & 78 & 78 \\
 Paper & 120 & 121 & 121 & 121 & 122 & 121 & 121 & 121 \\
 \midrule
-Total & 811 & 811 & 814 & 814 & 815 & 814 & 814 & 814 \\
+Total & 811 & 811 & 813 & 813 & 814 & 813 & 813 & 813 \\
 \bottomrule
 \end{tabular}
 \end{center}
 
 So club 1000 with widow 1000 and with widow 10000 tie on these documents, and 10000 for both adds
 a page to one of them.
-The keep options cost three pages in 814, one each.
-On the two literate programs the last page with them holds under ten words, so a small shift
-upstream can change such a count either way.
-With a list's penalty at 0 the total is also 814.
+The keep options cost two pages in 813: they add one each to three documents and save one in a
+literate program.
+In one literate program the last page with them holds under ten words, and in the other the last
+page without them, so a small shift upstream can change such a count either way.
+With a list's penalty at 0 the total is also 813.
 
 \subsection{Lone lines and empty space}
 
@@ -100,7 +101,7 @@ Club/widow & First line alone at the foot & Last line alone at the top \\
 \end{tabular}
 \end{center}
 
-These are on the 676 pages that go through the main output routine, of 814; a page of floats isn't
+These are on the 676 pages that go through the main output routine, of 813; a page of floats isn't
 counted.
 A paragraph of two lines broken in the middle would count on both sides; none is.
 
@@ -180,7 +181,7 @@ They differ where the rule is released past \texttt{keepmaxgap}, which doesn't h
 \subsection{A heading}
 
 With \texttt{keepafterheading=1}, instead of 2, every document has the same words on every page, and
-the same 814 pages.
+the same 813 pages.
 That isn't a setting lost on the way: a trace in the build of the lecture notes and of the course
 notes, where the words changed at the earlier commit below, shows 1 or 2 reaching
 \apcs{@didactic@keep@room} and the lines owed in the first paragraph.

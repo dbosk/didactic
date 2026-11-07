@@ -1324,7 +1324,7 @@
 % The page breaks of a document that uses \textsf{memoir} or another class outside
 % |beamer| change with this version, in these ways, and how much is measured in
 % \cref{app:pb-measure}: with these options off the eight real documents there have
-% 811 pages, with them 814.
+% 811 pages, with them 813.
 % The options off aren't v2.13: what is left of them still changes some pages, so these
 % two counts aren't a comparison with v2.13, which the measurement of build time in the
 % appendix makes for three of the documents, at commit 73fe0fd: one page more on each.
@@ -1389,7 +1389,7 @@
 % \caption{The decisions behind the page breaks: what we do, what \LaTeX\ and
 %   \textsf{memoir} do, the basis, what would reopen it, and what was measured and
 %   rejected.
-%   With all these options off the eight real documents have 811 pages, with them 814;
+%   With all these options off the eight real documents have 811 pages, with them 813;
 %   empty lines are counted on 676 text pages of them.}\label{tab:pb-decisions}\\
 % \toprule
 % Decision & Ours & \LaTeX\ and \textsf{memoir} \\
@@ -1423,7 +1423,7 @@
 %   \enquote{up to four lines short}, one house's, and what \LaTeX\ does; the
 %   maintainer's choice.
 %   \emph{Reopens:} a reader study on short pages, or real documents with twice as many
-%   warnings past the limit as the eight have, which is 19 in 814 pages, 12 of them about
+%   warnings past the limit as the eight have, which is 19 in 813 pages, 12 of them about
 %   a heading: so one in about 20 pages.
 %   \emph{Measured, rejected:} 4 leaves a room of 4.25 to 5 lines where a heading and two
 %   lines neither fit nor may move.
@@ -1441,7 +1441,7 @@
 %   documents, which no one has made for this option alone: the eight with
 %   \texttt{keeplines=0} and all else as it is, against the package, in pages and pages
 %   with three lines or more empty.
-%   If 10 costs more pages there than the three that all the options cost together, it
+%   If 10 costs more pages there than the two that all the options cost together, it
 %   reopens.
 %   \emph{Measured:} 0 on generated chunks woven for \texttt{minted} has the same 194
 %   pages, and 15 pages with three lines or more empty, against 17.
@@ -1461,9 +1461,9 @@
 % \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} by analogy only, weak; the
 %   maintainer's choice.
 %   \emph{Reopens:} a reader study on it, or if its cost on real documents grows to
-%   twice what it is on the eight: 3 pages in 811 and 21 more pages with three lines or
+%   twice what it is on the eight: 2 pages in 811 and 21 more pages with three lines or
 %   more empty.
-%   \emph{Measured:} off, the real documents have 811 pages, not 814; pages with three
+%   \emph{Measured:} off, the real documents have 811 pages, not 813; pages with three
 %   lines or more empty go from 118 to 97, with more than five from 69 to 62.
 %   Rejected all the same: that is what the option is for.} \\
 % \midrule
@@ -1474,7 +1474,7 @@
 %   choice.
 %   \emph{Reopens:} a page count that this costs on real documents.
 %   \emph{Measured:} without it 14 of 218 lists are parted, 13 from a real lead-in, on
-%   814 pages, as with it.
+%   813 pages, as with it.
 %   \emph{Rejected:} a penalty of 0 still parts 7.
 %   A plain 10000 has the same words on every page as ours, but no limit.} \\
 % \midrule
@@ -1491,10 +1491,10 @@
 % \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} fewer pages, then fewer changes
 %   from the defaults, the maintainer's rule.
 %   \emph{Reopens:} a reader study on lone lines, or a change in those page counts.
-%   \emph{Measured, rejected:} 1000 and 10000 ties on the real documents, 814, and has no
+%   \emph{Measured, rejected:} 1000 and 10000 ties on the real documents, 813, and has no
 %   lone last line against 10, and 4 lone first lines against 3; on about 1630 generated
 %   pages it is 4 longer, 3 of them in \textsf{memoir} without this package.
-%   10000 and 10000 adds a page, 815.
+%   10000 and 10000 adds a page, 814.
 %   Under \texttt{article}, 1000 and 1000 is 3 pages longer than 150 and 150, 610 to 607,
 %   in the generated text of \texttt{pen.py}.} \\
 % \midrule
@@ -1588,7 +1588,7 @@
 % \paragraph{Club and widow penalties as the class has them.}
 % We set neither: 1000 and 1000 under \textsf{memoir}, 150 and 150 under |article|.
 % The rule is the maintainer's: fewer pages, then fewer changes from the defaults.
-% On those eight real documents, 814 pages, with the same limits, 1000 and 1000 gave the
+% On those eight real documents, 813 pages, with the same limits, 1000 and 1000 gave the
 % same pages as 1000 and 10000, document by document, and 10000 and 10000 added
 % one;\footnote{\Cref{app:pb-measure}.} in generated documents of about 1630 pages 1000
 % and 1000 was 4 pages shorter than 1000 and 10000, 1627 against 1631.
@@ -1673,7 +1673,7 @@
 % Past the limit it can start the next page, with a warning, but only if its first
 % item doesn't fit: where it does, $-51$ would part them for no reason, on a page
 % that stretches.
-% On those eight real documents it costs no page, 814 either way, and the words on each
+% On those eight real documents it costs no page, 813 either way, and the words on each
 % page are those of that penalty alone at 10000.\footnote{\Cref{app:pb-measure}.}
 % Without it, at $-51$, 14 of the 218 lists that could be parted from what leads into
 % them are, 13 from a real lead-in, 8 of those in one document.
