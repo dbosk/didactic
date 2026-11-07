@@ -566,13 +566,14 @@ o_ifout didactic.dtx
 -   \ifnum\outputpenalty=\@didactic@keep@pendout\else\@tempswafalse\fi
 +   \relax
 
+# survives at d68a0a0: \lastnodetype reads the page itself once TeX has put everything there, so glue or a penalty after the lead-in's last line is caught by the checks before this one, and the height matters only for a box or a rule after a place to break, \vspace and then a rule thicker than 0.4pt, say, which no row has
 #: rules
-#= killed
+#= survived
 o_ifpend didactic.dtx
 -   \ifdim\dimexpr\pagetotal+\pagedepth\relax>\@didactic@keep@pendrule\@tempswafalse\fi
 +   \relax
 
-# a rule right after the lead-in, then a list: test-keep-parted's r2a to r2f
+# a rule right after the lead-in, then a list: test-keep-parted's r2a to r2f (run at d68a0a0)
 #: parted
 #= killed check-test-keep-parted
 R_pendrule didactic.dtx
