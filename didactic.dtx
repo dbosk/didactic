@@ -1310,7 +1310,9 @@
 %   of |twocolumn|, away from its lead-in, says nothing.
 % \item Glue of the primitive |\vskip|, of a fixed size, before a rule or anything that
 %   prints nothing, a |\label| say, then a list: that hides it.
-%   Right after the lead-in we still see a break there, from where the page ended, but
+%   Right after the lead-in we still see a break there, from where the page ended,
+%   unless a note or a float follows the glue, as the page can then end at the note's
+%   own place to break, past the glue; and
 %   after something else in between, such as a |\centerline|, a list parted at that
 %   glue says nothing.
 %   With |\vspace| it warns.
@@ -7549,6 +7551,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % point, the page broke right after the lead-in's last line, at such glue, as nothing
 % else between them is a place to break, and its page is the one the tie writes for the
 % lead-in.
+% Unless a note or a float follows the glue: then the page can end at the note's own
+% place to break (|\addpenalty| in |\@specialoutput|), past the glue, so it doesn't end
+% where the lead-in did, and a list parted there says nothing.
 % |\@didactic@keep@relend| writes that page only when the page that holds it is shipped
 % out, later, so each tie keeps its page in a macro of its own,
 % \cs{@didactic@keep@rp@}\meta{number} (|\@didactic@keep@relno|), which the write names
