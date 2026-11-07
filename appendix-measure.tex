@@ -336,16 +336,18 @@ dropping the break matters only along with it.
 
 \subsection{Build time}
 
-One \LaTeX\ pass at v2.13 (\texttt{743a025}), before the keep options, against the current code, with
-each \texttt{.aux} settled first and three passes in turn for each version, by
+One \LaTeX\ pass at v2.13 (\texttt{743a025}), before the keep options, against the package at
+\texttt{73fe0fd}, with each \texttt{.aux} settled first and three passes in turn for each version, by
 \texttt{measure-real/timing.py}.
+This was measured on 5 November 2026 at commit \texttt{2490d74}, whose package is that of
+\texttt{73fe0fd}, and not again at \texttt{69feebb}: its page counts are of then.
 CPU seconds are the mean of the three, with their range.
 
 \begin{center}\small
 \begin{tabular}{@{}lrrrrrr@{}}
 \toprule
 & \multicolumn{2}{c}{Pages} & \multicolumn{2}{c}{\texttt{.aux}, kB} & \multicolumn{2}{c}{CPU s} \\
-Document & v2.13 & current & v2.13 & current & v2.13 & current \\
+Document & v2.13 & \texttt{73fe0fd} & v2.13 & \texttt{73fe0fd} & v2.13 & \texttt{73fe0fd} \\
 \midrule
 Lecture notes & 67 & 68 & 150 & 179 & 31.8 (26.6--37.8) & 33.3 (24.0--38.6) \\
 Literate program & 77 & 78 & 45 & 63 & 13.8 (11.5--15.2) & 13.9 (12.2--17.2) \\
