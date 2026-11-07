@@ -1312,8 +1312,9 @@
 %   before a list: the rule hides it, and a list parted there says nothing.
 %   With |\vspace| it warns.
 % \item A |\pagebreak| at the end of the lead-in is a break you asked for only if
-%   nothing but space follows it in the paragraph; after it, a footnote or a |\label|
-%   makes it a break within the lead-in, and what is then parted from it warns.
+%   nothing but plain space follows it in the paragraph; after it, a footnote, a
+%   |\label| or |\hspace*|, which sets an invisible rule to keep its space, counts as
+%   text and makes it a break within the lead-in, and what is then parted from it warns.
 % \item A place to break after the end of another list doesn't warn, for a list or a
 %   listing, wrapped in a |center| or not, or code side by side, as it is one of the
 %   places where \LaTeX\ means a page to break.
