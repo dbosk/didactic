@@ -26,6 +26,12 @@ the same text.
 One set of lecture notes was woven and run through biber in its copy, as its woven source wasn't kept.
 \texttt{audit.py} checks each copy before anything is counted, see below.
 Then each document is built under each setting until its \texttt{.aux} doesn't change, at most six times.
+Each build starts from the \texttt{.aux} and the other generated files that the snapshot holds:
+the \LaTeX\ pass that biber needs for those lecture notes is undone, and only its \texttt{.bbl} is kept.
+That matters, as a document can settle in more than one layout, depending on the \texttt{.aux} it starts
+from: one set of lecture notes does, with words differing on 49 pages and one text page more or fewer
+through the main output routine, 675 or 674 in all, and with the same pages, the same counts of
+empty space, lone lines and lists, and the same warnings, in every setting.
 
 A setting is a small change to a copy of \texttt{didactic.sty}:
 \begin{description}
