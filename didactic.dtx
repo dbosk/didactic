@@ -6103,6 +6103,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \newif\if@didactic@keep@parfloat
 \newif\if@didactic@keep@chaphead
 \newif\if@didactic@keep@vspaced
+\newif\if@didactic@keep@nbglue
 \@didactic@keep@movabletrue
 \let\@didactic@keep@tie\relax
 \newcommand\@didactic@keep@hpage[2]{}
@@ -6454,24 +6455,45 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     +\pageshrink\relax}
 \def\@didactic@keep@vspacenote{%
   \ifvmode\ifinner\else
-    \ifnum\lastpenalty=\@M\else\global\@didactic@keep@vspacedtrue\fi
+    \ifnum\lastpenalty=\@M
+      \global\@didactic@keep@nbgluetrue
+    \else
+      \global\@didactic@keep@vspacedtrue
+    \fi
   \fi\fi}
 \AddToHook{cmd/vspace/before}{\@didactic@keep@vspacenote}
 \AddToHook{cmd/addvspace/before}{\@didactic@keep@vspacenote}
 \AtBeginDocument{%
-  \g@addto@macro\@endparenv{\ifinner\else\global\@didactic@keep@vspacedfalse\fi}}
+  \g@addto@macro\@endparenv{\ifinner\else
+    \global\@didactic@keep@vspacedfalse\global\@didactic@keep@nbgluefalse\fi}}
 \def\@didactic@keep@ifbreakless{%
   \ifvmode\ifinner\else\begingroup\@@par\endgroup\fi\fi
   \@tempswatrue
   \if@didactic@keep@vspaced\@tempswafalse\fi
-  \ifdim\@didactic@keep@stretch=\@didactic@keep@pendstretch\else\@tempswafalse\fi
   \@didactic@keep@pendrule\@didactic@keep@pend
+  \if@didactic@keep@nbglue
+    \@didactic@keep@pendrule\maxdimen
+  \else
+    \ifdim\@didactic@keep@stretch=\@didactic@keep@pendstretch\else\@tempswafalse\fi
+    \ifnum\lastnodetype=11 \@tempswafalse\fi
+  \fi
   \ifnum\lastnodetype=\thr@@\@didactic@keep@pendrule\maxdimen\fi
-  \ifnum\lastnodetype=11 \@tempswafalse\fi
+  \@didactic@keep@hidden
   \ifnum\lastpenalty=\z@\else\ifnum\lastpenalty=\@M\else\@tempswafalse\fi\fi
   \ifdim\dimexpr\pagetotal+\pagedepth\relax>\@didactic@keep@pendrule\@tempswafalse\fi
   \ifnum\outputpenalty=\@didactic@keep@pendout\else\@tempswafalse\fi
   \if@didactic@keep@parfloat\@tempswafalse\fi}
+\def\@didactic@keep@hidden{%
+  \ifcase\lastnodetype
+  \or\or\or\or\@didactic@keep@thin
+  \or\@didactic@keep@thin
+  \or\or\or\or\@didactic@keep@thin
+  \or\or\or\or\ifnum\lastpenalty=\@M\@didactic@keep@thin\fi
+  \fi}
+\def\@didactic@keep@thin{%
+  \ifdim\@didactic@keep@pendrule<\dimexpr\@didactic@keep@pend+2\p@\relax
+    \@didactic@keep@pendrule\dimexpr\@didactic@keep@pend+2\p@\relax
+  \fi}
 \def\@didactic@keep@relmove{%
   \if@filesw
     \@didactic@keep@ifbreakless
@@ -6957,6 +6979,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \global\@didactic@keep@pendout\outputpenalty
   \global\@didactic@keep@pendstretch\@didactic@keep@stretch
   \global\@didactic@keep@vspacedfalse
+  \global\@didactic@keep@nbgluefalse
   \global\@didactic@keep@parfloatfalse}
 \def\@didactic@keep@notelist{%
   \@didactic@keep@boxcheck
@@ -7479,8 +7502,15 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % page and changes nothing else; glue that can stretch or shrink changes the page's
 % stretch and shrink from what they were at the end of the lead-in
 % (|\@didactic@keep@pendstretch|), and |\vspace| or |\addvspace| after the lead-in notes
-% that it came (|\if@didactic@keep@vspaced|), unless right after |\nobreak|, where the
-% glue is no place to break, or as the end of a list.
+% that it came (|\if@didactic@keep@vspaced|), unless as the end of a list.
+% Right after |\nobreak| the glue is no place to break, and nothing that it is followed
+% by can be one but more glue of the primitives, so then it notes that instead
+% (|\if@didactic@keep@nbglue|), and neither the glue at the end nor the page's height
+% or stretch counts.
+% What prints nothing and isn't glue, a |\label|, an entry for the contents, a colour,
+% a mark, an insertion or |\nobreak|, hides what came before it, a rule say, so when it
+% is the last thing on the page we allow the height of a thin rule, 2\,pt
+% (|\@didactic@keep@hidden|); a line of text or glue before it is more than that.
 % Glue of the primitive |\vskip| that neither stretches nor shrinks, before a rule, we
 % still can't see.
 % If so, we take the page from the tie instead.
@@ -8269,6 +8299,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \global\@didactic@keep@pendout\outputpenalty
     \global\@didactic@keep@pendstretch\@didactic@keep@stretch
     \global\@didactic@keep@vspacedfalse
+    \global\@didactic@keep@nbgluefalse
     \global\@didactic@keep@parfloatfalse
     \ifx\@didactic@keep@adjust\@didactic@keep@adjp
       \global\@didactic@keep@askedtrue

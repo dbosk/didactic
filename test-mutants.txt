@@ -551,6 +551,26 @@ x_prevdepth didactic.dtx
 +       \relax
 +       \ifdim\@didactic@keep@tmp<\@didactic@keepafterheading\@didactic@keep@L
 
+# a rule and then what prints nothing, or \nobreak, then a list (round 7, N-1)
+#: parted
+#= killed check-test-keep-parted
+rv7_hidden didactic.dtx
+-   \@didactic@keep@hidden
+-   \ifnum\lastpenalty=\z@\else\ifnum\lastpenalty=\@M\else\@tempswafalse\fi\fi
++   \relax
++   \ifnum\lastpenalty=\z@\else\ifnum\lastpenalty=\@M\else\@tempswafalse\fi\fi
+
+# glue after \nobreak is no place to break, also when it stretches (round 7, m-2)
+#: parted
+#= killed check-test-keep-parted
+rv7_nbglue didactic.dtx
+-   \if@didactic@keep@nbglue
+-     \@didactic@keep@pendrule\maxdimen
+-   \else
++   \iffalse
++     \@didactic@keep@pendrule\maxdimen
++   \else
+
 # a box after the end of a list leads into what follows (round 6)
 #: parted
 #= killed check-test-keep-parted
@@ -582,8 +602,10 @@ R6stretch didactic.dtx
 #: parted
 #= killed check-test-keep-parted
 R6nobreakvs didactic.dtx
--     \ifnum\lastpenalty=\@M\else\global\@didactic@keep@vspacedtrue\fi
-+     \global\@didactic@keep@vspacedtrue
+-     \ifnum\lastpenalty=\@M
+-       \global\@didactic@keep@nbgluetrue
++     \ifnum\z@=\@ne
++       \global\@didactic@keep@nbgluetrue
 
 # code side by side whose page ended before it, a note after that
 #: parted

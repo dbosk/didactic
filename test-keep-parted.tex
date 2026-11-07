@@ -41,11 +41,15 @@
 %     H1: a box after the lead-in (\centerline): TeX moves all three together here.  H3:
 %     the primitive \vskip or a \penalty0, then a box: a place to break that only the
 %     page's height shows, as the box hides it.
+% Round 7.  V1-V4: a rule and then what prints nothing (a colour, \label, a .toc entry),
+%     v5: a rule and \nobreak, v6: \par\nobreak\medskip; none of them a place to break,
+%     so the list and the lead-in stay together, quietly.
 %
 % Build: see the Makefile, with pdflatex; test-check.py compares the warnings with the
 % pages of the words.
 \documentclass[a4paper,10pt,oneside]{memoir}
 \usepackage{didactic}
+\usepackage{xcolor}
 \pagestyle{empty}
 \makeatletter
 % \roomfor{n}: a new page with n lines of room, under two lines that a page can end
@@ -882,5 +886,96 @@ Consider LEADH3H this:
 Consider LEADH3I this:
 \vskip 6pt\hbox{A title}
 \case{H3I}{tie}\begin{itemize}\items\end{itemize}
+
+
+\roomfor{1.25}
+Consider LEADV1A this:
+{\color{red}\hrule}
+\case{V1A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.5}
+Consider LEADV1B this:
+{\color{red}\hrule}
+\case{V1B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADV1C this:
+{\color{red}\hrule}
+\case{V1C}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.25}
+Consider LEADV2A this:
+{\color{gray}\hrule height 1pt}
+\case{V2A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.5}
+Consider LEADV2B this:
+{\color{gray}\hrule height 1pt}
+\case{V2B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADV2C this:
+{\color{gray}\hrule height 1pt}
+\case{V2C}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.25}
+Consider LEADV3A this:
+\hrule\label{n3N3A}
+\case{V3A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.5}
+Consider LEADV3B this:
+\hrule\label{n3N3B}
+\case{V3B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADV3C this:
+\hrule\label{n3N3C}
+\case{V3C}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.25}
+Consider LEADV4A this:
+\hrule\addcontentsline{toc}{section}{X}
+\case{V4A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.5}
+Consider LEADV4B this:
+\hrule\addcontentsline{toc}{section}{X}
+\case{V4B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADV4C this:
+\hrule\addcontentsline{toc}{section}{X}
+\case{V4C}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.25}
+Consider LEADV5A this:
+\hrule\nobreak
+\case{V5A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.5}
+Consider LEADV5B this:
+\hrule\nobreak
+\case{V5B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADV5C this:
+\hrule\nobreak
+\case{V5C}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.25}
+Consider LEADV6A this:
+\par\nobreak\medskip
+\case{V6A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.5}
+Consider LEADV6B this:
+\par\nobreak\medskip
+\case{V6B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADV6C this:
+\par\nobreak\medskip
+\case{V6C}{tie}\begin{itemize}\items\end{itemize}
 
 \end{document}
