@@ -57,20 +57,25 @@ for d in docs:
     # didactic.sty is installed and rewrites the .aux, which every build starts
     # from, and a document can settle in more than one state: so afterwards
     # everything but the new .bbl is put back as the last build left it.
+    # The output directory may not exist yet in a fresh copy; and if biber fails,
+    # the copy is put back all the same before we stop, so that a rerun starts
+    # from the last build and not from the half-built state.
     if d.biber:
         out = os.path.join(dst, d.out)
+        os.makedirs(out, exist_ok=True)
         saved = os.path.join(a.work, "src", d.name + ".before-biber")
         shutil.rmtree(saved, ignore_errors=True)
         shutil.copytree(out, saved, symlinks=True)
-        latex(d, dst)
-        r = run(["biber", "--quiet", "--output-directory=" + d.out, d.main], cwd=dst)
-        bbl = os.path.join(out, d.main + ".bbl")
-        if r.returncode or not os.path.getsize(bbl):
-            raise SystemExit(f"{d.name}: biber failed or left an empty .bbl: {r.stdout[-300:]}")
-        new = os.path.join(saved, d.main + ".bbl")
-        shutil.copy(bbl, new)
-        shutil.rmtree(out)
-        os.rename(saved, out)
+        try:
+            latex(d, dst)
+            r = run(["biber", "--quiet", "--output-directory=" + d.out, d.main], cwd=dst)
+            bbl = os.path.join(out, d.main + ".bbl")
+            if r.returncode or not os.path.exists(bbl) or not os.path.getsize(bbl):
+                raise SystemExit(f"{d.name}: biber failed or left an empty .bbl: {r.stdout[-300:]}")
+            shutil.copy(bbl, os.path.join(saved, d.main + ".bbl"))
+        finally:
+            shutil.rmtree(out)
+            os.rename(saved, out)
     print(f"{d.name}: copied, {n} files from outside its directory, {fixed} outputs repointed"
           + (", woven" if d.weave else "") + (", biber" if d.biber else ""))
 raise SystemExit(1 if missing else 0)
