@@ -9,7 +9,12 @@
 #   #= killed|survived    what it did at the last full run, with what killed it
 # test-mutants.py fails if a mutant does something else than that says.
 #
-# Run at c40f1ba with --jobs 1, one at a
+# Round 6: run at e47307c with --jobs 2: review-r5's rv_ mutants, the R6 ones, and all that
+# touch code changed in round 6 (the parted group, A11listpen to M4output, M_bpyours,
+# M_yourpen, o_bpdefault, o_ifout, o_guard, o_skip, M_pbwithin and the x_ ones on
+# keepafterheading); o_ifpend, x_prevdepth, x_owed2 and rv_owed1 again at 67a9ff5, with
+# variant a in the rules group.  Their outcomes below are from those runs.
+# Round 5: run at c40f1ba with --jobs 1, one at a
 # time: the parted mutants, A11listpen to M4output, C2pencols, M_bpyours, o_bpdefault, o_ifout,
 # o_guard and the x_ mutants this round touched or named; their outcomes below are from that run,
 # and A12newlist and A20page from a run at the commit after it, with test-keep-parted's rows for
@@ -973,7 +978,7 @@ o_guard didactic.dtx
 
 # what is written hides a skip from the list's \addvspace
 #: rules
-#= killed check-test-keep-once
+#= killed check-test-keep-once check-test-keep-enumitem sweep-m:61 sweep-s:31
 o_skip didactic.dtx
 -     \@didactic@keep@ifbreakless
 -     \ifnum\lastpenalty<\z@
