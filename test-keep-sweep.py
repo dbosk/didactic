@@ -585,6 +585,10 @@ def check_case(p, ref, name, case, K, tied=None):
             fail(case, f"D8: a block of one line has no more to give: {warns[0][:50]}")
         if name == "p" and not moved and count < K and room <= LIMIT - 0.01:
             fail(case, f"D1: {count} lines under the heading within the limit")
+        # D8, fewer lines than keepafterheading warn, but not under a chapter, which asks
+        # no lines of its own (see the documentation of keepafterheading): a chapter with
+        # a paragraph of one line, whose next paragraph goes to the next page, has one line
+        # under it and says nothing, and that is meant.
         if not moved and not tall and name not in ("e1", "pn") and count < K and not warns \
                 and name not in ("hv", "hw", "hn", "hv8", "hv3l", "rv") \
                 and name not in DIRECTLISTS and name not in CHAPTERROWS:

@@ -1187,6 +1187,9 @@
 %   |keepmaxgap| holds for it as for any heading, what is tied to it breaks there or
 %   warns; it asks no lines of its own, and the first two lines of a paragraph stay
 %   with it because \LaTeX\ keeps them.
+%   So a chapter followed by a paragraph of one line, whose next paragraph goes to the
+%   next page, has one line under it, and that doesn't warn; the tests leave chapters
+%   out of the rule that fewer lines than this option asks warn.
 %   A table of \textsf{longtable} that starts on the next page, leaving the 
 %   heading behind, takes the heading along in the next run.
 %   When the page no longer needs that, or with this option off, the heading 
