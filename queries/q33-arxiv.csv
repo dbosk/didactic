@@ -1,0 +1,8 @@
+# Query: ("program typography" OR "typographic style" OR "pretty printing" OR "pretty-printing" OR "code layout") AND (criticism OR "no effect" OR "no significant" OR replication OR limitations) AND (comprehension OR readability)
+# Provider: arxiv
+# Timestamp: 2026-11-04T09:59:52.926143
+# Results: 1
+
+title	authors	year	doi	venue	url
+VisCode: Embedding Information in Visualization Images using Encoder-Decoder Network	Peiying Zhang; Chenhui Li; Changbo Wang	2020	10.48550/arXiv.2009.03817	cs.CV	http://arxiv.org/abs/2009.03817v1
+

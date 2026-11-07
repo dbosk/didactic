@@ -1,0 +1,67 @@
+# Query: ("program typography" OR "typographic style" OR "pretty printing" OR "pretty-printing" OR "code layout") AND (program OR code) AND (comprehension OR readability OR page)
+# Provider: openalex
+# Timestamp: 2026-11-04T09:51:56.375096
+# Results: 60
+
+title	authors	year	doi	venue	url
+Conservative pretty printing	Martin Andreas Rückert	1997	10.1145/251621.251630	ACM SIGPLAN Notices	https://openalex.org/W2079167520
+Pretty-printing: An exercise in functional programming	John Hughes	1993	10.1007/3-540-56625-2_3	Lecture notes in computer science	https://openalex.org/W1514665234
+Pretty printing with lazy dequeues	Olaf Chitil	2005	10.1145/1053468.1053473	ACM Transactions on Programming Languages and Systems	https://openalex.org/W2002988345
+Pretty-printing for software reengineering	de Merijn Jonge	2002		Centrum Wiskunde & Informatica (CWI), the national research institute for mathematics and computer science in the Netherlands	https://openalex.org/W2484994434
+Pretty Printing with Delimited Continuations	Olaf Chitil	2006		Kent Academic Repository (University of Kent)	https://openalex.org/W2273622077
+Typographic style is more than cosmetic	Paul Oman; Curtis R. Cook	1990	10.1145/78607.78611	Communications of the ACM	https://openalex.org/W2085603263
+Pretty Printing with Partial Continuations	Olaf Chitil	2005		Kent Academic Repository (University of Kent)	https://openalex.org/W2245380320
+Literate programming	Harold W. Thimbleby	2003		Encyclopedia of Computer Science	https://openalex.org/W2914806519
+Linear, Online, Functional Pretty Printing (corrected and extended version)	S. Doaitse Swierstra	2004		Utrecht University Repository (Utrecht University)	https://openalex.org/W2168540663
+Pretty-printing within the ASF+SDF Meta-Environment: a generic approach	Mark van den Brand; M. de Jonge	1999		Data Archiving and Networked Services (DANS)	https://openalex.org/W84949776
+Typographic Style is More	Paul Oman; Curtis R. Cook	1990			https://openalex.org/W2183946067
+AnyText: Incremental, left-recursive Parsing and Pretty-Printing from a single Grammar Definition with first-class LSP support	Georg Hinkel; Alexander Hert; Niklas Hettler; Kevin Weinert	2025	10.1145/3732771.3742716	ACM SIGPLAN International Conference on Software Language Engineering (SLE)	https://openalex.org/W4411369513
+A Pretty Good Formatting Pipeline	Anya Helene Bagge; Tero Hasu	2013	10.1007/978-3-319-02654-1_10	Lecture notes in computer science	https://openalex.org/W1560484202
+Measuring neural efficiency of program comprehension	Janet Siegmund; Norman Peitek; Chris Parnin; Sven Apel; Johannes C. Hofmeister; Christian Kästner; Andrew Begel; Anja Bethmann; André Brechmann	2017	10.1145/3106237.3106268	ACM Joint European Software Engineering Conference and Symposium on the Foundations of Software Engineering (ESEC/FSE)	https://openalex.org/W2741371834
+Stable, flexible, peephole pretty-printing	Stoney Jackson; Prémkumar Dévanbu; Kwan‐Liu Ma	2008	10.1016/j.scico.2007.11.002	Science of Computer Programming	https://openalex.org/W2143447336
+A paradigm for programming style research	Paul Oman; Carson Cook	1988	10.1145/57669.57675	ACM SIGPLAN Notices	https://openalex.org/W2035781078
+Eye Tracking Analysis of Code Layout, Crowding and Dyslexia - An Open Data Set	Ian McChesney; Raymond Bond	2021	10.1145/3448018.3457420	ACM Symposium on Eye Tracking Research and Applications (ETRA)	https://openalex.org/W3164001152
+Visible Languages for Program Visualization	Ronald M. Baecker; Aaron Marcus; Michael Arent; Tracy Tims; Allen A. McIntosh	1986	10.21236/adb101693		https://openalex.org/W334385831
+Input and Output for Specified Visual Languages	T. B. Dinesh; Suzan Üsküdarlı	1998	10.1007/978-1-4612-1676-6_12	Springer eBooks	https://openalex.org/W44879697
+High-Fidelity C/C++ Code Transformation	Daniel Waddington; Bin Yao	2005	10.1016/j.entcs.2005.04.037	Electronic Notes in Theoretical Computer Science	https://openalex.org/W2046704096
+Eye tracking analysis of computer program comprehension in programmers with dyslexia	Ian McChesney; Raymond Bond	2018	10.1007/s10664-018-9649-y	Empirical Software Engineering	https://openalex.org/W2890602480
+Graphical visualization of the evaluation of functional programs	Ricardo Jiménez-Peris; Cristóbal Pareja-Flores; Marta Patiño-Martı́nez; J. Ángel Velázquez‐Iturbide	1996	10.1145/1013718.237520	ACM SIGCUE Outlook	https://openalex.org/W4247779256
+Shallowly Embedded Functions	Benedikt M. Rips; Niek Janssen; Mart Lubbers; Pieter Koopman	2025	10.1145/3756907.3756923	International Symposium on Principles and Practice of Declarative Programming (PPDP)	https://openalex.org/W7115009929
+Grammatical Aspects: Coping with Duplication and Tangling in Language Specifications	Бреслав Андрей Андреевич	2011			https://openalex.org/W2180387004
+The Effect Of Crowding On The Reading Of Program Code For Programmers With Dyslexia	Ian McChesney; Raymond Bond	2021	10.1109/icpc52881.2021.00036	IEEE International Conference on Program Comprehension (ICPC)	https://openalex.org/W3153405051
+A pretty but not greedy printer (functional pearl)	Jean-Philippe Bernardy	2017	10.1145/3110250	Proceedings of the ACM on Programming Languages	https://openalex.org/W2751836918
+Visualizing the Evaluation of Functional Programs for Debugging	John Whitington; Tom Ridge	2017	10.4230/oasics.slate.2017.7	arXiv (Cornell University)	https://openalex.org/W2771832401
+The role of a typographic style in the development and preparation of instructional texts	Neal Kemp; Steve Towers	1992	10.14742/ajet.2242	Australasian Journal of Educational Technology	https://openalex.org/W1771658425
+A Pretty Expressive Printer	Sorawee Porncharoenwase; Justin Lee Pombrio; Emina Torlak	2023	10.1145/3622837	Proceedings of the ACM on Programming Languages	https://openalex.org/W4387667003
+A Pretty Expressive Printer (with Appendices)	Sorawee Porncharoenwase; Justin Lee Pombrio; Emina Torlak	2023	10.48550/arxiv.2310.01530	arXiv (Cornell University)	https://openalex.org/W4387355581
+New developments in parsing Mizar	Czesław Byliński; Jesse Alama	2012	10.48550/arxiv.1205.0170	arXiv (Cornell University)	https://openalex.org/W2138679396
+Coding Guidelines for Prolog	Michael A. Covington; Roberto Bagnara A; Richard A. O’Keefe; Jan Wielemaker; Simon Price	2009	10.48550/arxiv.0911.2899		https://openalex.org/W2952229035
+Transparency, holophrasting, and automatic layout applied to control structures for visual dataflow programming languages	Simon Gauvin; Omid Banyasad	2006	10.1145/1148493.1148504		https://openalex.org/W2000666305
+Code Positioning in LLVM	Henrik Lehtonen; Klas Sonesson	2017		Lund University Publications Student Papers (Lund University)	https://openalex.org/W2795660188
+Simpl: A toolkit for domain-specific language development in enterprise information systems	Margus Freudenthal	2013		DSpace repository (University of Tartu)	https://openalex.org/W2135814240
+Declarative Syntax Definition for Modern Language Workbenches	Luís Eduardo de Souza Amorim	2019	10.4233/uuid:43d7992a-7077-47ba-b38f-113f5011d07f	Research Repository (Delft University of Technology)	https://openalex.org/W2947639401
+Codestitcher: inter-procedural basic block layout optimization	Rahman Lavaee; John Criswell; Chen Ding	2019	10.1145/3302516.3307358		https://openalex.org/W2962717918
+Proactive Synthesis of Recursive Tree-to-String Functions from Examples	Mikaël Mayer; Jad Hamza; Viktor Kunčak	2017	10.4230/lipics.ecoop.2017.19	DROPS (Schloss Dagstuhl – Leibniz Center for Informatics)	https://openalex.org/W2731851135
+Editorial	Richard Miller Bird	1999	10.1017/s0956796899009806	Journal of Functional Programming	https://openalex.org/W4249035845
+Customization of visualizations in a functional programming environment	J. Ángel Velázquez‐Iturbide; Antonio Presa Vazquez	2003	10.1109/fie.1999.841580	IEEE Frontiers in Education Conference (FIE)	https://openalex.org/W2108280706
+Reflective and relativistic refactoring with feature-awareness	Jong Wook Kim	2017	10.15781/t2j960g34	Texas ScholarWorks (Texas Digital Library)	https://openalex.org/W2669139267
+Accurate static branch prediction by value range propagation	Jason R. C. Patterson	1995	10.1145/223428.207117	ACM SIGPLAN Notices	https://openalex.org/W4252829923
+Comparing the legibility and comprehension of type size, font selection, and rendering technology of onscreen type	Scott Bondurant Chandler	2001		VTechWorks (Virginia Tech)	https://openalex.org/W2587024332
+On the formatting of Pascal programs	James L. Peterson	1977	10.1145/954618.954624	ACM SIGPLAN Notices	https://openalex.org/W2044775928
+Improving WCET by applying a WC code-positioning optimization	Wankang Zhao; David B. Whalley; Christopher Healy; Frank Mueller	2005	10.1145/1113841.1113842	ACM Transactions on Architecture and Code Optimization	https://openalex.org/W1977439654
+Linking the Effect of Typographical Style to the Evolvabililty of Software	A. Mohan; Nicolas Gold	2003			https://openalex.org/W91182362
+An Optimization Technique to Improve Readability of CSS	Woo-Sung Jung; Eunjoo Lee	2010	10.9708/jksci.2010.15.7.099	Journal of the Korea Society of Computer and Information	https://openalex.org/W2088337909
+Readability Research: An Interdisciplinary Approach	Sofie Beier; Sam M Berlow; Esat Boucaud; Zoya Bylinskii; Tianyuan Cai; Jenae Cohn; Kathy Crowley; Stephanie Day; Tilman Dingler; Jonathan Dobres; Jennifer Healey; Jain, Rajiv; Marjorie Jordan; Kerr, Bernard; Qisheng Li; David Miller; Susanne Nobles; Alexandra Papoutsaki; Qian Jing; Tina Rezvanian; Shelley Rodrigo; Ben D. Sawyer; Shannon M. Sheppard; Bram Stein; Rick Treitman; Jen Vanek; Shaun Wallace; Benjamin A. Wolfe	2021	10.48550/arxiv.2107.09615	arXiv (Cornell University)	https://openalex.org/W4287071181
+The Influence of Typography on Perceived Aesthetic Quality, Readability, and Trust in Chinese Digital Media: A Comparative Study of Songti and Heiti Typefaces	Li Chenyang; Azian Haji Tahir	2026	10.59088/gi.v4i1.27	Global Social Science and Humanities Journal.	https://openalex.org/W7143353395
+Formatting	Richard K. Johnson	2010	10.1017/cbo9780511842290.004	Cambridge University Press eBooks	https://openalex.org/W1431793803
+Code layout optimizations for transaction processing workloads	Alex Ramírez; Luiz André Barroso; Kourosh Gharachorloo Y; Robert S. Cohn; Josep-L. Larriba-Pey; P. Geoffrey Lowney; Mateo Valero	2001	10.1145/379240.379260	Proceedings - International Symposium on Computer Architecture/Proceedings	https://openalex.org/W2130570838
+Practical Experience with Software Tools to Assess and Improve the Quality of Existing Nuclear Analysis and Safety Codes	N.H. Marshall; E.S. Marwil; S. D. Matthews; B. J. Stacey	1990	10.1007/978-3-642-84279-5_7	Springer eBooks	https://openalex.org/W1508741589
+Arabic E-Reading: Studies on Legibility and Readability for Personal Digital Assistants	Mrouj Almuhajri	2013		Spectrum Research Repository (Concordia University)	https://openalex.org/W2336352873
+On Code Reuse from StackOverflow: An Exploratory Study on Jupyter Notebook	Yutian Tang; Mingke Yang; Yuming Zhou; Bixin Li	2023	10.22541/au.167748671.10484077/v1		https://openalex.org/W4322502096
+On Code Reuse from StackOverflow: An Exploratory Study on Jupyter Notebook	Yutian Tang; Mingke Yang; Yuming Zhou; Bixin Li	2023	10.22541/au.167710022.23196663/v1		https://openalex.org/W4321482028
+Users’ preferences and perceptions of the comprehensibility and readability of medication labels	Emília da Silva Pons; Cassia Garcia Moraes; Maicon Falavigna; Lisana Reginini Sirtori; Fernanda da Cruz; Guilherme Webster; Tatiane da Silva Dal Pizzol	2019	10.1371/journal.pone.0212173	PLoS ONE	https://openalex.org/W2915473140
+A T E X-REDUCED-Interface	Werner Antweiler; Andreas Strotmann; Volker Winkelmann	1989	10.1145/70936.70940	ACM SIGSAM Bulletin	https://openalex.org/W2000076071
+A pretty-printer for every occasion	Jonge, Merijn	2001		Centrum Wiskunde & Informatica (CWI), the national research institute for mathematics and computer science in the Netherlands	https://openalex.org/W2021785886
+On Code Reuse from StackOverflow: An Exploratory Study on Jupyter Notebook	Mingke Yang; Zhou Yuming; Bixin Li; Yutian Tang	2023	10.48550/arxiv.2302.11732	arXiv (Cornell University)	https://openalex.org/W4321853979
+Readable Layout of Unbalanced N-ary Trees	David M. Solo	1986		DSpace@MIT (Massachusetts Institute of Technology)	https://openalex.org/W2241875170
+

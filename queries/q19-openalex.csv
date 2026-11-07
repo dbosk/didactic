@@ -1,0 +1,67 @@
+# Query: (list OR "bulleted list" OR "list items" OR "lead-in") AND ("page break" OR pagination) AND (criticism OR empirical OR experiment OR evidence)
+# Provider: openalex
+# Timestamp: 2026-11-03T21:05:18.211059
+# Results: 60
+
+title	authors	year	doi	venue	url
+Pagination	Joshua M. Hailpern; Niranjan Damera Venkata; Marina Danilevsky	2014	10.1145/2644866.2644867	ACM Symposium on Document Engineering (DocEng)	https://openalex.org/W2015635697
+A Note on the Experimental Treatment of Shakespearean Pagination	Kenneth Majer; Michael C. Flanigan	1975	10.62798/uhgs5931	Florida Educational Research Association	https://openalex.org/W4403728684
+Pagination printed by Aldus Manutius	Koichi Yukishima	2020	10.6092/issn.2283-9364/11024	Bibliothecae it	https://openalex.org/W3037599585
+Pagination: It's what you say, not how long it takes to say it	Joshua M. Hailpern; Niranjan Damera Venkata; Marina Danilevsky	2014	10.48550/arxiv.1404.3233	arXiv (Cornell University)	https://openalex.org/W2949097689
+On the Publication and Pagination of Ameghino's (1894) Taxonomy of Santacrucian Mammals	Gerardo De Iuliis; Juan C. Fernicola; Augusto Racco	2016	10.5710/amgh.26.01.2016.2909	Ameghiniana	https://openalex.org/W2514449340
+Beyond The Page-Break: Towards Better Tools for Remediation of Born-Digital Documents	Mark W. R. Anderson	2024	10.1145/3648188.3678215	ACM Conference on Hypertext and Social Media (HT)	https://openalex.org/W4401983365
+Are tag clouds useful for navigation? A network-theoretic analysis	Denis Helić; Christoph Trattner; Markus Strohmaier; Keith Andrews	2011	10.1504/ijsccps.2011.043603	International Journal of Social Computing and Cyber-Physical Systems	https://openalex.org/W2026339218
+Paratexts and the Hermeneutics of Digital Bibles	Joshua L. Mann	2020	10.1515/9783110634440-011	De Gruyter eBooks	https://openalex.org/W3133301255
+Letter	Joanna Drew	1983	10.1017/s0307472200003357	Art Libraries Journal	https://openalex.org/W4252576448
+Using information scent and need for cognition to understand online search behavior	Wan‐Ching Wu; Diane Kelly; Avneesh Sud	2014	10.1145/2600428.2609626	International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR)	https://openalex.org/W1980104409
+Formatting and Presentation as Confounds in Online Studies	Jessica L. Engelbrecht; John E. Edlund	2016	10.20982/tqmp.12.3.p243	The Quantitative Methods for Psychology	https://openalex.org/W2535486904
+Shapir: Standardizing and Democratizing Access to Web APIs	Tarfah Alrashed; Lea Verou; David Ron Karger	2021	10.1145/3472749.3474822	ACM Symposium on User Interface Software and Technology (UIST)	https://openalex.org/W3207441540
+Context effects in Web surveys	Ulf‐Dietrich Reips	2002	10.5167/uzh-19732	Zurich Open Repository and Archive (University of Zurich)	https://openalex.org/W840683036
+Static Analysis for AWS Best Practices in Python Code	Mukherjee, Rajdeep; Omer Tripp; Ben Liblit; Wilson, Michael	2022	10.4230/lipics.ecoop.2022.14	arXiv (Cornell University)	https://openalex.org/W4280492061
+clintrialx: Connect and Work with Clinical Trials Data Sources	Indraneel Chakraborty	2024	10.32614/cran.package.clintrialx		https://openalex.org/W4402249335
+Modular Multimodal Machine Learning for Extraction of Theorems and Proofs in Long Scientific Documents (Extended Version)	Shrey Mishra; Antoine Gauquier; Pierre P. Senellart	2023	10.48550/arxiv.2307.09047	HAL	https://openalex.org/W4384807976
+NUMBERING SYSTEM IN THE ANCIENT EGYPTIAN DOCUMENTS	Mohamed Hefny; Hassan Khaled	2023	10.21608/shedet.2023.285992	SHEDET ANNUAL PEER-REVIEWED JOURNAL ISSUED BY THE FACULTY OF ARCHAEOLOGY FAYOUM UNIVERSITY	https://openalex.org/W4322743516
+Pink paper and the composition of Flann O'Brien's At-Swim-Two-Birds	Samuel Anderson	2002	10.31390/gradschool_theses.3989		https://openalex.org/W2767833640
+3 The Medieval and Early Modern Book	Ingo Berensmeyer	2022	10.1515/9783110784459-003	De Gruyter eBooks	https://openalex.org/W4286231671
+Goofus and Gallant’s Guide to Textbook Cataloging	Scott M. Dutkiewicz; Tomeka Jackson	2023	10.51221/sc.scl.2023.7.1.2	South Carolina Libraries	https://openalex.org/W4385800665
+DIALOGUING SEXUALITY AND IDENTITY IN AFRICAN FICTION: A STYLISTIC EXTRAPOLATION OF SEFI ATTA’S A BIT OF DIFFERENCE AND NOVIOLET BULUWAYO’S WE NEED NEW NAMES	Isonguyo Akpan	2024		SAPIENTIA GLOBAL JOURNAL OF ARTS, HUMANITIES AND DEVELOPMENT STUDIES	https://openalex.org/W7215559577
+Alphabetum distinccionum of Master Mathias of Linköping : its composition, use and literary context	Sanna Supponen	2023		Työväentutkimus Vuosikirja	https://openalex.org/W7197823233
+Processes on Paper: Writing Procedures as Non-Material Research Devices	Christoph Hoffmann	2013	10.1017/s0269889713000069	Science in Context	https://openalex.org/W1987648749
+E news paper edition: Updates about current activities and daily new	Ravina R Balki	2024	10.69758/gimrj2406i8v12p105	Gurukul multidisciplinary research journal.	https://openalex.org/W4400799030
+An analysis of user behaviors on the search engine results pages based on the demographic characteristics	Yıltan Bitirim; Duygu Çelik Ertuğrul	2020	10.3837/tiis.2020.07.006	KSII Transactions on Internet and Information Systems	https://openalex.org/W3047490859
+Understanding search behaviour on mobile devices	Jae Won Kim	2017	10.25911/5d70f14c7979c	ANU Open Research (Australian National University)	https://openalex.org/W2767581277
+Defeasible A Priori Warrants: Evidence, Diversity of Opinion, and Strength	James B. Freeman	2020		Scholarship at UWindsor (University of Windsor)	https://openalex.org/W3031105817
+Zvýraznění bloků textu s možností stránkového zlomu	Vít Zýka	1999	10.5300/1999-3/146	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2314023370
+基于B／S／S架构的高校教务管理系统的应用与研究	李和香; 皮灿军	2007			https://openalex.org/W37016457
+Prudence and Prevention – Empirical Evidence	Thomas Mayrhofer; Hendrik Schmitz	2020	10.4419/96973000	Econstor (Econstor)	https://openalex.org/W3047696509
+Deceptive Views on the Second Coming	Jack J. Blanco	1994		Digital Commons - Andrews University (Andrews University)	https://openalex.org/W2994379609
+Man and Knowledge: The Search for Truth in a Pluralistic Age	Winfried Vogel	1996		Digital Commons - Andrews University (Andrews University)	https://openalex.org/W2735243345
+The Christian Coalition and the End Game	Norman Gulley	1997		Digital Commons - Andrews University (Andrews University)	https://openalex.org/W2625621699
+Pagination of programs for virtual memory systems.	Hui-Yang Su	1974		OhioLink ETD Center (Ohio Library and Information Network)	https://openalex.org/W129501224
+New Leaves: Riffling the History of Digital Pagination	Martin Paul Eve	2022	10.1353/bh.2022.0017	Book history	https://openalex.org/W4313061775
+Problems with COBOL--Some Empirical Evidence	Dennis Volpano; Herbert E. Dunsmore	1981		Purdue e-Pubs (Purdue University System)	https://openalex.org/W1537628131
+How Elastic Are Preferences for Redistribution? Evidence from Randomized Survey Experiments	Ilyana Kuziemko; Michael I. Norton; Emmanuel Saez; Stefanie Stantcheva	2013	10.3386/w18865	National Bureau of Economic Research	https://openalex.org/W3122136052
+The Millennium and the Judgment	van Bemmelen; Mark Peter	1997		Digital Commons - Andrews University (Andrews University)	https://openalex.org/W2609109311
+Literature Against Criticism	Martin Paul Eve	2016	10.11647/obp.0102	Open Book Publishers	https://openalex.org/W2507295954
+Annual Bibliography of Philip Roth Criticism and Resources—2006	Derek Parker Royal	2007	10.1353/prs.2007.a386423	Philip Roth Studies	https://openalex.org/W2378545760
+Jonathan Culler: A Checklist of Writings on Literary Criticism and Theory to 1994	David Gorman	1995		Style	https://openalex.org/W258767038
+MODE OF TEXT PRESENTATION AND ITS INFLUENCE ON READING EFFICIENCY: SCROLLING VERSUS PAGINATION	Zuzanna Klyszejko; Anna Wieczorek; Justyna Sarzyńska‐Wawer; Agnieszka Matysiak Szostek; Karolina Chmiel; Tomasz SOLUCH; Aneta Brzezicka	2014	10.21909/sp.2014.04.668	Studia Psychologica	https://openalex.org/W947130569
+Broadside Ballad and Folksong: Oral Tradition Versus Literary Tradition	Reiner Wehse	1975		IUScholarWorks (Indiana University)	https://openalex.org/W2177223837
+Fully polynomial time approximation scheme for the pagination problem with hierarchical structure of tiles	Aristide Grange; Imed Kacem; Sébastien Martin; Sarah Minich	2022	10.1051/ro/2022022	RAIRO - Operations Research	https://openalex.org/W4211121299
+A comparative study of Takaful and conventional insurance: empirical evidence from the Malaysian market	Hussein A. Abdou; Khurshid Ali; Roger J. Lister	2014		CLOK (University of Central Lancashire)	https://openalex.org/W81940126
+Financial Markets Barriers’ in Agricultural Sector: Empirical Evidence of Iran	Seyed Jalal Sadeghi Sharif; Mahdi Salehi; Mehrdad Alipour	2009	10.5539/jsd.v2n3p95	Journal of Sustainable Development	https://openalex.org/W2157084947
+External Validity of Laboratory Experiments	William D. Crano; Marilynn B. Brewer; Andrew Lac	2014	10.4324/9781315768311-15	Routledge eBooks	https://openalex.org/W1184648879
+Toxic Content and User Engagement on Social Media: Evidence from a Field Experiment	George Beknazar-Yuzbashev; Rafael Jiménez Durán; Jesse McCrosky; Mateusz Stalinski	2022	10.2139/ssrn.4307346	SSRN Electronic Journal	https://openalex.org/W4313300628
+THE COMMITTEE OF 300: EVIDENCE, CLAIMS, AND CONTROVERSIES	Sixbert Sangwa	2026	10.65655/ocp.m21.c35		https://openalex.org/W7203581684
+Review Your Choices: When Confirmation Pages Break Ballot Secrecy in Online Elections	James Brunet; Athanasios Demetri Pananos; Aleksander Essex	2022	10.1007/978-3-031-15911-4_3	Lecture notes in computer science	https://openalex.org/W4294273463
+A Study of the use of a manual in the training of operators of Harris Pagination Systems	Mark Mulik	1993		RIT Scholar Works (Rochester Institute of Technology)	https://openalex.org/W813650030
+Feasibility Study on Reducing Lead and Cadmium Absorption by Alfalfa (Medicago scutellata L.) in a Contaminated Soil Using Nano-Activated Carbon and Natural Based Nano-Zeolite	T. Hasanabadi; Shahram Lack; Adel Modhej; Hossien GHAFOURIAN; Mojtaba Alavifazel; Mohammad Reza Ardakani	2019	10.15835/nbha47411613	Notulae Botanicae Horti Agrobotanici Cluj-Napoca	https://openalex.org/W2997833680
+Racial discrimination in the sharing economy : evidence from online experiments	Emeline Picard	2018		NORA - Norwegian Open Research Archives	https://openalex.org/W2896655832
+Strategies of empirical justification in experimental science	Tudor M. Baetu	2008	10.71781/16373		https://openalex.org/W2280500105
+Three essays in empirical asset pricing	Roméo Tédongap	2008	10.71781/21021		https://openalex.org/W2372479915
+What Is an Adventist? Someone Who Upholds Creation	Marco T. Terreros	1996		Digital Commons - Andrews University (Andrews University)	https://openalex.org/W2994595211
+Empirically measuring salience of objects for use in pedestrian navigation	Markus Kattenbeck	2015	10.1145/2820783.2820820	ACM SIGSPATIAL International Conference on Advances in Geographic Information Systems (SIGSPATIAL GIS)	https://openalex.org/W2296496099
+Does virtue lead to status? Testing the moral virtue theory of status attainment.	Feng Bai; Grace Ching Chi Ho; Jin Yan	2019	10.1037/pspi0000192	Journal of Personality and Social Psychology	https://openalex.org/W2945331742
+The MultiplEYE Text Corpus Data and Materials	Sergiu Nisioi; Anna Bondar; Ramunė Kasperẹ; Maja Stegenwallner-Schütz	2026	10.23668/psycharchives.21750		https://openalex.org/W7134910969
+Feminist Music Criticism: Derivations and Directions	Roseanne Elizabeth Kydd	1992	10.71548/11366	MacSphere (McMaster University)	https://openalex.org/W2113784103
+

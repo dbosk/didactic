@@ -1,0 +1,8 @@
+# Query: TITLE-ABS-KEY(("widows and orphans" OR "page break") AND (reading OR comprehension OR legibility OR readability) AND (experiment OR empirical OR evidence))
+# Provider: scopus
+# Timestamp: 2026-11-03T20:06:35.345262
+# Results: 1
+
+title	authors	year	doi	venue	url
+Focused Retrieval of Content and Structure - 10th International Workshop of the Initiative for the Evaluation of XML Retrieval, INEX 2011, Revised Selected Papers		2012		Lecture Notes in Computer Science Including Subseries Lecture Notes in Artificial Intelligence and Lecture Notes in Bioinformatics	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=84871554086&origin=inward
+

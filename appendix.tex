@@ -1,0 +1,831 @@
+^^A Appendix: page breaks around headings, lists, listings and paragraph lines.
+^^A To be \input inside didactic.dtx, where % is ignored by \DocInput: this file
+^^A therefore has no % comments at all, only ^^A, and contains no literal
+^^A vertical bar (the driver makes it a short-verb character).
+^^A Needs: biblatex (or plain \cite with a style that handles @online), csquotes,
+^^A booktabs, longtable, cleveref.  Assumes \appendix has been issued, or issue
+^^A it directly above \input.  didactic provides sidecaption in article.
+^^A
+^^A Author's note (verification and reproduction):
+^^A   scholar session : heading-foot-of-page
+^^A   exports         : heading-foot-of-page.csv, appendix-hitlist.tex,
+^^A                     queries/q*-*.csv, all in this repository
+^^A   searched        : 2026-11-03 and, for listings, 2026-11-04; providers openalex wos scopus ieee arxiv hal,
+^^A                     -l 60 per provider and query; s2 (key rejected, HTTP 403)
+^^A                     and dblp (non-JSON, HTTP 202 text/html) failed the health
+^^A                     check and were not run
+^^A   query numbers   : S1-S6 = q1-q6, S7 = q14, S8 = q15, S9 = q22, S10 = q23,
+^^A                     S11 = q12; C1-C3 = q7-q9, C4 = q10, C5 = q11, C6 = q13,
+^^A                     C7 = q16, C8-C12 = q17-q21, C13 = q24;
+^^A                     listings: S12-S17 = q25-q30, C14-C18 = q31-q35
+^^A   classification  : scholar llm context + llm classify --no-examples --no-enrich,
+^^A                     batches of 25, model openai-codex/gpt-5.6-sol, tags
+^^A                     supports-claim qualifies-claim adjacent-subtopic
+^^A                     off-topic-false-hit; 2038 records.  Model labels for 1913
+^^A                     records stand unreviewed; 125 reviewed with scholar sessions
+^^A                     decide, and the model's own theme tag removed by hand from
+^^A                     three of them, so the table's cited rows are the ones cited.
+^^A                     The record of all labels is heading-foot-of-page.csv.
+^^A   hit-list table  : scholar sessions export heading-foot-of-page -f table
+^^A                     --bearing-only --lang en --label pb-hits
+^^A                     --track "Page breaks around headings, lists and paragraph
+^^A                     lines" --theme lines-after-heading="lines after a heading"
+^^A                     --theme space-at-foot="space at the page foot"
+^^A                     --theme reader-evidence="reader evidence"
+^^A                     -o appendix-hitlist; then sed -i '/^%/d' on the result,
+^^A                     since \DocInput would typeset its % comment header.
+^^A   provenance      : didactic.bib, every entry
+^^A   mechanism test  : queries/t-pen.py, queries/t-pen-memoir.py (small documents)
+^^A   measurement     : queries/pen.py, output queries/pen-results.txt (generated documents)
+^^A   chicago manual  : read online through KTH (SOCKS tunnel, curl with a cookie
+^^A                     jar, no credentials); see closed-access.md in backing-claims
+^^A   SECONDARY       : older Chicago editions via mittelbach2018forlorn;
+^^A                     Bringhurst via izma2023widows;
+^^A                     Tschichold and Wheildon via wilson2018notes; Wheildon via
+^^A                     harrison2020widows
+^^A
+^^A Wiring: decisions go in their own section, not here.  It should point to
+^^A app:pb-lines, app:pb-gap, app:pb-lists, app:pb-listings and app:pb-penalties in a footnote at
+^^A each claim, saying what the appendix answers.
+
+\providecommand{\apcs}[1]{\texttt{\textbackslash #1}}
+
+\section{Page breaks: questions, answers and method}\label{app:pb-method}
+
+This appendix reports what the typographic and \LaTeX\ literature says about
+five questions on page breaks.
+They arise for any package that decides where a page ends in lecture notes.
+The appendix gives the evidence only; it does not recommend a design.
+What this package decided from it, and why, is in \cref{PageBreakDecisions}.
+\begin{description}
+\item[\Cref{app:pb-lines}] How many lines must follow a heading at the foot of
+  a page?  Where a number is stated, at least two, including in the University of
+  Chicago Press's sample house style; three occurs only as the top of a range,
+  \enquote{two or three}.
+\item[\Cref{app:pb-gap}] When they do not fit, does the heading move, and how
+  much empty space is accepted for that?  Where sources say, it moves.  One source
+  sets a limit for that case: up to four lines short, in the same sample house
+  style.
+\item[\Cref{app:pb-lists}] Should a list's lead-in stay with the list, and how
+  are lists treated at a page break?  The same sample asks for two lines on each side of a
+  break, in lines and not items.  Other evidence is thin and points both ways.
+\item[\Cref{app:pb-listings}] Is a code listing split across pages harder to read, and
+  is there a rule for keeping short ones whole?  No study read tests the split.  Literate-programming
+  tools keep code whole by default, and other tools leave it to an option.  The only
+  counts read at a break are two.
+\item[\Cref{app:pb-penalties}] How strongly should a package forbid a first or
+  last line alone at a page break?  No source read compares the values for readers.
+  On generated text, 1000 leaves far fewer such lines than 150, and 10000 none.
+\end{description}
+
+\paragraph{What was not read.}
+Of the classical handbooks, only \emph{The Chicago Manual of Style} could be read,
+in three editions and to different depths.\cite{chicago2010manual,chicago2017manual,chicago2024manual}
+The 16th was searched as text, and its page-makeup figure read as an image.
+Of the 17th, only §§2.116--2.117 were read.
+Of the 18th, §§2.121--2.122 were read in full; §§1.62--1.63, 2.25, 2.118, 2.139, 6.138 and 6.141--6.142 were opened and
+searched for page breaks, and the index was checked.
+The others could not be opened at the relevant passages: \emph{New Hart's Rules},
+Butcher's \emph{Copy-editing}, Bringhurst's \emph{The Elements of Typographic Style},
+Tschichold's \emph{The Form of the Book}, McLean's \emph{Thames \& Hudson Manual
+of Typography}, Lamport's \emph{\LaTeX: A Document Preparation System} and
+\emph{The \LaTeX\ Companion}.
+The answers below therefore rest on one handbook and on other kinds of source, and
+any statement about the unread books is second hand and marked as such.
+Checking them is the first item of future work.
+
+\paragraph{Databases.}
+The searches were run on 3 and 4~November 2026 with the command-line tool
+\texttt{scholar}\cite{bosk2026scholar}, on six databases that passed its health
+check that day: OpenAlex, Web of Science, Scopus, IEEE Xplore, arXiv and HAL.
+Two could not be searched: Semantic Scholar rejected the API key (HTTP 403), and
+DBLP answered with a web page instead of data (HTTP 202).
+Every query ran on all six databases, with the same keywords, translated into
+each database's field syntax where it needs one (\cref{tab:pb-queries}).
+OpenAlex ranks by relevance and returned far more noise than the others, and
+counts are capped at 60 per database and query.
+
+^^A Longtable, not the guide's sidecaption float: 24 wrapped rows do not fit one
+^^A page of the article layout, and the fallback sidecaption's caption was lost.
+\begingroup\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\begin{longtable}{@{}l>{\raggedright\arraybackslash}p{0.43\linewidth}rrrrrrrr@{}}
+\caption{Queries and hits per database, 3 and 4~November 2026, tool
+    \texttt{scholar}.  S = support query, C = counter query.  Databases:
+    OpenAlex (OA; not open access), Web of Science (WoS), Scopus, IEEE Xplore
+    (IEEE), arXiv, HAL, Semantic Scholar (S2), DBLP.  At most 60 hits per
+    database and query, so 60 means \enquote{at least 60}.  \enquote{--} means
+    the search failed: S2 rejected the key and DBLP answered with a web page, so
+    neither could be searched.  Web of Science received the keywords as
+    \texttt{TS=(\dots)}, Scopus as \texttt{TITLE-ABS-KEY(\dots)}, the others as
+    boolean free text.}\label{tab:pb-queries}\\
+\toprule
+& Keywords & OA & WoS & Scopus & IEEE & arXiv & HAL & S2 & DBLP \\
+\midrule
+\endfirsthead
+\multicolumn{10}{@{}l}{\emph{\tablename~\thetable{} (cont.)}}\\
+\toprule
+& Keywords & OA & WoS & Scopus & IEEE & arXiv & HAL & S2 & DBLP \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+      S1 & \texttt{"widows and orphans" AND (typography OR typesetting OR "page layout")} & 57 & 1 & 1 & 0 & 1 & 0 & -- & -- \\
+      S2 & \texttt{heading AND "page break" AND (typography OR typesetting OR pagination)} & 60 & 0 & 0 & 0 & 0 & 0 & -- & -- \\
+      S3 & \texttt{pagination AND typesetting AND ("white space" OR "short page" OR "facing pages")} & 60 & 0 & 0 & 1 & 0 & 0 & -- & -- \\
+      S4 & \texttt{list AND "page break" AND (typography OR typesetting OR pagination)} & 60 & 0 & 1 & 0 & 0 & 0 & -- & -- \\
+      S5 & \texttt{"page breaking" AND (TeX OR LaTeX)} & 60 & 1 & 3 & 0 & 1 & 0 & -- & -- \\
+      S6 & \texttt{("widow line" OR "orphan line" OR "club line" OR Hurenkind OR Schusterjunge)} & 60 & 0 & 3 & 0 & 1 & 0 & -- & -- \\
+      S7 & \texttt{"short page" OR "ragged bottom" OR "running short" OR "flush bottom" OR "bottom balancing"} & 60 & 60 & 60 & 39 & 12 & 7 & -- & -- \\
+      S8 & \texttt{"memoir" AND LaTeX AND (class OR typesetting OR typography)} & 60 & 0 & 0 & 0 & 1 & 0 & -- & -- \\
+      S9 & \texttt{(subheading OR subhead OR "section heading") AND ("page break" OR pagination OR "keep with next" OR "foot of the page" OR "bottom of the page") AND (typography OR typesetting)} & 59 & 0 & 0 & 0 & 0 & 0 & -- & -- \\
+      S10 & \texttt{("widow penalty" OR "orphan penalty" OR "club penalty" OR clubpenalty OR widowpenalty OR "widow control" OR "orphan control") AND (typesetting OR pagination OR TeX OR LaTeX)} & 39 & 0 & 0 & 0 & 0 & 0 & -- & -- \\
+      S11 & \texttt{("bulleted list" OR "list items" OR "lead-in") AND ("page break" OR pagination) AND (reading OR comprehension OR typography)} & 60 & 0 & 0 & 0 & 2 & 0 & -- & -- \\
+      S12 & \texttt{("code listing" OR "program listing" OR "source code listing") AND ("page break" OR "across pages" OR pagination OR typesetting OR typography)} & 59 & 0 & 3 & 0 & 0 & 0 & -- & -- \\
+      S13 & \texttt{("program typography" OR "typographic style" OR "pretty printing" OR "pretty-printing" OR "code layout") AND (program OR code) AND (comprehension OR readability OR page)} & 60 & 11 & 18 & 6 & 4 & 0 & -- & -- \\
+      S14 & \texttt{(LaTeX OR TeX OR noweb OR CWEB OR "literate programming") AND ("code listing" OR listings OR verbatim OR "code chunk") AND ("page break" OR "across pages" OR typesetting)} & 60 & 0 & 1 & 0 & 1 & 0 & -- & -- \\
+      S15 & \texttt{("code listing" OR "source code" OR "program listing") AND (book OR textbook OR "style guide" OR publisher) AND ("page break" OR "page layout" OR pagination OR "line numbers")} & 60 & 0 & 0 & 1 & 0 & 0 & -- & -- \\
+      S16 & \texttt{("one page" OR "single page" OR "one screen" OR screenful) AND (function OR subroutine OR routine OR module OR "source code") AND (length OR size) AND (readability OR comprehension OR maintainability)} & 60 & 0 & 1 & 2 & 30 & 0 & -- & -- \\
+      S17 & \texttt{("printed code" OR "paper listing" OR "program listing" OR "code on paper") AND (comprehension OR review OR inspection OR reading)} & 60 & 11 & 60 & 5 & 60 & 0 & -- & -- \\
+      \midrule
+      C1 & \texttt{("widows and orphans" OR "page break") AND (reading OR comprehension OR legibility OR readability) AND (experiment OR empirical OR evidence)} & 60 & 0 & 1 & 0 & 0 & 0 & -- & -- \\
+      C2 & \texttt{typography AND (rules OR conventions) AND (empirical OR evidence OR myth OR critique) AND (readability OR legibility)} & 60 & 1 & 0 & 0 & 0 & 0 & -- & -- \\
+      C3 & \texttt{("page turn" OR "page break" OR "page boundary") AND ("eye movements" OR comprehension)} & 60 & 2 & 1 & 0 & 0 & 0 & -- & -- \\
+      C4 & \texttt{(heading OR "widows and orphans" OR "page break") AND typesetting AND (criticism OR overrated OR "trade-off" OR "white space")} & 60 & 0 & 0 & 1 & 1 & 0 & -- & -- \\
+      C5 & \texttt{("page break" OR "page turn" OR "page boundary") AND (sentence OR paragraph) AND (reading OR memory OR recall)} & 60 & 1 & 1 & 0 & 0 & 0 & -- & -- \\
+      C6 & \texttt{(heading OR headings) AND ("page layout" OR "white space" OR "page break") AND (reading OR comprehension) AND experiment} & 60 & 0 & 0 & 0 & 0 & 0 & -- & -- \\
+      C7 & \texttt{"memoir" AND LaTeX AND (criticism OR limitations OR "page break" OR "ragged bottom" OR "flush bottom")} & 59 & 0 & 0 & 0 & 2 & 0 & -- & -- \\
+      C8 & \texttt{("widows and orphans" OR "widow line" OR "orphan line" OR "club line" OR Hurenkind OR Schusterjunge) AND (criticism OR empirical OR evidence OR experiment OR reading OR comprehension)} & 60 & 7 & 8 & 0 & 1 & 1 & -- & -- \\
+      C9 & \texttt{("short page" OR "ragged bottom" OR "running short" OR "flush bottom" OR "bottom balancing" OR "facing pages") AND (typography OR typesetting OR pagination) AND (criticism OR empirical OR experiment OR reading OR comprehension)} & 60 & 0 & 1 & 0 & 0 & 0 & -- & -- \\
+      C10 & \texttt{(list OR "bulleted list" OR "list items" OR "lead-in") AND ("page break" OR pagination) AND (criticism OR empirical OR experiment OR evidence)} & 60 & 2 & 4 & 2 & 6 & 0 & -- & -- \\
+      C11 & \texttt{("page breaking" OR pagination) AND (TeX OR LaTeX) AND (criticism OR limitations OR empirical OR evaluation OR "white space")} & 60 & 1 & 3 & 0 & 2 & 0 & -- & -- \\
+      C12 & \texttt{(heading OR subheading OR subhead OR "section heading") AND ("page break" OR pagination OR "keep with next" OR "foot of the page" OR "bottom of the page") AND (reading OR comprehension OR experiment OR empirical OR criticism)} & 60 & 0 & 2 & 0 & 0 & 0 & -- & -- \\
+      C13 & \texttt{("widow penalty" OR "orphan penalty" OR "club penalty" OR clubpenalty OR widowpenalty OR "widow control" OR "orphan control") AND (criticism OR empirical OR experiment OR reading OR "white space")} & 60 & 0 & 1 & 0 & 0 & 0 & -- & -- \\
+      C14 & \texttt{("code listing" OR "program listing" OR "source code listing") AND ("page break" OR "across pages" OR pagination OR "page turn" OR split) AND (comprehension OR reading OR experiment OR empirical OR evidence OR criticism)} & 60 & 0 & 2 & 1 & 0 & 0 & -- & -- \\
+      C15 & \texttt{("program comprehension" OR "code comprehension" OR "code readability") AND ("page break" OR "page boundary" OR "page turn" OR "across pages" OR pagination OR scrolling OR "screen size" OR "display size")} & 60 & 7 & 8 & 22 & 0 & 0 & -- & -- \\
+      C16 & \texttt{("program typography" OR "typographic style" OR "pretty printing" OR "pretty-printing" OR "code layout") AND (criticism OR "no effect" OR "no significant" OR replication OR limitations) AND (comprehension OR readability)} & 60 & 1 & 1 & 0 & 1 & 0 & -- & -- \\
+      C17 & \texttt{(LaTeX OR TeX OR noweb OR CWEB OR "literate programming") AND ("code listing" OR listings OR verbatim OR "code chunk") AND ("page break" OR "across pages") AND (criticism OR limitations OR empirical OR evaluation OR reading)} & 59 & 0 & 0 & 0 & 0 & 0 & -- & -- \\
+      C18 & \texttt{("one page" OR "single page" OR "one screen" OR screenful) AND (function OR subroutine OR routine OR module OR "source code") AND (length OR size) AND (criticism OR "no effect" OR "no significant" OR myth OR empirical)} & 60 & 1 & 1 & 4 & 60 & 0 & -- & -- \\
+\end{longtable}
+\endgroup
+
+\paragraph{Web searches.}
+This literature is mostly books, manuals and community documents, which the
+databases index poorly, so web searches complemented them.
+\Cref{tab:pb-web} lists them verbatim.
+Each source they led to was then opened; a search snippet was never used as
+evidence.
+
+\begingroup\scriptsize
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.62\linewidth}>{\raggedright\arraybackslash}p{0.34\linewidth}@{}}
+\caption{Web searches, 3 and 4~November 2026, with the outcome of each.}\label{tab:pb-web}\\
+\toprule
+Query & Outcome \\
+\midrule
+\endfirsthead
+\multicolumn{2}{@{}l}{\emph{\tablename~\thetable{} (cont.)}}\\
+\toprule
+Query & Outcome \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+      \texttt{Chicago Manual of Style page makeup "subhead" bottom of page "two lines of text" must follow widow first line of paragraph} & No Manual text; pointers only \\
+      \texttt{heading at bottom of page how many lines of text must follow typography rule at least two lines after subheading book typesetting} & A practitioner thread\cite{binder2023lonely} \\
+      \texttt{widows and orphans evidence reading research do they matter overrated typography no empirical study} & A secondary report\cite{harrison2020widows}; no study \\
+      \texttt{"subhead" "at least two lines" foot of page Chicago Manual of Style "2." page makeup "must be followed by"} & Publisher's blog\cite{cmosshoptalk2018subheads} \\
+      \texttt{New Hart's Rules Butcher's Copy-editing heading bottom of page "at least two lines" text below heading page make-up short page} & Nothing usable \\
+      \texttt{Überschrift am Seitenende mindestens drei Zeilen Text folgen Typografie Regel Mikrotypografie Satzregeln Schusterjunge} & No three-line rule verified \\
+      \texttt{rubrik längst ner på sidan minst två rader text efter rubriken typografi regel sidbrytning svenska skrivregler horunge} & No authority found \\
+      \texttt{titre en bas de page doit être suivi d'au moins deux lignes de texte règles typographiques mise en page lexique imprimerie nationale} & No number verified \\
+      \texttt{bulleted list page break lead-in sentence keep with first item minimum items on a page technical writing style guide} & A practitioner thread\cite{sims2021listtags} \\
+      \texttt{"A page should not begin with the last line of a paragraph" subhead "two lines" page makeup Chicago Manual} & The W3C draft\cite{cramer2016latinreq} \\
+      \texttt{Bringhurst Elements of Typographic Style "Balance facing pages by moving single lines" widows "Leave at least two lines" subhead} & Second-hand quotations only \\
+      \texttt{Turabian thesis formatting subhead bottom of page "at least two lines of text" below subheading must follow} & College guides\cite{georgefox2026turabian,jsums2024turabian,nobts2026template} \\
+      \texttt{tex.stackexchange section heading at bottom of page keep with at least three lines needspace titlesec nobottomtitles how many lines after heading} & Forum uses, not advice \\
+      \texttt{page bottom white space short page "facing pages" one line short heading moved next page typesetter accept book design rule running pages short} & A vendor guide\cite{cambric2026widow} \\
+      \texttt{InDesign Keep Options "Keep With Next" lines "up to five" headings paragraph Adobe help} & Adobe's help\cite{adobe2026incopy} \\
+      \texttt{TeX FAQ widows and orphans clubpenalty "section" heading page break "at bottom of page" texfaq; LaTeX Companion needspace "subheading" page break recommendation Mittelbach} & The \TeX\ FAQ\cite{texfaq2026widows}; a book author's notes\cite{osborne2010pmakeup} \\
+      \texttt{study reader effect sentence split across page turn reading comprehension eye tracking page boundary paragraph interrupted text print} & One screen study\cite{dillon1990splitting} \\
+      \texttt{"Towards evidence-based typography" literature review experiment design widows orphans typographic rules not empirically tested} & Two general reviews\cite{veytsman2011evidence,vanderwaarde2025nineteen} \\
+      \texttt{thesis dissertation formatting manual heading bottom of page "at least two lines" OR "at least three lines" OR "two lines of text" of text following heading university graduate school} & Thesis manuals\cite{pitt2026etd,utah2026text,iowa2020manuscript,uwest2026format}; no three-line rule \\
+      \texttt{memoir class \textbackslash raggedbottomsection \textbackslash bottomsectionskip short page section heading moved flushbottom stretched} & Copies of the manual only \\
+      \texttt{memoir LaTeX class default \textbackslash clubpenalty 1000 \textbackslash widowpenalty 1000 why versus 150 widows orphans still appear criticism} & No critique of the defaults \\
+      \texttt{code listing should not break across pages book style guide publisher "code listing" page break guideline authors} & A thesis guide\cite{ndsu2026listings}; no publisher \\
+      \texttt{Oman Cook typographic style is more than cosmetic CACM 1990 program comprehension experiment book format page} & Abstract\cite{oman1990typographic}; full text behind a bot check \\
+      \texttt{Gellenbeck Cook experiment typographic signaling program comprehension headings program listing page} & Abstract\cite{gellenbeck1991signaling} \\
+      \texttt{source code listing split across two pages harder to read comprehension study printed program function on one page Weinberg} & No such study \\
+      \texttt{Baecker Marcus "Human Factors and Typography for More Readable Programs" page breaks function boundaries program listing design} & Catalogue records only; the book not obtained \\
+      \texttt{technical book author guidelines publisher code listings "page break" OR "across pages" long listing split annotated O'Reilly Manning No Starch style guide code examples length} & A reader\cite{greywolve2019golang}; no publisher \\
+      \texttt{keep code block together do not break across pages print CSS "pre" break-inside avoid code listing lines at each end typesetting practice} & Print style sheets; no count at the ends \\
+      \texttt{function length one page or one screen readability empirical evidence program comprehension "fit on one" screen page routine size study criticism} & A negative result\cite{tempero2024decomposition}; a display study found and not read \\
+\end{longtable}
+\endgroup
+
+\paragraph{Known documents.}
+Specifications, package manuals and program sources were retrieved directly,
+which is the right method for them: they are not journal articles and have no
+place in these databases.
+They were read in full at the cited passages.
+Package manuals and sources are the ones in \TeX\ Live 2025.
+\emph{The \TeX book}\cite{knuth1986texbook} was read in a copy in the maintainer's
+own library, which was also searched by title for the handbooks above without
+result.
+\emph{The Chicago Manual of Style} was read in its 18th and 17th editions online,
+through a university's institutional access, at the sections named by its index, and
+in its 16th edition in a PDF in the maintainer's own files.
+A text search of a PDF does not see figures, so the page-makeup figure of the 16th
+edition was read as an image, from a pointer in its text.
+\emph{New Hart's Rules}, Butcher and \emph{The \LaTeX\ Companion} were tried through
+the same access and refused or offered for purchase; search inside the Internet
+Archive's lending copies was also refused.
+
+\paragraph{Screening.}
+All 2038 records were labelled by a language model against a statement of the questions, into four
+categories: supports, qualifies, adjacent and off-topic.
+These labels are the model's and were not all checked.
+The model worked from title and abstract; records with no abstract went by title alone.
+One hundred and twenty-five records were reviewed by hand, from title and abstract: all 96 the model kept, all 27 discards below 0.7
+confidence, and two general reviews it had called adjacent.
+The other 1913 discards stand as the model left them, apart from a keyword check of titles and abstracts for page-break
+and listing vocabulary, which changed nothing.
+The review moved 55 of the model's 96 kept records to adjacent or off-topic, among them 19 of the 23 it had called
+qualifying: studies of program comprehension that do not touch page layout, and a study of picture books, one of test items and a note on old book
+pagination.
+\Cref{tab:pb-hits} at the end of this appendix lists the records that bear on the questions.
+Its count of records is lower than the 2038 here because it merges records of one work found in several databases.
+A row marked \enquote{supports} there was judged relevant from its title or abstract and, unless cited, was not read: it is a
+pointer for further reading and not evidence used here.
+Most sources cited in this appendix are known documents and web results, which are not in that table.
+The provenance of each source is recorded in the bibliography's source file with
+fixed fields: the claim, how it was found, why it was picked, a verbatim quote,
+what was read, the counter-search and the date.
+
+\paragraph{Tests.}
+Where sources describe what \TeX\ does, the behaviour was also checked in two ways, under
+\texttt{pdflatex} in \TeX\ Live 2025.
+Small documents in the \texttt{article} and \texttt{memoir} classes, on a page of 20 lines, check what happens at one break.
+Generated documents count outcomes: 6 documents of 300 paragraphs of 25 to 140 random words from a fixed vocabulary, about
+300 pages each set, A4, 10\,pt, one-sided, with \texttt{article} in its default font and \texttt{memoir} in Latin Modern,
+with and without a section heading every 8 paragraphs.
+They have no lists, figures, footnotes or displays, and they have paragraph stretch of 1\,pt, the default of both classes.
+Neither says anything about readers, and the counts hold for this text and these settings only.
+The scripts and their output are in the package's source.
+
+\paragraph{Shared limitations.}
+Semantic Scholar and DBLP were not searched.
+A language model's labels decided most of the screening, so a relevant record may have been discarded unseen.
+OpenAlex counts are capped and ranked, so relevant records may lie below the cap.
+Statements below that nothing was found or that a source is the only one mean among what was read.
+Books and pre-digital reading research are poorly indexed, so an empty database
+result is weak evidence of absence.
+Web results depend on the search engine and were not exhaustive.
+Thesis manuals, package manuals and practitioner posts state what their authors
+require or prefer, not what benefits readers.
+
+\section{Lines after a heading}\label{app:pb-lines}
+
+\paragraph{Claim and question.}
+A heading should not stand alone at the foot of a page; the W3C requirements for
+Latin text layout put this as a minimum number of following
+lines.\cite{cramer2016latinreq}
+The question is: how many lines of text must follow a heading at the foot of a
+page?
+The strength tested is a stated minimum, as distinct from a general wish to keep
+heading and text together.
+
+\paragraph{Method.}
+See \cref{app:pb-method}.
+Queries S1, S2, S6 and S9 carry the support side, C1, C4, C6, C8 and C12 the
+counter side.
+
+\paragraph{Results: stated numbers.}
+The strongest source read is a labelled sample from a publisher.
+The 16th edition of \emph{The Chicago Manual of Style} prints, as a sample of the rules a
+publisher gives typesetters,\cite[§A.17]{chicago2010manual} a \enquote{House Style for Composition and
+Page Makeup} of the University of Chicago Press: \enquote{The minimum number of lines of text below a subhead
+at the bottom of a page is two.}\cite[fig.~A.3, Page Makeup, item 4]{chicago2010manual}
+The only source read that states a range is the W3C draft, edited by a publisher's
+employee and based on print practice: \enquote{A head should never be the last
+thing on a page; it must be followed by two or three lines of
+text.}\cite[§10.3]{cramer2016latinreq}
+The same sentence stands in the published Working Draft.\cite[§9.3]{cramer2014latinreq}
+It gives no source for the number.
+Four university thesis manuals set two.
+Pittsburgh: \enquote{A subheading at the bottom of a page should be followed by at
+least two full lines of type.}\cite[Margins]{pitt2026etd}
+Iowa: \enquote{Headings may not be placed at the bottom of the page without at
+least two lines of text below them.}\cite{iowa2020manuscript}
+Utah and the University of the West say the
+same.\cite{utah2026text,utah2026checklist,uwest2026format}
+Theses are double or one-and-a-half spaced, so these two lines are taller than two
+lines of a book.
+
+\paragraph{Results: no number.}
+The running text of the Manual gives no count.
+The 18th edition says: \enquote{A page should not end with a subhead}, and goes on: \enquote{A page can,
+however, end with the first line of a new paragraph}.\cite[§2.121]{chicago2024manual}
+The 17th edition has the same sentences.\cite[§2.116]{chicago2017manual}
+The 16th has the second sentence without the first.\cite[§2.113]{chicago2010manual}
+Taken alone, the current text would not forbid a subhead followed by a single line, but that is this
+review's inference, and the Press's sample sets two.
+No such figure was found through the 18th edition's index, and its appendixes could not be reached, so whether the sample still stands
+there is not known.
+The publisher's blog says, for student papers: \enquote{Never end a page with a
+subhead.}\cite{cmosshoptalk2018subheads}
+College guides repeat this.\cite{georgefox2026turabian,jsums2024turabian}
+One seminary's template counts a subheading alone at the page bottom as an orphan
+error.\cite{nobts2026template}
+A guide for scientific texts asks that a heading style make sure a heading
+\enquote{is not followed by a page break}.\cite{schwen2020tensimple}
+Butterick advises keep-with-next for headings.\cite{butterick2026headings}
+A TUGboat article calls separating a section heading from its paragraph \enquote{almost
+always undesirable}.\cite[§9.6]{chernoff2022lwc}
+A W3C statement of the reason is the only one found: \enquote{A heading at the bottom
+of a page removes the title from the section, and the section from the
+title.}\cite[§2]{cramer2016latinreq}
+None of these is backed by reader data.
+
+\paragraph{Results: systems, as evidence of practice.}
+\LaTeX\ forbids a break after the first line of the paragraph following a heading,
+through \apcs{clubpenalty} set to 10000 in \apcs{@afterheading}.\cite{latex2025sources}
+The mechanism test agrees: with a paragraph of several lines, heading and two lines
+stayed at the foot, and with room for only one line the heading moved.
+A one-line paragraph gets no such protection: in the test, a heading followed by a
+one-line paragraph stayed at the foot, with the next paragraph on the next page.
+The memoir class keeps this mechanism, with the same results in the test, and its manual gives no
+number.\cite{wilson2025memoir,wilson2025memoirsrc}
+CSS's sample style sheet avoids a break after headings, and its \texttt{orphans}
+property defaults to 2, which together imply two
+lines.\cite[Appendix~D, §13.3.2]{bos2011css21}\cite[§3.3]{atanassov2018cssbreak}
+XSL-FO has the same default, and the DocBook style sheets keep section titles with what
+follows.\cite[§7.20.6]{berglund2006xsl11}\cite{docbook2026sectiontitle}
+These two-line figures are this review's inference from combining rules, not statements
+in the specifications.
+Adobe's software lets the user set up to five lines and describes the purpose as keeping
+a heading with \enquote{the next few lines}.\cite{adobe2026incopy}
+Word's keep-with-next states no count.\cite{microsoft2026keep}
+The \texttt{nowidow} package defaults to two, for paragraphs.\cite[§2.2]{pinson2011nowidow}
+The \texttt{needspace} package leaves the amount to the user.\cite{wilson2025needspace}
+
+\paragraph{Results: other positions.}
+On the low side, an Adobe community expert calls two \enquote{pretty standard}, adding
+\enquote{I do have one client who prefers the single line}, and later \enquote{choosing
+between 1 or 2 lines is just a preference}.\cite{binder2023lonely}
+On the high side, one user of another system wanted a heading with \enquote{three lines of
+text} at the page bottom pushed to the next page.\cite{bryon2026widowing}
+Both are anecdotes.
+Searches in German, Swedish and French verified no rule of their own.
+
+\paragraph{Discussion and limitations.}
+The figure in the Manual is labelled a sample and is the Press's own house style, not a rule the Manual
+lays down for all publishers; nothing read shows how far it was applied, and it stands in an edition two before the current
+one.
+The other sources that state a number are a draft requirements document and thesis manuals.
+Chicago's running text states no number, which is silence, not a lower floor.
+The other handbooks were not read and may say something else.
+The W3C draft is the only source for three, and only as the top of a range.
+Agreement among system defaults is weak evidence, since they may share an origin.
+No study was found on how many lines readers need under a heading.
+
+\paragraph{Conclusion.}
+Where a number is stated, the floor in the literature read is two lines; three appears
+only in \enquote{two or three}, and no source read requires three.
+The University of Chicago Press's sample house style states exactly two, and the Manual's running text
+states no number.
+The support for two is moderate for a craft rule and the support for three is weak.
+That a heading must not stand alone has broad support, but as craft practice and not as a
+measured effect.
+What this package does with it: \cref{PageBreakDecisions}.
+
+\paragraph{Future work.}
+This search left \emph{New Hart's Rules}, Butcher's \emph{Copy-editing} and Bringhurst unread at
+this point, did not establish whether the 17th and 18th editions of the Manual keep the figure, and it left Semantic Scholar and DBLP unsearched.
+The field lacks any experiment on the number of lines under a heading: a study varying zero, one,
+two and three lines at the foot, measuring rereading and navigation, would settle whether the rule
+has a reader effect at all.
+If one line proved harmless, the two-line floor would stand as convention only.
+
+\paragraph{Hit list.}
+\Cref{tab:pb-hits} lists the database records; of those, Schwen and Chernoff are cited here.
+
+\section{The trade-off with empty space}\label{app:pb-gap}
+
+\paragraph{Claim and question.}
+A heading that lacks room for its lines moves to the next page, at the cost of a short
+page.\cite{utah2026text}
+The question is: when the lines do not fit, does the heading move, and how much empty space does
+the literature accept for that?
+
+\paragraph{Method.}
+See \cref{app:pb-method}.
+Queries S3, S7 and S8 carry the support side, C4, C7 and C9 the counter side.
+
+\paragraph{Results: the heading moves.}
+Every source read that says what happens to the heading moves it.
+Utah: \enquote{If there is not enough room, the subheading moves to the top of the next page.
+This is the only time a gap is allowed in the text when it is not the end of a chapter or before
+an equation too long to fit at the bottom of a page.}\cite[Placement]{utah2026text}
+Its checklist also allows a footnote-forced gap, so \enquote{only} is not
+strict.\cite[Margins]{utah2026checklist}
+Pittsburgh: \enquote{the subheading should begin the next page.}\cite[Margins]{pitt2026etd}
+Memoir describes the same behaviour of the standard classes: a subhead \enquote{too close to the
+bottom of a page is moved to the top of the following page}.\cite[§6.2, p.~75]{wilson2025memoir}
+Chernoff's package does so by default, with this cost: \enquote{moving the section heading can create
+a large blank space at the end of the page.}\cite[§9.6, p.~34]{chernoff2022lwc}
+
+\paragraph{Results: how much space.}
+One source read sets a limit for exactly this case.
+The University of Chicago Press's sample: \enquote{The text page may be up to four lines short if there is no room
+for a subhead at the bottom of a page. The subhead begins at the top of the next page.}\cite[fig.~A.3, item 4]{chicago2010manual}
+It also says that chapter-opening pages \enquote{may be up to two lines short} to avoid a bad break.\cite[fig.~A.3, item 3]{chicago2010manual}
+The same figure limits other adjustments more tightly: \enquote{Facing text pages should be of equal depth and must align}, and
+spreads end \enquote{either at normal depth, or exactly one line short or one line long}.\cite[fig.~A.3, items 6, 8]{chicago2010manual}
+It does not say how four lines fit with this.
+The Manual's running text gives the one-line figure too: \enquote{it is usually acceptable for both pages to run a line
+long or short to avoid widows}, or to accommodate corrections,\cite[§2.122]{chicago2024manual} and for a subhead at the foot and the
+like, \enquote{page length may be adjusted}.\cite[§2.121]{chicago2024manual}
+The other numbers measure other things.
+The \texttt{titlesec} option \texttt{nobottomtitles} moves titles when little room is left, with a
+threshold \enquote{whose default value is .2\apcs{textheight}}, but it is off by default and is a
+package setting, not advice.\cite[p.~6]{bezos2025titlesec}
+Plain \TeX's \apcs{beginsection} places \texttt{plus.3\apcs{vsize}} of stretch before a section;
+reading this as a tolerance is this review's interpretation.\cite{knuth2021plain}
+A vendor guide calls a page \enquote{three or four lines short} arguably worse than the widow it
+fixes.\cite{cambric2026widow}
+One book author reports publisher rules allowing pages \enquote{longer or shorter than x by up to one
+line}.\cite{osborne2010pmakeup}
+Wilson's notes give \enquote{Five lines on the last page of a chapter} as a reasonable minimum, which
+concerns chapter ends.\cite[§3.3.3, p.~52]{wilson2018notes}
+
+\paragraph{Results: short pages as a defect.}
+Book-oriented sources treat the short page as a real cost.
+Mittelbach: \enquote{all \LaTeX\ can do is run the page or column short, generating a fairly ugly hole
+at the bottom.}\cite[p.~247]{mittelbach2018forlorn}
+The \TeX\ FAQ: \enquote{many publishers insist on the default \apcs{flushbottom}; it is seldom acceptable
+to introduce stretchability into the vertical list, except at points (such as section headings) where
+the document design explicitly permits it.}\cite{texfaq2026widows}
+Wilson accepts space around headings, \enquote{a heading is meant to attract attention}, but calls too
+much white space in the typeblock \enquote{a distraction to the reader}.\cite[§3.3.1, p.~48]{wilson2018notes}
+The Press's sample forbids one common fix: \enquote{Adding extra space between lines or paragraphs to make facing pages align
+is not allowed}, though it allows small adjustments around separate text elements.\cite[fig.~A.3, Typography item 5, Page Makeup item 8]{chicago2010manual}
+Memoir warns that a flush bottom \enquote{may have a deleterious effect on the color of some pages} and
+offers \apcs{raggedbottomsection}, off by default, for pages short because of a moved
+subhead.\cite[pp.~6, 76]{wilson2025memoir}
+It neither recommends nor discourages the switch.
+Butterick finds blank lines \enquote{more annoying than the widows and
+orphans},\cite{butterick2026widow} but also keeps heading lines together, warning of
+gaps.\cite{butterick2026keeplines}
+
+\paragraph{Results: facing pages, and book versus report.}
+The main distinction is facing pages, as in Chicago above.
+W3C: \enquote{If a document has facing pages, the publisher usually requires that they align top and
+bottom}, with exceptions including \enquote{When aligning facing pages will make some other issue
+worse}; running short means removing a line from each page of the
+spread.\cite[§§5.3--5.4]{cramer2016latinreq}
+KOMA-Script: \enquote{In two-sided documents that is usually undesirable.}\cite[§2.1, p.~27]{kohm2025koma}
+Osborne: \enquote{Every pair of facing pages (even--odd) must have the same length.}\cite{osborne2010pmakeup}
+The standard classes and memoir encode the split, with a ragged bottom only when
+one-sided.\cite{latex2025classes}\cite[p.~6]{wilson2025memoir}
+Book versus report is only implicit: thesis manuals accept the gap and trade-book sources resist it, but
+no source read draws the contrast.
+
+\paragraph{Results: fewer lines to avoid space.}
+No source read argues, as a principle, that a heading should keep fewer lines to avoid white space.
+The nearest are the Adobe expert's \enquote{just a preference}\cite{binder2023lonely} and a
+\texttt{lua-widow-control} option that leaves the orphan under the heading and warns.\cite[§9.6]{chernoff2022lwc}
+The U.S. Government Publishing Office makes the analogous trade for paragraphs only: widows
+\enquote{are permitted if absolutely necessary to maintain uniform makeup and page
+depth}.\cite[§2.6]{gpo2016style}
+It has no rule on heads at the foot that a keyword search could find.
+
+\paragraph{Discussion and limitations.}
+Thesis manuals concern double-spaced work with fixed margins, and say nothing about how a book looks.
+The numbers above measure different things and should not be compared.
+Printed spreads and one-sided or on-screen reading may differ, and the sources do not address screens.
+No reader study of short pages was found.
+
+\paragraph{Conclusion.}
+Yes, the heading moves in every source read that says what happens to it, and the only stated limit read for that case is
+\enquote{up to four lines short}, in the University of Chicago Press's sample house style.
+For other adjustments the same sample allows one line, on both facing pages.
+Short pages are treated as a defect in book work, mainly where facing pages must align, and as a
+permitted exception in thesis manuals, which set no limit.
+The strength is moderate for the move and limited for the amount, which rests on one labelled sample.
+What this package does with it: \cref{PageBreakDecisions}.
+
+\paragraph{Future work.}
+Besides the unread handbooks of \cref{app:pb-method}, Bringhurst's rule on balancing facing pages should be read
+at source; a W3C appendix lists \enquote{Balance facing pages by moving single lines} without
+attribution.\cite{cramer2016latinreq}
+Tschichold's reported view, that a page a line shorter or longer is less of an affront than a widow, is
+known here only through Wilson.\cite[§3.3.3]{wilson2018notes}
+The field lacks any measure of whether readers notice or mind a short page, on spreads or single pages;
+a study would show whether the concern is typographic only.
+
+\paragraph{Hit list.}
+\Cref{tab:pb-hits} lists the database records; of those, Chernoff is cited here.
+
+\section{Lists at a page break}\label{app:pb-lists}
+
+\paragraph{Claim and question.}
+A break between a lead-in sentence and its list is said to be annoying.\cite[§18.7, p.~333]{wilson2025memoir}
+The question is: should a list's lead-in stay with the list, and how are lists treated at a page break?
+
+\paragraph{Method.}
+See \cref{app:pb-method}.
+Queries S4 and S11 carry the support side, C10 the counter side.
+
+\paragraph{Results: the publisher's sample.}
+The University of Chicago Press's sample house style is the only book-publishing source read with a rule, under
+\enquote{Line minimums for breaking elements}: \enquote{A minimum of two text lines must appear above or below a separate text element such as
+an extract, poem, or list}, and \enquote{A minimum of two lines of a separate text element may fall at the top or bottom of a
+page.}\cite[fig.~A.3, item 5]{chicago2010manual}
+So a list may break across pages, and the count is in lines, not items.
+It does not name the lead-in; that two text lines above would normally include it is this review's reading.
+
+\paragraph{Results: the lead-in.}
+Memoir: \enquote{A sentence or two may be used to introduce a list (e.g., itemize) and it can be annoying
+if there is a page break between the introductory words and the first item.}\cite[§18.7, p.~333]{wilson2025memoir}
+It offers \apcs{noprelistbreak}, per list.
+CSS's sample style sheet has \texttt{ul, ol, dl \{ page-break-before: avoid \}}.\cite[Appendix~D]{bos2011css21}
+A FrameMaker user writes that \enquote{the first list item has to stay with the preceding paragraph because
+it's an introduction into the list}.\cite{sims2021listtags}
+Mittelbach reports, for a nearby case, that a display formula starting a page with its introduction on the
+previous page \enquote{is considered a no-go by nearly everybody}.\cite[p.~247]{mittelbach2018forlorn}
+This is an analogy, not a rule about lists.
+
+\paragraph{Results: the systems that do the opposite.}
+The standard \LaTeX\ classes set \apcs{@beginparpenalty} and \apcs{@itempenalty} to
+$-51$.\cite{latex2025classes}
+Memoir does the same, and its source says why: \enquote{They are set to a bonus value to encourage page breaking
+at these points.}\cite{wilson2025memoirsrc}
+So the default encourages a break at exactly the place memoir's manual calls annoying.
+A list directly after a heading is exempt.
+DocBook's list properties set no keep.\cite{docbook2026sectiontitle}
+
+\paragraph{Results: items at a break.}
+One practitioner reports: \enquote{Our style guide mandates at least 2 list items at the top or bottom of a
+page if the list can't be kept all on one page. The only exception is if an item is long enough to split over
+the page break.}\cite{sims2021listtags}
+That is one unnamed in-house guide, second hand, and it counts items where the Press's sample counts lines.
+No source read treats items split across pages as a separate topic.
+
+\paragraph{Results: the handbook.}
+\emph{The Chicago Manual of Style} treats lists in its sections on punctuation and
+format.\cite[§§6.138, 6.141--6.142]{chicago2024manual}
+A keyword search of those sections found no rule on page breaks, its index has no such entry under lists, and
+the bad breaks it lists for proofreading do not include lists.\cite[§2.121]{chicago2024manual}
+
+\paragraph{Discussion and limitations.}
+Apart from the Press's sample the evidence is thin: one manual's remark, one informative style sheet, forum posts.
+The sample's wording leaves open how \enquote{above or below} applies when a list starts a page.
+The silence of Chicago's running text is a keyword search of the sections named, not a reading of the whole book.
+Keyword searches of the package manuals found nothing further.
+No reader study was found.
+
+\paragraph{Conclusion.}
+One publisher's sample requires two text lines beside a list and two lines of a list on each side of a break; keeping the lead-in itself
+with the list has only weak, indirect support, and the standard \LaTeX\ defaults point the other way.
+A minimum counted in items has one second-hand report of two.
+None of this is backed by reader data, so the evidence does not settle the question.
+What this package does with it: \cref{PageBreakDecisions}.
+
+\paragraph{Future work.}
+The unread handbooks of \cref{app:pb-method} and technical-writing manuals such as the \emph{Microsoft Manual of
+Style} should be checked for lists at a page break; none was read.
+A mailing-list guideline asking for three items on each side of a break could not be opened and is not
+counted.
+The field lacks any study of whether a lead-in separated from its list, or a lone item, affects reading.
+
+\paragraph{Hit list.}
+\Cref{tab:pb-hits} lists the database records; none of those cited in this appendix bears on lists.
+
+\section{Code listings at a page break}\label{app:pb-listings}
+
+\paragraph{Claim and question.}
+A listing broken across pages is said to be harder to read, as by one reader cited below.\cite{greywolve2019golang}
+This chapter asks three things.
+Is a code listing split across pages harder to read or understand?
+Is there a rule or practice for keeping short listings whole, and for how many lines stay at each end when one must break?
+What do listing tools, style guides and writers on program typography do?
+The strength tested is a measured effect on readers for the first, and a stated rule or default for the others.
+
+\paragraph{Method.}
+See \cref{app:pb-method}.
+Queries S12--S17 carry the support side, C14--C18 the counter side, on the same databases.
+They use the terms of the field, program comprehension and code layout, as well as the practitioner's.
+Tool manuals are the ones in \TeX\ Live 2025, and coding standards were read on the web, as known documents.
+The experiments on program reading that are cited were read in abstract only.
+
+\paragraph{Results: reader evidence.}
+No study read tests a listing split across pages, on paper or on screen.
+The closest is about prose: splitting sentences across screens did not significantly change comprehension, but readers went
+back \enquote{to reread text significantly more}.\cite{dillon1990splitting}
+Studies of how program text is set exist, and in the abstracts read they do not speak of page breaks.
+Oman and Cook report that the principles of their book format \enquote{significantly aid program comprehension and reduce maintenance effort};\cite{oman1990typographic}
+a companion article lists \enquote{low-level organization chunks and beacons} among its benefits.\cite{oman1990book}
+Gellenbeck and Cook are more cautious: \enquote{little evidence exists to show that this type of formatting makes programs easier to read and
+understand}, and they found \enquote{only modest improvements} from signaling on a 913-line program.\cite{gellenbeck1991signaling}
+Ribeiro and Travassos find that coding guidelines still contradict each other on code size and layout style, among other attributes, and that these contradictions \enquote{still demand further
+investigation}.\cite{ribeiro2018attributes}
+Shneiderman and colleagues say that larger screens \enquote{can improve program comprehension} if the space goes to better presentation and \enquote{not just more code or larger type}, which concerns seeing more and not where a break falls.\cite{shneiderman1986display}
+On the unit a page break might cut, a recent controlled experiment found the effect of dividing code into functions on understanding
+\enquote{inconclusive}.\cite{tempero2024decomposition}
+The one first-hand statement of the harm is a reader's, asking for code blocks not to split when printing web pages: \enquote{it makes reading large blocks of code
+more difficult}, and \enquote{this change is much more about large blocks of code than smaller blocks}.\cite{greywolve2019golang}
+That is the opposite of keeping only short listings whole, and it is an anecdote.
+
+\paragraph{Results: keeping listings whole.}
+The literate-programming tools keep code together by default, or prefer to.
+\texttt{noweb} ends every code chunk with \apcs{filbreak}, commented \enquote{keeps code on 1 page}, and its \texttt{breakcode} option is
+to \enquote{use less vertical white space, at the cost of breaking up code chunks}, leaving at most 0.2\,in on a page.\cite{ramsey2026noweb}
+\apcs{filbreak} means, in Knuth's words, roughly \enquote{Break the page here and fill the bottom with blank space, unless there is room for more copy
+that is itself followed by \apcs{filbreak}}.\cite[p.~111]{knuth1986texbook}
+\texttt{CWEB} places a similar construction before each section, which this review reads as a preferred break between sections and not a ban within one.\cite{knuth2025cweb}
+It also asks that the code of a section be \enquote{about a dozen lines long, so that it is easily comprehensible as a unit}, a statement about the size of a unit
+and not about pages.\cite{knuth2025cweb}
+General listing tools leave it to the user, breaking by default.
+\texttt{fancyvrb} offers \texttt{samepage}, off by default, for \enquote{very special circumstances}.\cite[§4.1.16]{vanzandt2025fancyvrb}
+\texttt{minted} has the same option, which \enquote{Forces the whole listing to appear on the same page, even if it doesn't fit}.\cite{poore2025minted}
+\texttt{listings} lets a listing cross pages, with a float as the way to avoid it.\cite{heinz2024listings}
+\texttt{tcolorbox} is the other way round: a box does not break unless asked to.\cite[p.~410]{sturm2025tcolorbox}
+
+\paragraph{Results: style guides and coding standards.}
+No publisher's guideline on code at a page break was found, though O'Reilly, Manning and No Starch were searched for, and a text search of the 16th edition of the Chicago Manual found no rule on code.
+Figure A.3 of its 16th edition names \enquote{an extract, poem, or list} as separate text elements and does not name code.\cite[fig.~A.3, item 5]{chicago2010manual}
+One thesis guide says: \enquote{If a listing cannot fit on a single page, you should consider placing it in an appendix}, and it accepts listings over several pages.\cite{ndsu2026listings}
+Coding standards speak of pages only in the source file.
+The GNU standards ask for form feeds \enquote{at logical places (but not within a function)}, adding that the pages \enquote{do not have to fit on a printed page}.\cite[§5.1]{gnu2026standards}
+PEP~8 allows such marks \enquote{to separate pages of related sections}.\cite{vanrossum2001pep8}
+The Linux style wants functions to \enquote{fit on one or two screenfuls of text}.\cite[§6]{linux2026style}
+These show a wish to see a function at once, not a rule for setting a listing.
+
+\paragraph{Results: how many lines.}
+Two counts were read, and both are two.
+\texttt{tcolorbox}, when breakable, has \texttt{lines before break} initially 2, for the part before the break.\cite[p.~411]{sturm2025tcolorbox}
+The University of Chicago Press's sample says \enquote{A minimum of two lines of a separate text element may fall at the top or bottom of a page},\cite[fig.~A.3, item 5]{chicago2010manual}
+which applies to code only by analogy.
+No source read gives three, or any number of lines below which a listing should stay whole; the nearest is \texttt{CWEB}'s dozen, which is about something else.
+
+\paragraph{Discussion and limitations.}
+Page breaks in code may be treated in the full texts read here only in abstract, in books on program typography that could not be obtained, or in publishers' internal
+guides.
+Tools' defaults show what their authors chose, in \texttt{noweb}'s case with a one-line reason, and some share an origin.
+What is hard to read in a broken listing may depend on its length and on the reader's task: the study of prose above found a cost in rereading and none in comprehension,
+and nothing read says whether code behaves alike.
+The databases returned much on program comprehension and little on page layout, and classification by a language model may have missed a passing treatment.
+
+\paragraph{Conclusion.}
+It is not shown that a code listing split across pages is harder to read or understand: no study read tests it, and the statements of harm read are opinions.
+There is a practice of keeping code whole, strongest in literate-programming tools, where it is the default and a stated aim, and weak in general listing tools, where it is an option;
+no rule was read that states a length below which a listing stays whole.
+The counts read for the lines at a break are two, one for boxes and one for separate text elements other than code, and three has no source.
+Support is weak for all of this, and it is practice and not evidence of a reader effect.
+What this package does with it: \cref{PageBreakDecisions}.
+
+\paragraph{Future work.}
+Found and not obtained: Baecker and Marcus, \emph{Human Factors and Typography for More Readable Programs} (1990), the book-length treatment and the likeliest place for a page rule;
+the full texts of Oman and Cook; and Reisel and Shneiderman, \enquote{Is Bigger Better? The Effects of Display Size on Program Reading} (1987), described in a search result as finding
+that seeing the whole program at once helped, which was not opened and is not used here.
+Publishers' author guides were searched for and not found.
+The field lacks an experiment that varies only where a listing breaks: the same code on paper, whole or split at a function or at an arbitrary line, with short and long listings, measuring
+time, errors and returns to the previous page.
+It would show whether keeping a listing whole buys anything for the space it costs, and for which lengths.
+
+\paragraph{Hit list.}
+\Cref{tab:pb-hits} lists the database records; of those, Oman and Cook, Ribeiro and Travassos, and Shneiderman and colleagues are cited here.
+
+\section{How strongly to forbid a lone first or last line}\label{app:pb-penalties}
+
+\paragraph{Claim and question.}
+\TeX\ discourages a lone first or last line through penalties.\cite[p.~104]{knuth1986texbook}
+The defaults differ: 150 in plain \TeX\ and the \LaTeX\ kernel, 1000 in memoir, and 10000, which forbids the
+break, in many journal classes.\cite{knuth2021plain,latex2025sources,wilson2025memoirsrc}\cite[p.~246]{mittelbach2018forlorn}
+The question is: how strongly should a package forbid a first or last line alone at a page break, as the kernel's
+150, memoir's 1000, or 10000?
+
+\paragraph{Method.}
+See \cref{app:pb-method}.
+Queries S1, S5, S6 and S10 carry the support side, C1, C2, C8, C11 and C13 the counter side.
+
+\paragraph{Results: what the values do.}
+Knuth's text: such lines \enquote{will not appear all alone on a page unless the alternative is
+worse}.\cite[p.~104]{knuth1986texbook}
+The cost of a break is badness plus penalty, with badness at most 10000 unless the page is
+overfull.\cite[p.~111]{knuth1986texbook}
+The \TeX\ FAQ draws the practical consequence: \enquote{for typical layouts, there are only two sensible settings
+for the penalties: finite (150 or 500, it doesn't matter which) to allow widows and orphans, and infinite (10000 or
+greater) to forbid them.}\cite{texfaq2026widows}
+On one kind of page the tests agree: on a text-only page of 20 lines with \apcs{parskip} set to no stretch, 150, 1000 and 9999 all left
+an orphan in place, and only 10000 moved it, leaving the page a line short; memoir at its default of 1000 did the same.
+Such pages are the exception, and on the generated text 1000 did not behave like the lower values.
+Both classes give \apcs{parskip} 1\,pt of stretch, and with that a page usually has enough to pay for moving a line.
+Counted in the generated documents, orphans and widows together with both penalties at the same value:
+with headings, \texttt{memoir} went from 28 and 39 at 150 to 13 and 8 at 1000, and \texttt{article} from 41 and 40 to 5 and 11;
+without headings, \texttt{memoir} went from 41 and 41 to 17 and 23, and \texttt{article} from 28 and 35 to 20 and 17.
+With the widow penalty at 10000, orphans were 38 at 150, 15 at 1000 and 0 at 10000 in \texttt{memoir} with headings, and 40, 6 and 0 in
+\texttt{article}; without headings 26, 18, 0 and 38, 24, 0.
+The FAQ's 150 and 500 did agree in three of the four sets, with \texttt{article} with headings the exception, at 5 and 15.
+The page count rose by at most 3 in about 300 between the settings.
+So on this text 1000 removes from about a third to most of such lines, and more where headings give stretch, and 10000 removes all of them at the
+cost of those pages.
+
+\paragraph{Results: what the sources recommend.}
+For 10000: \enquote{many journal classes for \LaTeX\ completely forbid widows and orphans by setting
+\apcs{widowpenalty} and \apcs{clubpenalty} to 10000}, TUGboat included.\cite[p.~246]{mittelbach2018forlorn}
+Against: \enquote{The downside, as discussed previously, is partly empty pages and if space is a premium [\dots]
+then this is a possible problem. Thus you are better off allowing widows and orphans (by changing the parameter
+values) and manually correcting them in one way or another.}\cite[p.~250]{mittelbach2018forlorn}
+Memoir's manual calls 10000 with a ragged bottom \enquote{the generally suggested method}, which \enquote{may well
+result in some odd looking pages, especially if \apcs{raggedbottom} is not used}, and ends: \enquote{If all else
+fails, the solution is either to live with the odd line or to reword the text.}\cite[§3.5, pp.~52--54]{wilson2025memoir}
+For 1000, memoir's source gives the only stated reason: \enquote{The default values are 150 each, but we want
+stronger discouragement.}\cite{wilson2025memoirsrc}
+It gives no evidence, and no critique or defence of it was found.
+Others: Osborne suggests 300 if a publisher prohibits such lines;\cite{osborne2010pmakeup} the
+\texttt{widows-and-orphans} package offers 5000 for \enquote{avoid} and 10000 for \enquote{prevent}, and warns about
+each case rather than deciding.\cite{mittelbach2023wao}
+\texttt{lua-widow-control} lengthens a paragraph instead of leaving a gap.\cite{chernoff2022lwc}
+
+\paragraph{Results: first line versus last line.}
+Many of the sources read treat the two lines differently, while no source read sets different values for them by default.
+Not all do: Schwen and Mittelbach treat them alike,\cite[Fig.~6]{schwen2020tensimple}\cite[p.~246]{mittelbach2018forlorn}
+and Chernoff calls them \enquote{about equally disruptive} visually, though not for legibility.\cite[p.~28]{chernoff2022lwc}
+\emph{The Chicago Manual of Style} restricts only the last line, and only when short: a page should not
+\enquote{begin with the last line of a paragraph unless it is full measure}, while \enquote{A page can, however,
+end with the first line of a new paragraph}.\cite[§2.121]{chicago2024manual}
+The 16th and 17th editions say the same.\cite[§2.113]{chicago2010manual}\cite[§2.116]{chicago2017manual}
+The Press's sample house style agrees: the orphan \enquote{may fall at the foot of a page}, and the widow \enquote{may not fall at the top of a
+page unless it is full measure}.\cite[fig.~A.3, item 7]{chicago2010manual}
+The remedy is to run both facing pages a line long or short.\cite[§2.122]{chicago2024manual}
+Wilson: \enquote{An orphan is not nearly so troubling to typographers as a widow.}\cite[§3.3.3, p.~52]{wilson2018notes}
+Chernoff: orphans \enquote{tend not to decrease the legibility of a text as much as widows}, asserted without
+data.\cite[p.~28]{chernoff2022lwc}
+W3C: \enquote{many publishers now accept a single line of a paragraph before a page break}.\cite[§5.2]{cramer2016latinreq}
+At second hand: Bringhurst, as quoted on a mailing list, says orphans \enquote{need not trouble the typographer}, but
+that it is \enquote{the custom} to give a widow \enquote{one additional line for company}.\cite{izma2023widows}
+Also second hand: Mittelbach quotes an older edition of the Manual as also forbidding a page to end with a first
+line.\cite[p.~246]{mittelbach2018forlorn}
+The U.S. Government Publishing Office permits both, the widow only \enquote{if absolutely necessary to maintain uniform
+makeup and page depth} and the other more freely: \enquote{Paragraphs may start on the last line of a page whenever
+necessary.}\cite[§§2.6--2.7]{gpo2016style}
+
+\paragraph{Results: reader evidence.}
+No study of widows or orphans in print was read, in either direction.
+One was found and not read: Wheildon's reader tests, reported by a blog as finding that \enquote{no readers said they were offended by -- or
+even aware of -- widows}.\cite{harrison2020widows}
+That report is second hand, its method was not seen, and it concerns newspapers and magazines, but it points against the costliest rule, and
+it is the only reader data on these lines that this review knows of.
+The closest study read is on screens: when sentences were split across screens, \enquote{neither variable significantly affects
+comprehension}, but readers returned \enquote{to reread text significantly more}; this was read in abstract
+only.\cite{dillon1990splitting}
+A TUGboat review says that \enquote{modern experimental research questions the absolute importance} of typographic rules in
+general.\cite[p.~285]{veytsman2011evidence}
+A recent review warns that such \enquote{experiments rarely provide reliable evidence to support design
+decisions}.\cite{vanderwaarde2025nineteen}
+Wilson describes Wheildon's font studies as about 250 readers rating fonts.\cite[pp.~50--51]{wilson2018notes}
+The confident claims about readers cite no data: \enquote{very distracting to the reader},\cite[p.~246]{mittelbach2018forlorn}
+a widow \enquote{makes a paragraph harder to read},\cite[p.~28]{chernoff2022lwc} and single lines \enquote{should be
+avoided}.\cite[Fig.~6]{schwen2020tensimple}
+Butterick dissents from practice: \enquote{I only use it if widows and orphans are causing a visible
+problem.}\cite{butterick2026widow}
+
+\paragraph{Discussion and limitations.}
+The tests count when a line moves on generated text in one size and two fonts, and not which outcome is better; real documents with lists,
+displays and floats have more stretch, and pages of code or tables less.
+The FAQ's statement is unmeasured and does not mention 1000.
+Many sources argue from the look of the page, which a reader study would not necessarily settle.
+Whether a class such as memoir embodies long typesetting experience is not something these documents show or refute.
+
+\paragraph{Conclusion.}
+The literature read does not support any particular value: no source read compares 150, 1000 and 10000 for readers, and only one
+gives a reason for 1000.
+What is supported is the trade-off: 10000 removes such lines and can leave holes on inflexible pages, and any lower value leaves
+some, more on inflexible pages.
+On the generated text, 1000 left far fewer than 150.
+The sources also treat the last line alone as worse than the first, at craft strength, and the Chicago Manual, in three editions and in its Press's
+sample, permits the first line alone outright and the last line only at full measure.
+None of these sources speaks of penalties, so they constrain the outcome and not a number.
+What this package does with it: \cref{PageBreakDecisions}.
+
+\paragraph{Future work.}
+\emph{The \LaTeX\ Companion}, Bringhurst and Wheildon's \emph{Type \& Layout} should be read at source, as should
+Chicago's earlier editions, to date the relaxation reported by Mittelbach.
+Found in the databases but not obtained: Royster, \emph{Notes on Scholarly Journal Typesetting using Adobe InDesign} (2019); Hill,
+\emph{The Creation of Typographic Specifications for Desktop Publishing Software} (2000); and Plass, \emph{Optimal Pagination
+Techniques for Automatic Typesetting Systems} (1981), of which a scanned copy without text was found and not read.
+The field lacks a controlled study of lone first and last lines in print or paged screens, which could show whether the asymmetry
+reported by typographers has a reading effect; it would decide whether forbidding them buys anything for the space it costs.
+
+\paragraph{Hit list.}
+\Cref{tab:pb-hits} lists the database records; of those, Chernoff, Schwen, Veytsman and van der Waarde are cited here.
+
+\input{appendix-measure}
+
+\section{Records bearing on the questions}\label{app:pb-hits}
+
+^^A Author's note, short form: session heading-foot-of-page; regenerate with the
+^^A command in the block at the top of this file, including the sed that removes
+^^A the generated comment header.
+\input{appendix-hitlist}

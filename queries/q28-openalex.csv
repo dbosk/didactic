@@ -1,0 +1,67 @@
+# Query: ("code listing" OR "source code" OR "program listing") AND (book OR textbook OR "style guide" OR publisher) AND ("page break" OR "page layout" OR pagination OR "line numbers")
+# Provider: openalex
+# Timestamp: 2026-11-04T09:54:42.011150
+# Results: 60
+
+title	authors	year	doi	venue	url
+Style guide for an Open Access publishing workflow for academic books	Antonia Schrader; David Böhm; Alexander Grossmann; Michael Reiche	2020	10.14293/s1111.000/000002.v1		https://openalex.org/W3003887531
+Abstracts; Other Publications	American Library Association	1985	10.5860/crl_46_06_recent_publications	College & Research Libraries	https://openalex.org/W4241684917
+General Input Program	John Race	1981	10.1007/978-1-349-05175-5_13		https://openalex.org/W2480562799
+Book Self-Publishing Best Practices	Erica Jansma	2019		Digital Commons - Montana Tech (Montana Tech of the University of Montana)	https://openalex.org/W2995571315
+Web-Based Projects that Rock the Class	Christos Karayiannis	2019	10.1007/978-1-4842-4463-0	Apress eBooks	https://openalex.org/W4231351968
+Beginning CSS3	David M W Powers	2012	10.1007/978-1-4302-4474-5	Apress eBooks	https://openalex.org/W2477968195
+The Web service development with React, GraphQL and Apollo	Dmitry V. Sklyarov	2020		Theseus (Ammattikorkeakoulujen)	https://openalex.org/W3111381278
+Standards-Guided and Dependency-Aware Code-Level Documentation Generation	Tingxu Han; Wei Song; Ziming Li; Yuchen Chen; Weisong Sun; Zhenpeng Chen; Chunrong Fang; Zhenyu Chen; Yang Liu	2026	10.48550/arxiv.2610.27634	arXiv (Cornell University)	https://openalex.org/W7223095207
+Robust External Hash Aggregation in the Solid State Age	Laurens Kuiper; Peter A. Boncz; Hannes Mühleisen	2024	10.1109/icde60146.2024.00288	IEEE International Conference on Data Engineering (ICDE)	https://openalex.org/W4400909750
+Template-based question generation from code using static code analysis	Jawad Alshboul; Erika Baksáné Varga	2025	10.1556/606.2025.01413	Pollack Periodica	https://openalex.org/W4414794551
+Evaluating distributed inspection through controlled experiments	Andrea De Lucia; Fausto Fasano; Giuseppe Scanniello; Genoveffa Tortora	2009	10.1049/iet-sen.2008.0101	IET Software	https://openalex.org/W2038870425
+Zvýraznění bloků textu s možností stránkového zlomu	Vít Zýka	1999	10.5300/1999-3/146	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2314023370
+SEW: Style-Encoded Watermarking of LLM-Generated Code	Soohan Lim; Hyundong Jin; Yo-Sub Han	2026	10.48550/arxiv.2609.39414	arXiv (Cornell University)	https://openalex.org/W7215107144
+Typing the dancing signifier: Jim Andrews' (vis)poetics	Leonardo Flores	2010		University Libraries (University of Maryland)	https://openalex.org/W1833267216
+A Study of PostScript as a graphics programming language	R Miller	1988		RIT Scholar Works (Rochester Institute of Technology)	https://openalex.org/W826310263
+PaperFit: Vision-in-the-Loop Typesetting Optimization for Scientific Documents	Bihui Yu; Xinglong Xu; Junjie Jiang; Jiabei Cheng; Caijun Jia; Siyuan Li; Conghui He; Jingxuan Wei; Cheng Tan	2026	10.48550/arxiv.2605.10341	arXiv (Cornell University)	https://openalex.org/W7160958579
+Live Exploration and Testing of Source Code Analyzers	Anton Risberg Alaküla	2026		Lund University Publications (Lund University)	https://openalex.org/W7219497515
+Copyright Protection and Computer Programs: Identifying CreativeExpression in a Computer Program's Nonliteral Elements	Lisa C. Green	1992		FLASH - Fordham Law Archive of Scholarship & History (Fordham University)	https://openalex.org/W1552266222
+TeX and graphics : The State of the Problem	Nelson H. F. Beebe	1989	10.5802/cg.22	Cahiers GUTenberg	https://openalex.org/W1976662275
+Distant Approaches to the Printed Page	James E. Dobson; Scott M. Sanders	2022	10.16995/dscn.8107	Digital Studies / Le champ numérique	https://openalex.org/W4229083844
+Expert systems in typography	David B. Fisher	1990		RIT Scholar Works (Rochester Institute of Technology)	https://openalex.org/W777777139
+EPUB Activities for Enhanced Global Language Support	Akimoto Ryoji	2010	10.2964/jsik.20-366	Joho Chishiki Gakkaishi	https://openalex.org/W2319279565
+Knižní úprava pro uživatele TeXu. Část druhá: Praxe	Philip Taylor	1995	10.5300/1995-1-4/38	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2329467150
+A UNIX clone with source code for operating systems courses	Andrew S. Tanenbaum	1987	10.1145/24592.24596	ACM SIGOPS Operating Systems Review	https://openalex.org/W2018659877
+FrameMaker(TM) software applications handbook	Philip Dixon	1992		RIT Scholar Works (Rochester Institute of Technology)	https://openalex.org/W624956372
+Whisper Source Code Inspection Report	Raymond Sartor; USDOE; Forrest B. Brown	2015	10.2172/1183391		https://openalex.org/W2341853312
+Compiler Optimizations and Source Code Analysis	Gábor Lóki	2024	10.14232/phd.11871		https://openalex.org/W4403487944
+Source Code Comparison of DOS and CP/M	Bob Zeidman	2016	10.4236/jcc.2016.412001	Journal of Computer and Communications	https://openalex.org/W2538934356
+Referencing Source Code Artifacts: A Separate Concern in Software Citation	Roberto Di Cosmo; Morane Gruenpeter; Stefano Zacchiroli	2019	10.1109/mcse.2019.2963148	Computing in Science & Engineering	https://openalex.org/W2998064313
+Writing Spaces Web Writing Style Guide Version 1.0	Matt Barton; James Kalmbach; Charles Lowe	2011		ScholarWorks - GVSU (Grand Valley State University)	https://openalex.org/W206015679
+Collaborative authoring, evolution, and personalization for a "transdisciplinary" textbook	Robert J. Glushko	2015	10.1145/2789853.2789867		https://openalex.org/W1992122061
+204.4 Identifiers for Digital Objects: The case of software source code preservation.	Roberto Di Cosmo; Morane Gruenpeter; Stefano Zacchiroli; Software Heritage	2018	10.17605/osf.io/kde56	Phaidra (Universität Wien)	https://openalex.org/W2889958619
+Source code vulnerability detection based on deep learning: a review	Huading Su; Zhen Xu; Yan Zhang; Qian Tan	2026	10.1186/s42400-025-00518-7	Cybersecurity	https://openalex.org/W7118131376
+Attributes Influencing the Reading and Comprehension of Source Code – Discussing Contradictory Evidence	Talita Vieira Ribeiro; Guilherme Horta Travassos	2018	10.19153/cleiej.21.1.5	CLEI electronic journal	https://openalex.org/W2799607937
+A proposal to delegate GUI implementation using a source code based model	Marco Monteiro; Paula Oliveira; Ramiro Gonçalves	2007			https://openalex.org/W29358937
+Analyzing source code vulnerabilities in the D2A dataset with ML ensembles and C-BERT	Saurabh Pujar; Yunhui Zheng; Luca Buratti; Burn L. Lewis; Y. Q. Chen; Jim Laredo; Alessandro Morari; Edward Epstein; Tsung-Nan Lin; Bo Suk Yang; Zhongqing Su	2024	10.1007/s10664-023-10405-9	Empirical Software Engineering	https://openalex.org/W4392021591
+Automated generation of SW design constructs from Mesa source code	Keith Needels	2008		RIT Scholar Works (Rochester Institute of Technology)	https://openalex.org/W564713936
+AutoDocDB: A Novel Framework for Automated Source Code Summarization in Database Management Systems via Advanced Text Extraction and CodeT5+ Integration	D. Shruthi; H. K. Chethan; Agughasi Victor Ikechukwu	2026	10.56975/ijrar.v13i1.326743	INTERNATIONAL JOURNAL OF RESEARCH AND ANALYTICAL REVIEWS	https://openalex.org/W7127168954
+Knowledge models from PDF textbooks	Isaac Alpizar-Chacón; Сосновский Сергей Александрович	2021	10.1080/13614568.2021.1889692	New Review of Hypermedia and Multimedia	https://openalex.org/W3133796423
+Not open for all: accessibility of open textbooks	Elena S. Azadbakht; Teresa Auch Schultz; Jennifer Arellano	2021	10.1629/uksg.557	Insights the UKSG journal	https://openalex.org/W3205461001
+Analysing Source Code Structure and Mining Software Repositories to Create Requirements Traceability Links	Nasir Ali	2012		PolyPublie (École Polytechnique de Montréal)	https://openalex.org/W77992279
+Toward an open-source EFL textbook	Joseph D. Phillips	2006	10.34321/10978	Institutional Repositories DataBase (IRDB)	https://openalex.org/W1587662867
+Papercode	Priyan Vaithilingam; Julia M. Markel; Philip J. Guo	2020	10.1145/3379350.3416191	ACM Symposium on User Interface Software and Technology (UIST)	https://openalex.org/W3097724535
+An Extensible E-book Personalization Structure for Open Format	Nabeela Hameed	2014	10.14257/ijdta.2014.7.4.17	International Journal of Database Theory and Application	https://openalex.org/W2931163199
+Analysis of Program Representations Based on Abstract Syntax Trees and Higher-Order Markov Chains for Source Code Classification Task	Artyom V. Gorchakov; Liliya Anatolievna Demidova; Peter N. Sovietov	2023	10.3390/fi15090314	Future Internet	https://openalex.org/W4386833013
+Decoding the underlying cognitive processes and related support strategies utilised by expert instructors during source code comprehension	Pakiso J. Khomokhoana; Liezel Nel	2020	10.18489/sacj.v32i2.811	South African Computer Journal	https://openalex.org/W3120089754
+Test-Free Fault Localization Through Deep Source Code Analysis Using Encoder-Based Language Models	Jesus-Angel del-Hoyo-Gabaldon; Antonio García‐Cabot; Eva García‐López; David de-Fitero-Dominguez	2026	10.3390/app16147170	Applied Sciences	https://openalex.org/W7169777210
+Automatically identifying potential regressions in the layout of responsive web pages	Thomas A. Walsh; Gregory M. Kapfhammer; Phil McMinn	2020	10.1002/stvr.1748	Software Testing Verification and Reliability	https://openalex.org/W3047532698
+Automatic XML Extraction from Word and Formatting of E-Book Formats: Insight into the Open Source Academic Publishing Suite (OS-APS)	Carsten Borchert; Roberto Cozatl; Frederik Eichler; Astrid Hoffmann; Markus Putnings	2022	10.3390/publications11010001	Publications	https://openalex.org/W4313319045
+VText: A Plug-in Extension to Add Electronic Textbook Functionality to Microsoft OneNote	John Cristy	2014		VTechWorks (Virginia Tech)	https://openalex.org/W1528670958
+Pro RESTful APIs with Micronaut	Sanjay Patni	2025	10.1007/979-8-8688-1243-9	Apress eBooks	https://openalex.org/W4407900974
+OpenPhase: Mathematical Foundations and Physical Models	Abdelbasset Benguelloula	2026	10.5281/zenodo.20778943	Zenodo (CERN European Organization for Nuclear Research)	https://openalex.org/W7165469018
+Struts 2 with Hibernate 3 Project for Beginners	Sharanam Shah; Vaishali Shah	2009			https://openalex.org/W1537568538
+Hibernate 3 for Beginners	Vaishali Shah; Sharanam Shah	2009			https://openalex.org/W2330648679
+Java Persistence API in EJB 3 for Professionals	Sharanam Shah; Vaishali Shah	2009			https://openalex.org/W2270870157
+Towards the automation of book typesetting	Sérgio M. Rebelo; Tiago Martins; Diogo Ferreira; Artur Rebelo	2023	10.1016/j.visinf.2023.01.003	Visual Informatics	https://openalex.org/W4317939411
+PEER D3.1 Guidelines for publishers and repository managers on deposit, assisted deposit and self-archiving	Magchiel Bijsterbosch; Foudil Bretel; Nataša Bulatović; Dale Peters; Maurice Vanderfeesten; J.M. Wallace	2009		HAL	https://openalex.org/W2229275390
+Protection mechanisms for electronic books	Patrick Ausderau	2014		Theseus (Ammattikorkeakoulujen)	https://openalex.org/W264001547
+ForFACTS : a forensic framework for analysis of cloud technologies and services	Ben Martini	2015		Adelaide Research & Scholarship (AR&S) (University of Adelaide)	https://openalex.org/W7218173640
+5. Barely Beyond the Book?	Joris van Zundert	2016	10.11647/obp.0095.05	Open Book Publishers	https://openalex.org/W2507396010
+

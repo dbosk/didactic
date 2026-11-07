@@ -1,0 +1,29 @@
+% Test that the break before a heading, recorded in the .aux file, doesn't go
+% stale (didactic); test-keep-stale.sh runs this document in several states and
+% checks it.  The room and the options come from files that the script writes,
+% so that no line number changes.
+\input{test-keep-stale-opt}
+\documentclass[a4paper]{memoir}
+\usepackage[british]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\usepackage{longtable}
+\raggedbottom
+\newcommand\roomfor[1]{%
+  \clearpage
+  \noindent\rule{\linewidth}{0.4pt}\par
+  \vspace*{\dimexpr\textheight-\topskip-#1\baselineskip-\baselineskip\relax}%
+  \par}
+\begin{document}
+\input{test-keep-stale-room}
+\paragraph*{HEADING}\label{a}
+Table lists the rows.
+\begin{longtable}{ll}
+\caption{A caption of several lines, several lines, several lines, several
+  lines, several lines, several lines, several lines, several lines, several
+  lines.}\label{t}\\
+a & b\\ a & b\\ a & b\\ a & b\\
+\end{longtable}
+Text after.
+\end{document}

@@ -7,7 +7,9 @@
 \documentclass[a4paper,oneside]{memoir}
 \usepackage[british]{babel}
 \usepackage{amsmath,amssymb,amsthm}
-\usepackage{didactic}
+% The limit of keepmaxgap is off here, to reach a page full of what can't part;
+% test-keep-noweb-break has the default.
+\usepackage[keepmaxgap=0]{didactic}
 \usepackage[noamsthm,notheorems]{beamerarticle}
 \usepackage{noweb}
 \usepackage{multicol}

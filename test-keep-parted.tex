@@ -1,0 +1,490 @@
+% A lead-in and what it leads into, a list, a listing or code side by side, on
+% one page or parted (didactic): correct or warn.  Each case has a kind:
+%   tie   parted only with a warning that names its line, and together without one;
+%   free  it follows the end of a list, which is a place to break that LaTeX means,
+%         or a break that you asked for, so it is parted here, and nothing warns.
+% The words LEAD<case> and FIRST<case> are the last line of the lead-in and the
+% first line of what it leads into.
+%
+% S1  A list inside a box in the lead-in (a note, a footnote, a minipage, a float)
+%     doesn't make the list after it follow the end of a list.
+%     n1 \ltnote, n2 \footnote, n3 \marginpar, n4 a minipage holding a center,
+%     n5 a figure holding a center and no caption, after the lead-in (and in it: S4).
+% S2  \pagebreak[1] in the first line of a lead-in of three lines: p1, at rooms 4 to 7,
+%     before a listing in a center, a quote or an item, code side by side in a center,
+%     an itemize and an enumerate; p2 in the first line of one of two lines, room 4.
+% S3  After the end of a list, a listing in a center (f1a), a quote (f1b) or an item
+%     (f1c), and code side by side in a center (f1d); after a center (f1e), a quote
+%     (f1f), a listing (f1g) and code side by side (f1h), a listing in a center; after
+%     code side by side (f1i) and a center (f1j), a listing.  Room 3.
+% S4  A float or a note that ends the lead-in's paragraph, then a list (n5a, t1a to
+%     t2c), at rooms 1.25 to 5; p3a and p3b: \pagebreak[1] that ends the lead-in is a
+%     break asked for, and so is one in vertical mode before a center (p3c); a bare
+%     \penalty before a listing on its own is silent (p3d), as the docs say.
+% S5  Code side by side whose page ended before it, so a note on the next page sets
+%     \outputpenalty: after \vspace (q1), a display (q2) or in a center (q3, p1m).
+% R   A rule right after the lead-in, then a list, rooms 1.25 to 2, without a blank line
+%     after the rule (r1a to r1f) and with one (r2a to r2f): no place to break between
+%     them, so the list and the lead-in move together, silently.  But after space and a
+%     thicker rule (r3a to r3c) there is a place to break.
+%
+% Build: see the Makefile, with pdflatex; test-check.py compares the warnings with the
+% pages of the words.
+\documentclass[a4paper,10pt,oneside]{memoir}
+\usepackage{didactic}
+\pagestyle{empty}
+\makeatletter
+% \roomfor{n}: a new page with n lines of room, under two lines that a page can end
+% after.
+\newcommand\roomfor[1]{\clearpage\noindent\mbox{}R\par
+ \vspace*{\dimexpr\pagegoal-\pagetotal-#1\baselineskip-2\baselineskip\relax}\par
+ \noindent A line above, that a page can end after.\par
+ \noindent And another.\par}
+% \case{name}{kind}, on the line where what the lead-in leads into starts.
+\newcommand\case[2]{\typeout{parted case #1 #2 line \the\inputlineno}\def\casename{#1}}
+% What a lead-in leads into: the first item of a list, a listing and code side by
+% side, each of eight lines, the first with FIRST<case>.
+\newcommand\items{\item FIRST\casename\ first\\ more\\ more\\ more\\ more\\ more\\ more\\
+  more\item second}
+\newwrite\@parted@out
+\immediate\openout\@parted@out=\jobname-v.txt
+\immediate\write\@parted@out{FIRST\string\casename}
+\@tempcnta\@ne
+\@whilenum\@tempcnta<8\do{\advance\@tempcnta\@ne
+  \immediate\write\@parted@out{c\the\@tempcnta}}
+\immediate\closeout\@parted@out
+\newcommand\code{\VerbatimInput[commandchars=\\\{\}]{\jobname-v.txt}}
+\newcommand\pair{\begin{didacticpair}{2}
+  \begin{minipage}{.4\linewidth}FIRST\casename\\b\\c\\d\\e\\f\\g\\h\end{minipage} & x\\
+  \end{didacticpair}}
+% A lead-in of three lines, with a break allowed after its first line.
+\newcommand\pblead{Start \pagebreak[1] words words words words words words words words
+  words words words words words words words words words words words words words words
+  words words words words words words words words words words words words words words
+  words words words words words words words words words words words words words}
+% And one of two lines.
+\newcommand\pbshort{Start \pagebreak[1] words words words words words words words
+  words words words words words words words words words words words words words
+  words words words words words words words words words words}
+\makeatother
+\begin{document}
+
+\roomfor{2}
+Consider LEADN1A this\ltnote{Why:\begin{itemize}\item x\end{itemize}}:
+\case{N1A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADN2A this\footnote{See\begin{itemize}\item x\end{itemize}}:
+\case{N2A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADN3A this\marginpar{See\begin{itemize}\item x\end{itemize}}:
+\case{N3A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADN4A \begin{minipage}[t]{2cm}\begin{center}c\end{center}\end{minipage}:
+\case{N4A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADN5B this:
+
+\begin{figure}[b]\begin{center}c\end{center}\end{figure}
+\case{N5B}{tie}\begin{itemize}\items\end{itemize}
+
+
+\roomfor{4}
+\pblead\ LEADP1A.
+\begin{center}
+\case{P1A}{tie}\code
+\end{center}
+
+\roomfor{4}
+\pblead\ LEADP1B.
+\begin{quote}
+\case{P1B}{tie}\code
+\end{quote}
+
+\roomfor{4}
+\pblead\ LEADP1C.
+\begin{itemize}\item
+\case{P1C}{tie}\code
+\end{itemize}
+
+\roomfor{4}
+\pblead\ LEADP1D.
+\begin{center}
+\case{P1D}{tie}\pair
+\end{center}
+
+\roomfor{4}
+\pblead\ LEADP1E.
+\case{P1E}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{4}
+\pblead\ LEADP1F.
+\case{P1F}{tie}\begin{enumerate}\items\end{enumerate}
+
+\roomfor{5}
+\pblead\ LEADP1G.
+\begin{center}
+\case{P1G}{tie}\code
+\end{center}
+
+\roomfor{6}
+\pblead\ LEADP1H.
+\begin{center}
+\case{P1H}{tie}\code
+\end{center}
+
+\roomfor{7}
+\pblead\ LEADP1I.
+\begin{center}
+\case{P1I}{tie}\code
+\end{center}
+
+\roomfor{5}
+\pblead\ LEADP1J.
+\case{P1J}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{6}
+\pblead\ LEADP1K.
+\case{P1K}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{7}
+\pblead\ LEADP1L.
+\case{P1L}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{6}
+\pblead\ LEADP1N.
+\begin{quote}
+\case{P1N}{tie}\code
+\end{quote}
+
+\roomfor{4}
+\pbshort\ LEADP2A.
+\begin{center}
+\case{P2A}{tie}\code
+\end{center}
+
+\roomfor{4}
+\pbshort\ LEADP2B.
+\case{P2B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{3}
+\begin{itemize}\item LEADF1A last\end{itemize}
+\begin{center}
+\case{F1A}{free}\code
+\end{center}
+
+\roomfor{3}
+\begin{itemize}\item LEADF1B last\end{itemize}
+\begin{quote}
+\case{F1B}{free}\code
+\end{quote}
+
+\roomfor{3}
+\begin{itemize}\item LEADF1C last\end{itemize}
+\begin{itemize}\item
+\case{F1C}{free}\code
+\end{itemize}
+
+\roomfor{3}
+\begin{itemize}\item LEADF1D last\end{itemize}
+\begin{center}
+\case{F1D}{free}\pair
+\end{center}
+
+\roomfor{3}
+\begin{center}LEADF1E\end{center}
+\begin{center}
+\case{F1E}{free}\code
+\end{center}
+
+\roomfor{3}
+\begin{quote}LEADF1F\end{quote}
+\begin{center}
+\case{F1F}{free}\code
+\end{center}
+
+\roomfor{3}
+\begin{Verbatim}
+LEADF1G
+\end{Verbatim}
+\begin{center}
+\case{F1G}{free}\code
+\end{center}
+
+\roomfor{3}
+\begin{didacticpair}{2}LEADF1H & x\end{didacticpair}
+\begin{center}
+\case{F1H}{free}\code
+\end{center}
+
+\roomfor{3}
+\begin{didacticpair}{2}LEADF1I & x\end{didacticpair}
+\case{F1I}{free}\code
+
+\roomfor{3}
+\begin{center}LEADF1J\end{center}
+\case{F1J}{free}\code
+
+\roomfor{2}
+Lead-in PA, by pagebreak[1] at its end, to a listing in center, LEADP3A.
+\pagebreak[1]
+\begin{center}
+\case{P3A}{free}\code
+\end{center}
+
+\roomfor{2}
+Lead-in PB, by pagebreak[1] at its end, to a list, LEADP3B.\label{p3b}
+\pagebreak[1]
+\case{P3B}{free}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADN5A this:\begin{figure}[b]\begin{center}c\end{center}\end{figure}
+\case{N5A}{tie}\begin{itemize}\items{N5A}\end{itemize}
+
+
+\roomfor{1.25}
+Consider LEADT1A this:
+\begin{figure}[t]\caption{F}\end{figure}
+
+\case{T1A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.5}
+Consider LEADT1B this:
+\begin{figure}[t]\caption{F}\end{figure}
+
+\case{T1B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADT1C this:
+\begin{figure}[t]\caption{F}\end{figure}
+
+\case{T1C}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2.5}
+Consider LEADT1D this:
+\begin{figure}[t]\caption{F}\end{figure}
+
+\case{T1D}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{5}
+Consider LEADT1E this:
+\begin{figure}[t]\caption{F}\end{figure}
+
+\case{T1E}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.25}
+Consider LEADT1F this:
+\begin{figure}[h]\caption{F}\end{figure}
+
+\case{T1F}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADT1G this:
+\begin{figure}[h]\caption{F}\end{figure}
+
+\case{T1G}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2.5}
+Consider LEADT1H this:
+\begin{figure}[h]\caption{F}\end{figure}
+
+\case{T1H}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{5}
+Consider LEADT1I this:
+\begin{figure}[h]\caption{F}\end{figure}
+
+\case{T1I}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADT1J this:
+\begin{table}[h]\caption{F}\end{table}
+
+\case{T1J}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADT1K this:
+\begin{figure}[b]\caption{F}\end{figure}
+
+\case{T1K}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADT2A this:
+\begin{figure}[t]\caption{F}\end{figure}
+
+\case{T2A}{tie}\code
+
+\roomfor{2}
+Consider LEADT2B this:\footnote{a footnote}
+\begin{figure}[t]\caption{F}\end{figure}
+
+\case{T2B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider this\begin{figure}[t]\caption{F}\end{figure} and more words, words
+words words words words words words words words words words words words words words
+words words words words words words words words words, of which the last line goes
+along LEADT2C.
+
+\case{T2C}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{5}
+\pblead\ LEADP1M.
+\begin{center}
+\case{P1M}{tie}\pair
+\end{center}
+
+\roomfor{1}
+LEADQ1A lead-in.
+
+\vspace{6pt}
+\case{Q1A}{tie}\pair
+
+\roomfor{1.25}
+LEADQ1B lead-in.
+
+\vspace{6pt}
+\case{Q1B}{tie}\pair
+
+\roomfor{1.5}
+LEADQ1C lead-in.
+
+\vspace{6pt}
+\case{Q1C}{tie}\pair
+
+\roomfor{3}
+LEADQ2A lead-in.
+\[ x = y \]
+\case{Q2A}{tie}\pair
+
+\roomfor{3.5}
+LEADQ2B lead-in.
+\[ x = y \]
+\case{Q2B}{tie}\pair
+
+\roomfor{1}
+LEADQ3A lead-in.
+\begin{center}
+\case{Q3A}{tie}\pair
+\end{center}
+
+\roomfor{1.25}
+LEADQ3B lead-in.
+\begin{center}
+\case{Q3B}{tie}\pair
+\end{center}
+
+\roomfor{1.5}
+LEADQ3C lead-in.
+\begin{center}
+\case{Q3C}{tie}\pair
+\end{center}
+
+\roomfor{2}
+Lead-in PC, then a pagebreak[1] on its own, to a listing in center, LEADP3C.
+
+\pagebreak[1]
+\begin{center}
+\case{P3C}{free}\code
+\end{center}
+
+\roomfor{2}
+Lead-in PD, then a bare penalty of $-51$, to a listing, LEADP3D.
+
+\penalty-51
+\case{P3D}{free}\code
+
+\roomfor{1.25}
+Consider LEADR1A this:
+\hrule
+\case{R1A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.75}
+Consider LEADR1B this:
+\hrule
+\case{R1B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADR1C this:
+\hrule
+\case{R1C}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.25}
+Consider LEADR1D this:
+\hrule
+\case{R1D}{tie}\begin{enumerate}\items\end{enumerate}
+
+\roomfor{1.75}
+Consider LEADR1E this:
+\hrule
+\case{R1E}{tie}\begin{enumerate}\items\end{enumerate}
+
+\roomfor{2}
+Consider LEADR1F this:
+\hrule
+\case{R1F}{tie}\begin{enumerate}\items\end{enumerate}
+
+\roomfor{1.25}
+Consider LEADR2A this:
+\hrule
+
+\case{R2A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.75}
+Consider LEADR2B this:
+\hrule
+
+\case{R2B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADR2C this:
+\hrule
+
+\case{R2C}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.25}
+Consider LEADR2D this:
+\hrule
+
+\case{R2D}{tie}\begin{enumerate}\items\end{enumerate}
+
+\roomfor{1.75}
+Consider LEADR2E this:
+\hrule
+
+\case{R2E}{tie}\begin{enumerate}\items\end{enumerate}
+
+\roomfor{2}
+Consider LEADR2F this:
+\hrule
+
+\case{R2F}{tie}\begin{enumerate}\items\end{enumerate}
+
+\roomfor{1.25}
+Consider LEADR3A this:
+
+\vspace{6pt}
+\hrule height 2pt
+
+\case{R3A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADR3B this:
+
+\vspace{6pt}
+\hrule height 2pt
+
+\case{R3B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{3}
+Consider LEADR3C this:
+
+\vspace{6pt}
+\hrule height 2pt
+
+\case{R3C}{tie}\begin{itemize}\items\end{itemize}
+
+\end{document}

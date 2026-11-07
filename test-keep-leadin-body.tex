@@ -76,8 +76,9 @@ Lead-in U.\label{u}\begin{figure}[h]\rule{1pt}{1pt}\caption{float U in para}\end
 \case{u}\testlisting{u}{3}
 Text.
 
-% A listing that breaks: what counts is where it starts.
-\roomfor{2}
+% A listing that breaks: what counts is where it starts.  Its first keepends lines
+% don't fit under the lead-in.
+\roomfor{1}
 Lead-in L, a long listing.\label{l}
 
 \marginpar{note L}

@@ -1,0 +1,13 @@
+# Query: ("program typography" OR "typographic style" OR "pretty printing" OR "pretty-printing" OR "code layout") AND (program OR code) AND (comprehension OR readability OR page)
+# Provider: ieee
+# Timestamp: 2026-11-04T09:52:05.349714
+# Results: 6
+
+title	authors	year	doi	venue	url
+NICAD: Accurate Detection of Near-Miss Intentional Clones Using Flexible Pretty-Printing and Code Normalization	Chanchal K. Roy; James R. Cordy	2008	10.1109/ICPC.2008.41	2008 16th IEEE International Conference on Program Comprehension	https://ieeexplore.ieee.org/document/4556129/
+The Effect Of Crowding On The Reading Of Program Code For Programmers With Dyslexia	Ian McChesney; Raymond Bond	2021	10.1109/ICPC52881.2021.00036	2021 IEEE/ACM 29th International Conference on Program Comprehension (ICPC)	https://ieeexplore.ieee.org/document/9463028/
+Readactor: Practical Code Randomization Resilient to Memory Disclosure	Stephen Crane; Christopher Liebchen; Andrei Homescu; Lucas Davi; Per Larsen; Ahmad-Reza Sadeghi; Stefan Brunthaler; Michael Franz	2015	10.1109/SP.2015.52	2015 IEEE Symposium on Security and Privacy	https://ieeexplore.ieee.org/document/7163059/
+Visual representation of the power plant network using a metagraph model	Sergey Oleynikov; Ivan Petrov; Alexey Molchanov; Ovannes Sargsian; Marina Ponomareva; Yuriy Gapanyuk	2026	10.1109/ICIICE69672.2026.11565079	2026 International Conference on Integrated Intelligence and Cognitive Engineering (ICIICE)	https://ieeexplore.ieee.org/document/11565079/
+A Display Source-Driver IC Featuring Multistage-Cascaded 10-Bit DAC and True-DC-Interpolative Super-OTA Buffer	Seunghwa Shin; Gyeong-Gu Kang; Gyu-Wan Lim; Hyun-Sik Kim	2024	10.1109/JSSC.2024.3350240	IEEE Journal of Solid-State Circuits	https://ieeexplore.ieee.org/document/10423011/
+Optimizing function placement for large-scale data-center applications	Guilherme Ottoni; Bertrand Maher	2017	10.1109/CGO.2017.7863743	2017 IEEE/ACM International Symposium on Code Generation and Optimization (CGO)	https://ieeexplore.ieee.org/document/7863743/
+

@@ -1,0 +1,67 @@
+# Query: pagination AND typesetting AND ("white space" OR "short page" OR "facing pages")
+# Provider: openalex
+# Timestamp: 2026-11-03T20:04:06.919574
+# Results: 60
+
+title	authors	year	doi	venue	url
+Optimal pagination techniques for automatic typesetting systems	Michael F. Plass	1981			https://openalex.org/W1523509647
+Quantum boundaries for last line adjustments	Didier Verna	2026	10.47397/tb/47-2/tb146verna-lastline	TUGboat	https://openalex.org/W7204721741
+Output routines extending \plainoutput	Udo Wermuth	2025	10.47397/tb/46-1/tb142wermuth-widow	TUGboat	https://openalex.org/W4410155527
+Reflowable documents composed from pre-rendered atomic components	Alexander J. Pinkney; Steven R. Bagley; David F. Brailsford	2011		Repository@Nottingham (University of Nottingham)	https://openalex.org/W7222375417
+AN INTEGRATED APPROACH TO FORMATTED DOCUMENT PRODUCTION	Richard Ilson	1981		DSpace@MIT (Massachusetts Institute of Technology)	https://openalex.org/W1526404094
+The Design and implementation of a system for processing documents described in generalized markup languages	Frank Cost	1987		RIT Scholar Works (Rochester Institute of Technology)	https://openalex.org/W588433940
+The Computer Science Of Tex And Latex	Victor L. Eijkhout	2004	10.5281/zenodo.49901	Zenodo (CERN European Organization for Nuclear Research)	https://openalex.org/W2470989218
+Electronic composition in printing :	Richard W. Lee; Roy W Worral	1968	10.6028/nbs.sp.295		https://openalex.org/W625469028
+Expert systems in typography	David B. Fisher	1990		RIT Scholar Works (Rochester Institute of Technology)	https://openalex.org/W777777139
+Automatic typographic-quality typesetting techniques :	Mary Elizabeth Stevens; John L. Little	1967	10.6028/nbs.mono.99		https://openalex.org/W1835326534
+A system for interactive viewing of structured documents	Ian H. Witten; Bob Bramwell	1985	10.1145/3166.3169	Communications of the ACM	https://openalex.org/W2041085781
+Digitizing the Pyrates: Making a Digital Critical Edition of Captain Charles Johnson's A General History of the Pyrates (1724-1726)	Ingrid Reiche	2016	10.22215/etd/2016-11674		https://openalex.org/W3154205050
+Automatically Removing Widows and Orphans with lua-widow-control	Max Chernoff	2022	10.5300/2022-1-4/49	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W4312367526
+Technoskepticism: Between Possibility and Refusal	DISCO Network	2024	10.21627/9781503641365	Stanford University Press eBooks	https://openalex.org/W4403289312
+A language for music printing	John S. Gourlay	1986	10.1145/5689.5690	Communications of the ACM	https://openalex.org/W2004261233
+Author's version vs. publisher's version: an analysis of the copy‐editing function	Edward Wates; Robert CAMPBELL	2007	10.1087/174148507x185090	Learned Publishing	https://openalex.org/W1971717252
+Bjeline u funkciji razgraničenja riječi u starim tiskanim glagoljskim tekstovima	Denis Crnković	2011		University of Zagreb University Computing Centre (SRCE)	https://openalex.org/W2305357551
+The Art of Scanning	Paul Royster	2011		Lincoln (University of Nebraska)	https://openalex.org/W126742010
+Nachwort von: James Joyce, Ulysses. A Critical and Synoptic Edition, Band 3: New York, 1986	Hans Walter Gabler	1984	10.5282/ubm/epub.5686	Open access LMU (Ludwid Maxmilian's Universitat Munchen)	https://openalex.org/W1925928109
+NOTE ON THE TEXT	Thomas Carlyle	2000	10.1525/9780520353985-005	University of California Press eBooks	https://openalex.org/W4234967526
+Seeing James Joyce’s Ulysses into the Digital Age	Hans Walter Gabler	2024	10.11647/obp.0325.05	Open Book Publishers	https://openalex.org/W4392167781
+Franz Schubert, Klaviersonaten II: Die mittleren Sonaten, ed. Walburga Litschauer (Kassel: Bärenreiter, 2023). BA9643. - Franz Schubert, Fantasie f-Moll fur Klavier zu vier Handen, ed. Walburga Litschauer (Kassel: Bärenreiter, 2024). BA11862. - Frédéric Chopin, Berceuse pour le Piano, ed. Britta Schilling-Wang (Kassel: Bärenreiter, 2023). BA11830.	Jonathan Kregor	2024	10.1017/s1479409824000272	Nineteenth-Century Music Review	https://openalex.org/W4404934145
+Specification of Optimizing Document Formatters	Aurel Huber	2007		mediaTUM – the media and publications repository of the Technical University Munich (Technical University Munich)	https://openalex.org/W2397563200
+VERITAS: Performance characteristics (baseline design)	Vladimir V. Vassiliev; Carter-Lewis, D. A.; Hillas, A. M.; Kertzman, M. P.; Knapp, J.; Krennrich, F.; Lessard, R. W.; Rose, H. J.; Sembroski, G. H.	1999	10.48550/arxiv.astro-ph/9908135	arXiv (Cornell University)	https://openalex.org/W3168150880
+Technology and design: Vancouver Magazine before and after desktop publishing	Tatiana MacNeill	2005		Summit (Simon Fraser University)	https://openalex.org/W189181732
+An Apostolic Gospel	Francis Watson	2020	10.1017/9781108884631	Cambridge University Press eBooks	https://openalex.org/W3014113129
+Note on the Text	Carlyle Vanden Bossche	2006	10.1525/9780520355095-005	University of California Press eBooks	https://openalex.org/W4389386322
+Manuscripts Imitating Printed Books: Bibliographic Codes and Peritexts in Finnish Juvenalia from the Turn of the 20th Century	Veijo Pulkkinen	2019		Image & narrative	https://openalex.org/W7218087698
+Water Resources Division publication guide; Volume 1, Publication policy and text preparation	D.F. Alt; Kathleen T. Iseri	1986	10.3133/ofr87205	Antarctica A Keystone in a Changing World	https://openalex.org/W1499669613
+Metabibliographic Fiction: Metafiction After the Death of the Book in Steven Hall’s Maxwell’s Demon and Nicola Barker’s I Am Sovereign	David Wylot	2024	10.1080/00111619.2024.2386099	Critique Studies in Contemporary Fiction	https://openalex.org/W4402493615
+Evaluation of three electronic report processing systems for preparing hydrologic reports of the U.S Geological Survey, Water Resources Division	Gloria J. Stiltner	1990	10.3133/ofr89576	Antarctica A Keystone in a Changing World	https://openalex.org/W2267806055
+An Ambiguous Legacy: The Epistula Apostolorum and its Editors	Francis Watson	2020	10.1017/9781108884631.003	Cambridge University Press eBooks	https://openalex.org/W3146739214
+ELK stack Big Data visualitzation using D3 library	Francisquelo Tacca; Nicolás Ernesto	2019		RECERCAT (Consorci de Serveis Universitaris de Catalunya)	https://openalex.org/W3008172966
+Open Source Tools for Text Processing	Jiří Rybička	2022	10.11118/978-80-7509-880-1		https://openalex.org/W4313262812
+Processing Structured Hypermedia - A Matter of Style	Jacco van Ossenbruggen	2001		Data Archiving and Networked Services (DANS)	https://openalex.org/W2116009141
+Electronic Document Delivery. The ARTEMIS concept for document digitalisation and teletransmission. EUR 7170	Adrian R. D. Norman	1981		Archive of European Integration (AEI) (University of Pittsburgh)	https://openalex.org/W2901609498
+Serializing the Locator Format of the United States Government Publishing Office as XML	Joel Kalvesmaki	2023	10.4242/balisagevol28.kalvesmaki01	Balisage series on markup technologies	https://openalex.org/W4385386758
+Water Resources Division publications guide; Volume 1, Publications policy and text preparation	Anne J. Finch; David A. Aronson	1982	10.3133/ofr85635	Antarctica A Keystone in a Changing World	https://openalex.org/W1552441864
+Markup to generate markup to generate markup	Peter Flynn	2013	10.4242/balisagevol10.flynn01	Balisage series on markup technologies	https://openalex.org/W2422102396
+Evolution of newspapers in Portugal : analysis design and editorial content through the case study "cidade de Tomar"	Kozlovskaya, Evgenya	2023		Portuguese National Funding Agency for Science, Research and Technology (RCAAP Project by FCT)	https://openalex.org/W7111737409
+A document engineering model and processing framework for multimedia documents	Geurts, JPTM (Joost)	2010	10.6100/ir654204	Centrum Wiskunde & Informatica (CWI), the national research institute for mathematics and computer science in the Netherlands	https://openalex.org/W1480606622
+SGML in the Age of XML	Betty Harvey	2016	10.4242/balisagevol17.harvey01	Balisage series on markup technologies	https://openalex.org/W4206259063
+An automated method based on LATEX for the realization of accessible PDF documents containing formulae	Sandro Coriasco; Dragan Ahmetovic; Tiziana Armano; Cristian Bernareggi; Michele Berra; Anna Capietto; Nadir Murru; Alice Ruighi; Eugenia Taranto	2018		Institutional Research Information System University of Turin (University of Turin)	https://openalex.org/W3022223704
+Readers in the margins: Texts, paratexts, and reading audiences in Romantic-era fiction	Kandice Sharren	2018		Summit (Simon Fraser University)	https://openalex.org/W2947358815
+A Nonprofit's guide to internally-planned successful print communications	Joseph Wilson	1996		RIT Scholar Works (Rochester Institute of Technology)	https://openalex.org/W804883748
+Protegendo as mulheres de dificuldades relacionadas com a imagem corporal e com a alimentação: O papel promissor da compaixão focada no corpo e os benefícios de uma mentalidade não competitiva	Mafalda Maria de Magalhães Santos	2018		Portuguese National Funding Agency for Science, Research and Technology (RCAAP Project by FCT)	https://openalex.org/W7224049242
+Unconverted: outsourcing ebook production at a university press	Linnet Mary Humble	2012		Summit (Simon Fraser University)	https://openalex.org/W615211912
+Posthumous Writings: Latin and Dutch Quartos II	Jeroen M.M. van de Ven	2022	10.1163/9789004467996_010	BRILL eBooks	https://openalex.org/W4390810899
+Reading hidden layers, a genetic analysis of the drafts of Margaret Atwood's novels The edible woman and Bodily harm	Helmut Reichenbä cher	1998			https://openalex.org/W2292178872
+Book Reviews Vol XVII No 2, full text	Contributing Authors	2007	10.25071/2561-5467.479	The Northern Mariner / Le marin du nord	https://openalex.org/W4250166451
+A Domain-Specific Language for Internal Site Search	Elmer van Chastelet	2013		Research Repository (Delft University of Technology)	https://openalex.org/W74150125
+The Book as Object and Concept in American Poetry after Modernism	Chelsea Jennings	2014		ResearchWorks at the University of Washington (University of Washington)	https://openalex.org/W2649310002
+AI-Augmented Peer Review by Orthogonal Constraint: A Retrospective Case Study of Mathematical, Concordance, Chemical, and Meta-Review	Charles D. Schaper	2026	10.68366/kjwc7142	Annals of the Chrysene Formalism	https://openalex.org/W7220679494
+Beyond the space of painting and poetry: Mallarmé and the embodied gesture	Bernadette O'Toole	2020	10.7190/shu-thesis-00422	Sheffield Hallam University	https://openalex.org/W4220929708
+Basics of word processing for thesis writing	Attila Imre	2026	10.47745/sapvol.2026.29	Scientia eBooks	https://openalex.org/W7164921693
+The ‘Theological-Political Treatise’: Latin Octavos	Jeroen M.M. van de Ven	2022	10.1163/9789004467996_005	BRILL eBooks	https://openalex.org/W4390811040
+The management of a dynamic information manual: the Texas Tech University experience	Nedree Kathleen Riggs	1973		ThinkTech (Texas Tech University)	https://openalex.org/W2269098449
+Structured editing of literate programs	Duggan, Angus John Charles	1994		ERA	https://openalex.org/W2292015468
+A systematic review and investigation of avatar- and self-related processes and problematic gaming	Racquel Green	2020		Adelaide Research & Scholarship (AR&S) (University of Adelaide)	https://openalex.org/W3189958264
+The experiences of people with diabetes mellitus and hypoglycaemia unawareness	Jessica Rachael Gleeson	2017		Repository@Hull (Worktribe) (University of Hull)	https://openalex.org/W2899365053
+

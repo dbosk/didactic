@@ -1,0 +1,7 @@
+# Query: TS=((LaTeX OR TeX OR noweb OR CWEB OR "literate programming") AND ("code listing" OR listings OR verbatim OR "code chunk") AND ("page break" OR "across pages" OR typesetting))
+# Provider: wos
+# Timestamp: 2026-11-04T09:54:21.827324
+# Results: 0
+
+title	authors	year	doi	venue	url
+

@@ -1,0 +1,11 @@
+% With \includeonly, the .aux file of a chapter left out still tells of a heading that
+% moves, and we no longer know its name (didactic): the warning says what we know, and
+% prints no raw macro.  The Makefile checks the log.
+\documentclass[a4paper,10pt,oneside]{memoir}
+\usepackage{didactic}
+\includeonly{test-keep-include-b}
+\begin{document}
+A line.
+\include{test-keep-include-a}
+\include{test-keep-include-b}
+\end{document}

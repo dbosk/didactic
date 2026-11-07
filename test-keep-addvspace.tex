@@ -1,0 +1,13 @@
+% What writes to the .aux at a heading doesn't hide the space after it from
+% \addvspace (didactic): the Makefile compares the position with keepafterheading=0.
+\ifdefined\testk\PassOptionsToPackage{keepafterheading=\testk}{didactic}\fi
+\documentclass[a4paper]{article}
+\usepackage{didactic}
+\begin{document}
+Text above.
+\section{X}
+\addvspace{20pt}
+\par
+\typeout{didactic addvspace: \the\pagetotal}
+Text under.
+\end{document}
