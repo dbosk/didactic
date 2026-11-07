@@ -167,10 +167,13 @@ for s in sett:
         continue
     rows.append([s] + [diff("current", s, d) for d in docs])
 table(["setting"] + [d.name for d in docs], rows)
-print("The noprobe row checks the probe: it must not change a page count, and word differences limit that document's list counts.")
+print("The noprobe row checks the probe: it must not change the words on any page.")
 for d in docs:
     if have("noprobe", d) and have("current", d):
         x = json.load(open(R("noprobe", d, ".json")))["pages"]
         y = json.load(open(R("current", d, ".json")))["pages"]
         if x != y:
             raise SystemExit(f"{d.name}: the probe changes the page count, {x} against {y}")
+        n = diff("noprobe", "current", d)
+        if n:
+            raise SystemExit(f"{d.name}: the probe changes the words on {n} pages")

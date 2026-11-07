@@ -8,27 +8,35 @@ G <page> <penalty> <goal> <natural> <the text's baselineskip>
 
 Whatsits written at shipout, like a label, not text extraction.  Traps it avoids:
 a whatsit makes a line of an empty paragraph (\\noindent\\par, as noweb has), so it
-tests \\lastnodetype; one on the vertical list stops the package's handling of
-listing lines (tried: it changed more pages), so it stays in the paragraph; and
-\\the\\count0 takes the following space.
+tests \\lastnodetype, under a trailing space; one on the vertical list stops the
+package's handling of listing lines (tried: it changed more pages), so it stays in the
+paragraph; and \\the\\count0 takes the following space.
+
+The trailing space is taken off to look under it and then put back, before the
+paragraph ends.  Left off, it changed pages: a paragraph of nothing but two spaces,
+which noweb leaves for an empty chunk of text, is an empty line, and without its last
+space TeX dropped it, so the lines after it moved up (78 pages of one literate program,
+22 of the paper).  test_probe.py checks that the probe moves no line.
 
 The unit of a line is \\baselineskip at the start of the document: a page can be
 output inside a listing's small font, where \\normalbaselineskip is 9.5pt, not 12pt,
 and gaps would look a quarter larger.  test_probe.py checks that.
 
-Known limit: on two of the documents it still moves some lines between pages, with
-the same page count (the whatsit in the paragraph hook does it, not the rest).
-Page counts and warnings are therefore read from the noprobe setting, and analyse.py
-prints how many pages differ.
-analyse.py compares with the noprobe setting.
+analyse.py compares with the noprobe setting, and prints how many pages differ: none,
+since the space is put back.  Page counts and warnings are read from noprobe all the
+same.
 """
 import re
 
 PROBE = r"""
 \newwrite\lp@out \newcount\lp@id \newcount\lp@lid \let\lp@pending\@empty
-\def\lp@para{\if@didactic@keep@inbox\else\ifhmode\unskip\ifnum\lastnodetype>\m@ne
+\newskip\lp@skip
+\def\lp@para{\if@didactic@keep@inbox\else\ifhmode
+  \ifnum\lastnodetype=11 \lp@skip\lastskip\unskip\lp@write\hskip\lp@skip
+  \else\lp@write\fi\fi\fi}
+\def\lp@write{\ifnum\lastnodetype>\m@ne
   \global\advance\lp@id\@ne
-  \edef\lp@x{\write\lp@out{P \the\lp@id\space\noexpand\the\count0 }}\lp@x\fi\fi\fi}
+  \edef\lp@x{\write\lp@out{P \the\lp@id\space\noexpand\the\count0 }}\lp@x\fi}
 \def\lp@mark{\ifx\lp@pending\@empty\else
   \if@didactic@keep@inbox\else
     \global\advance\lp@lid\@ne

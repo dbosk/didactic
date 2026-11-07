@@ -60,11 +60,11 @@ times passes in turn with two versions. Run nothing else of yours meanwhile.
   without its output line, or an `.aux` that doesn't settle is marked as no result,
   and its build stays. A rerun must fail on those, not produce a short count.
 - `analyse.py` prints the tables, and stops at a row that isn't a result or if
-  the probe changes a page count.
+  the probe changes the words on a page.
 
 `probe.py` holds the code added to the copy of the package.
 `test_probe.py --sty ../didactic.sty` checks that a page output inside a small font
-gets the same unit of a line as the others.
+gets the same unit of a line as the others, and that the probe moves no line.
 
 ## What went wrong before, which these checks are for
 
@@ -80,16 +80,26 @@ gets the same unit of a line as the others.
 - The probe took a line as `\normalbaselineskip` when the page was output, which is
   9.5pt rather than 12pt inside a listing's small font, so gaps looked a quarter larger
   on such pages. `analyse.py` now stops if the unit varies.
+- The probe took the last space of a paragraph away with `\unskip`, to see whether
+  the paragraph was empty. A paragraph of nothing but two spaces, which noweb leaves
+  for an empty chunk of text, is an empty line, and without its last space TeX
+  dropped it. Lines moved on 78 pages of one literate program, with the same page
+  count. The probe now puts the space back, and `analyse.py` stops if `noprobe` and
+  `current` differ in words.
 - Builds killed by a timeout whose LaTeX children kept running and wrote into the
   next build of that directory.
+- `prepare.py` ran one LaTeX pass before biber with whatever `didactic.sty` was
+  installed, and kept the `.aux` it wrote. Every build starts from that `.aux`, and one
+  set of lecture notes settles in two states, with a table on one page or the next, so
+  two rounds of the same package differed on 50 pages. Now only the new `.bbl` is kept,
+  and the rest of the output is put back as the document's last build left it.
 
 ## Limits
 
 - Generated files are as last built, the same for every setting.
 - Lone lines and gaps cover pages through the main output routine, not float pages.
-- The probe can move lines between pages without changing the page count. Take
-  page counts and warnings from `noprobe`, and read each list on such a document
-  in its unprobed text as well.
+- The probe is checked to move no line on these documents and in `test_probe.py`,
+  not in general. Page counts and warnings are still taken from `noprobe`.
 - A list is measured against the last paragraph before it, whatever lies between.
   Read the `--context` output.
 
