@@ -9,6 +9,9 @@
 #   #= killed|survived    what it did at the last full run, with what killed it
 # test-mutants.py fails if a mutant does something else than that says.
 #
+# Round 7: run at 82c2e10 with --jobs 2: rv7_hidden, rv7_nbglue, rv7_shortonce, review-r5's
+# rv6_ mutants, R6boxcheck, R6boxlead, R6vspaced, R6stretch, R6nobreakvs, x_owed2 (survived,
+# as recorded), x_prevdepth, R_pendrule and o_ifpend.  Their outcomes below are from that run.
 # Round 6: run at e47307c with --jobs 2: review-r5's rv_ mutants, the R6 ones, and all that
 # touch code changed in round 6 (the parted group, A11listpen to M4output, M_bpyours,
 # M_yourpen, o_bpdefault, o_ifout, o_guard, o_skip, M_pbwithin and the x_ ones on
@@ -573,7 +576,7 @@ rv7_nbglue didactic.dtx
 
 # one warning for a heading whose lines don't all fit (round 7, m-3)
 #: rules
-#= killed sweep-m3 sweep-k3
+#= killed sweep-m3:3 sweep-k3:3
 rv7_shortonce didactic.dtx
 -   \global\@namedef{@didactic@ha@#4}{}%
 +   \relax
@@ -1420,3 +1423,42 @@ rv_bp didactic.dtx
 -           \global\@didactic@keep@listpen\@beginparpenalty
 +         \ifnum\z@=\z@
 +           \global\@didactic@keep@listpen\@beginparpenalty
+
+# ===== review-r5's revert mutants of round 6 =====
+
+#: parted
+#= killed check-test-keep-parted
+rv6_flush didactic.dtx
+-   \ifvmode\ifinner\else\begingroup\@@par\endgroup\fi\fi
++   \relax
+
+#: parted
+#= killed check-test-keep-parted
+rv6_afterline didactic.dtx
+-     \@didactic@keep@afterline
+-     \if@didactic@keep@titleonly
++     \relax
++     \if@didactic@keep@titleonly
+
+#: parted
+#= killed test-keep-parted check-test-keep-parted
+rv6_rulemax didactic.dtx
+-   \ifnum\lastnodetype=\thr@@\@didactic@keep@pendrule\maxdimen\fi
++   \ifnum\lastnodetype=\thr@@\advance\@didactic@keep@pendrule.4\p@\fi
+
+#: parted
+#= killed check-test-keep-parted
+rv6_pbwithin didactic.dtx
+-       \if@didactic@keep@asked\@tempswatrue\else
+-         \if@didactic@keep@parfloat\else\@tempswatrue\fi
+-       \fi
++       \@tempswatrue
+
+#: rules
+#= killed sweep-m3:2
+rv6_pd1 didactic.dtx
+-       \@didactic@keep@tmp\dimexpr\pagegoal-\pagetotal+\pageshrink\relax
+-       \ifdim\prevdepth>-\@m\p@\advance\@didactic@keep@tmp\prevdepth\fi
++       \@didactic@keep@tmp\dimexpr\pagegoal-\pagetotal+\pageshrink\relax
++       \relax
+
