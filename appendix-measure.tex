@@ -5,10 +5,13 @@
 \section{Measurements on real documents}\label{app:pb-measure}
 
 This section reports what the page-break defaults do to real documents.
-The numbers are from the package at commit \texttt{69feebb}, with the \textsf{marginfix} that the
+The numbers are from the package at commit \texttt{21675b2}, with the \textsf{marginfix} that the
 documents load, v1.6.
-The ten settings with the probe took 57 minutes on all eight documents with 5 jobs, on an 8-core
-machine that ran other jobs too.
+The later fixes up to \texttt{82c2e10} were checked under \emph{current} and \emph{noprobe}, the
+package without the probe: every page has the same words, with the same warnings and the same records
+of the probe, but the other settings weren't built again for them.
+All eleven settings took 59 minutes on all eight documents with 5 jobs, on an 8-core machine that
+ran other jobs too.
 The documents aren't in the repository, and they appear here by kind only.
 How to measure them again, or other documents, is in \texttt{measure-real/README.md}.
 
@@ -26,6 +29,12 @@ the same text.
 One set of lecture notes was woven and run through biber in its copy, as its woven source wasn't kept.
 \texttt{audit.py} checks each copy before anything is counted, see below.
 Then each document is built under each setting until its \texttt{.aux} doesn't change, at most six times.
+Each build starts from the \texttt{.aux} and the other generated files that the snapshot holds:
+the \LaTeX\ pass that biber needs for those lecture notes is undone, and only its \texttt{.bbl} is kept.
+That matters, as a document can settle in more than one layout, depending on the \texttt{.aux} it starts
+from: one set of lecture notes does, with words differing on 49 pages and one text page more or fewer
+through the main output routine, 675 or 674 in all, and with the same pages, the same counts of
+empty space, lone lines and lists, and the same warnings, in every setting.
 
 A setting is a small change to a copy of \texttt{didactic.sty}:
 \begin{description}
@@ -102,7 +111,7 @@ Club/widow & First line alone at the foot & Last line alone at the top \\
 \end{tabular}
 \end{center}
 
-These are on the 675 pages that go through the main output routine, of 813; a page of floats isn't
+These are on the 674 pages that go through the main output routine, of 813; a page of floats isn't
 counted.
 A paragraph of two lines broken in the middle counts on both sides; one is, in a literate program.
 
@@ -127,7 +136,7 @@ list 10000 & 114 & 64 & 49.2 \\
 The largest values are the last pages of chapters and of documents, so compare the rows, not the
 values.
 Compared with the keep options off, \emph{current} has 12 more pages with $e\ge3$ and 2 more with
-$e>5$, of 675.
+$e>5$, of 674.
 
 \subsection{A list and its lead-in}
 
@@ -214,7 +223,7 @@ asks for one, as it can't know what follows.
 The row with an estimate of two lines shows what that change did at commit \texttt{3145750}: 814 pages,
 with words differing on 4 pages (3 in one set of lecture notes, 1 in the course notes), and 116 and 68 pages of $e\ge3$ and $e>5$ against 118 and 69 there.
 That was with the probe of then, which took a line of a smaller font for a line on some pages and
-moved some lines, and it wasn't measured again at \texttt{69feebb}.
+moved some lines, and it wasn't measured again at \texttt{21675b2}.
 On one of them, the heading of an exercise with two lines at the foot of a page moves to the next page.
 
 A list directly under a heading was measured at \texttt{9083677} with a scratch change that let its
@@ -231,7 +240,7 @@ With the list rule off there are 23.
 \subsection{The pair of penalties on generated text}
 
 The real documents tie, so the choice between the pairs rests on generated text.
-These are \texttt{measure-flow/} at \texttt{69feebb}, with \textsf{noweb} or \textsf{minted} chunks,
+These are \texttt{measure-flow/} at \texttt{21675b2}, with \textsf{noweb} or \textsf{minted} chunks,
 and \texttt{queries/pen.py}: 6 seeds of 300 paragraphs in \textsf{memoir} and \textsf{article}, with
 and without headings, with no package, which doesn't depend on the commit.
 
@@ -345,7 +354,7 @@ One \LaTeX\ pass at v2.13 (\texttt{743a025}), before the keep options, against t
 \texttt{73fe0fd}, with each \texttt{.aux} settled first and three passes in turn for each version, by
 \texttt{measure-real/timing.py}.
 This was measured on 5 November 2026 at commit \texttt{2490d74}, whose package is that of
-\texttt{73fe0fd}, and not again at \texttt{69feebb}: its page counts are of then.
+\texttt{73fe0fd}, and not again at \texttt{21675b2}: its page counts are of then.
 CPU seconds are the mean of the three, with their range.
 
 \begin{center}\small
