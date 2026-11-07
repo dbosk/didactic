@@ -25,7 +25,8 @@
 %     \outputpenalty: after \vspace (q1), a display (q2) or in a center (q3, p1m).
 % R   A rule right after the lead-in, then a list, rooms 1.25 to 2, without a blank line
 %     after the rule (r1a to r1f) and with one (r2a to r2f): no place to break between
-%     them, so the list and the lead-in move together, silently.
+%     them, so the list and the lead-in move together, silently.  But after space and a
+%     thicker rule (r3a to r3c) there is a place to break.
 %
 % Build: see the Makefile, with pdflatex; test-check.py compares the warnings with the
 % pages of the words.
@@ -461,5 +462,29 @@ Consider LEADR2F this:
 \hrule
 
 \case{R2F}{tie}\begin{enumerate}\items\end{enumerate}
+
+\roomfor{1.25}
+Consider LEADR3A this:
+
+\vspace{6pt}
+\hrule height 2pt
+
+\case{R3A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADR3B this:
+
+\vspace{6pt}
+\hrule height 2pt
+
+\case{R3B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{3}
+Consider LEADR3C this:
+
+\vspace{6pt}
+\hrule height 2pt
+
+\case{R3C}{tie}\begin{itemize}\items\end{itemize}
 
 \end{document}
