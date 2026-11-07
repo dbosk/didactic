@@ -88,6 +88,11 @@ gets the same unit of a line as the others, and that the probe moves no line.
   `current` differ in words.
 - Builds killed by a timeout whose LaTeX children kept running and wrote into the
   next build of that directory.
+- `prepare.py` ran one LaTeX pass before biber with whatever `didactic.sty` was
+  installed, and kept the `.aux` it wrote. Every build starts from that `.aux`, and one
+  set of lecture notes settles in two states, with a table on one page or the next, so
+  two rounds of the same package differed on 50 pages. Now only the new `.bbl` is kept,
+  and the rest of the output is put back as the document's last build left it.
 
 ## Limits
 
