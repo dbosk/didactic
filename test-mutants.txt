@@ -9,6 +9,11 @@
 #   #= killed|survived    what it did at the last full run, with what killed it
 # test-mutants.py fails if a mutant does something else than that says.
 #
+# Run at b8af72a with --jobs 1, one at a
+# time: the parted mutants, A11listpen to M4output, C2pencols, M_bpyours, o_bpdefault, o_ifout,
+# o_guard and the x_ mutants this round touched or named; their outcomes below are from that run,
+# and A12newlist and A20page from a run at the commit after it, with test-keep-parted's rows for
+# them.  All others are from the last full run, at earlier commits.
 # Last full run: at 73fe0fd, with 3 jobs, on a loaded 8-core machine, about two hours
 # (six if one at a time), and it took about 100 MB of disk at a time; o_lastmoved at
 # 0c0e0f4, with the row added for it.  After a change to the code or to the tests that
@@ -96,12 +101,13 @@ A9emptypair didactic.dtx
 +   \ifinner\else
 
 #: keep
-#= killed
+#= killed check-test-keep-leadin check-test-keep-noweb check-test-keep-noweb-break
 A11listpen didactic.dtx
 -           \ifnum\@tempcnta=\@didactic@keep@listpen\@tempcnta\z@\fi
 
-#: keep
-#= killed
+# a bare \penalty before a listing on its own: test-keep-parted's p3d (after the end of a list nothing warns at all now)
+#: parted
+#= killed check-test-keep-parted
 A12newlist didactic.dtx
 -     \if@newlist
 -       \if@didactic@keep@asked\else
@@ -109,7 +115,7 @@ A12newlist didactic.dtx
 +       \if@didactic@keep@asked\else
 
 #: keep
-#= killed
+#= killed check-test-keep-leadin
 A13asked didactic.dtx
 -       \if@didactic@keep@asked\else
 -         \ifnum\@beginparpenalty=\@didactic@keep@bpdefault\relax
@@ -141,8 +147,9 @@ A17med didactic.dtx
 A18big didactic.dtx
 - \AddToHook{cmd/bigbreak/before}{\global\@didactic@keep@askedtrue}
 
-#: keep
-#= killed
+# \pagebreak in vertical mode before a listing in a center: test-keep-parted's p3c
+#: parted
+#= killed check-test-keep-parted
 A20page didactic.dtx
 - \AddToHook{cmd/pagebreak/before}{%
 -   \ifvmode
@@ -246,7 +253,7 @@ C1tallcols didactic.dtx
 +     \ifnum\@didactic@keep@n>\@didactic@keeplines\else
 
 #: keep
-#= killed
+#= killed check-test-keep-multicol
 C2pencols didactic.dtx
 -   \if@didactic@keep@cols
 -   \else\if@didactic@keep@long
@@ -290,7 +297,7 @@ M2lead didactic.dtx
 +         \ifdim\dimexpr\pagetotal+\pagedepth\relax
 
 #: keep
-#= killed check-test-keep-leadin
+#= killed check-test-keep-leadin check-test-keep-noweb check-test-keep-noweb-break
 M3empty didactic.dtx
 -           \if@didactic@keep@emptystart
 -             \@tempcnta\@didactic@keep@lastpen
@@ -629,7 +636,7 @@ x_headtotal didactic.dtx
 
 # a box above a heading that doesn't fit: bh
 #: rules
-#= killed
+#= killed sweep-m:3 sweep-s:1
 x_overfull didactic.dtx
 - \ifdim\pagetotal>\pagegoal\else
 -           \@didactic@keep@tmp\dimexpr\pagegoal-\pagetotal\relax
@@ -667,7 +674,7 @@ x_rule didactic.dtx
 
 # the \parskip of the first paragraph is on the page already when we measure: k3
 #: rules
-#= killed sweep-k3
+#= killed sweep-k3:2
 x_parskip didactic.dtx
 -       \@didactic@keep@tmp\dimexpr\pagegoal-\pagetotal+\pageshrink\relax
 -       \ifdim\@didactic@keep@tmp<\@didactic@keepafterheading\@didactic@keep@L
@@ -676,14 +683,14 @@ x_parskip didactic.dtx
 
 # a second paragraph that owes lines, with \parskip
 #: rules
-#= killed sweep-k3
+#= killed sweep-k3:1
 x_remeasure didactic.dtx
 -       \else
 -         \@didactic@keep@remeasure
 +       \else
 +         \relax
 
-# survives: with room for less than two lines a first paragraph of two lines doesn't fit, whichever is owed, and after one of one line the next is measured again (\@didactic@keep@remeasure); in k3 the review's case that killed it was the \parskip that x_parskip is about
+# survives: with room for less than two lines a first paragraph of two lines doesn't fit, whichever is owed, so the heading moves either way; after one of one line the mutant owes 2 and measures the next paragraph again, asking for what fits, 0 or 1 lines, which holds no more than the 1 line owed without it: the same pages, and a true warning either way (that only n of the lines fit, or that only n lines follow it).  The review's case in k3 that killed it was the \parskip counted twice, which x_parskip is about and 898b368 fixed
 #: rules
 #= survived
 x_owed2 didactic.dtx
@@ -703,7 +710,7 @@ x_state5 didactic.dtx
 + \global\@didactic@keep@headstate\z@
 
 #: rules
-#= killed
+#= killed sweep-m3:2
 x_newpage didactic.dtx
 - \global\let\@didactic@keep@owedkey\@empty
 -   \ifnum\@didactic@keep@headstate=\thr@@
@@ -714,14 +721,14 @@ x_newpage didactic.dtx
 
 # a chapter that doesn't start a page asks no lines of its own
 #: rules
-#= killed sweep-c
+#= killed sweep-c:5
 x_chaphead didactic.dtx
 -       \global\@didactic@keep@chapheadtrue
 +       \relax
 
 # what was too little for keepafterheading is said only if the lines were due
 #: rules
-#= killed sweep-m3
+#= killed sweep-m3:2
 x_shortdrop didactic.dtx
 -     \global\@didactic@keep@headstate\z@
 -     \global\let\@didactic@keep@shortmsg\@empty
@@ -760,7 +767,7 @@ x_newlist didactic.dtx
 
 # a lead-in between a listing and one that breaks: vLv1
 #: rules
-#= killed
+#= killed sweep-m:4 sweep-s:4
 x_flushpend didactic.dtx
 - \begingroup\@@par\endgroup
 -     \global\@didactic@keep@pend\dimexpr\pagetotal+\pagedepth\relax
@@ -778,7 +785,7 @@ x_afterlist didactic.dtx
 
 # a heading, \newpage and a paragraph of one line: hP, hC
 #: rules
-#= killed
+#= killed sweep-m:108 sweep-s:108
 x_haonce didactic.dtx
 - \global\@namedef{@didactic@ha@#1}{}%
 -           \@didactic@keep@tellhead{#1}{\ifcase#3 its first paragraph

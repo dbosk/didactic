@@ -2,7 +2,7 @@
 % one page or parted (didactic): correct or warn.  Each case has a kind:
 %   tie   parted only with a warning that names its line, and together without one;
 %   free  it follows the end of a list, which is a place to break that LaTeX means,
-%         so it is parted here, and nothing warns.
+%         or a break that you asked for, so it is parted here, and nothing warns.
 % The words LEAD<case> and FIRST<case> are the last line of the lead-in and the
 % first line of what it leads into.
 %
@@ -19,7 +19,8 @@
 %     code side by side (f1i) and a center (f1j), a listing.  Room 3.
 % S4  A float or a note that ends the lead-in's paragraph, then a list (n5a, t1a to
 %     t2c), at rooms 1.25 to 5; p3a and p3b: \pagebreak[1] that ends the lead-in is a
-%     break asked for.
+%     break asked for, and so is one in vertical mode before a center (p3c); a bare
+%     \penalty before a listing on its own is silent (p3d), as the docs say.
 % S5  Code side by side whose page ended before it, so a note on the next page sets
 %     \outputpenalty: after \vspace (q1), a display (q2) or in a center (q3, p1m).
 %
@@ -377,5 +378,19 @@ LEADQ3C lead-in.
 \begin{center}
 \case{Q3C}{tie}\pair
 \end{center}
+
+\roomfor{2}
+Lead-in PC, then a pagebreak[1] on its own, to a listing in center, LEADP3C.
+
+\pagebreak[1]
+\begin{center}
+\case{P3C}{free}\code
+\end{center}
+
+\roomfor{2}
+Lead-in PD, then a bare penalty of $-51$, to a listing, LEADP3D.
+
+\penalty-51
+\case{P3D}{free}\code
 
 \end{document}
