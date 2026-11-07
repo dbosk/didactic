@@ -7930,6 +7930,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % (|\@didactic@keep@remeasure|): if the rest doesn't fit we ask for what does, and
 % warn, so that no more lines are owed than fit and no fewer stay than \LaTeX\
 % would keep.
+% Only if two lines or more are owed: one owed line is no club penalty, so it holds
+% nothing, and if it doesn't fit, the paragraph goes to the next page and the pages
+% say so at the end of the run, as before.
 % That warning waits until the lines are done (|\@didactic@keep@short|), at the start
 % of the next paragraph that owes none: if you end the page before that, with
 % |\newpage|, nothing is due, and it says nothing.
@@ -8009,6 +8012,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \fi\fi
   \global\@didactic@keep@asked\@didactic@keep@owed}
 \def\@didactic@keep@remeasure{%
+  \ifnum\@didactic@keep@owed>\@ne
   \if@didactic@keep@overlimit\ifdim\pagegoal<\maxdimen
     \@didactic@keep@tmp\dimexpr\pagegoal-\pagetotal+\pageshrink\relax
     \ifdim\@didactic@keep@tmp<\z@\@didactic@keep@tmp\z@\fi
@@ -8020,7 +8024,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \global\@didactic@keep@owed\@didactic@keep@tmpc
       \@didactic@keep@short{\the\@didactic@keep@asked}%
     \fi
-  \fi\fi}
+  \fi\fi\fi}
 \let\@didactic@keep@shortmsg\@empty
 \def\@didactic@keep@short#1{%
   \xdef\@didactic@keep@shortmsg{\noexpand\@didactic@keep@tellshort{#1}%
