@@ -177,8 +177,8 @@ CASES = {
     # under a heading with descenders, whose depth the next line's glue takes back: a
     # first paragraph of two lines, and two of one line, then a long one
     "p2": lambda k: heading(k).replace("Head", "Heady") + "\n" + para(k, 2, "P") + "\n\n" + para(k, 16) + TAIL,
-    "pp": lambda k: heading(k).replace("Head", "Heady") + "\n" + para(k, 1, "P") + "\n\n" + para(k, 1, "T") + "\n\n"
-        + para(k, 16) + TAIL,
+    "pp": lambda k: heading(k).replace("Head", "Heady") + "\n" + para(k, 1, "P") + "\n\n" + rf"P2\label{{P2X{k}}}"
+        + "\n\n" + para(k, 16) + TAIL,
     # lists
     "pl": lambda k: heading(k) + "\n" + para(k, 1, "P") + "\n" + items(k, 8, 1) + TAIL,
     "pL": lambda k: heading(k) + "\n" + para(k, 1, "P") + "\n" + items(k, 5, 3) + TAIL,
