@@ -23,6 +23,9 @@
 %     \penalty before a listing on its own is silent (p3d), as the docs say.
 % S5  Code side by side whose page ended before it, so a note on the next page sets
 %     \outputpenalty: after \vspace (q1), a display (q2) or in a center (q3, p1m).
+% R   A rule right after the lead-in, then a list, rooms 1.25 to 2, without a blank line
+%     after the rule (r1a to r1f) and with one (r2a to r2f): no place to break between
+%     them, so the list and the lead-in move together, silently.
 %
 % Build: see the Makefile, with pdflatex; test-check.py compares the warnings with the
 % pages of the words.
@@ -392,5 +395,71 @@ Lead-in PD, then a bare penalty of $-51$, to a listing, LEADP3D.
 
 \penalty-51
 \case{P3D}{free}\code
+
+\roomfor{1.25}
+Consider LEADR1A this:
+\hrule
+\case{R1A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.75}
+Consider LEADR1B this:
+\hrule
+\case{R1B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADR1C this:
+\hrule
+\case{R1C}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.25}
+Consider LEADR1D this:
+\hrule
+\case{R1D}{tie}\begin{enumerate}\items\end{enumerate}
+
+\roomfor{1.75}
+Consider LEADR1E this:
+\hrule
+\case{R1E}{tie}\begin{enumerate}\items\end{enumerate}
+
+\roomfor{2}
+Consider LEADR1F this:
+\hrule
+\case{R1F}{tie}\begin{enumerate}\items\end{enumerate}
+
+\roomfor{1.25}
+Consider LEADR2A this:
+\hrule
+
+\case{R2A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.75}
+Consider LEADR2B this:
+\hrule
+
+\case{R2B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADR2C this:
+\hrule
+
+\case{R2C}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.25}
+Consider LEADR2D this:
+\hrule
+
+\case{R2D}{tie}\begin{enumerate}\items\end{enumerate}
+
+\roomfor{1.75}
+Consider LEADR2E this:
+\hrule
+
+\case{R2E}{tie}\begin{enumerate}\items\end{enumerate}
+
+\roomfor{2}
+Consider LEADR2F this:
+\hrule
+
+\case{R2F}{tie}\begin{enumerate}\items\end{enumerate}
 
 \end{document}

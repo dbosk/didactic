@@ -6436,11 +6436,14 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \gdef\@didactic@keep@relpageis{\string\@didactic@keep@relpage}%
     \fi
   \fi}
+\newdimen\@didactic@keep@pendrule
 \def\@didactic@keep@ifbreakless{%
   \@tempswatrue
+  \@didactic@keep@pendrule\@didactic@keep@pend
+  \ifnum\lastnodetype=\thr@@\advance\@didactic@keep@pendrule.4\p@\fi
   \ifnum\lastnodetype=11 \@tempswafalse\fi
   \ifnum\lastpenalty=\z@\else\ifnum\lastpenalty=\@M\else\@tempswafalse\fi\fi
-  \ifdim\dimexpr\pagetotal+\pagedepth\relax>\@didactic@keep@pend\@tempswafalse\fi
+  \ifdim\dimexpr\pagetotal+\pagedepth\relax>\@didactic@keep@pendrule\@tempswafalse\fi
   \ifnum\outputpenalty=\@didactic@keep@pendout\else\@tempswafalse\fi
   \if@didactic@keep@parfloat\@tempswafalse\fi}
 \def\@didactic@keep@relmove{%
@@ -7355,6 +7358,11 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % its height, or a note or a float, by |\outputpenalty|, or by
 % |\if@didactic@keep@parfloat| if it ended the lead-in's paragraph, for then it was on
 % the page before the paragraph ended.
+% A rule of the default height, 0.4\,pt, right after the lead-in's last line is no place
+% to break, as nothing comes between them, so if the last thing on the page is a rule
+% (|\lastnodetype| 3, which looks at the page when \TeX\ has put everything there) we
+% allow it that much height (|\@didactic@keep@pendrule|); glue before it, or a thicker
+% rule, still takes the page from the tie.
 % If so, we take the page from the tie instead.
 % If the list has another penalty there than the document's, by the key |beginpenalty|
 % of \textsf{enumitem} say, it is yours, and we leave it.

@@ -569,7 +569,14 @@ o_ifout didactic.dtx
 #: rules
 #= killed
 o_ifpend didactic.dtx
--   \ifdim\dimexpr\pagetotal+\pagedepth\relax>\@didactic@keep@pend\@tempswafalse\fi
+-   \ifdim\dimexpr\pagetotal+\pagedepth\relax>\@didactic@keep@pendrule\@tempswafalse\fi
++   \relax
+
+# a rule right after the lead-in, then a list: test-keep-parted's r2a to r2f
+#: parted
+#= killed check-test-keep-parted
+R_pendrule didactic.dtx
+-   \ifnum\lastnodetype=\thr@@\advance\@didactic@keep@pendrule.4\p@\fi
 +   \relax
 
 #: rules
