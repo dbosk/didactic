@@ -47,7 +47,7 @@ GROUPS = {
     "noweb": (["test-keep-noweb", "test-keep-noweb-break"],
               ["test-keep-noweb", "test-keep-noweb-break"], []),
     "parted": (["test-keep-parted"], ["test-keep-parted"], []),
-    "rules": (RULES, ["test-keep-once", "test-keep-enumitem"], ["m", "s", "k", "m3", "c", "k3"]),
+    "rules": (RULES, ["test-keep-once", "test-keep-enumitem"], ["m", "s", "k", "m3", "c", "k3", "a"]),
 }
 # All with pdflatex, for speed, but the frame titles with the Makefile's xelatex:
 # test-frametitle-boxes reads a letter inside a picture, whose box in pdftotext's output

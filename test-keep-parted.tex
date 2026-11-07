@@ -38,6 +38,9 @@
 %     an itemize alike; and \pagebreak[0] there (m1g to m1i).  P4: \pagebreak[1] and then a
 %     float end the lead-in: the float makes it no break asked for.  M2: the same in the
 %     last line of a long lead-in, before a center listing and an itemize, rooms 4 to 7.
+%     H1: a box after the lead-in (\centerline): TeX moves all three together here.  H3:
+%     the primitive \vskip or a \penalty0, then a box: a place to break that only the
+%     page's height shows, as the box hides it.
 %
 % Build: see the Makefile, with pdflatex; test-check.py compares the warnings with the
 % pages of the words.
@@ -801,5 +804,83 @@ Lead words words words words words words words words words words words words wor
 \roomfor{7}
 Lead words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words LEADM2H words \pagebreak[1] end.
 \case{M2H}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.25}
+Consider LEADH1A this:
+\centerline{A title}
+\case{H1A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.5}
+Consider LEADH1B this:
+\centerline{A title}
+\case{H1B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADH1C this:
+\centerline{A title}
+\case{H1C}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2.5}
+Consider LEADH1D this:
+\centerline{A title}
+\case{H1D}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{3}
+Consider LEADH1E this:
+\centerline{A title}
+\case{H1E}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{4}
+Consider LEADH1F this:
+\centerline{A title}
+\case{H1F}{tie}\begin{itemize}\items\end{itemize}
+
+
+
+
+\roomfor{1.5}
+Consider LEADH3A this:
+\vskip 6pt\centerline{A title}
+\case{H3A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADH3B this:
+\vskip 6pt\centerline{A title}
+\case{H3B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{3}
+Consider LEADH3C this:
+\vskip 6pt\centerline{A title}
+\case{H3C}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.5}
+Consider LEADH3D this:
+\penalty0 \centerline{A title}
+\case{H3D}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADH3E this:
+\penalty0 \centerline{A title}
+\case{H3E}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{3}
+Consider LEADH3F this:
+\penalty0 \centerline{A title}
+\case{H3F}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.5}
+Consider LEADH3G this:
+\vskip 6pt\hbox{A title}
+\case{H3G}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADH3H this:
+\vskip 6pt\hbox{A title}
+\case{H3H}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{3}
+Consider LEADH3I this:
+\vskip 6pt\hbox{A title}
+\case{H3I}{tie}\begin{itemize}\items\end{itemize}
 
 \end{document}

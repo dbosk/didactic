@@ -29,7 +29,7 @@
 #   noweb    test-keep-noweb, -noweb-break, and test-check.py on them (a minute)
 #   parted   test-keep-parted, and test-check.py on it (a quarter of a minute)
 #   rules    the small test-keep documents, test-keep, -heading, -nogap, -once, and the
-#            sweep in variants m, s, k, m3, c and k3, against plain LaTeX's version
+#            sweep in variants m, s, k, m3, c, k3 and a, against plain LaTeX's version
 #            (three to eight)
 # All with pdflatex, for speed, where make all uses xelatex, but title with xelatex: its
 # check reads a letter inside a picture, whose box depends on the engine.
@@ -650,7 +650,7 @@ o_ifout didactic.dtx
 -   \ifnum\outputpenalty=\@didactic@keep@pendout\else\@tempswafalse\fi
 +   \relax
 
-# \vspace and a rule thicker than 0.4pt after the lead-in: test-keep-parted's r3a to r3c (glue or a penalty alone is caught before this check, as \lastnodetype reads the page)
+# a primitive \vskip or \penalty0 and then a box after the lead-in: test-keep-parted's h3a-h3c, h3g-h3i (since round 6, \vspace before a rule, r3a to r3c, is caught by \if@didactic@keep@vspaced as well, which left this check to them)
 #: parted
 #= killed check-test-keep-parted
 o_ifpend didactic.dtx
@@ -1318,3 +1318,71 @@ d_skip didactic.dtx
 e_late didactic.dtx
 - \let\noweboptions\@didactic@nwoptions
 + \relax
+
+# ===== review-r5's revert mutants: each takes back one fix of round 5 =====
+# rv_S2b follows the code: the branch it took back went in round 6, and what is left of it
+# is the \pagebreak that ends the lead-in.
+
+#: parted
+#= killed
+rv_S1 didactic.dtx
+-   \g@addto@macro\@endparenv{\ifinner\else\global\@didactic@keep@endlisttrue\fi}}
++   \g@addto@macro\@endparenv{\global\@didactic@keep@endlisttrue}}
+
+#: parted
+#= killed
+rv_S2 didactic.dtx
+-   \ifvmode
+-     \global\@didactic@keep@askedtrue
+-   \else
+-     \global\let\@didactic@keep@adjust\@didactic@keep@adjp
+-   \fi}
++   \global\@didactic@keep@askedtrue}
+
+#: parted
+#= killed
+rv_S3 didactic.dtx
+-     \if@didactic@keep@endlist\global\@didactic@keep@pastlisttrue\fi
++     \relax
+
+#: parted
+#= killed
+rv_S4 didactic.dtx
+-   \if@didactic@keep@parfloat\@tempswafalse\fi}
++   }
+
+#: parted
+#= killed
+rv_S5 didactic.dtx
+-           \ifnum\ReadonlyShipoutCounter>\@didactic@keep@startship\relax
++           \ifnum\z@>\@ne
+
+#: parted
+#= killed
+rv_S2b didactic.dtx
+-     \ifx\@didactic@keep@adjust\@didactic@keep@adjp
+-       \global\@didactic@keep@askedtrue
++     \ifx\@didactic@keep@adjust\@didactic@keep@adjp
++       \relax
+
+#: rules
+#= killed
+rv_chap didactic.dtx
+-       \global\@didactic@keep@chapheadtrue
++       \relax
+
+#: rules
+#= killed
+rv_owed1 didactic.dtx
+- \def\@didactic@keep@remeasure{%
+-   \ifnum\@didactic@keep@owed>\@ne
++ \def\@didactic@keep@remeasure{%
++   \ifnum\@ne>\z@
+
+#: rules
+#= killed
+rv_bp didactic.dtx
+-         \ifnum\@beginparpenalty=\@didactic@keep@bpdefault\relax
+-           \global\@didactic@keep@listpen\@beginparpenalty
++         \ifnum\z@=\z@
++           \global\@didactic@keep@listpen\@beginparpenalty
