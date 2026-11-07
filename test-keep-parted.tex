@@ -46,6 +46,9 @@
 %     so the list and the lead-in stay together, quietly.  X1, X2: after a list, a tall
 %     box in \centerline (an image, a rule), then a listing in a center, rooms 2 to 8.
 %     W1: \pagebreak[1] and \hspace* end the lead-in: no break asked for, as the docs say.
+%     Round 8.  Y1-Y6: the primitive \vskip of at most 2pt, then what prints nothing (or a
+%     rule), then a list, rooms 1.25 to 2.5: a place to break that the page hides.  Y7:
+%     \vfil, a title, \vfil and a rule: a break after the title, which the stretch shows.
 %
 % Build: see the Makefile, with pdflatex; test-check.py compares the warnings with the
 % pages of the words.
@@ -1058,5 +1061,110 @@ Lead words words words words words words words words words words words words wor
 \roomfor{5}
 Lead words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words words LEADW1B.\pagebreak[1]\hspace*{1cm}
 \case{W1B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.25}
+Consider LEADY1A this:
+\vskip1pt\label{y1Y1A}
+\case{Y1A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADY1B this:
+\vskip1pt\label{y1Y1B}
+\case{Y1B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2.5}
+Consider LEADY1C this:
+\vskip1pt\label{y1Y1C}
+\case{Y1C}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.25}
+Consider LEADY2A this:
+\vskip2pt\label{y2Y2A}
+\case{Y2A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADY2B this:
+\vskip2pt\label{y2Y2B}
+\case{Y2B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2.5}
+Consider LEADY2C this:
+\vskip2pt\label{y2Y2C}
+\case{Y2C}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.25}
+Consider LEADY3A this:
+\vskip1.5pt{\color{red}\hrule height .4pt}
+\case{Y3A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADY3B this:
+\vskip1.5pt{\color{red}\hrule height .4pt}
+\case{Y3B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2.5}
+Consider LEADY3C this:
+\vskip1.5pt{\color{red}\hrule height .4pt}
+\case{Y3C}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.25}
+Consider LEADY4A this:
+\vskip1pt\nobreak
+\case{Y4A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADY4B this:
+\vskip1pt\nobreak
+\case{Y4B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2.5}
+Consider LEADY4C this:
+\vskip1pt\nobreak
+\case{Y4C}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.25}
+Consider LEADY5A this:
+\vskip1pt\markboth{a}{b}
+\case{Y5A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADY5B this:
+\vskip1pt\markboth{a}{b}
+\case{Y5B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2.5}
+Consider LEADY5C this:
+\vskip1pt\markboth{a}{b}
+\case{Y5C}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.25}
+Consider LEADY6A this:
+\vskip1pt\hrule
+\case{Y6A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADY6B this:
+\vskip1pt\hrule
+\case{Y6B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2.5}
+Consider LEADY6C this:
+\vskip1pt\hrule
+\case{Y6C}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADY7A this:
+\vfil\centerline{A title}\vfil\hrule
+\case{Y7A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2.5}
+Consider LEADY7B this:
+\vfil\centerline{A title}\vfil\hrule
+\case{Y7B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{3}
+Consider LEADY7C this:
+\vfil\centerline{A title}\vfil\hrule
+\case{Y7C}{tie}\begin{itemize}\items\end{itemize}
 
 \end{document}

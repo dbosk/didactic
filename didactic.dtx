@@ -1308,8 +1308,11 @@
 %   to the next page, the warning says that what starts there is parted when it isn't.
 % \item Pages are all it looks at for a list, so a list that moves to the next column
 %   of |twocolumn|, away from its lead-in, says nothing.
-% \item Glue of the primitive |\vskip|, of a fixed size, between the lead-in and a rule
-%   before a list: the rule hides it, and a list parted there says nothing.
+% \item Glue of the primitive |\vskip|, of a fixed size, before a rule or anything that
+%   prints nothing, a |\label| say, then a list: that hides it.
+%   Right after the lead-in we still see a break there, from where the page ended, but
+%   after something else in between, such as a |\centerline|, a list parted at that
+%   glue says nothing.
 %   With |\vspace| it warns.
 % \item A |\pagebreak| at the end of the lead-in is a break you asked for only if
 %   nothing but plain space follows it in the paragraph; after it, a footnote, a
@@ -6105,6 +6108,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \newif\if@didactic@keep@chaphead
 \newif\if@didactic@keep@vspaced
 \newif\if@didactic@keep@nbglue
+\newif\if@didactic@keep@checkhold
 \@didactic@keep@movabletrue
 \let\@didactic@keep@tie\relax
 \newcommand\@didactic@keep@hpage[2]{}
@@ -6428,7 +6432,10 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \else
     \expandafter\@secondoftwo
   \fi}
+\newcount\@didactic@keep@relno
+\def\@didactic@keep@rpget#1{\csname @didactic@keep@rp@#1\endcsname}
 \def\@didactic@keep@relstart{%
+  \global\advance\@didactic@keep@relno\@ne
   \global\@didactic@keep@relduetrue
   \xdef\@didactic@keep@relline{\@didactic@keep@where}%
   \xdef\@didactic@keep@tiepage{\number\numexpr\ReadonlyShipoutCounter+\@ne\relax}%
@@ -6448,7 +6455,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \ifnum\count@=\@M\nobreak\fi
       \gdef\@didactic@keep@relpageis{\string\@didactic@keep@relpage}%
     \fi
-  \fi}
+  \fi
+  \expandafter\xdef\csname @didactic@keep@rp@\the\@didactic@keep@relno\endcsname{%
+    \@didactic@keep@relpageis}}
 \newdimen\@didactic@keep@pendrule
 \newdimen\@didactic@keep@pendstretch
 \def\@didactic@keep@stretch{%
@@ -6483,6 +6492,11 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \ifnum\lastpenalty=\z@\else\ifnum\lastpenalty=\@M\else\@tempswafalse\fi\fi
   \ifdim\dimexpr\pagetotal+\pagedepth\relax>\@didactic@keep@pendrule\@tempswafalse\fi
   \ifnum\outputpenalty=\@didactic@keep@pendout\else\@tempswafalse\fi
+  \if@tempswa\ifdim\dimexpr\pagetotal+\pagedepth\relax>\@didactic@keep@pend
+    \global\@didactic@keep@checkholdtrue
+    \xdef\@didactic@keep@checkship{\the\ReadonlyShipoutCounter}%
+    \xdef\@didactic@keep@checkno{\the\@didactic@keep@relno}%
+  \fi\fi
   \if@didactic@keep@parfloat\@tempswafalse\fi}
 \def\@didactic@keep@hidden{%
   \ifcase\lastnodetype
@@ -6510,13 +6524,14 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \if@didactic@keep@reldue
     \global\@didactic@keep@relduefalse
     \if@filesw
-      \protected@write\@auxout{\let\@didactic@keep@cpage\relax}{%
+      \protected@write\@auxout
+          {\let\@didactic@keep@cpage\relax\let\@didactic@keep@rpget\relax}{%
         \if@didactic@keep@relplaced
           \string\@didactic@keep@pq
         \else
           \string\@didactic@keep@pp
         \fi
-        {\@didactic@keep@relpageis}%
+        {\@didactic@keep@rpget{\the\@didactic@keep@relno}}%
           {\@didactic@keep@cpage}{\@didactic@keep@relline}}%
       \ifvmode\nobreak\fi
     \fi
@@ -7032,7 +7047,20 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \newdimen\@didactic@keep@floatat
 \@didactic@keep@floatat-\maxdimen
 \def\@didactic@keep@floatship{-1}
+\def\@didactic@keep@checkship{-1}
 \def\@didactic@keep@outrec{%
+  \if@didactic@keep@checkhold\ifnum\outputpenalty>-\@Mi
+    \global\@didactic@keep@checkholdfalse
+    \ifnum\ReadonlyShipoutCounter=\@didactic@keep@checkship\relax
+      \setbox\z@\vbox{\unvcopy\@cclv}%
+      \ifdim\dimexpr\ht\z@+\dp\z@-\@didactic@keep@pend\relax<.01\p@
+        \ifdim\dimexpr\@didactic@keep@pend-\ht\z@-\dp\z@\relax<.01\p@
+          \expandafter\xdef\csname @didactic@keep@rp@\@didactic@keep@checkno\endcsname
+            {\the\numexpr\ReadonlyShipoutCounter+\@ne}%
+        \fi
+      \fi
+    \fi
+  \fi\fi
   \ifnum\outputpenalty=-\@Miv
     \setbox\z@\vbox{\unvcopy\@cclv}%
     \global\@didactic@keep@holdat\dimexpr\ht\z@+\dp\z@\relax
@@ -7511,7 +7539,20 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % What prints nothing and isn't glue, a |\label|, an entry for the contents, a colour,
 % a mark, an insertion or |\nobreak|, hides what came before it, a rule say, so when it
 % is the last thing on the page we allow the height of a thin rule, 2\,pt
-% (|\@didactic@keep@hidden|); a line of text or glue before it is more than that.
+% (|\@didactic@keep@hidden|); a line of text is more than that.
+% Glue of the primitive |\vskip| that neither stretches nor shrinks can hide behind such
+% an allowance, though, and behind a rule, and it is a place to break, as it follows
+% the lead-in's last line.
+% So whenever we allow something with height after the lead-in, the next page that the
+% output routine ends normally looks at itself (|\if@didactic@keep@checkhold|, in
+% |\@didactic@keep@outrec|): if it ends where the lead-in ended, to the hundredth of a
+% point, the page broke right after the lead-in's last line, at such glue, as nothing
+% else between them is a place to break, and its page is the one the tie writes for the
+% lead-in.
+% |\@didactic@keep@relend| writes that page only when the page that holds it is shipped
+% out, later, so each tie keeps its page in a macro of its own,
+% \cs{@didactic@keep@rp@}\meta{number} (|\@didactic@keep@relno|), which the write names
+% (|\@didactic@keep@rpget|) and the output routine can still change.
 % Glue of the primitive |\vskip| that neither stretches nor shrinks, before a rule, we
 % still can't see.
 % If so, we take the page from the tie instead.

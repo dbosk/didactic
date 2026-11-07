@@ -1462,3 +1462,29 @@ rv6_pd1 didactic.dtx
 +       \@didactic@keep@tmp\dimexpr\pagegoal-\pagetotal+\pageshrink\relax
 +       \relax
 
+# ===== round 8 =====
+
+#: parted
+#= killed
+rv7_thin0 didactic.dtx
+-   \ifdim\@didactic@keep@pendrule<\dimexpr\@didactic@keep@pend+2\p@\relax
+-     \@didactic@keep@pendrule\dimexpr\@didactic@keep@pend+2\p@\relax
++   \ifdim\@didactic@keep@pendrule<\dimexpr\@didactic@keep@pend+0\p@\relax
++     \@didactic@keep@pendrule\dimexpr\@didactic@keep@pend+0\p@\relax
+
+#: parted
+#= killed
+rv7_nowhatsit didactic.dtx
+-   \or\or\or\or\@didactic@keep@thin
+-   \or\or\or\or\ifnum\lastpenalty=\@M\@didactic@keep@thin\fi
++   \or\or\or\or\relax
++   \or\or\or\or\ifnum\lastpenalty=\@M\@didactic@keep@thin\fi
+
+# the page that ends right after the lead-in, at glue the page hides (round 8, R-1)
+#: parted
+#= killed check-test-keep-parted
+rv8_check didactic.dtx
+-           \expandafter\xdef\csname @didactic@keep@rp@\@didactic@keep@checkno\endcsname
+-             {\the\numexpr\ReadonlyShipoutCounter+\@ne}%
++           \relax
++           \relax
