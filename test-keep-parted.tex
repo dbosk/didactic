@@ -32,7 +32,8 @@
 %     same after a blank line, and g3e after \nobreak, where the glue is no place to break.
 %     F3: a float in the middle of a one-line lead-in; F4, F5: a float at its end, then
 %     \label or \footnote.  B1: after a list, \centerline and its kin lead into a
-%     listing in a center: that is a lead-in.  M1: \pagebreak[1] in the last (only) line
+%     listing in a center (b1a to b1e), a listing (b1f) or a list (b1g): that is a
+%     lead-in.  M1: \pagebreak[1] in the last (only) line
 %     of the lead-in, not at its end, is a break within it, before a center listing and
 %     an itemize alike; and \pagebreak[0] there (m1g to m1i).  P4: \pagebreak[1] and then a
 %     float end the lead-in: the float makes it no break asked for.
@@ -714,5 +715,50 @@ Consider LEADG3D this:
 Consider LEADG3E this:
 \par\nobreak\vspace{3pt}\hrule
 \case{G3E}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{4}
+\begin{itemize}\item x\end{itemize}
+\centerline{LEADB1A Title:}
+\begin{center}
+\case{B1A}{tie}\code
+\end{center}
+
+\roomfor{4}
+\begin{itemize}\item x\end{itemize}
+\leftline{LEADB1B Title:}
+\begin{center}
+\case{B1B}{tie}\code
+\end{center}
+
+\roomfor{4}
+\begin{itemize}\item x\end{itemize}
+\rightline{LEADB1C Title:}
+\begin{center}
+\case{B1C}{tie}\code
+\end{center}
+
+\roomfor{4}
+\begin{itemize}\item x\end{itemize}
+\hbox{LEADB1D Title:}
+\begin{center}
+\case{B1D}{tie}\code
+\end{center}
+
+\roomfor{4}
+\begin{itemize}\item x\end{itemize}
+\hbox to\hsize{LEADB1E Title:\hfil}
+\begin{center}
+\case{B1E}{tie}\code
+\end{center}
+
+\roomfor{4}
+\begin{itemize}\item x\end{itemize}
+\centerline{LEADB1F Title:}
+\case{B1F}{tie}\code
+
+\roomfor{4}
+\begin{itemize}\item x\end{itemize}
+\centerline{LEADB1G Title:}
+\case{B1G}{tie}\begin{itemize}\items\end{itemize}
 
 \end{document}

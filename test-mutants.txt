@@ -530,6 +530,21 @@ R6notes didactic.dtx
 +   \ifnum\z@=\z@
 +     \global\@didactic@keep@floatat\@didactic@keep@holdat
 
+# a box after the end of a list leads into what follows (round 6)
+#: parted
+#= killed check-test-keep-parted
+R6boxcheck didactic.dtx
+-     \ifnum\lastnodetype=\@ne\@didactic@keep@boxlead\fi
++     \relax
+
+#: parted
+#= killed check-test-keep-parted
+R6boxlead didactic.dtx
+-   \global\@didactic@keep@pendstretch\@didactic@keep@stretch
+-   \global\@didactic@keep@vspacedfalse
++   \relax
++   \relax
+
 # glue before a rule after the lead-in (round 6)
 #: parted
 #= killed check-test-keep-parted

@@ -6937,7 +6937,21 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \newcount\@didactic@keep@nwstate
 \newcount\@didactic@keep@listpen
 \let\@didactic@keep@listnoted\relax
+\def\@didactic@keep@boxcheck{%
+  \if@didactic@keep@endlist\ifvmode\ifinner\else
+    \begingroup\@@par\endgroup
+    \ifnum\lastnodetype=\@ne\@didactic@keep@boxlead\fi
+    \ifnum\lastnodetype=\tw@\@didactic@keep@boxlead\fi
+  \fi\fi\fi}
+\def\@didactic@keep@boxlead{%
+  \global\@didactic@keep@endlistfalse
+  \global\@didactic@keep@pend\dimexpr\pagetotal+\pagedepth\relax
+  \global\@didactic@keep@pendout\outputpenalty
+  \global\@didactic@keep@pendstretch\@didactic@keep@stretch
+  \global\@didactic@keep@vspacedfalse
+  \global\@didactic@keep@parfloatfalse}
 \def\@didactic@keep@notelist{%
+  \@didactic@keep@boxcheck
   \ifx\@didactic@keep@listnoted\relax
     \def\@didactic@keep@listnoted{}%
     \global\@didactic@keep@listpen\@M
@@ -7428,6 +7442,13 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % Only a list that ends on the page counts, not one in a box (|\ifinner|): a list in
 % a note, a footnote, a minipage or a float in the lead-in ends in a list of its own,
 % and the list after the lead-in is still tied to it.
+% And only while nothing that prints comes after it: a box on the page, from
+% |\centerline| or |\hbox|, starts no paragraph, but it can lead into what follows, so
+% when a list or a listing starts and the last thing on the page is a box, the end
+% of the list is behind us (|\@didactic@keep@boxcheck|), and the box is the end of
+% what leads into it, as the end of a paragraph would be (|\@didactic@keep@boxlead|).
+% After the end of a list itself the last thing is its glue, and a note or a float
+% leaves a penalty or nothing.
 % Where that page is written matters: after such a place it would be on the next page
 % too, and nothing would seem parted.
 % So |\@didactic@keep@ifbreakless| looks whether anything came after the lead-in's last
@@ -7638,6 +7659,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \fi
   \let\@didactic@trivlist\@trivlist
   \def\@trivlist{%
+    \@didactic@keep@boxcheck
     \@didactic@keep@forbidden
     \@didactic@keep@titlewaits\@didactic@trivlist\@didactic@keep@listtie}%
   \let\@didactic@FV@LeaveVMode\FV@LeaveVMode
