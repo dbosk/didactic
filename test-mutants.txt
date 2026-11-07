@@ -496,6 +496,40 @@ o_asked didactic.dtx
 - \if@didactic@keep@endlist\else\if@didactic@keep@asked\else\if@didactic@keepleadin
 + \if@didactic@keep@endlist\else\iffalse\else\if@didactic@keepleadin
 
+# what came after the lead-in's last line, seen at the end of its paragraph (round 6)
+#: parted
+#= killed check-test-keep-parted
+R6afterglue didactic.dtx
+-   \ifnum\lastnodetype=11 \global\@didactic@keep@parfloattrue\fi
++   \relax
+
+#: parted
+#= killed check-test-keep-parted
+R6afterpen didactic.dtx
+-     \ifnum\lastpenalty<\@M\global\@didactic@keep@parfloattrue\fi
++     \relax
+
+#: parted
+#= killed check-test-keep-parted
+R6floatat didactic.dtx
+-     \ifdim\dimexpr\@didactic@keep@pend-\@didactic@keep@floatat\relax<.01\p@
++     \ifdim\dimexpr\@didactic@keep@pend-\@didactic@keep@floatat\relax<-\maxdimen
+
+#: parted
+#= killed check-test-keep-parted
+R6placed didactic.dtx
+-       \global\advance\@didactic@keep@floatat\@didactic@keep@floatht
++       \relax
+
+# a note that ends the lead-in is no float (round 6): parfloat for every adjust at the end
+#: parted
+#= killed check-test-keep-parted
+R6notes didactic.dtx
+-   \ifnum\count#2>\z@
+-     \global\@didactic@keep@floatat\@didactic@keep@holdat
++   \ifnum\z@=\z@
++     \global\@didactic@keep@floatat\@didactic@keep@holdat
+
 # code side by side whose page ended before it, a note after that
 #: parted
 #= killed check-test-keep-parted

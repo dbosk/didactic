@@ -6960,6 +6960,51 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \fi
   \fi}
 \AddToHook{para/end}{\@didactic@keep@lastadjust}
+\newdimen\@didactic@keep@holdat
+\newdimen\@didactic@keep@floatat
+\@didactic@keep@floatat-\maxdimen
+\def\@didactic@keep@floatship{-1}
+\def\@didactic@keep@outrec{%
+  \ifnum\outputpenalty=-\@Miv
+    \setbox\z@\vbox{\unvcopy\@cclv}%
+    \global\@didactic@keep@holdat\dimexpr\ht\z@+\dp\z@\relax
+  \else\ifnum\outputpenalty=-\@Mii
+    \ifx\@currlist\@empty\else
+      \expandafter\@didactic@keep@outfloat\@currlist\@nil
+    \fi
+  \fi\fi}
+\let\@didactic@keep@floatbox\relax
+\def\@didactic@keep@outfloat#1#2#3\@nil{%
+  \ifnum\count#2>\z@
+    \global\@didactic@keep@floatat\@didactic@keep@holdat
+    \xdef\@didactic@keep@floatship{\the\ReadonlyShipoutCounter}%
+    \global\let\@didactic@keep@floatbox#2%
+    \global\@didactic@keep@floatht\dimexpr\ht#2+\dp#2+2\intextsep\relax
+  \fi}
+\newdimen\@didactic@keep@floatht
+\def\@didactic@keep@outplaced{%
+  \ifx\@didactic@keep@floatbox\relax\else
+    \@tempswafalse
+    \def\@elt##1{\ifx##1\@didactic@keep@floatbox\@tempswatrue\fi}%
+    \@midlist
+    \if@tempswa
+      \global\advance\@didactic@keep@floatat\@didactic@keep@floatht
+    \fi
+    \global\let\@didactic@keep@floatbox\relax
+  \fi}
+\def\@didactic@keep@afterline{%
+  \ifnum\lastnodetype=11 \global\@didactic@keep@parfloattrue\fi
+  \ifnum\lastnodetype=13
+    \ifnum\lastpenalty<\@M\global\@didactic@keep@parfloattrue\fi
+  \fi
+  \ifnum\@didactic@keep@floatship=\ReadonlyShipoutCounter
+    \ifdim\dimexpr\@didactic@keep@pend-\@didactic@keep@floatat\relax<.01\p@
+      \global\@didactic@keep@parfloattrue
+    \fi
+  \fi}
+\AtBeginDocument{%
+  \output\expandafter{\expandafter\@didactic@keep@outrec\the\output
+    \@didactic@keep@outplaced}}
 \newdimen\@didactic@keep@startpt
 \newdimen\@didactic@keep@pre
 \let\@didactic@keep@started\relax
@@ -7059,10 +7104,23 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 %   line, and the paragraph's end sets |\if@didactic@keep@asked|.
 %   (\LaTeX\ ends the paragraph with |\nobreak| and |\parfillskip| anyway, so the
 %   |\nobreak| and the space that |\@Esphack| adds after a float can go.)
-%   A float or a margin note in a paragraph is a |\vadjust| too, which ends in a place
-%   to break (|\addpenalty| in |\@specialoutput|), and it comes on the page before the
-%   paragraph has ended, so the check of a list can't see it there; so a float or a
-%   note that ends the lead-in notes it too (|\if@didactic@keep@parfloat|).
+%   A float or a margin note in a paragraph is a |\vadjust| too, and so is a
+%   |\pagebreak| in it that doesn't end it; they come on the page after the line they
+%   are in, before the paragraph has ended, so the check of a list can't see them
+%   there.
+%   A float ends in a place to break (|\addpenalty| in |\@specialoutput|); a margin
+%   note doesn't, as \textsf{marginfix} sets |\outputpenalty| to 0 for it.
+%   What came after the last line we see at the end of the paragraph
+%   (|\@didactic@keep@afterline|): if the last thing on the page is glue or a penalty
+%   that allows a break, it came there, as a paragraph ends in a line
+%   (|\if@didactic@keep@parfloat|).
+%   A footnote after the float hides that, as its insertion comes last, so the output
+%   routine also notes where the page stood when it held a page for a float of the
+%   paragraph (|\@didactic@keep@outrec|): if that is where the paragraph ended, on the
+%   same page, the float was in its last line.
+%   A float that \LaTeX\ sets right there (|h|) comes after that point, with
+%   |\intextsep| above and below it, so then we count it in (|\@didactic@keep@outplaced|,
+%   at the end of the output routine, when \LaTeX\ has put it on |\@midlist|).
 %   What else ends the paragraph after a |\pagebreak|, a footnote, say, makes it count
 %   as a break within the lead-in, and then what is parted warns.
 %   A note, a float or glue gives a penalty of 0 or more, and then we warn, unless
@@ -8068,6 +8126,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \fi
   \if@didactic@keep@inbox\else
     \global\let\@didactic@keep@adjust\@empty
+    \global\@didactic@keep@floatat-\maxdimen
+    \gdef\@didactic@keep@floatship{-1}%
     \ifnum\@didactic@keep@headstate=\thr@@\else\@didactic@keep@flushshort\fi
     \global\@didactic@keep@afterlistingfalse
     \global\@didactic@keep@pstart\dimexpr\pagetotal+\pagedepth\relax
@@ -8141,9 +8201,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \global\@didactic@keep@parfloatfalse
     \ifx\@didactic@keep@adjust\@didactic@keep@adjp
       \global\@didactic@keep@askedtrue
-    \else\ifx\@didactic@keep@adjust\@didactic@keep@adjf
-      \global\@didactic@keep@parfloattrue
-    \fi\fi
+    \fi
+    \@didactic@keep@afterline
     \if@didactic@keep@titleonly
       \global\@didactic@keep@titleonlyfalse
       \global\clubpenalties\z@

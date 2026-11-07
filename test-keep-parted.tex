@@ -27,6 +27,14 @@
 %     after the rule (r1a to r1f) and with one (r2a to r2f): no place to break between
 %     them, so the list and the lead-in move together, silently.  But after space and a
 %     thicker rule (r3a to r3c) there is a place to break.
+% Round 6.  L1, L2: \ltnote or \marginpar ends the lead-in: no place to break, together.
+%     G1, G2: glue, then a rule, no blank line: a place to break before the rule.
+%     F3: a float in the middle of a one-line lead-in; F4, F5: a float at its end, then
+%     \label or \footnote.  B1: after a list, \centerline and its kin lead into a
+%     listing in a center: that is a lead-in.  M1: \pagebreak[1] in the last (only) line
+%     of the lead-in, not at its end, is a break within it, before a center listing and
+%     an itemize alike; and \pagebreak[0] there (m1g to m1i).  P4: \pagebreak[1] and then a
+%     float end the lead-in: the float makes it no break asked for.
 %
 % Build: see the Makefile, with pdflatex; test-check.py compares the warnings with the
 % pages of the words.
@@ -486,5 +494,190 @@ Consider LEADR3C this:
 \hrule height 2pt
 
 \case{R3C}{tie}\begin{itemize}\items\end{itemize}
+
+% Round 6
+
+\roomfor{1.25}
+Consider LEADL1A this:\ltnote{n}
+\case{L1A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.5}
+Consider LEADL1B this:\ltnote{n}
+\case{L1B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADL1C this:\ltnote{n}
+\case{L1C}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2.5}
+Consider LEADL1D this:\ltnote{n}
+\case{L1D}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.5}
+Consider LEADL1E this:\ltnote{n}
+\case{L1E}{tie}\begin{enumerate}\items\end{enumerate}
+
+\roomfor{1.5}
+Consider LEADL2A this:\marginpar{n}
+\case{L2A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADL2B this:\marginpar{n}
+\case{L2B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.25}
+Consider LEADG1A this:
+\vspace{6pt}\hrule
+\case{G1A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.5}
+Consider LEADG1B this:
+\vspace{6pt}\hrule
+\case{G1B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADG1C this:
+\vspace{6pt}\hrule
+\case{G1C}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.5}
+Consider LEADG2A this:
+\vspace{6pt}\hrule height 2pt
+\case{G2A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.5}
+Consider LEADG2B this:
+\vspace{0pt}\hrule
+\case{G2B}{tie}\begin{itemize}\items\end{itemize}
+
+
+\roomfor{1.5}
+Consider LEADG2D this:
+\vspace{-2pt}\hrule height 2.4pt
+\case{G2D}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.25}
+Consider LEADF3A this\begin{figure}[t]\caption{F}\end{figure} more:
+
+\case{F3A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADF3B this\begin{figure}[t]\caption{F}\end{figure} more:
+
+\case{F3B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2.5}
+Consider LEADF3C this\begin{figure}[t]\caption{F}\end{figure} more:
+
+\case{F3C}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{5}
+Consider LEADF3D this\begin{figure}[t]\caption{F}\end{figure} more:
+
+\case{F3D}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADF3E this\begin{figure}[t]\caption{F}\end{figure} more:
+\case{F3E}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADF3F this\begin{figure}[h]\caption{F}\end{figure} more:
+
+\case{F3F}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.25}
+Consider LEADF4A this:
+\begin{figure}[t]\caption{F}\end{figure}\label{fF4A}
+
+\case{F4A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADF4B this:
+\begin{figure}[t]\caption{F}\end{figure}\label{fF4B}
+
+\case{F4B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{5}
+Consider LEADF4C this:
+\begin{figure}[t]\caption{F}\end{figure}\label{fF4C}
+
+\case{F4C}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.25}
+Consider LEADF5A this:
+\begin{figure}[t]\caption{F}\end{figure}\footnote{f}
+
+\case{F5A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADF5B this:
+\begin{figure}[t]\caption{F}\end{figure}\footnote{f}
+
+\case{F5B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{5}
+Consider LEADF5C this:
+\begin{figure}[t]\caption{F}\end{figure}\footnote{f}
+
+\case{F5C}{tie}\begin{itemize}\items\end{itemize}
+
+
+
+
+
+
+\roomfor{4}
+Consider \pagebreak[1] LEADM1A this:
+\begin{center}
+\case{M1A}{tie}\code
+\end{center}
+
+\roomfor{5}
+Consider \pagebreak[1] LEADM1B this:
+\begin{center}
+\case{M1B}{tie}\code
+\end{center}
+
+\roomfor{6}
+Consider \pagebreak[1] LEADM1C this:
+\begin{center}
+\case{M1C}{tie}\code
+\end{center}
+
+\roomfor{7}
+Consider \pagebreak[1] LEADM1D this:
+\begin{center}
+\case{M1D}{tie}\code
+\end{center}
+
+\roomfor{4}
+Consider \pagebreak[1] LEADM1E this:
+\case{M1E}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{5}
+Consider \pagebreak[1] LEADM1F this:
+\case{M1F}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{4}
+Consider \pagebreak[0] LEADM1G this:
+\case{M1G}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{5}
+Consider \pagebreak[0] LEADM1H this:
+\case{M1H}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider \pagebreak[0] LEADM1I this:
+\case{M1I}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADP4A this:\pagebreak[1]\begin{figure}[t]\caption{F}\end{figure}
+
+\case{P4A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.5}
+Consider LEADP4B this:\pagebreak[1]\begin{figure}[t]\caption{F}\end{figure}
+
+\case{P4B}{tie}\begin{itemize}\items\end{itemize}
 
 \end{document}
