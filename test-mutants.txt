@@ -9,6 +9,8 @@
 #   #= killed|survived    what it did at the last full run, with what killed it
 # test-mutants.py fails if a mutant does something else than that says.
 #
+# Round 8: run at 5c10742's tree with --jobs 4: rv8_check, review-r5's rv7_hidden, rv7_thin0
+# and rv7_nowhatsit, rv6_rulemax and R6stretch (after y7a-y7c were added); all killed.
 # Round 7: run at 82c2e10 with --jobs 2: rv7_hidden, rv7_nbglue, rv7_shortonce, review-r5's
 # rv6_ mutants, R6boxcheck, R6boxlead, R6vspaced, R6stretch, R6nobreakvs, x_owed2 (survived,
 # as recorded), x_prevdepth, R_pendrule and o_ifpend.  Their outcomes below are from that run.
@@ -603,6 +605,7 @@ R6vspaced didactic.dtx
 -   \if@didactic@keep@vspaced\@tempswafalse\fi
 +   \relax
 
+# since round 8 the check of the page that ships after the tie covers g2c and g3; test-keep-parted's y7a-y7c (a title between two \vfil) need the stretch
 #: parted
 #= killed check-test-keep-parted
 R6stretch didactic.dtx
@@ -1465,7 +1468,7 @@ rv6_pd1 didactic.dtx
 # ===== round 8 =====
 
 #: parted
-#= killed
+#= killed check-test-keep-parted
 rv7_thin0 didactic.dtx
 -   \ifdim\@didactic@keep@pendrule<\dimexpr\@didactic@keep@pend+2\p@\relax
 -     \@didactic@keep@pendrule\dimexpr\@didactic@keep@pend+2\p@\relax
@@ -1473,7 +1476,7 @@ rv7_thin0 didactic.dtx
 +     \@didactic@keep@pendrule\dimexpr\@didactic@keep@pend+0\p@\relax
 
 #: parted
-#= killed
+#= killed check-test-keep-parted
 rv7_nowhatsit didactic.dtx
 -   \or\or\or\or\@didactic@keep@thin
 -   \or\or\or\or\ifnum\lastpenalty=\@M\@didactic@keep@thin\fi
