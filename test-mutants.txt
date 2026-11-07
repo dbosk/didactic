@@ -784,7 +784,7 @@ x_remeasure didactic.dtx
 +       \else
 +         \relax
 
-# survives, and is equivalent in pages since the round-6 fix: the room is now measured as TeX reckons it, with the heading's depth that the first line's glue takes back (\prevdepth; without it two lines that fit were taken for one, and the cap dropped the third line silently, the review's p2 and pp at room 5.25).  With room for less than two lines, a first paragraph of two lines doesn't fit whichever is owed; after one of one line, the mutant owes two and measures the next paragraph again, asking for what fits, which holds no more than the one line owed without it.  The pages are the same, and the warnings differ but are both true: "only 1 of the 3 lines fit" against "only 1 line follows it"
+# survives, and is equivalent in pages since round 6 (cd57af9): the room is now measured as TeX reckons it, with the heading's depth that the first line's glue takes back (\prevdepth; without it two lines that fit were taken for one, and the cap dropped the third line silently: review-r5's q2k3 lines 617 and 1006, now "Only 2 of the 3 lines" at both).  With room for less than two lines, a first paragraph of two lines doesn't fit whichever is owed; after one of one line, the mutant owes two and measures the next paragraph again, asking for what fits, which holds no more than the one line owed without it.  On review-r5's whole q2 grid (q2k2b, q2k2p, q2k3, q2k3b, q2k3p) the mutant gives the same PDF text, the same label pages and the same warnings as the package, checked at 8cbb0d7
 #: rules
 #= survived
 x_owed2 didactic.dtx
