@@ -9,7 +9,7 @@
 #   #= killed|survived    what it did at the last full run, with what killed it
 # test-mutants.py fails if a mutant does something else than that says.
 #
-# Run at b8af72a with --jobs 1, one at a
+# Run at c40f1ba with --jobs 1, one at a
 # time: the parted mutants, A11listpen to M4output, C2pencols, M_bpyours, o_bpdefault, o_ifout,
 # o_guard and the x_ mutants this round touched or named; their outcomes below are from that run,
 # and A12newlist and A20page from a run at the commit after it, with test-keep-parted's rows for
@@ -573,7 +573,7 @@ o_ifpend didactic.dtx
 -   \ifdim\dimexpr\pagetotal+\pagedepth\relax>\@didactic@keep@pendrule\@tempswafalse\fi
 +   \relax
 
-# a rule right after the lead-in, then a list: test-keep-parted's r2a to r2f (run at d68a0a0)
+# a rule right after the lead-in, then a list: test-keep-parted's r2a to r2f (run at 2cd300f)
 #: parted
 #= killed check-test-keep-parted
 R_pendrule didactic.dtx
@@ -698,7 +698,7 @@ x_remeasure didactic.dtx
 +       \else
 +         \relax
 
-# survives: with room for less than two lines a first paragraph of two lines doesn't fit, whichever is owed, so the heading moves either way; after one of one line the mutant owes 2 and measures the next paragraph again, asking for what fits, 0 or 1 lines, which holds no more than the 1 line owed without it: the same pages, and a true warning either way (that only n of the lines fit, or that only n lines follow it).  The review's case in k3 that killed it was the \parskip counted twice, which x_parskip is about and 898b368 fixed
+# survives: with room for less than two lines a first paragraph of two lines doesn't fit, whichever is owed, so the heading moves either way; after one of one line the mutant owes 2 and measures the next paragraph again, asking for what fits, 0 or 1 lines, which holds no more than the 1 line owed without it: the same pages, and a true warning either way (that only n of the lines fit, or that only n lines follow it).  The review's case in k3 that killed it was the \parskip counted twice, which x_parskip is about and b3afd07 fixed
 #: rules
 #= survived
 x_owed2 didactic.dtx
