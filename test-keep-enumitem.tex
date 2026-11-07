@@ -8,6 +8,7 @@
 %      warns once, naming this line.
 %   G  A listing in the first item of such a list: the penalty is yours there too,
 %      and nothing warns.
+%   H, I  The same with beginpenalty=0 and =50: whatever its sign.
 \documentclass[a4paper,10pt,oneside]{memoir}
 \usepackage{didactic}
 \usepackage{enumitem}
@@ -44,6 +45,29 @@ LEADG in.
 \begin{itemize}[beginpenalty=-500]\item
 \case{g}\begin{Verbatim}
 FIRSTG
+line 2
+line 3
+line 4
+\end{Verbatim}
+\end{itemize}
+After.
+\roomfor{2}
+LEADH in.
+\begin{itemize}[beginpenalty=0]\item
+\case{h}\begin{Verbatim}
+FIRSTH
+line 2
+line 3
+line 4
+\end{Verbatim}
+\end{itemize}
+After.
+
+\roomfor{2}
+LEADI in.
+\begin{itemize}[beginpenalty=50]\item
+\case{i}\begin{Verbatim}
+FIRSTI
 line 2
 line 3
 line 4

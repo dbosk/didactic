@@ -471,15 +471,15 @@ def keep_once(c):
 def keep_enumitem(c):
     """test-keep-enumitem.tex; see its header."""
     lines = keep_results(c, "enumitem")
-    c.ok(set(lines) == set("abdfg"), f"five cases, has {sorted(lines)}")
+    c.ok(set(lines) == set("abdfghi"), f"seven cases, has {sorted(lines)}")
     w = warnings(c)
     for n in "ab":
         c.ok(c.one("LEAD" + n.upper())["page"] == c.one("FIRST" + n.upper())["page"],
              f"case {n} stays with its lead-in")
-    for n in "dfg":
+    for n in "dfghi":
         c.ok(c.one("LEAD" + n.upper())["page"] < c.one("FIRST" + n.upper())["page"],
              f"case {n} is on two pages")
-    for n in "dg":
+    for n in "dghi":
         c.ok(not [x for x in w if f"line {lines[n]} " in x], f"case {n} says nothing: {w}")
     here = [x for x in w if "goes to the next page" in x and f"line {lines['f']} " in x]
     c.ok(len(here) == 1, f"case f warns once: {w}")

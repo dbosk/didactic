@@ -530,6 +530,13 @@ R6notes didactic.dtx
 +   \ifnum\z@=\z@
 +     \global\@didactic@keep@floatat\@didactic@keep@holdat
 
+# a beginpenalty of yours, of either sign, before a listing in the first item (round 6)
+#: rules
+#= killed check-test-keep-enumitem
+M_yourpen didactic.dtx
+-           \ifnum\@tempcnta=\@didactic@keep@yourpen\@tempcnta\m@ne\fi
++           \relax
+
 # a box after the end of a list leads into what follows (round 6)
 #: parted
 #= killed check-test-keep-parted

@@ -6936,6 +6936,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \ifnum\@didactic@keep@gendepth>\z@\@didactic@keep@genline\else\the\inputlineno\fi}
 \newcount\@didactic@keep@nwstate
 \newcount\@didactic@keep@listpen
+\newcount\@didactic@keep@yourpen
 \let\@didactic@keep@listnoted\relax
 \def\@didactic@keep@boxcheck{%
   \if@didactic@keep@endlist\ifvmode\ifinner\else
@@ -6955,12 +6956,15 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \ifx\@didactic@keep@listnoted\relax
     \def\@didactic@keep@listnoted{}%
     \global\@didactic@keep@listpen\@M
+    \global\@didactic@keep@yourpen\numexpr\@M+\@ne\relax
     \global\@didactic@keep@pastlistfalse
     \if@didactic@keep@endlist\global\@didactic@keep@pastlisttrue\fi
     \if@newlist
       \if@didactic@keep@asked\else
         \ifnum\@beginparpenalty=\@didactic@keep@bpdefault\relax
           \global\@didactic@keep@listpen\@beginparpenalty
+        \else
+          \global\@didactic@keep@yourpen\@beginparpenalty
         \fi
       \fi
     \fi
@@ -7120,7 +7124,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 %   So when the listing comes first in a list (|\if@newlist|), we note that value,
 %   |\@didactic@keep@listpen|, and such a penalty counts as none.
 %   Only if it is the document's, though: another one, by the key |beginpenalty| of
-%   \textsf{enumitem} say, is yours, as it is for a list (|\@didactic@keep@listtie|).
+%   \textsf{enumitem} say, is yours, as it is for a list (|\@didactic@keep@listtie|),
+%   so a page that ended at it, whatever its sign, ended where you asked
+%   (|\@didactic@keep@yourpen|).
 %   We note it once, for the outermost thing we set up, before that changes the value.
 %   A break you ask for right before such a list ends the page at the list's penalty all
 %   the same, for \TeX\ takes the last of breaks that cost the same, as all do on a
@@ -7215,6 +7221,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
             \@tempcnta\@didactic@keep@lastpen
           \fi
           \ifnum\@tempcnta=\@didactic@keep@listpen\@tempcnta\z@\fi
+          \ifnum\@tempcnta=\@didactic@keep@yourpen\@tempcnta\m@ne\fi
           \ifnum\@tempcnta<\z@\else
             \PackageWarningNoLine{didactic}{%
               #1 starts page \thepage, apart from what leads\MessageBreak
