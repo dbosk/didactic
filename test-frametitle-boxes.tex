@@ -1,0 +1,79 @@
+% Test of frame titles (didactic) in the notes: a box right after the title.  A
+% box is set in the line like a word, so the title would stand beside it, at its
+% baseline, unless the frame starts with one of the boxes we handle.
+%
+% Build: see the Makefile; twice, for the table of contents.  minted needs
+% -shell-escape, like the rest of the tests.
+%
+% Expected in the resulting PDF, in the notes:
+%   1  Each title on a line of its own, above what its frame starts with:
+%      TIMG above an \includegraphics (the A of example-image-a), TCENTRE above
+%      the B of \centering\includegraphics, TPLAIN above a tabular, TTABS above a
+%      tabular*, TTABX above a tabularx, TTIKZ above a tikzpicture, TMINI above
+%      a minipage, TCOLS above columns, TTOC above the heading of
+%      \tableofcontents, TBYTEXT above \textbytext, TMINTED above \inputminted.
+%   2  TCENTRE flush left, like the other titles, though \centering comes first.
+%   3  THIDDEN, a frame only on the slides with \tableofcontents[currentsection],
+%      nowhere, and PROSEHIDDEN after it isn't run in with anything.
+%   4  TFBOX and FBOXWORD on one line: any other box is set like a word, as the
+%      docs say.
+%   5  PROSEHEAD, a \paragraph outside the frames, and PROSETAB, its tabular, on
+%      one line: only frames change.
+\documentclass[a4paper]{memoir}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{tabularx}
+\usepackage{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\begin{document}
+\begin{frame}{TIMG}
+  \includegraphics[width=2cm]{example-image-a}
+\end{frame}
+\begin{frame}{TCENTRE}
+  \centering\includegraphics[width=2cm]{example-image-b}
+\end{frame}
+\begin{frame}{TPLAIN}
+  \begin{tabular}{l}TABWORD\end{tabular}
+\end{frame}
+\begin{frame}{TTABS}
+  \begin{tabular*}{5cm}{l}TABSWORD\end{tabular*}
+\end{frame}
+\begin{frame}{TTABX}
+  \begin{tabularx}{5cm}{X}TABXWORD\end{tabularx}
+\end{frame}
+\begin{frame}{TTIKZ}
+  \begin{tikzpicture}\node {TIKZWORD};\end{tikzpicture}
+\end{frame}
+\begin{frame}{TMINI}
+  \begin{minipage}{4cm}MINIWORD\end{minipage}
+\end{frame}
+\begin{frame}{TCOLS}
+  \begin{columns}
+    \begin{column}{.4\textwidth}COLWORD\end{column}
+    \begin{column}{.4\textwidth}COLOTHER\end{column}
+  \end{columns}
+\end{frame}
+\begin{frame}{TBYTEXT}
+  \textbytext{BYTEXTWORD}{BYTEXTOTHER}
+\end{frame}
+\begin{frame}[fragile]{TMINTED}
+  \inputminted{python}{hello.py}
+\end{frame}
+\begin{frame}{TFBOX}
+  \fbox{FBOXWORD}
+\end{frame}
+
+\paragraph*{PROSEHEAD}
+\begin{tabular}{l}PROSETAB\end{tabular}
+
+\begin{frame}<beamer>{THIDDEN}
+  \tableofcontents[currentsection]
+\end{frame}
+
+PROSEHIDDEN stands alone.
+
+\begin{frame}{TTOC}
+  \tableofcontents
+\end{frame}
+\end{document}

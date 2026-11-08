@@ -1,0 +1,69 @@
+% Test of frame titles (didactic) in the notes: a float right after the title.
+% The title waits for the next paragraph, so a float set here would come above
+% it.  Every frame gets its title on a line of its own, above the float.
+%
+% Expected in the resulting PDF:
+%   1  TITLEH above FIGH, a figure [h].
+%   2  TITLEBIGH above FIGBIGH, a figure [H] (the package float).
+%   3  TITLETAB above TABH, a table [h].
+%   4  TITLETEXT above FIGT, a figure [h], above TEXTT: the title doesn't run
+%      in with text after a float.
+%   5  FLOATPROSE, a \paragraph in prose outside the frames, runs in with
+%      PROSEAFTER although a figure [h] stands between them: only frames
+%      change.
+%   6  TITLESTARFIG above FIGSTAR, a figure* [h], which in one column is set
+%      here like a figure, and TITLESTARTAB above TABSTAR, a table* [h], on a
+%      second page, for room.
+\documentclass[a4paper]{memoir}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{float}
+\usepackage{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\begin{document}
+\begin{frame}{TITLEH}
+  \begin{figure}[h]
+    \centering\rule{4cm}{1cm}
+    \caption{FIGH}
+  \end{figure}
+\end{frame}
+\begin{frame}{TITLEBIGH}
+  \begin{figure}[H]
+    \centering\rule{4cm}{1cm}
+    \caption{FIGBIGH}
+  \end{figure}
+\end{frame}
+\begin{frame}{TITLETAB}
+  \begin{table}[h]
+    \centering\rule{4cm}{1cm}
+    \caption{TABH}
+  \end{table}
+\end{frame}
+\begin{frame}{TITLETEXT}
+  \begin{figure}[h]
+    \centering\rule{4cm}{1cm}
+    \caption{FIGT}
+  \end{figure}
+  TEXTT, after the figure.
+\end{frame}
+
+\paragraph*{FLOATPROSE}
+\begin{figure}[h]
+  \centering\rule{4cm}{1cm}
+  \caption{FIGPROSE}
+\end{figure}
+PROSEAFTER, text after the figure.
+
+\clearpage
+\begin{frame}{TITLESTARFIG}
+  \begin{figure*}[h]
+    \centering\rule{4cm}{1mm}
+    \caption{FIGSTAR}
+  \end{figure*}
+\end{frame}
+\begin{frame}{TITLESTARTAB}
+  \begin{table*}[h]
+    \centering\rule{4cm}{1mm}
+    \caption{TABSTAR}
+  \end{table*}
+\end{frame}
+\end{document}

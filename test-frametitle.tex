@@ -1,0 +1,26 @@
+% Test of frame titles (didactic) in the notes: memoir + beamerarticle,
+% the source in test-frametitle-contents.tex shared with
+% test-frametitle-slides.tex.  beamerarticle is loaded after didactic, and
+% the AMS packages before them, as in a deck's notes.tex.
+%
+% Expected in the resulting PDF:
+%   1  TITLEA in bold, then TEXTA on the same line.
+%   2  "TITLEB – SUBB", SUBB in italics and not bold, then TEXTB on the
+%      same line (the blank line after the subtitle makes no paragraph).
+%   3  "TITLEC – SUBC" on a line of its own, the list with ITEMC under it.
+%   4  TEXTD, a paragraph without a heading.
+%   5  TITLEE on a line of its own (its frame has only a figure, FIGE,
+%      which floats), and PROSEF as a paragraph of its own after it,
+%      not run in.
+%   6  TITLEG on a line of its own, the example block with EXAMPLEG under
+%      it.
+%   7  TEXTH, without a heading; SLIDEONLY nowhere.
+\documentclass[a4paper]{memoir}
+\usepackage[british]{babel}
+\usepackage{lipsum}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\begin{document}
+\input{test-frametitle-contents.tex}
+\end{document}

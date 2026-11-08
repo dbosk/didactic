@@ -19,10 +19,10 @@
 %<*driver>
 \ProvidesFile{didactic.dtx}
 %</driver>
-%<package>\NeedsTeXFormat{LaTeX2e}[2020/10/01]
+%<package>\NeedsTeXFormat{LaTeX2e}[2021/06/01]
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/10/18 v2.12 didactic]
+  [2026/10/21 v2.13 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -145,6 +145,17 @@
 %   when it's loaded.
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
+% }
+% \changes{v2.13}{2026/10/21}{%
+%   In the article mode of \texttt{beamer}, a frame title is a run-in heading: the
+%   frame's text follows it on the same line, instead of starting a new 
+%   paragraph under it.
+%   A subtitle follows the title in the heading.
+% }
+% \changes{v2.13}{2026/10/21}{%
+%   A frame title goes on a line of its own above a float or a picture, table, 
+%   \texttt{columns} or table of contents at the start of the frame, and a 
+%   \texttt{frametitle} template of your own wins wherever it is set.
 % }
 % \changes{v2.12}{2026/10/18}{%
 %   \texttt{marginfigure} and \texttt{margintable} work in a source shared with
@@ -423,6 +434,34 @@
 % \DescribeEnv{orangeblock}
 % We also provide a few predefined blocks in various common colours.
 % They all take a title as mandatory argument.
+%
+% \subsection{Frame titles in the notes}
+%
+% In the slides a frame title stands on a line of its own, at the top of the
+% frame.
+% In the notes (|beamerarticle|), |beamer| makes it a heading followed by an
+% empty line, so the frame's text starts a new paragraph under it, which
+% reads as if the frame had two paragraphs where it has one.
+% We make the frame title a run-in heading instead, like |\paragraph|: the
+% title in bold, and the frame's text after it on the same line.
+% A subtitle follows the title in the heading, after a dash and in italics.
+% A frame that starts with a list, a block, a display or code gets the title on a
+% line of its own above it, as after any run-in heading.
+% So does a frame that starts with a picture (|\includegraphics|, |tikzpicture|),
+% a table (|tabular|, |tabular*|, |tabularx|), a |minipage|, |columns| or
+% |\tableofcontents|, which would otherwise stand beside the title; and a frame
+% that starts with a figure or table float, which could otherwise come above the
+% title: then the text after the float doesn't run in with the title either.
+% Any other box (an |\fbox|, a |\parbox|, a |\rule|) is set in the line like a
+% word, as after any run-in heading, so it stands beside the title.
+% To put one under the title, write it in a |center|.
+% The slides are unchanged.
+% The option |noarticle| keeps |beamerarticle|'s frame titles.
+% A template |frametitle| of your own in the preamble wins too, wherever it
+% stands, before or after the packages.
+% If it's |beamerarticle|'s default you want, use |noarticle|: writing
+% |\setbeamertemplate{frametitle}[default]| only works after both packages, since
+% before |didactic| it can't be told from not having set a template.
 %
 % \subsection{Adding margin notes of different kinds}
 %
@@ -948,6 +987,8 @@
 % \begin{option}{noarticle}
 % This option is used to disable the |beamer| specific parts of the package.
 % Meaning that we don't customize |beamer| even when we find that it is loaded.
+% Likewise, |noarticle| leaves the article mode of |beamer|
+% (|beamerarticle|) as it is.
 %    \begin{macrocode}
 \newif\if@didactic@beamer
 \@ifclassloaded{beamer}{\@didactic@beamertrue}{\@didactic@beamerfalse}
@@ -2185,6 +2226,179 @@
 %    \end{macrocode}
 % \end{environment}
 % \end{environment}
+%
+% \subsection{Frame titles in the notes}
+%
+% In the article mode, |beamer| typesets a frame title with the template
+% |frametitle|, whose default is
+% \begin{center}
+% |\paragraph*{\insertframetitle}\ \par\noindent\emph{\insertframesubtitle}\par|
+% \end{center}
+% |\paragraph*| is a run-in heading: it typesets nothing at once, but
+% leaves the title to be put in front of the next paragraph, when that
+% starts.
+% The |\ | starts that paragraph at once, with only the title in it, and
+% the |\par| ends it, so the frame's text has to start a new paragraph.
+% (The line with the subtitle, empty when there is none, is a third.)
+% Our template keeps the run-in heading and drops the rest: the frame's
+% first paragraph starts with the title.
+% The subtitle goes into the heading, after an en dash, in italics and not
+% in bold, so that it reads as part of the heading and not as the start of
+% the text.
+% A blank line after the title is still no new paragraph, since a |\par|
+% between paragraphs does nothing, and a list or a block after the title
+% puts the title on a line of its own, as it does after any run-in heading.
+% |\frametitle| uses the template after the subtitle has been read, when
+% one follows it (|\begin{frame}{Title}{Subtitle}| or
+% |\frametitle{Title}\framesubtitle{Subtitle}|), so we can decide here
+% whether there is one.
+% |beamer| empties |\insertframesubtitle| at the start of each frame.
+%
+% We give |\paragraph*| the title itself and not |\insertframetitle|, since it
+% is only typeset later, at the next paragraph: by then a second |\frametitle|
+% in the frame (|\frametitle<2>|) may have changed |\insertframetitle|, which
+% would lose the first title and set the second one twice.
+% That is one step of expansion only: the title may hold anything that a frame
+% title can hold, and a full expansion would fail on commands that aren't
+% robust, which a frame title never had to be.
+% So a macro in the title gets the meaning it has at that next paragraph.
+%
+% An empty title (|\begin{frame}{}|) makes no heading, and with a subtitle only
+% the subtitle is the heading, without the dash.
+%    \begin{macrocode}
+\newcommand\@didactic@framehead{}
+\protected\def\@didactic@frameheadused{%
+  \global\let\@didactic@framehead\@empty}
+\newcommand\@didactic@runinheading[1]{%
+  \paragraph*{\@didactic@frameheadused #1}%
+  \gdef\@didactic@framehead{#1}%
+  \aftergroup\@didactic@endframetitle}
+\newcommand\@didactic@frametitle{%
+  \ifx\insertframesubtitle\@empty
+    \ifx\insertframetitle\@empty\else
+      \expandafter\@didactic@runinheading\expandafter{\insertframetitle}%
+    \fi
+  \else
+    \edef\@didactic@heading{%
+      \ifx\insertframetitle\@empty\else
+        \unexpanded\expandafter{\insertframetitle}%
+        \noexpand\space\noexpand\textendash\noexpand\space
+      \fi
+      \noexpand\textmd{\noexpand\emph{%
+        \unexpanded\expandafter{\insertframesubtitle}}}}%
+    \expandafter\@didactic@runinheading\expandafter{\@didactic@heading}%
+  \fi}
+%    \end{macrocode}
+% The title waits for the next paragraph in |\everypar|, which is local to
+% the frame's group.
+% A frame with nothing after the title that starts a paragraph---only a
+% margin note, say---would therefore lose the title when the frame ends, and
+% leave \LaTeX\ believing a run-in heading is still waiting.
+% So the heading empties |\@didactic@framehead| when it is typeset, and after the
+% group in which |\frametitle| was used (|\aftergroup|), if it still isn't empty,
+% we typeset it again as a paragraph of its own.
+% This works for |\begin{frame}| and |\frame{...}| alike, where a hook at the end
+% of the environment wouldn't be used for the second form.
+% It comes after the box of a frame that isn't there
+% (|\begin{frame}<presentation>|), so there we only forget the title.
+% We don't look at |\if@noskipsec| to decide this, since that is also true for a
+% |\paragraph| that the author wrote at the end of the frame, after the title has
+% been set; that heading is lost as it would be at the end of any group.
+%    \begin{macrocode}
+\newcommand\@didactic@settitle{%
+  \begingroup
+    \leftskip\z@ \rightskip\@rightskip \parfillskip\@flushglue
+    \leavevmode\par
+  \endgroup}
+\newcommand\@didactic@lateframetitle[1]{%
+  \paragraph*{\@didactic@frameheadused #1}%
+  \@didactic@settitle}
+\newcommand\@didactic@endframetitle{%
+  \ifx\@didactic@framehead\@empty\else
+    \global\@noskipsecfalse
+    \ifx\beamer@howtotreatframe\beamer@donoframe
+      \@didactic@frameheadused
+    \else
+      \expandafter\@didactic@lateframetitle\expandafter
+        {\@didactic@framehead}%
+    \fi
+  \fi}
+%    \end{macrocode}
+% A float can't wait for the title either: \LaTeX\ may set it right here (|[h]|,
+% or |[H]| from the \textsf{float} package), so the figure would come above its
+% title.
+% So a float that starts while a title waits in a frame sets the title first.
+% That also holds for a float that goes elsewhere, since we can't know where
+% it will go.
+%
+% A box has the opposite problem: it starts the paragraph, so the title runs in
+% with it, and a picture has the title at its baseline, as if it were a label.
+% The boxes that a frame usually starts with therefore set the title first too,
+% through their |before| hooks.
+% |\tableofcontents| is among them, since the title would run into its heading.
+% A box that isn't in the list stands beside the title; that can't be wrong in
+% another way, and the user documentation says so.
+%
+% All of these only act while a title waits, in a frame, so they can't change
+% text elsewhere: outside the frames, a run-in heading before a float or a box
+% stays as it is.
+% We set the title flush left and with an ordinary last line, whatever the frame
+% has set up (|\centering| before the picture, say): the frame's text isn't
+% typeset yet, so the title was never in that setup.
+%    \begin{macrocode}
+\newcommand\@didactic@titlefirst[1]{%
+  \AddToHook{#1/before}{\@didactic@flushframetitle}}
+\newcommand\@didactic@flushframetitle{%
+  \ifbeamer@inframe
+    \if@noskipsec\@didactic@settitle\fi
+  \fi}
+%    \end{macrocode}
+% We use the template only in the article mode, unless the option
+% |noarticle| is given.
+% |beamerarticle| is often loaded after |didactic|, so we wait until it's
+% loaded (or run at once if it already is).
+% A template the user sets in the preamble after that still wins, because it
+% comes later.
+% One that the user set before |didactic|, after |beamerarticle|, wins because we
+% only replace |beamerarticle|'s default: |\ifx| compares what is set to what
+% setting the default makes.
+%
+% |\tableofcontents| doesn't get a hook, but we set the title in front of it at the
+% beginning of the document, after the classes and packages have defined it:
+% before the kernel of 2023-06, the hook on |beamerarticle|'s |\tableofcontents| fails
+% with an illegal parameter number, and we ask for an older kernel than that.
+%    \begin{macrocode}
+\if@didactic@article
+\newcommand\@didactic@articletitles{%
+  \begingroup
+    \setbeamertemplate{frametitle}[default]%
+    \global\let\@didactic@defaulttitle\beamer@@tmpl@frametitle
+  \endgroup
+  \defbeamertemplate<article>{frametitle}{didactic}{\@didactic@frametitle}%
+  \ifx\beamer@@tmpl@frametitle\@didactic@defaulttitle
+    \setbeamertemplate{frametitle}[didactic]%
+  \fi
+  \@didactic@titlefirst{env/figure}%
+  \@didactic@titlefirst{env/figure*}%
+  \@didactic@titlefirst{env/table}%
+  \@didactic@titlefirst{env/table*}%
+  \@didactic@titlefirst{env/tabular}%
+  \@didactic@titlefirst{env/tabular*}%
+  \@didactic@titlefirst{env/tabularx}%
+  \@didactic@titlefirst{env/minipage}%
+  \@didactic@titlefirst{env/tikzpicture}%
+  \@didactic@titlefirst{env/columns}%
+  \@didactic@titlefirst{cmd/includegraphics}%
+  \AtBeginDocument{%
+    \let\@didactic@tableofcontents\tableofcontents
+    \def\tableofcontents{%
+      \@didactic@flushframetitle\@didactic@tableofcontents}}%
+}
+\@ifpackageloaded{beamerarticle}
+  {\@didactic@articletitles}
+  {\AddToHook{package/beamerarticle/after}{\@didactic@articletitles}}
+\fi
+%    \end{macrocode}
 %
 %
 % \subsection{More semantic environments}
