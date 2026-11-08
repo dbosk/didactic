@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """From what room plain LaTeX keeps a heading with its first two lines.
 
+    make didactic.sty
     python3 queries/heading-room.py [DIR]
 
 builds, in DIR (default: a temporary directory), one document per class and
@@ -12,8 +13,13 @@ documents load didactic with the keep options off, and beamerarticle, as the
 notes do, for their fonts and headings; the room is what the rig measures, as in test-keep-sweep.py.  These are
 the figures of the paragraph on keepmaxgap in the documentation, and of the row of
 keepmaxgap in its table of decisions.  About a minute.
+
+It uses the repository's didactic.sty, which `make didactic.sty` builds, and stops if
+it isn't there: an installed one elsewhere would be found otherwise.
 """
 import os, re, subprocess, sys, tempfile
+
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 OFF = "keepafterheading=0,keepleadin=false,keepmaxgap=0,keeplines=0,keepends=1"
 CONFIGS = [
@@ -46,7 +52,8 @@ def build(d, name, cls, head):
     open(tex, "w").write("\n".join(body) + "\n")
     for _ in range(3):
         subprocess.run(["pdflatex", "-interaction=nonstopmode", name + ".tex"], cwd=d,
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                       env=dict(os.environ, TEXINPUTS=".:" + REPO + ":"))
     log = open(os.path.join(d, name + ".log"), errors="replace").read()
     if re.search(r"^! ", log, re.M):
         sys.exit(f"{name}: LaTeX stopped with an error, see {d}/{name}.log")
@@ -61,6 +68,8 @@ def build(d, name, cls, head):
 
 
 def main():
+    if not os.path.exists(os.path.join(REPO, "didactic.sty")):
+        sys.exit("no didactic.sty in " + REPO + ": run make didactic.sty there first")
     d = sys.argv[1] if len(sys.argv) > 1 else tempfile.mkdtemp()
     os.makedirs(os.path.join(d, "_minted"), exist_ok=True)
     for k, (label, cls, head) in enumerate(CONFIGS):

@@ -230,6 +230,9 @@ endef
 # failed test leaves no PDF, only the log (.DELETE_ON_ERROR), so that the next
 # make doesn't call it up to date.  Like test-run, the first pass fails on the
 # missing pythontex output, and make ignores that (-); the passes after it don't.
+# The passes before the last can still log FAIL lines (cases E, F, S, Y and R, whose
+# pages depend on the .aux), as the references settle; only the last pass, whose log
+# the greps read, counts.
 test-keep.pdf: test-keep.tex didactic.sty
 	-${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	${PYTHONTEX} test-keep
