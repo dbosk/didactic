@@ -1436,8 +1436,9 @@
 %   warnings past the limit as the eight have.
 %   They have 19 in 813 pages, 12 of them about a heading, one in about 43 pages; so the
 %   threshold is one in about 21.
-%   \emph{Measured, rejected:} 4 leaves a room of 4.25 to 5 lines where a heading and two
-%   lines neither fit nor may move.
+%   \emph{Measured, rejected:} 4 leaves rooms of more than 4 lines and less than 5.21
+%   where a section and two lines neither fit nor may move
+%   (\texttt{queries/heading-room.py}).
 %   0, no limit, on generated chunks woven for \texttt{minted}, leaves up to 8.9 lines,
 %   against 6.2 with the limit alone, and 4.5 with \textsf{noweb}'s break dropped as well;
 %   dropping that break without the limit leaves 10.5.
@@ -1586,9 +1587,10 @@
 % subhead at the bottom of a page.}\cite[fig.~A.3]{chicago2010manual}
 % So our five is a line more than the only number there is, and that is a choice,
 % with a reason that holds for the fonts of the notes, \textsf{memoir} at 10\,pt: a
-% |\section| with its two lines fits from a room of 5.27 lines there, a |\subsection|
-% from 5.0, and with \textsf{memoir} at 11\,pt from 5.5, with |article| at 10\,pt from
-% 5.84.
+% |\section| with its two lines fits from a room of 5.21 lines there, a |\subsection|
+% from 4.76, and with \textsf{memoir} at 11\,pt from 5.26, with |article| at 10\,pt from
+% 5.51 (\texttt{queries/heading-room.py} in the sources measures these, in hundredths
+% of a line, with this package's fonts and its keep options off).
 % Below that a single heading moves in plain \LaTeX\ too, so between four and five
 % our limit changes a warning, not the page.
 % It changes the page only for a heading over a one-line paragraph or a list, which

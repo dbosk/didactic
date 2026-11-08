@@ -63,7 +63,7 @@ SRC+=	pairwrite.py pairread.py
 # what it was made from, which isn't read in the build (a record of the searches).
 SRC+=	appendix.tex appendix-measure.tex appendix-hitlist.tex didactic.bib
 LIT_RECORD=	heading-foot-of-page.csv $(wildcard queries/*.csv) \
-		queries/t-pen.py queries/t-pen-memoir.py queries/pen.py \
+		queries/t-pen.py queries/t-pen-memoir.py queries/pen.py queries/heading-room.py \
 		queries/pen-results.txt $(wildcard measure-flow/*) \
 		$(wildcard measure-real/*.py) measure-real/README.md \
 		measure-real/measure-real.conf.example
