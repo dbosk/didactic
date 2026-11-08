@@ -34,9 +34,13 @@ SETTINGS = {
     "list-rule-off-noprobe": {"tail": NOTIE, "probe": False},  # read the parted lists in its text
     "list-0": {"tail": NOTIE + "\n" + beginpar("0")},
     "list-10000": {"tail": NOTIE + "\n" + beginpar(r"\@M")},
+    # Margin notes that don't fit carried to the next page, as before noteoverflow, against
+    # the default break, which ends the page before the line that calls one out.
+    "noteoverflow-carry": {"replace": [(r"{\renewcommand\@didactic@noteoverflow{break}}",
+                                        r"{\renewcommand\@didactic@noteoverflow{carry}}")]},
 }
 PAPER = ["keep-off", "keepleadin-off", "current", "pair-1000-10000", "pair-10000-10000",
-         "afterheading-1", "estimate-2", "list-rule-off", "list-0", "list-10000"]
+         "afterheading-1", "estimate-2", "list-rule-off", "list-0", "list-10000", "noteoverflow-carry"]
 
 # What shows in the log when a build isn't a result: a full disk or a quota.
 BAD = re.compile(r"quota exceeded|No space left|I can't write on file|Disk quota", re.I)
