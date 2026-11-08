@@ -2,52 +2,47 @@
 #   make mutants                  all of them
 #   make mutants MUTANTS="M1pen"  those named
 # which is test-mutants.py; each runs in a copy of the tracked files.  The format is
-# that of mutate.py --batch from the testing skill: blocks separated by blank lines, a
+# that of a batch file of mutate.py: blocks separated by blank lines, a
 # line `LABEL FILE`, then the old text as `- ` lines and the new as `+ ` lines, each old
 # text occurring exactly once.  Lines with # are comments, and two kinds mean something:
 #   #: GROUP              which tests run (below)
 #   #= killed|survived    what it did at the last full run, with what killed it
 # test-mutants.py fails if a mutant does something else than that says.
 #
-# Round 8: run at 5c10742's tree with --jobs 4: rv8_check, review-r5's rv7_hidden, rv7_thin0
-# and rv7_nowhatsit, rv6_rulemax and R6stretch (after y7a-y7c were added); all killed.
-# Round 7: run at 82c2e10 with --jobs 2: rv7_hidden, rv7_nbglue, rv7_shortonce, review-r5's
-# rv6_ mutants, R6boxcheck, R6boxlead, R6vspaced, R6stretch, R6nobreakvs, x_owed2 (survived,
-# as recorded), x_prevdepth, R_pendrule and o_ifpend.  Their outcomes below are from that run.
-# Round 6: run at e47307c with --jobs 2: review-r5's rv_ mutants, the R6 ones, and all that
-# touch code changed in round 6 (the parted group, A11listpen to M4output, M_bpyours,
-# M_yourpen, o_bpdefault, o_ifout, o_guard, o_skip, M_pbwithin and the x_ ones on
-# keepafterheading); o_ifpend, x_prevdepth, x_owed2 and rv_owed1 again at 67a9ff5, with
-# variant a in the rules group.  Their outcomes below are from those runs.
-# Round 5: run at c40f1ba with --jobs 1, one at a
-# time: the parted mutants, A11listpen to M4output, C2pencols, M_bpyours, o_bpdefault, o_ifout,
-# o_guard and the x_ mutants this round touched or named; their outcomes below are from that run,
-# and A12newlist and A20page from a run at the commit after it, with test-keep-parted's rows for
-# them.  All others are from the last full run, at earlier commits.
-# Last full run: at 73fe0fd, with 3 jobs, on a loaded 8-core machine, about two hours
-# (six if one at a time), and it took about 100 MB of disk at a time; o_lastmoved at
-# 0c0e0f4, with the row added for it.  After a change to the code or to the tests that
-# a mutant looks at, its outcome below is from before that.
+# Last full run: at e4e71ad, with test-mutants.py --jobs 5, 3 hours 20 minutes on an 8-core
+# machine with other jobs (make mutants uses the script's default of two jobs, so about
+# twice that); the outcomes below are from it.  The code is the same since, but
+# for test-noteoverflow-lua and the Makefile's default engine, which no mutant group runs.
+# After it, rows were added to test-keep-parted for R6vspaced, o_ifpend and o_ifglue, which
+# that run left surviving as round 8's check of the page caught their old rows, and a
+# sample (x_two and three mutants of each group, these among them) was run again.  After a
+# change to the code or to the tests that a mutant looks at, its outcome below is from
+# before that.  The rounds of review of the branch are on GitHub, dbosk/didactic#67 and the
+# pull requests it names.
 #
-# Groups, in test-mutants.py, with the time for one mutant on a loaded machine:
-#   include  test-marginfloat-include, and test-check.py on it and -all (half a minute)
-#   title    test-frametitle-floats, and test-check.py on it
-#   format   test-format (seconds)
+# Groups, as GROUPS and KEEP in test-mutants.py, with the time for one mutant in that run
+# (five at a time) and the time of the group's first run on the code as it is:
+#   format   test-format (3 s; 2 s)
+#   include  test-marginfloat-samepar, -include, and test-check.py on those and on
+#            -include-all (25 s; 13 s)
+#   title    test-frametitle-floats, -boxes, and test-check.py on them (27 s; 20 s)
 #   keep     test-keep, -tall, -tall100, -chain, -huge, -blank, -leadin, -leadin-off,
-#            -overfull, -multicol, -twocol, -once, and test-check.py on those with a check
-#            (three to five minutes)
-#   noweb    test-keep-noweb, -noweb-break, and test-check.py on them (a minute)
-#   parted   test-keep-parted, and test-check.py on it (a quarter of a minute)
-#   rules    the small test-keep documents, test-keep, -heading, -nogap, -once, and the
-#            sweep in variants m, s, k, m3, c, k3 and a, against plain LaTeX's version
-#            (three to eight)
+#            -overfull, -multicol, -twocol, -once, -first, -noweb, -noweb-break, and
+#            test-check.py on those with a check (2.5 to 4 minutes; 1.5)
+#   noweb    test-keep-noweb, -noweb-break, and test-check.py on them (16 s; 8 s)
+#   parted   test-keep-parted, and test-check.py on it (11 s; 6 s)
+#   rules    test-keep-heading, -nogap, -style, -columns, -guard, -pagereset, -nofiles,
+#            -nofiles0, -box, -addvspace, -club, -club-article, -breakcode-late, -filbreak,
+#            -flush, test-keep, -once, -enumitem, -include, test-check.py on -once and
+#            -enumitem, and the sweep in variants m, s, k, m3, c, k3 and a, against their
+#            references (5 to 9 minutes; 7)
 # All with pdflatex, for speed, where make all uses xelatex, but title with xelatex: its
 # check reads a letter inside a picture, whose box depends on the engine.
 #
 # A kill needs a named reason: the targets are named, and a full disk is an ERROR.  A
 # mutant that breaks a build also fails, so these keep the document compiling.
 #
-# Not run against these mutants: the sweep's variants a, s3 and e, test-keep-stale,
+# Not run against these mutants: the sweep's variants s3 and e, test-keep-stale,
 # test-keep-chapter, and the rest of make all.
 #
 # Code that no test kills is marked survived below, with the reason.
@@ -55,54 +50,54 @@
 # ===== Warnings about where a listing ended up, frame titles, floats =====
 
 #: include
-#= killed
+#= killed check-test-marginfloat-include
 F63records didactic.dtx
 -         \protected@write\@mainaux{}{%
 +         \protected@write\@auxout{}{%
 
 #: include
-#= killed
+#= killed check-test-marginfloat-samepar check-test-marginfloat-include
 F63lines didactic.dtx
 -       lines #6 and \@didactic@fo{#1}{prevline}).
 +       lines 0 and 0).
 
 #: title
-#= killed
+#= killed check-test-frametitle-floats
 F64figstar didactic.dtx
 -   \@didactic@titlefirst{env/figure*}%
 
 #: title
-#= killed
+#= killed check-test-frametitle-floats
 F64tabstar didactic.dtx
 -   \@didactic@titlefirst{env/table*}%
 
 #: format
-#= killed
+#= killed test-format
 F64date didactic.dtx
 - %<package>\NeedsTeXFormat{LaTeX2e}[2021/06/01]
 + %<package>\NeedsTeXFormat{LaTeX2e}[2020/10/01]
 
 #: title
-#= killed
+#= killed check-test-frametitle-boxes
 F64toc didactic.dtx
 -       \@didactic@flushframetitle\@didactic@tableofcontents}}%
 +       \@didactic@tableofcontents}}%
 
 #: keep
-#= killed
+#= killed check-test-keep-noweb check-test-keep-noweb-break
 A1nwinner didactic.dtx
 -   \ifinner\global\@didactic@keep@watchfalse\fi
 -   \global\@didactic@keep@top\dimexpr\topskip
 +   \global\@didactic@keep@top\dimexpr\topskip
 
 #: keep
-#= killed
+#= killed check-test-keep-first
 A2lastpen didactic.dtx
 - \@didactic@keep@lastpen-\@M
 + \@didactic@keep@lastpen\z@
 
 #: keep
-#= killed
+#= killed check-test-keep-leadin
 A9emptypair didactic.dtx
 -   \@didactic@keep@atstart
 -   \@didactic@keep@noteempty
@@ -133,27 +128,27 @@ A13asked didactic.dtx
 +         \ifnum\@beginparpenalty=\@didactic@keep@bpdefault\relax
 
 #: keep
-#= killed
+#= killed check-test-keep-leadin check-test-keep-once check-test-keep-noweb check-test-keep-noweb-break
 A14para didactic.dtx
 - \AddToHook{para/begin}{\global\@didactic@keep@askedfalse}
 
 #: keep
-#= killed
+#= killed check-test-keep-leadin
 A15good didactic.dtx
 - \AddToHook{cmd/goodbreak/before}{\global\@didactic@keep@askedtrue}
 
 #: keep
-#= killed
+#= killed check-test-keep-leadin
 A16small didactic.dtx
 - \AddToHook{cmd/smallbreak/before}{\global\@didactic@keep@askedtrue}
 
 #: keep
-#= killed
+#= killed check-test-keep-leadin
 A17med didactic.dtx
 - \AddToHook{cmd/medbreak/before}{\global\@didactic@keep@askedtrue}
 
 #: keep
-#= killed
+#= killed check-test-keep-leadin
 A18big didactic.dtx
 - \AddToHook{cmd/bigbreak/before}{\global\@didactic@keep@askedtrue}
 
@@ -208,7 +203,7 @@ S4endfloat didactic.dtx
 +     \relax}}
 
 #: keep
-#= killed
+#= killed check-test-keep-leadin
 A21pairlook didactic.dtx
 -     \ifdim\pagetotal>\pagegoal
 -       \penalty\@endparpenalty
@@ -216,7 +211,7 @@ A21pairlook didactic.dtx
 +     \relax
 
 #: keep
-#= killed
+#= killed check-test-keep-multicol
 A22firstinner didactic.dtx
 -   \ifinner\else
 -     \if@didactic@keep@cols
@@ -228,7 +223,7 @@ A22firstinner didactic.dtx
 +         A listing in multicols isn't kept together: we can't\MessageBreak
 
 #: keep
-#= killed
+#= killed check-test-keep-multicol
 A23startinner didactic.dtx
 -   \ifinner\else
 -     \if@didactic@keep@cols
@@ -240,7 +235,7 @@ A23startinner didactic.dtx
 +         Code side by side in multicols isn't tied to what\MessageBreak
 
 #: keep
-#= killed
+#= killed check-test-keep-leadin
 A24fullnote didactic.dtx
 -   \@didactic@keep@notelist
 -   \if@didactic@keepleadin
@@ -249,13 +244,13 @@ A24fullnote didactic.dtx
 +     \if@didactic@keep@movable
 
 #: keep
-#= killed
+#= killed check-test-keep-noweb check-test-keep-noweb-break
 A25chunknote didactic.dtx
 -         \patchcmd{\nwbegincode}{\topsep}
 -           {\@didactic@keep@notelist\topsep}{}{}%
 
 #: keep
-#= killed
+#= killed check-test-keep-multicol
 C1tallcols didactic.dtx
 -     \if@didactic@keep@cols\else
 -     \ifnum\@didactic@keep@n>\@didactic@keeplines\else
@@ -271,7 +266,7 @@ C2pencols didactic.dtx
 +   \else\if@didactic@keep@long
 
 #: keep
-#= killed
+#= killed check-test-keep-multicol
 C3firstcols didactic.dtx
 -     \if@didactic@keep@cols
 -       \PackageWarningNoLine{didactic}{%
@@ -281,19 +276,19 @@ C3firstcols didactic.dtx
 +         A listing in multicols isn't kept together: we can't\MessageBreak
 
 #: keep
-#= killed
+#= killed check-test-keep-twocol
 D1twocolpage didactic.dtx
 -     \if@firstcolumn\@didactic@keep@shipped\else\thepage\fi
 +     \@didactic@keep@shipped
 
 #: keep
-#= killed
+#= killed check-test-keep-twocol
 D2onlythepage didactic.dtx
 -     \if@firstcolumn\@didactic@keep@shipped\else\thepage\fi
 +     \thepage
 
 #: keep
-#= killed check-test-keep-leadin
+#= killed check-test-keep-leadin check-test-keep-first check-test-keep-noweb check-test-keep-noweb-break
 M1pen didactic.dtx
 -           \ifnum\@tempcnta<\z@\else
 +           \ifnum\@tempcnta<-\@MM\else
@@ -321,7 +316,7 @@ M4output didactic.dtx
 +             \@tempcnta\@didactic@keep@lastpen
 
 #: keep
-#= killed check-test-keep-leadin check-test-keep-twocol
+#= killed check-test-keep-leadin check-test-keep-twocol check-test-keep-noweb check-test-keep-noweb-break
 M5tolsmall didactic.dtx
 -             <\dimexpr\@didactic@keep@top+.5\baselineskip\relax
 +             <\dimexpr\@didactic@keep@top-10pt\relax
@@ -345,7 +340,7 @@ M9gen didactic.dtx
 +     \ifnum\@didactic@keep@gendepth>\@M
 
 #: keep
-#= killed
+#= killed check-test-keep-overfull
 M10fcol didactic.dtx
 -   \if@fcolmade\else
 +   \ifnum0=0
@@ -365,7 +360,7 @@ M12endcheck didactic.dtx
 +   \fi}
 
 #: keep
-#= killed check-test-keep-leadin check-test-keep-overfull
+#= killed check-test-keep-leadin check-test-keep-overfull check-test-keep-twocol
 M13pair didactic.dtx
 -   \@didactic@keep@check{Code side by side}}
 +   }
@@ -395,7 +390,7 @@ M16tallinner didactic.dtx
 +     \if@didactic@keep@cols\else
 
 #: keep
-#= killed check-test-keep-multicol
+#= killed check-test-keep-multicol check-test-keep-noweb check-test-keep-noweb-break
 M17cols didactic.dtx
 - \AddToHook{env/multicols/begin}{\@didactic@keep@colstrue\@didactic@keepleadinfalse}
 
@@ -463,20 +458,20 @@ N6cols didactic.dtx
 # ===== Headings, ties, lists and released ties =====
 
 #: rules
-#= killed sweep-m:16 sweep-s:34
+#= killed sweep-m:16 sweep-s:34 sweep-a:20
 o_note didactic.dtx
 -     \@afterindentfalse\@afterheading #1%
 -     \global\@didactic@nobreak
 +     \@afterindentfalse\@afterheading #1%
 
 #: rules
-#= killed sweep-m:14 sweep-s:13
+#= killed sweep-m:14 sweep-s:13 sweep-a:14
 o_pre didactic.dtx
 -   \ifdim\@didactic@keep@pre<\z@\global\@didactic@keep@pre\z@\fi}
 +   \relax}
 
 #: rules
-#= killed
+#= killed sweep-c:21
 o_chapter didactic.dtx
 -     \def\@makechapterhead{\@didactic@keep@chapterstart\@didactic@makechapterhead}%
 +     \relax
@@ -488,20 +483,20 @@ o_schapter didactic.dtx
 +     \relax
 
 #: rules
-#= killed check-test-keep-enumitem sweep-m:41 sweep-s:24
+#= killed check-test-keep-enumitem sweep-m:57 sweep-s:30 sweep-a:54
 o_placed didactic.dtx
 -             \@didactic@keep@relstart
 -             \global\@didactic@keep@relplacedtrue
 +             \relax
 
 #: rules
-#= killed
+#= killed sweep-m:13 sweep-s:17 sweep-a:11
 o_endlist didactic.dtx
 - \if@didactic@keep@endlist\else\if@didactic@keep@asked\else\if@didactic@keepleadin
 + \iffalse\else\if@didactic@keep@asked\else\if@didactic@keepleadin
 
 #: rules
-#= killed
+#= killed sweep-m:60 sweep-s:54 sweep-a:60
 o_asked didactic.dtx
 - \if@didactic@keep@endlist\else\if@didactic@keep@asked\else\if@didactic@keepleadin
 + \if@didactic@keep@endlist\else\iffalse\else\if@didactic@keepleadin
@@ -549,7 +544,7 @@ M_yourpen didactic.dtx
 
 # the heading's depth that the first line takes back, in the room for keepafterheading (round 6)
 #: rules
-#= killed sweep-m3
+#= killed sweep-m3:2
 x_prevdepth didactic.dtx
 -       \ifdim\prevdepth>-\@m\p@\advance\@didactic@keep@tmp\prevdepth\fi
 -       \ifdim\@didactic@keep@tmp<\@didactic@keepafterheading\@didactic@keep@L
@@ -598,7 +593,7 @@ R6boxlead didactic.dtx
 +   \relax
 +   \relax
 
-# glue before a rule after the lead-in (round 6)
+# glue before a rule after something else after the lead-in: test-keep-parted's z2b-z2d (a title, then \vspace and a rule); since round 8 the check of the page that ships after the tie covers the old rows g3 and r3
 #: parted
 #= killed check-test-keep-parted
 R6vspaced didactic.dtx
@@ -653,7 +648,7 @@ S1inner didactic.dtx
 + \g@addto@macro\@endparenv{\global\@didactic@keep@endlisttrue}}
 
 #: rules
-#= killed
+#= killed sweep-m:53 sweep-s:50 sweep-a:53
 o_filbreak didactic.dtx
 - \AddToHook{cmd/filbreak/before}{\global\@didactic@keep@askedtrue}
 + \relax
@@ -685,12 +680,12 @@ o_nofiles didactic.dtx
 +         With
 
 #: rules
-#= killed sweep-m:14 sweep-s:6
+#= killed sweep-m:14 sweep-s:6 sweep-a:12
 o_ifout didactic.dtx
 -   \ifnum\outputpenalty=\@didactic@keep@pendout\else\@tempswafalse\fi
 +   \relax
 
-# a primitive \vskip or \penalty0 and then a box after the lead-in: test-keep-parted's h3a-h3c, h3g-h3i (since round 6, \vspace before a rule, r3a to r3c, is caught by \if@didactic@keep@vspaced as well, which left this check to them)
+# a box after a break that follows another box after the lead-in: test-keep-parted's z3b-z3d (a title, the primitive \vskip and another title); since round 8 the check of the page that ships after the tie covers the old rows h3
 #: parted
 #= killed check-test-keep-parted
 o_ifpend didactic.dtx
@@ -705,25 +700,26 @@ R_pendrule didactic.dtx
 +   \relax
 
 #: rules
-#= killed
+#= killed sweep-m:7 sweep-s:2 sweep-a:6
 o_ifpen didactic.dtx
 -   \ifnum\lastpenalty=\z@\else\ifnum\lastpenalty=\@M\else\@tempswafalse\fi\fi
 +   \relax
 
-#: rules
-#= killed check-test-keep-enumitem sweep-m:17 sweep-s:8
+# glue of no size as the last thing after the lead-in: test-keep-parted's z1a-z1c (the primitive \vskip0pt); since round 8 the sweep's rows with glue are caught by the check of the page that ships after the tie as well
+#: parted
+#= killed check-test-keep-parted
 o_ifglue didactic.dtx
 -   \ifnum\lastnodetype=11 \@tempswafalse\fi
 +   \relax
 
 #: rules
-#= killed sweep-s:3
+#= killed sweep-s:3 sweep-a:6
 x_topshrink didactic.dtx
 - -\@topsep+\glueshrink\@topsep-\@didactic@keep@L\relax<\z@
 + -\@topsep-\@didactic@keep@L\relax<\z@
 
 #: rules
-#= killed sweep-m:3 sweep-s:16
+#= killed sweep-m:3 sweep-s:16 sweep-a:6
 x_pageshrink didactic.dtx
 - \ifdim\dimexpr\pagegoal-\pagetotal+\pageshrink
 -                 -\@topsep+
@@ -739,7 +735,7 @@ x_prevgraf didactic.dtx
 +                 \advance\dimen@2\@didactic@keep@L
 
 #: rules
-#= killed sweep-m:4 sweep-s:4
+#= killed sweep-m:4 sweep-s:4 sweep-a:1
 x_two didactic.dtx
 - \advance\dimen@2\@didactic@keep@L
 + \advance\dimen@1\@didactic@keep@L
@@ -752,7 +748,7 @@ x_lead didactic.dtx
 + \relax
 
 #: rules
-#= killed test-keep sweep-m:69 sweep-s:63
+#= killed test-keep sweep-m:77 sweep-s:71 sweep-a:56
 x_pstart didactic.dtx
 - \dimen@\dimexpr\pagegoal-\@didactic@keep@pstart\relax
 + \relax
@@ -768,7 +764,7 @@ x_headtotal didactic.dtx
 
 # a box above a heading that doesn't fit: bh
 #: rules
-#= killed sweep-m:3 sweep-s:1
+#= killed sweep-m:3 sweep-s:1 sweep-a:3
 x_overfull didactic.dtx
 - \ifdim\pagetotal>\pagegoal\else
 -           \@didactic@keep@tmp\dimexpr\pagegoal-\pagetotal\relax
@@ -791,15 +787,17 @@ x_vfil didactic.dtx
 +             \else
 +               \penalty-\@M
 
+# survives since the estimate before a heading asks room for one line, not keepafterheading's (see the documentation on keepafterheading): an error of a line's depth there changes no page that TeX's own break doesn't change the same way; the sweep's rows rh and dh give the same pages and warnings as the package in m, s and a.  Under \flushbottom the estimate decides whether the page ends with \vfil, so it isn't dead code; a test there would first need the Underfull \vbox that such pages show with the package itself looked at
 #: rules
-#= killed
+#= survived
 x_pagedepth didactic.dtx
 - \advance\@didactic@keep@tmpb\pagedepth
 -         \@didactic@keep@room{\@tempskipa-\glueshrink\@tempskipa
 +         \@didactic@keep@room{\@tempskipa-\glueshrink\@tempskipa
 
+# survives for the same reason as x_pagedepth: after a rule the line before the heading takes four fifths of a line, which only the estimate counts; rows rh and dh give the same pages and warnings as the package in m, s and a; under \flushbottom it changes where pages end
 #: rules
-#= killed
+#= survived
 x_rule didactic.dtx
 - \@didactic@keep@tmpb.8\@didactic@keep@tmpb
 + \relax
@@ -824,7 +822,7 @@ x_remeasure didactic.dtx
 +       \else
 +         \relax
 
-# survives, and is equivalent in pages since round 6 (cd57af9): the room is now measured as TeX reckons it, with the heading's depth that the first line's glue takes back (\prevdepth; without it two lines that fit were taken for one, and the cap dropped the third line silently: review-r5's q2k3 lines 617 and 1006, now "Only 2 of the 3 lines" at both).  With room for less than two lines, a first paragraph of two lines doesn't fit whichever is owed; after one of one line, the mutant owes two and measures the next paragraph again, asking for what fits, which holds no more than the one line owed without it.  On review-r5's whole q2 grid (q2k2b, q2k2p, q2k3, q2k3b, q2k3p) the mutant gives the same PDF text, the same label pages and the same warnings as the package, checked at 8cbb0d7
+# survives, and is equivalent: with room for less than two lines a first paragraph of two lines doesn't fit whichever is owed, so the heading moves either way; after one of one line the mutant owes two and measures the next paragraph again, asking for what fits, which holds no more than the one line owed without it.  The sweep's rows in M3ROWS under m3 (p, p2, pp, pl, pL, pn) and the PARSKIPROWS under k3 give the same pages and the same warnings with the mutant as without it (checked at e4e71ad's code).  The rows p2 and pp are where the room was once measured without the heading's depth, and two lines were taken for one: there the package warns that only 2 of the 3 lines fit, and so does the mutant
 #: rules
 #= survived
 x_owed2 didactic.dtx
@@ -834,7 +832,7 @@ x_owed2 didactic.dtx
 + \relax
 
 #: rules
-#= killed check-test-keep-once sweep-m:8 sweep-s:1
+#= killed check-test-keep-once sweep-m:8 sweep-s:1 sweep-a:8
 x_state5 didactic.dtx
 - \ifnum\prevgraf>\thr@@
 -           \global\@didactic@keep@headstate\z@
@@ -869,7 +867,7 @@ x_shortdrop didactic.dtx
 +     \global\@didactic@keep@headstate\z@
 
 #: rules
-#= killed sweep-m:5 sweep-s:5
+#= killed sweep-m:9 sweep-s:9 sweep-a:8
 x_pendL didactic.dtx
 - \ifdim\dimexpr\@didactic@keep@pstart-\@didactic@keep@pend\relax
 -           <\@didactic@keep@L
@@ -877,7 +875,7 @@ x_pendL didactic.dtx
 +           <\z@
 
 #: rules
-#= killed test-keep-heading check-test-keep-once sweep-m:34 sweep-s:14 sweep-c:20
+#= killed test-keep-heading check-test-keep-once sweep-m:34 sweep-s:14 sweep-c:10 sweep-a:34
 x_relendnb didactic.dtx
 - {\@didactic@keep@cpage}{\@didactic@keep@relline}}%
 -       \ifvmode\nobreak\fi
@@ -901,7 +899,7 @@ x_newlist didactic.dtx
 
 # a lead-in between a listing and one that breaks: vLv1
 #: rules
-#= killed sweep-m:4 sweep-s:4
+#= killed sweep-m:4 sweep-s:4 sweep-a:4
 x_flushpend didactic.dtx
 - \begingroup\@@par\endgroup
 -     \global\@didactic@keep@pend\dimexpr\pagetotal+\pagedepth\relax
@@ -919,7 +917,7 @@ x_afterlist didactic.dtx
 
 # a heading, \newpage and a paragraph of one line: hP, hC
 #: rules
-#= killed sweep-m:108 sweep-s:108
+#= killed sweep-m:108 sweep-s:108 sweep-a:108
 x_haonce didactic.dtx
 - \global\@namedef{@didactic@ha@#1}{}%
 -           \@didactic@keep@tellhead{#1}{\ifcase#3 its first paragraph
@@ -927,7 +925,7 @@ x_haonce didactic.dtx
 
 # no tie for a list
 #: rules
-#= killed test-keep-heading test-keep-nogap sweep-m:104 sweep-s:133
+#= killed test-keep-heading test-keep-nogap check-test-keep-enumitem sweep-m:179 sweep-s:264 sweep-k:14 sweep-k3:14 sweep-a:173
 l1_tie didactic.dtx
 -           \if@didactic@keep@movable
 -             \@didactic@keep@relstart
@@ -952,7 +950,7 @@ l1_tie didactic.dtx
 
 # a list never released
 #: rules
-#= killed test-keep check-test-keep-once sweep-m:75 sweep-s:49
+#= killed test-keep check-test-keep-once check-test-keep-enumitem sweep-m:137 sweep-s:79 sweep-m3:2 sweep-k3:2 sweep-a:128
 l1_release didactic.dtx
 -           \if@didactic@keep@movable
 -             \@didactic@keep@relstart
@@ -977,7 +975,7 @@ l1_release didactic.dtx
 
 # no warning when a released tie parts a list
 #: rules
-#= killed test-keep-club test-keep-club-article check-test-keep-once sweep-m:146 sweep-s:105
+#= killed test-keep-club test-keep-club-article check-test-keep-once sweep-m:116 sweep-s:74 sweep-k:8 sweep-m3:7 sweep-c:2 sweep-k3:8 sweep-a:106
 l1_warn didactic.dtx
 -           \else
 -             \@didactic@keep@relstart
@@ -987,7 +985,7 @@ l1_warn didactic.dtx
 
 # the first item always counts as fitting
 #: rules
-#= killed sweep-m:2
+#= killed sweep-m:3 sweep-s:19 sweep-a:7
 l1_fits didactic.dtx
 -                 -\@topsep+\glueshrink\@topsep-\@didactic@keep@L\relax<\z@
 -             \else
@@ -996,7 +994,7 @@ l1_fits didactic.dtx
 
 # what starts in an item inherits the forbidden break
 #: rules
-#= killed sweep-m:1 sweep-s:6
+#= killed sweep-m:8 sweep-s:6 sweep-a:6
 l1_inherit didactic.dtx
 -     \@didactic@keep@forbidden
 -     \@didactic@keep@titlewaits
@@ -1013,7 +1011,7 @@ o_guard didactic.dtx
 
 # what is written hides a skip from the list's \addvspace
 #: rules
-#= killed check-test-keep-once check-test-keep-enumitem sweep-m:61 sweep-s:31
+#= killed check-test-keep-once check-test-keep-enumitem sweep-m:61 sweep-s:31 sweep-a:55
 o_skip didactic.dtx
 -     \@didactic@keep@ifbreakless
 -     \ifnum\lastpenalty<\z@
@@ -1043,34 +1041,34 @@ o_file didactic.dtx
 
 # no warning when the lead-in moves along
 #: rules
-#= killed sweep-m:20 sweep-s:12
+#= killed sweep-m:20 sweep-s:12 sweep-a:18
 o_pm didactic.dtx
 - }{\@didactic@keep@relmove}%
 + }{}%
 
 #: rules
-#= killed sweep-m:15 sweep-s:15
+#= killed sweep-m:15 sweep-s:15 sweep-a:14
 o_chain didactic.dtx
 -                 \ifdim\dimexpr\pagegoal-\pagetotal-\pagedepth
 -                     +2\@didactic@keep@L\relax>\@didactic@keepmaxgap\@didactic@keep@L
 +                 \ifdim\maxdimen<\z@
 
 #: rules
-#= killed sweep-m:15 sweep-s:15
+#= killed sweep-m:15 sweep-s:15 sweep-a:14
 o_lastmoved didactic.dtx
 -     \gdef\@didactic@keep@lastmoved{#2}%
 +     \relax
 
 # a released tie forbids the break
 #: rules
-#= killed test-keep check-test-keep-once sweep-m:10 sweep-s:5
+#= killed test-keep check-test-keep-once sweep-m:10 sweep-s:5 sweep-a:9
 o_finite didactic.dtx
 - {\numexpr\@clubpenalty+\interlinepenalty+101\relax}
 + \@M
 
 # a released tie leaves the bonus
 #: rules
-#= killed sweep-m:2
+#= killed sweep-m:3 sweep-s:19 sweep-a:7
 o_lower didactic.dtx
 - {\numexpr\@clubpenalty+\interlinepenalty+101\relax}
 + {-\@lowpenalty}
@@ -1084,7 +1082,7 @@ o_club didactic.dtx
 
 # the limit isn't checked under a heading
 #: rules
-#= killed test-keep-heading check-test-keep-once sweep-m:90 sweep-s:62
+#= killed test-keep-heading check-test-keep-once sweep-m:90 sweep-s:62 sweep-k:12 sweep-m3:2 sweep-c:24 sweep-k3:10 sweep-a:88
 l1_chain didactic.dtx
 -         \dimen@\dimexpr\@didactic@keep@headroom-\@didactic@keep@headdepth\relax
 -         \ifdim\dimen@>\@didactic@keepmaxgap\@didactic@keep@L
@@ -1093,14 +1091,14 @@ l1_chain didactic.dtx
 
 # the lead-in's page isn't the one from the pages
 #: rules
-#= killed test-keep-heading sweep-m:2322 sweep-s:2320
+#= killed test-keep-heading check-test-keep-enumitem sweep-m:3480 sweep-s:3611 sweep-k:167 sweep-c:137 sweep-k3:167 sweep-a:3492
 l1_pa didactic.dtx
 - \def\@didactic@keep@pa#1{\gdef\@didactic@keep@relpage{#1}}
 + \def\@didactic@keep@pa#1{\gdef\@didactic@keep@relpage{0}}
 
 # the first .aux write makes a place to break
 #: rules
-#= killed sweep-m:10 sweep-s:5
+#= killed sweep-m:10 sweep-s:5 sweep-a:14
 r9_nobreak didactic.dtx
 - {\nobreak}%
 -   \unvbox
@@ -1109,14 +1107,14 @@ r9_nobreak didactic.dtx
 
 # enumerate has no tie
 #: rules
-#= killed sweep-m:12 sweep-s:14
+#= killed sweep-m:12 sweep-s:21 sweep-a:12
 l1_enumerate didactic.dtx
 - \AddToHook{env/enumerate/begin}{\@didactic@keep@itemlistbegin}
 + \relax
 
 # description has no tie
 #: rules
-#= killed sweep-m:12 sweep-s:14
+#= killed sweep-m:12 sweep-s:21 sweep-a:12
 l1_description didactic.dtx
 - \AddToHook{env/description/begin}{\@didactic@keep@itemlistbegin}
 + \relax
@@ -1140,28 +1138,28 @@ l2_direct didactic.dtx
 
 # a list under a heading needs two lines
 #: rules
-#= killed sweep-m:2 sweep-s:2
+#= killed sweep-m:4 sweep-s:4 sweep-a:1
 l2_estimate didactic.dtx
 - <\dimexpr#1+\@didactic@keep@L\relax
 + <\dimexpr#1+\@didactic@keepafterheading\@didactic@keep@L\relax
 
 # keepends defaults to 3
 #: rules
-#= killed sweep-m:37 sweep-s:23
+#= killed sweep-m:37 sweep-s:23 sweep-k:12 sweep-c:24 sweep-k3:8 sweep-a:36
 keepends3 didactic.dtx
 - \@didactic@keepends=2
 + \@didactic@keepends=3
 
 # a display is no line under a heading
 #: rules
-#= killed sweep-m:1
+#= killed sweep-m:1 sweep-a:3
 d_display didactic.dtx
 - \everydisplay\expandafter{\the\everydisplay\@didactic@keep@display}%
 + %
 
 # keepleadin sets the penalties again
 #: rules
-#= killed test-keep-club-article
+#= killed test-keep-club-article sweep-a:14
 p_lift didactic.dtx
 - % \begin{macro}{\@didactic@keep@room}
 + %    \begin{macrocode}
@@ -1171,7 +1169,7 @@ p_lift didactic.dtx
 
 # no warning when a run-in title moves
 #: rules
-#= killed sweep-m:21 sweep-s:15
+#= killed sweep-m:41 sweep-s:29 sweep-a:39
 b_runin_nomove didactic.dtx
 -     \or
 -       \@didactic@keep@movecheck
@@ -1181,7 +1179,7 @@ b_runin_nomove didactic.dtx
 
 # a chain of headings can part
 #: rules
-#= killed test-keep-nogap sweep-m:2 sweep-s:5
+#= killed test-keep-nogap sweep-m:2 sweep-s:5 sweep-k:2 sweep-m3:2 sweep-k3:2 sweep-a:1
 s_chainnobreak didactic.dtx
 -         \if@didactic@keep@overlimit\else
 -           \nobreak
@@ -1191,7 +1189,7 @@ s_chainnobreak didactic.dtx
 
 # a table in a center counts one line
 #: rules
-#= killed sweep-m:7 sweep-s:12
+#= killed sweep-m:7 sweep-s:12 sweep-a:6
 u_prevgraf didactic.dtx
 -         \ifnum\number\@didactic@keep@tmp>\@didactic@keep@tmpc
 -           \@didactic@keep@tmpc\number\@didactic@keep@tmp\relax
@@ -1201,7 +1199,7 @@ u_prevgraf didactic.dtx
 
 # a run-in title can part from its list
 #: rules
-#= killed sweep-m:115 sweep-s:108
+#= killed sweep-m:115 sweep-s:108 sweep-a:105
 t_titlewaits didactic.dtx
 -       \global\@didactic@keep@titleonlytrue
 -       \@didactic@keep@forbid\@M
@@ -1209,7 +1207,7 @@ t_titlewaits didactic.dtx
 
 # a run-in title counts as its first paragraph
 #: rules
-#= killed sweep-m:51 sweep-s:34
+#= killed sweep-m:9 sweep-s:4 sweep-a:9
 t_titlecount didactic.dtx
 -       \global\@didactic@keep@titleonlytrue
 -       \@didactic@keep@forbid\@M
@@ -1217,7 +1215,7 @@ t_titlecount didactic.dtx
 
 # a title on its own line can part
 #: rules
-#= killed sweep-m:24 sweep-s:28
+#= killed sweep-m:24 sweep-s:28 sweep-a:24
 t_forcetitle didactic.dtx
 -     \addvspace\@tempskipb
 -     \@nobreaktrue
@@ -1225,7 +1223,7 @@ t_forcetitle didactic.dtx
 
 # a block's heading can part
 #: rules
-#= killed test-keep-heading sweep-m:28 sweep-s:28
+#= killed test-keep-heading sweep-m:28 sweep-s:28 sweep-a:28
 t_thmhead didactic.dtx
 -   \@didactic@deferred@thm@head{#1}%
 -   \@nobreaktrue}
@@ -1233,14 +1231,14 @@ t_thmhead didactic.dtx
 
 # a block's end doesn't end the heading's state
 #: rules
-#= killed sweep-m:6 sweep-s:9
+#= killed sweep-m:6 sweep-s:9 sweep-a:5
 t_blockend didactic.dtx
 - \aftergroup\@didactic@keep@blockend
 + \relax
 
 # no check of what follows a title
 #: rules
-#= killed sweep-m:20 sweep-s:12
+#= killed sweep-m:74 sweep-s:66 sweep-a:74
 t_parted didactic.dtx
 -         \if@nobreak\else\if@noskipsec\else
 -           \@didactic@keep@parted
@@ -1250,7 +1248,7 @@ t_parted didactic.dtx
 
 # a listing under a heading doesn't break under it
 #: rules
-#= killed sweep-m:57 sweep-s:42
+#= killed sweep-m:57 sweep-s:42 sweep-k:12 sweep-c:24 sweep-k3:12 sweep-a:57
 r9_underheading didactic.dtx
 -       \@didactic@keep@directtrue
 -       \@beginparpenalty\@M
@@ -1258,14 +1256,14 @@ r9_underheading didactic.dtx
 
 # no warning when it does
 #: rules
-#= killed sweep-m:114 sweep-s:84
+#= killed sweep-m:114 sweep-s:84 sweep-k:24 sweep-c:48 sweep-k3:24 sweep-a:114
 r9_warn didactic.dtx
 - The listing of #2 lines at #3 breaks under its\MessageBreak
 + Nothing\MessageBreak
 
 # a parted listing writes no page
 #: rules
-#= killed test-keep-heading check-test-keep-once sweep-m:17 sweep-s:10
+#= killed test-keep-heading check-test-keep-once sweep-m:40 sweep-s:28 sweep-c:10 sweep-a:39
 r6_part didactic.dtx
 -       \ifinner\else\@didactic@keep@relstart\fi
 -     \fi\fi
@@ -1277,7 +1275,7 @@ r6_part didactic.dtx
 
 # a parted chunk writes no page
 #: rules
-#= killed check-test-keep-once sweep-m:93 sweep-s:59
+#= killed test-keep-heading check-test-keep-once sweep-m:169 sweep-s:103 sweep-k:1 sweep-c:2 sweep-k3:1 sweep-a:159
 r6_chunk didactic.dtx
 -   \if@didactic@keep@inbox\else
 -     \@didactic@keep@relend
@@ -1331,7 +1329,7 @@ r4_beamer didactic.dtx
 
 # no warning under \nofiles
 #: rules
-#= killed test-keep-nofiles
+#= killed test-keep-nofiles test-keep-nofiles0
 b_nofiles didactic.dtx
 - With \string\nofiles, no warning can say what the pages\MessageBreak
 + Nothing\MessageBreak
@@ -1359,18 +1357,18 @@ e_late didactic.dtx
 - \let\noweboptions\@didactic@nwoptions
 + \relax
 
-# ===== review-r5's revert mutants: each takes back one fix of round 5 =====
+# ===== revert mutants of the review of round 5 (see #67): each takes back one fix of round 5 =====
 # rv_S2b follows the code: the branch it took back went in round 6, and what is left of it
 # is the \pagebreak that ends the lead-in.
 
 #: parted
-#= killed
+#= killed check-test-keep-parted
 rv_S1 didactic.dtx
 -   \g@addto@macro\@endparenv{\ifinner\else\global\@didactic@keep@endlisttrue\fi}}
 +   \g@addto@macro\@endparenv{\global\@didactic@keep@endlisttrue}}
 
 #: parted
-#= killed
+#= killed check-test-keep-parted
 rv_S2 didactic.dtx
 -   \ifvmode
 -     \global\@didactic@keep@askedtrue
@@ -1380,25 +1378,25 @@ rv_S2 didactic.dtx
 +   \global\@didactic@keep@askedtrue}
 
 #: parted
-#= killed
+#= killed check-test-keep-parted
 rv_S3 didactic.dtx
 -     \if@didactic@keep@endlist\global\@didactic@keep@pastlisttrue\fi
 +     \relax
 
 #: parted
-#= killed
+#= killed check-test-keep-parted
 rv_S4 didactic.dtx
 -   \if@didactic@keep@parfloat\@tempswafalse\fi}
 +   }
 
 #: parted
-#= killed
+#= killed check-test-keep-parted
 rv_S5 didactic.dtx
 -           \ifnum\ReadonlyShipoutCounter>\@didactic@keep@startship\relax
 +           \ifnum\z@>\@ne
 
 #: parted
-#= killed
+#= killed check-test-keep-parted
 rv_S2b didactic.dtx
 -     \ifx\@didactic@keep@adjust\@didactic@keep@adjp
 -       \global\@didactic@keep@askedtrue
@@ -1406,13 +1404,13 @@ rv_S2b didactic.dtx
 +       \relax
 
 #: rules
-#= killed
+#= killed sweep-c:5
 rv_chap didactic.dtx
 -       \global\@didactic@keep@chapheadtrue
 +       \relax
 
 #: rules
-#= killed
+#= killed sweep-m:4 sweep-k:3 sweep-a:15
 rv_owed1 didactic.dtx
 - \def\@didactic@keep@remeasure{%
 -   \ifnum\@didactic@keep@owed>\@ne
@@ -1420,14 +1418,14 @@ rv_owed1 didactic.dtx
 +   \ifnum\@ne>\z@
 
 #: rules
-#= killed
+#= killed check-test-keep-enumitem
 rv_bp didactic.dtx
 -         \ifnum\@beginparpenalty=\@didactic@keep@bpdefault\relax
 -           \global\@didactic@keep@listpen\@beginparpenalty
 +         \ifnum\z@=\z@
 +           \global\@didactic@keep@listpen\@beginparpenalty
 
-# ===== review-r5's revert mutants of round 6 =====
+# ===== revert mutants of the review of round 6 (see #67) =====
 
 #: parted
 #= killed check-test-keep-parted

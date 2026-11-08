@@ -49,6 +49,12 @@
 %     Round 8.  Y1-Y6: the primitive \vskip of at most 2pt, then what prints nothing (or a
 %     rule), then a list, rooms 1.25 to 2.5: a place to break that the page hides.  Y7:
 %     \vfil, a title, \vfil and a rule: a break after the title, which the stretch shows.
+%     Round 9.  Z1: the primitive \vskip0pt, glue of no size, as the last thing: only
+%     its being glue shows it.  Z2: after the lead-in's paragraph a title, then \vspace
+%     and a rule: a break after the title only the flag of \vspace shows.  Z3: a title,
+%     the primitive \vskip and another title: a break after the first only the page's
+%     height shows (at room 1.25 it is parted silently, as since before this branch: a
+%     page that ends before the list starts; not a case of this test).
 %
 % Build: see the Makefile, with pdflatex; test-check.py compares the warnings with the
 % pages of the words.
@@ -1166,5 +1172,75 @@ Consider LEADY7B this:
 Consider LEADY7C this:
 \vfil\centerline{A title}\vfil\hrule
 \case{Y7C}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.25}
+Consider LEADZ1A this:
+\vskip0pt
+\case{Z1A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADZ1B this:
+\vskip0pt
+\case{Z1B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2.5}
+Consider LEADZ1C this:
+\vskip0pt
+\case{Z1C}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{3}
+Consider LEADZ1D this:
+\vskip0pt
+\case{Z1D}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{1.25}
+Consider LEADZ2A this:
+
+\centerline{A title}
+\vspace{6pt}\hrule
+\case{Z2A}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2}
+Consider LEADZ2B this:
+
+\centerline{A title}
+\vspace{6pt}\hrule
+\case{Z2B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2.5}
+Consider LEADZ2C this:
+
+\centerline{A title}
+\vspace{6pt}\hrule
+\case{Z2C}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{3}
+Consider LEADZ2D this:
+
+\centerline{A title}
+\vspace{6pt}\hrule
+\case{Z2D}{tie}\begin{itemize}\items\end{itemize}
+
+
+\roomfor{2}
+Consider LEADZ3B this:
+
+\centerline{A title}
+\vskip 6pt\centerline{Another}
+\case{Z3B}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{2.5}
+Consider LEADZ3C this:
+
+\centerline{A title}
+\vskip 6pt\centerline{Another}
+\case{Z3C}{tie}\begin{itemize}\items\end{itemize}
+
+\roomfor{3}
+Consider LEADZ3D this:
+
+\centerline{A title}
+\vskip 6pt\centerline{Another}
+\case{Z3D}{tie}\begin{itemize}\items\end{itemize}
 
 \end{document}
