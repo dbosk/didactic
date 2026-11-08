@@ -1256,7 +1256,7 @@
 % and otherwise breaks as a longer one does.
 % The default keeps a short function whole and lets a whole program break.
 % Since a longer listing keeps |keepends| lines at each end, one of fewer
-% than $2\times3$ lines that aren't empty can't break anyway.
+% than $2\times2$ lines that aren't empty, at the default, can't break anyway.
 % With a larger font for the code, choose fewer lines.
 %
 % |keeplines=0, keepends=1, keepleadin=false| comes closest to the breaks of
@@ -6036,7 +6036,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % \textsf{fancyvrb} knows the number of lines only at the end, so it looks 
 % one line ahead: it holds a line back until the next one comes, which is 
 % enough for a club and a widow penalty, but not for keeping a whole listing 
-% together or three lines at each end.
+% together or |keepends| lines at each end.
 % So we hold back all of them.
 % We collect the lines in a |\vbox|; at the end of the listing we know how 
 % many lines there are, put the penalties between them that we want, and 
