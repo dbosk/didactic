@@ -1414,8 +1414,9 @@
 % \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} the labelled sample of the
 %   \emph{Chicago Manual}, 16th edition, and some presses: craft, moderate for two, weak
 %   for three.
-%   \emph{Reopens:} a reader study on lines under a heading, or real documents where 2
-%   costs pages against 1.
+%   \emph{Reopens:} a reader study on lines under a heading, or if 2 costs 2 pages or
+%   more against 1 on the real documents (the eight of \cref{app:pb-measure}, or documents
+%   of that kind).
 %   \emph{Measured, rejected:} 1 changes no word on any page of the real documents,
 %   which have no heading with a first paragraph of one line at the foot of a page; on
 %   such a heading it stays with that line, and 2 moves or keeps two.
@@ -1423,15 +1424,17 @@
 % \midrule
 % A heading is never parted from what follows & Yes &
 %   The same, for a paragraph, by |\@afterheading|. \\*
-% \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} \LaTeX, and the maintainer.
+% \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} \LaTeX's own rule, not a measured
+%   decision, and the maintainer.
+%   \emph{Strength:} no outside support; the maintainer's choice.
 %   \emph{Reopens:} nothing we know of; a case that can't hold it is a bug or warns.
 %   Past the limit a heading can move, as in \LaTeX, and that warns.} \\
 % \midrule
 % Most lines left empty by a move, \texttt{keepmaxgap} & 5 &
 %   No limit; \LaTeX\ moves a lone heading at up to about five lines. \\*
 % \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} the same sample's
-%   \enquote{up to four lines short}, one house's, and what \LaTeX\ does; the
-%   maintainer's choice.
+%   \enquote{up to four lines short}, one house's, and what \LaTeX\ does.
+%   \emph{Strength} of five rather than four: no outside support; the maintainer's choice.
 %   \emph{Reopens:} a reader study on short pages, or real documents with twice as many
 %   warnings past the limit as the eight have.
 %   They have 19 in 813 pages, 12 of them about a heading, one in about 43 pages; so the
@@ -1442,17 +1445,20 @@
 %   0, no limit, on generated chunks woven for \texttt{minted}, leaves up to 8.9 lines,
 %   against 6.2 with the limit alone, and 4.5 with \textsf{noweb}'s break dropped as well;
 %   dropping that break without the limit leaves 10.5.
-%   With the chunks \textsf{noweb} sets, which can break anywhere, the limit changes one
-%   page's count.} \\
+%   With the chunks \textsf{noweb} sets, which can break anywhere, the limit changes the
+%   count of pages with three lines or more empty by one, 20 against 21; the pages stay
+%   210.} \\
 % \midrule
 % Short listings whole, \texttt{keeplines} & 10 &
 %   Listings break at any line; \textsf{noweb} keeps a chunk whole by |\filbreak|. \\*
 % \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} ours; the nearest is
 %   \textsf{CWEB}'s dozen lines, about a unit and not about pages.
+%   \emph{Strength:} no outside support; the maintainer's choice.
 %   \emph{Reopens:} a reader study on listings across pages, or a page count on real
 %   documents, which no one has made for this option alone: the eight with
-%   \texttt{keeplines=0} and all else as it is, against the package, in pages and pages
-%   with three lines or more empty.
+%   \texttt{keeplines=0} and all else as it is (the setting \texttt{keeplines-0} of
+%   \texttt{measure-real}), against the package, in pages and pages with three lines or
+%   more empty.
 %   If 10 costs more pages there than the two that all the options cost together, it
 %   reopens.
 %   \emph{Measured:} 0 on generated chunks woven for \texttt{minted} has the same 194
@@ -1462,9 +1468,11 @@
 % Lines at each end of a break, \texttt{keepends} & 2 &
 %   None. \\*
 % \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} the two counts read are two, the
-%   sample's and \textsf{tcolorbox}'s, neither about code; the maintainer's choice.
-%   \emph{Reopens:} a source about code, or real documents where 3 costs no page against
-%   2.
+%   sample's and \textsf{tcolorbox}'s, neither about code.
+%   \emph{Strength:} no outside support; the maintainer's choice.
+%   \emph{Reopens:} a source about code, or if 3 costs no page against 2 on the real
+%   documents (the eight of \cref{app:pb-measure}, with the setting
+%   \texttt{keepends-3}).
 %   \emph{Measured, rejected:} 3, the default until then, wasn't compared in pages; it
 %   stays tested (\texttt{test-keep}, \texttt{test-keep-tall}).} \\
 % \midrule
@@ -1521,10 +1529,10 @@
 %   than dropping it, against the numbers below, measured again as \cref{app:pb-measure}
 %   says.
 %   \emph{Measured, rejected:} with the chunks \textsf{noweb} sets, keeping it leaves up
-%   to 7.6 lines and 33 pages with three or more, against 5.6 and 20, in about 210 pages,
-%   and 19 fewer breaks inside chunks.
-%   With those woven for \texttt{minted}, under the limit, 6.2 and 28, against 4.5 and 17;
-%   it helps only along with the limit.} \\
+%   to 7.6 lines and 33 pages with three or more, against 5.6 and 20, and 19 fewer breaks
+%   inside chunks, and costs a page, 211 against 210.
+%   With those woven for \texttt{minted}, under the limit, 6.2 and 28, against 4.5 and 17,
+%   and 196 pages against 194; it helps only along with the limit.} \\
 % \midrule
 % Block and frame titles in the notes & Run in &
 %   \textsf{beamerarticle} sets a frame's title as a heading followed by an empty line,
@@ -1534,17 +1542,19 @@
 %   maintainer: the text of a frame is one paragraph, which a heading on a line of its
 %   own breaks in two, and a run-in title reads as the start of what it names, as
 %   \cs{paragraph} does (\cref{FrameTitles}).
-%   \emph{Reopens:} a reader's report that where a block or a frame begins or ends is
+%   \emph{Strength:} no outside support; the maintainer's choice.
+%   \emph{Reopens:} one reader's report that where a block or a frame begins or ends is
 %   missed.} \\
 % \midrule
 % A margin note beside its mark, \texttt{noteoverflow} & \texttt{break} &
 %   \textsf{marginfix} 1.2, in \TeX\ Live: a note that doesn't fit moves to the next
 %   page. \\*
 % \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} correct or warn: a note stays
-%   beside the line that calls it out, and a footnote in the margin with its mark; the
-%   maintainer (\cref{MarginNoteKinds}).
-%   \emph{Reopens:} if it costs twice what it costs on the eight documents: now no
-%   page, and 2 more pages with three lines or more empty.
+%   beside the line that calls it out, and a footnote in the margin with its mark
+%   (\cref{MarginNoteKinds}).
+%   \emph{Strength:} no outside support; the maintainer's choice.
+%   \emph{Reopens:} if on the eight documents it costs a page or more, or twice its pages
+%   with three lines or more empty: now no page, and 2 such pages more, so 4.
 %   \emph{Measured:} against \texttt{carry}, 813 pages either way; pages with three lines
 %   or more empty 114 against 112, with more than five 64 against 63, of 674 text pages.
 %   Only two documents differ, where a margin overflows: \texttt{carry} moves two notes
@@ -1749,8 +1759,9 @@
 % 33 pages with three or more and 4 with five or more; dropping it leaves 5.6, 20 and 1,
 % for 19 more breaks inside chunks; plain \textsf{noweb} with |breakcode| has 6.2, 31
 % and 2.
-% All of that is this break: those chunks can break anywhere, and the limit changes one
-% page's count.
+% All of that is this break: those chunks can break anywhere, and the limit changes the
+% count of pages with three lines or more empty by one, 20 against 21, and none of the 210
+% pages.
 % With the chunks woven for |minted|, which most decks are and which we keep together,
 % the limit does the larger part: with it and with this break kept we leave at most 6.2,
 % without either 8.9, with this break dropped and no limit 10.5, and with both 4.5, 17
