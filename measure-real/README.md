@@ -54,13 +54,24 @@ times passes in turn with two versions. Run nothing else of yours meanwhile.
   paths in reused output at the copy.
 - `audit.py` runs each copy once with `-recorder` and reports FAIL or NOTE. **Fix
   every FAIL before measuring**, and read the NOTEs: they limit the rows.
-- `build.py` builds every document under every setting of `lib.py`, until its
-  `.aux` settles. It saves the numbers under the tag, and only then deletes the
-  build. A build with a LaTeX error, a quota or full-disk line in its log, a log
-  without its output line, or an `.aux` that doesn't settle is marked as no result,
-  and its build stays. A rerun must fail on those, not produce a short count.
+- `build.py` builds every document under the default settings (`noprobe`,
+  `pair-1000-1001` and the list `PAPER` in `lib.py`), or those given with
+  `--setting`, until its `.aux` settles, at most six passes. It saves the numbers
+  under the tag, and only then deletes the build. A build with a LaTeX error, a quota
+  or full-disk line in its log, a log without its output line, or an `.aux` that
+  hasn't settled after the sixth pass is marked as no result, and its build stays.
+  A rerun must fail on those, not produce a short count.
 - `analyse.py` prints the tables, and stops at a row that isn't a result or if
   the probe changes the words on a page.
+
+A setting is an entry of `SETTINGS` in `lib.py`, a small change to the copy of
+`didactic.sty`: `defaults` sets an option's default, by rewriting the line
+`\@didactic@OPTION=N` of the package (it stops if that line isn't there exactly once),
+`replace` swaps other text found exactly once, `tail` adds code before `\endinput`,
+`leadin` turns `keepleadin` off and `probe` the probe. For example
+`"keepends-3": {"defaults": {"keepends": 3}}`. Add it to `PAPER` to have it in the
+default run; `keeplines-0`, `keepends-3` and `keepafterheading-3`, for the reopen
+conditions of the decisions, aren't, so give them with `--setting`.
 
 `probe.py` holds the code added to the copy of the package.
 `test_probe.py --sty ../didactic.sty` checks that a page output inside a small font
