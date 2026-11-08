@@ -30,8 +30,83 @@ cd didactic
 make all
 ```
 
-That will build both `didactic.sty` and `didactic.pdf`. The documentation is 
-located in `didactic.pdf`.
+That will build both `didactic.sty` and `didactic.pdf`, and run the tests (see
+below). The documentation is located in `didactic.pdf`. To build only the
+package, run `make didactic.sty`.
+
+## Requirements
+
+For the package:
+
+- A recent LaTeX (the hooks need a format from 2021 or later; an older one gets
+  a warning).
+- `marginfix` 1.6 or later, for `\marginnoteoverflow` and the margin fixes the
+  notes rely on. TeX Live 2025 ships 1.2; 1.6 is on the `integration` branch of
+  [dbosk/marginfix](https://github.com/dbosk/marginfix) until upstream has it.
+  With an older one the package works, and says what it can't do.
+- `minted` 3 (with its `latexminted`) and `pythontex`, and LaTeX run with
+  `-shell-escape`.
+
+To build the documentation and run the tests, also:
+
+- `xelatex` (the Makefile's default engine), `pdflatex` (the tests that need it
+  name it) and `lualatex` (`test-noteoverflow-lua`); `latex` for docstrip;
+  `makeindex` and `biber`.
+- `pythontex` on the command line, with Python 3.
+- A `noweb` whose `noweb.sty` has the option `[minted]` and whose `noweave` has
+  the filter `tominted`: the `integration` branch of
+  [dbosk/noweb](https://github.com/dbosk/noweb). The sweep and the noweb tests
+  need it; a few other tests (`test-keep`, `test-keep-leadin`) skip their noweb
+  cases without `noweb.sty`.
+- `pdftotext` and `pdfinfo` (poppler), and `awk`, `sed`, `cmp`, Python 3.
+- The LaTeX packages the tests load: amsmath, amssymb, amsthm, babel,
+  beamer (for `beamerarticle`), beramono, biblatex, cleveref, csquotes, enumitem,
+  fancyvrb, float, fontenc, graphicx, helvet, hyperref, import, lipsum, longtable,
+  mathpazo, memoir, multicol, refcount, tabularx, tikz, xcolor; all in TeX Live.
+
+The tests are run with TeX Live 2025, and in `~/texmf` with marginfix 1.6 and
+the noweb above, and with the maintainer's checkouts of beamer and PythonTeX;
+whether the tests need those two checkouts rather than TeX Live's has not been
+established.
+
+## Testing
+
+Run LaTeX non-interactively, or an error stops the build at its prompt:
+
+```bash
+make all LATEXFLAGS="-shell-escape -interaction=nonstopmode"
+```
+
+- `make all` builds the package and its documentation, and runs every test:
+  the `test-*.tex` documents, each with the checks the Makefile states
+  (`pdfinfo` page counts, `pdftotext` greps, PASS/FAIL lines), `make check`,
+  and the sweep. About 17 to 20 minutes on one job.
+- `make check` runs `test-check.py`, which holds the documents named in the
+  Makefile's `CHECKED_TESTS` to what their headers say, from the words and
+  their positions in the PDF and from the log.
+- `make test-keep-sweep` builds `test-keep-sweep.py`'s documents: page breaks
+  around headings, lists and listings, room by room, against plain LaTeX with
+  the same fonts and margins, in several variants (see its docstring). About 6
+  minutes, part of `make all`.
+- `make mutants` runs `test-mutants.py`: deliberate breaks of `didactic.dtx`,
+  listed in `test-mutants.txt`, each of which some test must catch, or a
+  survivor recorded with its reason. It isn't part of `make all`: the whole
+  batch takes hours; see the header of `test-mutants.txt` for the groups and
+  their times, and `make mutants MUTANTS="label ..."` runs some.
+
+The measurements behind the documentation's decisions on page breaks have their
+own rigs, not run by `make`: `measure-real/` (real documents, which aren't in
+the repository; see its README) and `measure-flow/` (generated documents), and
+the scripts in `queries/`.
+
+What isn't tested, as far as we know:
+
+- The keep rules under KOMA-Script's classes, and under `report` and `book`
+  beyond `test-keep-chapter-book`; the tests use `memoir` and `article`.
+- Two-sided layouts, but for a few documents (`test-footcite-twoside`,
+  `test-sidecap`, `test-keep-flush`, `test-margin-log`).
+- Real documents other than `memoir` ones, in the measurements.
+- What the documentation lists as what the warnings can't see.
 
 
 ## Maintainer
