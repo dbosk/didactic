@@ -383,3 +383,6 @@ test-biburl.unq
 test-biburl-overfull.pdf
 test-biburl-overfull.unq
 test-biburl-overfull.bib
+test-biburl-breaks.pdf
+test-biburl-breaks.unq
+test-biburl-breaks.bib

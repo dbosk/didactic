@@ -1,8 +1,9 @@
 % Test of what biburlpenalty is for (didactic): a bibliography whose URL
 % and DOI have a long stretch without punctuation, 90 letters and digits,
-% wider than the text, is set without an Overfull \hbox.  Without
-% biburlpenalty (before v2.16, or with biburlpenalty=0), biblatex breaks a
-% URL only after its punctuation, so both lines run into the margin.
+% wider than the text, is set without an Overfull \hbox, with biburlpenalty
+% given (it is off by default since v2.16.1).  Without it (before v2.16,
+% or with biburlpenalty=0), biblatex breaks a URL only after its
+% punctuation, so both lines run into the margin.
 %
 % Build: see the Makefile (pdflatex/xelatex, biber, again), which fails on
 % an Overfull \hbox in the log, or if the bibliography doesn't have both
@@ -24,7 +25,7 @@
 }
 \end{filecontents*}
 \usepackage[backend=biber]{biblatex}
-\usepackage{didactic}
+\usepackage[biburlpenalty=9000]{didactic}
 % didactic turns biblatex's doi and url off; turn them on again.
 \ExecuteBibliographyOptions{doi=true,url=true}
 \addbibresource{\jobname.bib}

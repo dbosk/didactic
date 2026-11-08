@@ -1,0 +1,58 @@
+% Test of where URLs break in citations and the bibliography (didactic,
+% biburlpenalty, #89).  Each case is a page: "CASE <name>" and a narrow
+% box with a full citation, or a narrow bibliography; test-biburl-breaks.py
+% reads the lines from the PDF and checks where they break inside each URL.
+%
+% Build: see the Makefile, which runs it once without options (the
+% default) and once with biburlpenalty=9000, each time with
+%   \def\testoptions{<options of didactic>}
+% and then the script, with the mode (default or on).
+%
+% fits: a URL whose pieces between the places url.sty can break all fit
+%   in the line, at widths from 3 to 6 cm.  It may break at a / or a .,
+%   or after ://, never after a letter or a digit; with biburlpenalty
+%   never inside https:// either.
+% long: a URL with a piece of 70 letters, wider than any of the lines.
+%   By default it doesn't break after a letter either, and runs into the
+%   margin, as with biblatex alone.  With biburlpenalty it breaks after
+%   letters in that piece, as the last resort, but not inside https://,
+%   and without an Overfull \hbox.
+% bib: the two in a narrow bibliography (\bibsetup rather than
+%   \citesetup).
+% The URLs have no -: pdftotext joins a line that ends in one to the next.
+\documentclass[a4paper]{article}
+\begin{filecontents*}[overwrite]{\jobname.bib}
+@online{fits,
+  author = {Ada Writer},
+  title = {Why Long Addresses Break},
+  year = {2026},
+  url = {https://silly.business/2026/11/whyurlsbreak/index.html},
+}
+@online{long,
+  author = {Bo Reader},
+  title = {A Page with a Long Address},
+  year = {2026},
+  url = {https://example.org/pages/abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqr/index.html},
+}
+\end{filecontents*}
+\ifdefined\testoptions\else\def\testoptions{}\fi
+\usepackage[backend=biber]{biblatex}
+\expandafter\PassOptionsToPackage\expandafter{\testoptions}{didactic}
+\usepackage{didactic}
+% didactic turns biblatex's url off; turn it on again.
+\ExecuteBibliographyOptions{url=true}
+\addbibresource{\jobname.bib}
+\pagestyle{empty}
+\newcommand\testcase[3]{%
+  \clearpage\noindent CASE #1\par\noindent\parbox[t]{#2}{#3}}
+\newcommand\testcite[2]{\testcase{#1 #2}{#2}{\fullcite{#1}}}
+\begin{document}
+\makeatletter
+\@for\@tempa:={3.0,3.1,3.2,3.3,3.4,3.5,3.6,3.7,3.8,3.9,4.0,4.1,4.2,4.3,4.4,
+    4.5,4.6,4.7,4.8,4.9,5.0,5.1,5.2,5.3,5.4,5.5,5.6,5.7,5.8,5.9,6.0}\do{%
+  \testcite{fits}{\@tempa cm}}
+\@for\@tempa:={3.0,4.5,6.0}\do{\testcite{long}{\@tempa cm}}
+\nocite{fits,long}
+\makeatother
+\testcase{bib 4.5cm}{4.5cm}{\printbibliography[heading=none]}
+\end{document}

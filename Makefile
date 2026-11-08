@@ -480,19 +480,21 @@ test-oldkernel.pdf: test-oldkernel.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	grep -q 'didactic-margin: odd=[0-9.]* even=[0-9.]* width=[0-9.]*' test-oldkernel.log
 
-# biburlpenalty and bibemergencystretch: biblatex's URL break penalties and
-# the bibliography's \emergencystretch, with biblatex loaded before didactic,
+# biburlpenalty and bibemergencystretch: biblatex's URL break penalties, which
+# didactic leaves alone (biburlpenalty breaks URLs its own way), and the
+# bibliography's \emergencystretch, with biblatex loaded before didactic,
 # after it or not at all; one run per case, order:options:penalty set in
 # the preamble:expected penalty:stretch set in the preamble:expected stretch.
-BIBURL_CASES=before:::9000::3em after:::9000::3em \
-	before:biburlpenalty=500::500::3em after:biburlpenalty=0::0::3em \
-	before:biburlpenalty=-5::0::3em \
+BIBURL_CASES=before:::0::3em after:::0::3em \
+	before:biburlpenalty=500::0::3em after:biburlpenalty::0::3em \
+	after:biburlpenalty=0::0::3em before:biburlpenalty=-5::0::3em \
 	before::100:100::3em after::100:100::3em \
-	before:bibemergencystretch=1em::9000::1em \
-	after:bibemergencystretch=0pt::9000::0pt \
-	before:::9000:2em:2em after:::9000:2em:2em none:::0::
+	before:bibemergencystretch=1em::0::1em \
+	after:bibemergencystretch=0pt::0::0pt \
+	before:::0:2em:2em after:::0:2em:2em none:::0::
 .PHONY: test-biburl
-test-biburl: test-biburl.tex didactic.sty test-biburl-overfull.pdf
+test-biburl: test-biburl.tex didactic.sty test-biburl-overfull.pdf \
+		test-biburl-breaks
 	for c in ${BIBURL_CASES}; do \
 	  IFS=:; set -- $$c; unset IFS; ${RM} test-biburl.aux; \
 	  ${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode \
@@ -500,6 +502,20 @@ test-biburl: test-biburl.tex didactic.sty test-biburl-overfull.pdf
 	    >/dev/null; \
 	  grep 'didactic biburl test:' test-biburl.log || exit 1; \
 	  ! grep -q 'didactic biburl test:.*FAIL' test-biburl.log || exit 1; \
+	done
+
+# where URLs break, read from the PDF: see test-biburl-breaks.py.  Once by
+# default and once with biburlpenalty=9000.
+.PHONY: test-biburl-breaks
+test-biburl-breaks: test-biburl-breaks.tex test-biburl-breaks.py didactic.sty
+	for m in default: on:biburlpenalty=9000; do \
+	  ${RM} test-biburl-breaks.aux test-biburl-breaks.bbl; \
+	  for p in 1 2; do \
+	    ${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode \
+	      "\\def\\testoptions{$${m#*:}}\\input{$<}" >/dev/null; \
+	    test $$p = 2 || biber test-biburl-breaks >/dev/null || exit 1; \
+	  done; \
+	  python3 test-biburl-breaks.py $${m%%:*} || exit 1; \
 	done
 
 # what biburlpenalty is for: a bibliography whose URL and DOI have 90 letters
