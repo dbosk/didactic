@@ -1,5 +1,5 @@
 """Shared by the scripts of measure-real: the configuration and the settings."""
-import argparse, configparser, os, re, subprocess
+import argparse, configparser, os, re, shutil, subprocess
 
 # The settings are small changes to a copy of the package's didactic.sty, in
 # one of two ways: `defaults` rewrites a line that sets a default, and fails if
@@ -34,9 +34,13 @@ SETTINGS = {
     "list-rule-off-noprobe": {"tail": NOTIE, "probe": False},  # read the parted lists in its text
     "list-0": {"tail": NOTIE + "\n" + beginpar("0")},
     "list-10000": {"tail": NOTIE + "\n" + beginpar(r"\@M")},
+    # Margin notes that don't fit carried to the next page, as before noteoverflow, against
+    # the default break, which ends the page before the line that calls one out.
+    "noteoverflow-carry": {"replace": [(r"{\renewcommand\@didactic@noteoverflow{break}}",
+                                        r"{\renewcommand\@didactic@noteoverflow{carry}}")]},
 }
 PAPER = ["keep-off", "keepleadin-off", "current", "pair-1000-10000", "pair-10000-10000",
-         "afterheading-1", "estimate-2", "list-rule-off", "list-0", "list-10000"]
+         "afterheading-1", "estimate-2", "list-rule-off", "list-0", "list-10000", "noteoverflow-carry"]
 
 # What shows in the log when a build isn't a result: a full disk or a quota.
 BAD = re.compile(r"quota exceeded|No space left|I can't write on file|Disk quota", re.I)
@@ -84,6 +88,33 @@ def args(description, *extra):
             raise SystemExit("not in the configuration: " + ", ".join(sorted(unknown)))
         docs = [d for d in docs if d.name in a.doc]
     return a, docs
+
+
+def workcopy(work, doc, top):
+    """Copy a document's prepared source to top, to run LaTeX in; return its directory.
+
+    Hard links save space: one copy of the sources for all settings.  But what LaTeX
+    writes must be a file of this build's own, or it writes through the link into the
+    prepared source and into every other build of the document at once.  So the
+    output directory is a real copy, and with output "." that is the document's own
+    directory: every file in it, and below it, becomes a real copy, and only files
+    elsewhere, such as inputs above it, stay linked.
+    """
+    subprocess.run(["cp", "-al", os.path.join(work, "src", doc.name) + "/.", top + "/"], check=True)
+    cwd = os.path.join(top, doc.dir)
+    if doc.out != ".":
+        out = os.path.join(cwd, doc.out)
+        shutil.rmtree(out)
+        shutil.copytree(os.path.join(doc.src(work), doc.out), out, symlinks=True)
+        return cwd
+    for base, _, files in os.walk(cwd):
+        for f in files:
+            p = os.path.join(base, f)
+            if not os.path.islink(p) and os.stat(p).st_nlink > 1:
+                tmp = p + ".copy~"
+                shutil.copy2(p, tmp)
+                os.replace(tmp, p)
+    return cwd
 
 
 def run(cmd, cwd=None, timeout=900, **kw):

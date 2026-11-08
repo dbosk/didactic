@@ -10,8 +10,10 @@ documents load, v1.6.
 The later fixes up to \texttt{6e92994} were checked under \emph{current} and \emph{noprobe}, the
 package without the probe: every page has the same words, with the same warnings and the same records
 of the probe, but the other settings weren't built again for them.
-All eleven settings took 59 minutes on all eight documents with 5 jobs, on an 8-core machine that
-ran other jobs too.
+Eleven settings took 59 minutes on all eight documents with 5 jobs, on an 8-core machine that ran
+other jobs too: all of \texttt{build.py}'s default but two, the estimate of two lines, which belongs
+to a later change and whose figures below are older, and \emph{noteoverflow carry}, built later on
+its own.
 The documents aren't in the repository, and they appear here by kind only.
 How to measure them again, or other documents, is in \texttt{measure-real/README.md}.
 
@@ -52,6 +54,8 @@ A setting is a small change to a copy of \texttt{didactic.sty}:
   penalty before a list's first item is \textsf{memoir}'s $-51$.
 \item[list 0, list 10000] the same, with that penalty changed for \texttt{itemize},
   \texttt{enumerate} and \texttt{description}.
+\item[noteoverflow carry] \texttt{noteoverflow=carry}: a margin note that doesn't fit goes to the
+  next page, rather than ending the page before the line that calls it out, the default \texttt{break}.
 \end{description}
 
 A probe in the copy of the package writes, at shipout like a label, the page of each paragraph's
@@ -236,6 +240,21 @@ That is now the package's rule.
 released, and 1 other, the same with the probe and without it.
 With the keep options off there are none, and with \texttt{keepleadin} off 12, all about headings.
 With the list rule off there are 23.
+
+\subsection{Margin notes that don't fit}
+
+\emph{Noteoverflow carry} was built with \emph{current} at \texttt{e4e71ad}, whose package is that
+of \texttt{6e92994}; there \emph{current} has the same words on every page as at \texttt{21675b2}.
+Both have 813 pages and the same 19 warnings, and differ in words on 7 pages of one set of lecture
+notes and 34 of the paper, the two documents where a margin overflows: there \emph{carry} moves two
+notes each to the next page, and \texttt{break} keeps them with their lines.
+The price is on the page that overflows, which \texttt{break} ends early, with 4.3 and 8.9 lines
+empty against 0.3 and none, and in runs: the paper settles in six with \texttt{break}, in three with
+\emph{carry}.
+Over all eight documents \texttt{break} has 114 pages with $e\ge3$ and 64 with $e>5$, against 112
+and 63.
+The course notes, built with Xe\TeX, carry anyway, as \texttt{break} needs pdf\TeX\ or Lua\TeX, and
+have the same words either way, with no note carried.
 
 \subsection{The pair of penalties on generated text}
 
