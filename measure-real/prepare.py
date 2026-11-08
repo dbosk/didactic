@@ -11,9 +11,24 @@ from lib import args, latex, run
 
 a, docs = args(__doc__)
 EXCL = [".git", "node_modules", ".venv", "venv", "worktrees", ".claude", "*.mp4", "didactic/"]
+MAX = "40m"  # larger files aren't copied: videos and the like, which no build reads
+
+
+def inside(path, top):
+    path, top = os.path.realpath(path), os.path.realpath(top)
+    return path == top or path.startswith(top.rstrip(os.sep) + os.sep)
+
+
 missing = 0
 for d in docs:
     src, dst = os.path.join(d.root, d.dir), d.src(a.work)
+    # The copy replaces what is in --work/src, so a root in there would be deleted
+    # before it is read: a snapshot is prepared into another --work.
+    if inside(src, os.path.join(a.work, "src")):
+        raise SystemExit(f"{d.name}: its root is inside this --work's src/, which prepare.py "
+                         "replaces: give another --work than the snapshot's")
+    if inside(a.work, src):
+        raise SystemExit(f"{d.name}: --work is inside the document's directory, which would be copied into itself")
     if not os.path.exists(os.path.join(src, d.out, d.main + ".log")):
         print(f"{d.name}: no last build at its source, so nothing to reuse: build it there first")
         missing += 1
@@ -21,10 +36,16 @@ for d in docs:
     if os.path.exists(dst):
         shutil.rmtree(os.path.join(a.work, "src", d.name))
     os.makedirs(dst)
-    r = subprocess.run(["rsync", "-aL", "--max-size=40m"] + ["--exclude=" + e for e in EXCL]
+    r = subprocess.run(["rsync", "-aL", "--max-size=" + MAX] + ["--exclude=" + e for e in EXCL]
                        + [src + "/", dst + "/"], capture_output=True, errors="replace")
     if r.returncode not in (0, 24):
         raise SystemExit(f"{d.name}: the copy failed, is the disk full? {r.stderr[-300:]}")
+    # What --max-size left out, for audit.py to report.
+    big = subprocess.run(["rsync", "-aL", "--dry-run", "--out-format=%n", "--min-size=" + MAX + "+1"]
+                         + ["--exclude=" + e for e in EXCL] + [src + "/", dst + "/"],
+                         capture_output=True, errors="replace").stdout.split("\n")
+    big = [f for f in big if f and not f.endswith("/")]
+    open(os.path.join(a.work, "src", d.name + ".skipped"), "w").write("".join(f + "\n" for f in big))
     n = 0
     fls = os.path.join(src, d.out, d.main + ".fls")
     if os.path.exists(fls):
@@ -77,5 +98,6 @@ for d in docs:
             shutil.rmtree(out)
             os.rename(saved, out)
     print(f"{d.name}: copied, {n} files from outside its directory, {fixed} outputs repointed"
-          + (", woven" if d.weave else "") + (", biber" if d.biber else ""))
+          + (", woven" if d.weave else "") + (", biber" if d.biber else "")
+          + (f", {len(big)} files over {MAX}B not copied" if big else ""))
 raise SystemExit(1 if missing else 0)

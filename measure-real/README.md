@@ -39,10 +39,16 @@ reading whether the paragraph before it really leads into it.
 
 **Keep a snapshot.** A snapshot keeps numbers comparable. A rerun from sources that
 have moved mixes document changes with package changes, and the audit shows that
-only as another word count. So after the first `prepare.py`, keep `src/` outside any
-temporary directory, and give each document a `root` pointing at its copy, such as
-`root = /path/to/snapshot/src/notes-1`. A document's last build at source may also
+only as another word count. So after the first `prepare.py`, keep its `--work`'s `src/`
+outside any temporary directory as the snapshot, and give each document a `root`
+pointing at its copy, such as `root = /path/to/snapshot/src/notes-1`. Then run
+`prepare.py` again, into another `--work`: the builds read only `--work/src`, so a
+change of roots takes effect only through `prepare.py`, and since it replaces
+`--work/src`, it refuses a root inside it. A document's last build at source may also
 be cleaned, and then `prepare.py` refuses it.
+
+`prepare.py` doesn't copy files over 40 MB, such as videos, which no build should read.
+It lists them in `--work/src/NAME.skipped`, and `audit.py` notes them.
 
 For build time, `timing.py --sty old=PATH --sty new=PATH --doc NAME --generated 3000`
 times passes in turn with two versions. Run nothing else of yours meanwhile.
@@ -54,13 +60,24 @@ times passes in turn with two versions. Run nothing else of yours meanwhile.
   paths in reused output at the copy.
 - `audit.py` runs each copy once with `-recorder` and reports FAIL or NOTE. **Fix
   every FAIL before measuring**, and read the NOTEs: they limit the rows.
-- `build.py` builds every document under every setting of `lib.py`, until its
-  `.aux` settles. It saves the numbers under the tag, and only then deletes the
-  build. A build with a LaTeX error, a quota or full-disk line in its log, a log
-  without its output line, or an `.aux` that doesn't settle is marked as no result,
-  and its build stays. A rerun must fail on those, not produce a short count.
+- `build.py` builds every document under the default settings (`noprobe`,
+  `pair-1000-1001` and the list `PAPER` in `lib.py`), or those given with
+  `--setting`, until its `.aux` settles, at most six passes. It saves the numbers
+  under the tag, and only then deletes the build. A build with a LaTeX error, a quota
+  or full-disk line in its log, a log without its output line, or an `.aux` that
+  hasn't settled after the sixth pass is marked as no result, and its build stays.
+  A rerun must fail on those, not produce a short count.
 - `analyse.py` prints the tables, and stops at a row that isn't a result or if
   the probe changes the words on a page.
+
+A setting is an entry of `SETTINGS` in `lib.py`, a small change to the copy of
+`didactic.sty`: `defaults` sets an option's default, by rewriting the line
+`\@didactic@OPTION=N` of the package (it stops if that line isn't there exactly once),
+`replace` swaps other text found exactly once, `tail` adds code before `\endinput`,
+`leadin` turns `keepleadin` off and `probe` the probe. For example
+`"keepends-3": {"defaults": {"keepends": 3}}`. Add it to `PAPER` to have it in the
+default run; `keeplines-0`, `keepends-3` and `keepafterheading-3`, for the reopen
+conditions of the decisions, aren't, so give them with `--setting`.
 
 `probe.py` holds the code added to the copy of the package.
 `test_probe.py --sty ../didactic.sty` checks that a page output inside a small font
@@ -113,25 +130,5 @@ setting gives a result and that no file of the prepared copy changes.
 
 ## The generated literate programs
 
-The rows on generated documents in that appendix are from `measure-flow/`, which
-needs no documents of yours. From the repository's root, after `make didactic.sty`:
-
-    mkdir -p v/current && cp didactic.sty v/current/
-    cd measure-flow && python3 cfgmake.py
-    ./run.sh none no; ./run.sh bc no; ./run.sh mintp no           # plain
-    ./run.sh n current; ./run.sh nn current; ./run.sh m current   # the package
-    python3 stats.py none bc mintp n nn m
-    python3 pages.py none bc mintp n nn m                         # pages per document
-
-The names are in `cfgmake.py`: `n` is breakcode, `nn` no option, `m` minted chunks.
-`nK` and `mK` are for a copy of the package without its `\let\nwdocspar\relax`, in
-`v/kept/`: `sed 's/\\let\\nwdocspar\\relax/\\relax/' didactic.sty`. `nD` and `mD` are the
-limit off with that break dropped.
-`nA`, `nB`, `nW`, and `mA`, `mB`, `mW` are the pairs 1000/10000, 10000/10000 and
-1000/1001, which tells lone last lines from first ones. `queries/pen.py` is the same
-comparison with no package, also from the root: `python3 queries/pen.py EMPTYDIR 300`.
-
-The appendix takes a flow's pages from `pages.py`, every page of its 12 documents.
-`stats.py` leaves out each document's last page, which ends by itself and so says
-nothing of a break, and counts empty space on the rest: it prints `pages=198` where the
-table says 210.
+The rows on generated documents in that appendix are from `measure-flow/`, which needs
+no documents of yours; `measure-flow/README.md` says how to run it.

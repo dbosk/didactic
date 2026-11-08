@@ -6,6 +6,9 @@ default) goes through prepare.py, audit.py and build.py, with settings built two
 time.  Every setting must give a result, and no file of the prepared copy may change:
 build.py copies it by hard links, and LaTeX writing its .aux, .log and .pdf through
 them wrote into the copy and into every other setting's build at once.
+
+Also: a file over 40 MB isn't copied, and audit.py notes it; and prepare.py refuses a
+root inside its own --work/src, which it would delete before reading.
 """
 import argparse, hashlib, json, os, shutil, subprocess, sys, tempfile
 
@@ -44,6 +47,8 @@ try:
     os.makedirs(os.path.join(doc, "_minted"))
     shutil.copy(sty, os.path.join(doc, "didactic.sty"))
     open(os.path.join(doc, "t.tex"), "w").write(DOC)
+    with open(os.path.join(doc, "video.mp4v"), "wb") as f:  # sparse, but 41 MB to rsync
+        f.truncate(41 * 2**20)
     subprocess.run(["pdflatex", "-interaction=nonstopmode", "t.tex"], cwd=doc, capture_output=True,
                    stdin=subprocess.DEVNULL, timeout=300)
     open(conf, "w").write(f"[rig]\nroot = {root}\n\n[small]\nkind = test\ndir = doc\nmain = t\noutput = .\n")
@@ -55,6 +60,8 @@ try:
     r = script("audit.py", "--sty", sty)
     if r.returncode or not r.stdout.rstrip().endswith("\n0 FAIL"):
         fail.append("audit.py: " + r.stdout[-500:] + r.stderr[-300:])
+    if os.path.exists(os.path.join(src, "doc", "video.mp4v")) or "NOTE: 1 files over 40 MB" not in r.stdout:
+        fail.append("a file over 40 MB was copied, or audit.py doesn't note it: " + r.stdout[-300:])
     r = script("build.py", "--sty", sty, "--tag", "t", "--jobs", "2", *sum((["--setting", s] for s in SETTINGS), []))
     after = files(src)
     changed = sorted(f for f in before if after.get(f, (None,))[0] != before[f][0])
@@ -71,6 +78,11 @@ try:
     pages = {s: results[s]["pages"] for s in results}
     if len(set(pages.values())) != 1:
         fail.append(f"page counts differ between settings: {pages}")
+    # A snapshot used as root with the same --work: refused, and left as it was.
+    open(conf, "w").write(f"[rig]\nroot = {src}\n\n[small]\nkind = test\ndir = doc\nmain = t\noutput = .\n")
+    r = script("prepare.py")
+    if r.returncode == 0 or not os.path.exists(os.path.join(src, "doc", "t.tex")):
+        fail.append("prepare.py took a root inside its own --work/src: " + r.stdout[-300:] + r.stderr[-300:])
     if fail:
         print("FAIL: " + "\nFAIL: ".join(fail))
     else:

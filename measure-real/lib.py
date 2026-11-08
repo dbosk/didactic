@@ -38,6 +38,11 @@ SETTINGS = {
     # the default break, which ends the page before the line that calls one out.
     "noteoverflow-carry": {"replace": [(r"{\renewcommand\@didactic@noteoverflow{break}}",
                                         r"{\renewcommand\@didactic@noteoverflow{carry}}")]},
+    # One option changed alone, for what would reopen its decision (see the table of
+    # decisions in the documentation).  Not in the default run: --setting NAME.
+    "keeplines-0": {"defaults": {"keeplines": 0}},
+    "keepends-3": {"defaults": {"keepends": 3}},
+    "keepafterheading-3": {"defaults": {"keepafterheading": 3}},
 }
 PAPER = ["keep-off", "keepleadin-off", "current", "pair-1000-10000", "pair-10000-10000",
          "afterheading-1", "estimate-2", "list-rule-off", "list-0", "list-10000", "noteoverflow-carry"]

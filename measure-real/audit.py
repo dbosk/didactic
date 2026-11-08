@@ -29,6 +29,13 @@ def say(level, doc, text):
 
 for d in docs:
     print(f"== {d.name} ({d.kind})")
+    # prepare.py doesn't copy files over 40 MB; a build that needs one fails or changes.
+    skipped = os.path.join(a.work, "src", d.name + ".skipped")
+    if os.path.exists(skipped):
+        big = open(skipped, errors="replace").read().split()
+        if big:
+            say("NOTE", d, f"{len(big)} files over 40 MB weren't copied: " + ", ".join(big[:5])
+                + (" ..." if len(big) > 5 else ""))
     top = os.path.join(a.work, "audit", d.name)
     if os.path.exists(top):
         shutil.rmtree(top)

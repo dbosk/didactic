@@ -374,3 +374,7 @@ test-noteoverflow.pdf
 test-noteoverflow.unq
 test-noteoverflow-*.pdf
 test-noteoverflow-*.unq
+# measure-flow's output: the configurations, the builds, and the copies of the package
+/measure-flow/cfg.json
+/measure-flow/r/
+/v/
