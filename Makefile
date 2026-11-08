@@ -486,12 +486,13 @@ test-oldkernel.pdf: test-oldkernel.tex didactic.sty
 # the preamble:expected penalty:stretch set in the preamble:expected stretch.
 BIBURL_CASES=before:::9000::3em after:::9000::3em \
 	before:biburlpenalty=500::500::3em after:biburlpenalty=0::0::3em \
+	before:biburlpenalty=-5::0::3em \
 	before::100:100::3em after::100:100::3em \
 	before:bibemergencystretch=1em::9000::1em \
 	after:bibemergencystretch=0pt::9000::0pt \
 	before:::9000:2em:2em after:::9000:2em:2em none:::0::
 .PHONY: test-biburl
-test-biburl: test-biburl.tex didactic.sty
+test-biburl: test-biburl.tex didactic.sty test-biburl-overfull.pdf
 	for c in ${BIBURL_CASES}; do \
 	  IFS=:; set -- $$c; unset IFS; ${RM} test-biburl.aux; \
 	  ${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode \
@@ -500,6 +501,18 @@ test-biburl: test-biburl.tex didactic.sty
 	  grep 'didactic biburl test:' test-biburl.log || exit 1; \
 	  ! grep -q 'didactic biburl test:.*FAIL' test-biburl.log || exit 1; \
 	done
+
+# what biburlpenalty is for: a bibliography whose URL and DOI have 90 letters
+# and digits without punctuation is set without an Overfull \hbox; both
+# entries must be there, with their URL and DOI.
+test-biburl-overfull.pdf: test-biburl-overfull.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	biber $(basename $@)
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	! grep -A3 'Overfull .hbox' $(basename $@).log
+	test "$$(grep -c 'entry{' $(basename $@).bbl)" -eq 2
+	pdftotext $@ - | grep -q 'DOI:'
+	pdftotext $@ - | grep -q 'URL:'
 
 VERSION=$(shell sed -En "s/^.*v([0-9]+(\.[0-9]+)+) didactic.*$$/\1/p" didactic.dtx)
 .PHONY: release

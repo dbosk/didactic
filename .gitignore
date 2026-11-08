@@ -380,3 +380,6 @@ test-noteoverflow-*.unq
 /v/
 test-biburl.pdf
 test-biburl.unq
+test-biburl-overfull.pdf
+test-biburl-overfull.unq
+test-biburl-overfull.bib
