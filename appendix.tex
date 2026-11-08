@@ -37,8 +37,10 @@
 ^^A   provenance      : didactic.bib, every entry
 ^^A   mechanism test  : queries/t-pen.py, queries/t-pen-memoir.py (small documents)
 ^^A   measurement     : queries/pen.py, output queries/pen-results.txt (generated documents)
-^^A   chicago manual  : read online through KTH (SOCKS tunnel, curl with a cookie
-^^A                     jar, no credentials); see closed-access.md in backing-claims
+^^A   chicago manual  : read online through a university library's subscription, KTH's:
+^^A                     the library's web pages reached over a SOCKS tunnel from a
+^^A                     machine on its network, with curl keeping the session's cookie,
+^^A                     and no credentials stored anywhere
 ^^A   SECONDARY       : older Chicago editions via mittelbach2018forlorn;
 ^^A                     Bringhurst via izma2023widows;
 ^^A                     Tschichold and Wheildon via wilson2018notes; Wheildon via
@@ -104,6 +106,13 @@ Every query ran on all six databases, with the same keywords, translated into
 each database's field syntax where it needs one (\cref{tab:pb-queries}).
 OpenAlex ranks by relevance and returned far more noise than the others, and
 counts are capped at 60 per database and query.
+A rerun needs \texttt{scholar}, from \url{https://github.com/dbosk/scholarcli}, with
+keys for the databases that ask for one; the exports of each query under
+\texttt{queries/} in the sources, and \texttt{heading-foot-of-page.csv}, are the
+record of what the searches returned, so the counts and labels can be checked without
+running anything.
+The editions of \emph{The Chicago Manual of Style} that are cited were read online,
+through a university library's subscription.
 
 ^^A Longtable, not the guide's sidecaption float: 24 wrapped rows do not fit one
 ^^A page of the article layout, and the fallback sidecaption's caption was lost.
