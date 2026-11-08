@@ -39,10 +39,16 @@ reading whether the paragraph before it really leads into it.
 
 **Keep a snapshot.** A snapshot keeps numbers comparable. A rerun from sources that
 have moved mixes document changes with package changes, and the audit shows that
-only as another word count. So after the first `prepare.py`, keep `src/` outside any
-temporary directory, and give each document a `root` pointing at its copy, such as
-`root = /path/to/snapshot/src/notes-1`. A document's last build at source may also
+only as another word count. So after the first `prepare.py`, keep its `--work`'s `src/`
+outside any temporary directory as the snapshot, and give each document a `root`
+pointing at its copy, such as `root = /path/to/snapshot/src/notes-1`. Then run
+`prepare.py` again, into another `--work`: the builds read only `--work/src`, so a
+change of roots takes effect only through `prepare.py`, and since it replaces
+`--work/src`, it refuses a root inside it. A document's last build at source may also
 be cleaned, and then `prepare.py` refuses it.
+
+`prepare.py` doesn't copy files over 40 MB, such as videos, which no build should read.
+It lists them in `--work/src/NAME.skipped`, and `audit.py` notes them.
 
 For build time, `timing.py --sty old=PATH --sty new=PATH --doc NAME --generated 3000`
 times passes in turn with two versions. Run nothing else of yours meanwhile.
