@@ -19,7 +19,7 @@ TEST_KEEP_NOWEB=	test-keep-filbreak test-keep-breakcode \
 TEST_KEEP_SMALL=	test-keep-style test-keep-columns test-keep-guard \
 			test-keep-pagereset test-keep-nofiles test-keep-nofiles0 test-keep-box \
 			test-keep-addvspace test-keep-club test-keep-club-article
-TEST_NOTEOVERFLOW=	test-noteoverflow test-noteoverflow-carry \
+TEST_NOTEOVERFLOW=	test-noteoverflow test-noteoverflow-lua test-noteoverflow-carry \
 			test-noteoverflow-draft test-noteoverflow-draftbreak \
 			test-noteoverflow-xe test-noteoverflow-old
 # The order of float numbers, from the pages the floats end up on.
@@ -429,10 +429,12 @@ test-keep-stale.pdf: test-keep-stale.tex test-keep-stale.sh didactic.sty
 	sh test-keep-stale.sh "${PDFLATEX} ${LATEXFLAGS}"
 
 # noteoverflow.  break needs pdfTeX or LuaTeX, so these name the engine, except
-# test-noteoverflow-xe, which is about the engine that can't.
+# test-noteoverflow-xe, which is about the engine that can't; test-noteoverflow-lua
+# is test-noteoverflow under LuaLaTeX.
 NOTEOVERFLOW_SRC=	test-noteoverflow-contents.tex didactic.sty
 test-noteoverflow.pdf test-noteoverflow-carry.pdf test-noteoverflow-draft.pdf \
 		test-noteoverflow-draftbreak.pdf: PDFLATEX=pdflatex
+test-noteoverflow-lua.pdf: PDFLATEX=lualatex
 define settle_many
 for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do \
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $< || exit 1; \
@@ -440,7 +442,8 @@ for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do \
 done; echo "$<: references did not settle"; exit 1
 endef
 count_spill=$$(grep -c 'marginfix-spill.*$(1)' $(basename $@).log)
-test-noteoverflow.pdf test-noteoverflow-draftbreak.pdf: %.pdf: %.tex ${NOTEOVERFLOW_SRC}
+test-noteoverflow.pdf test-noteoverflow-lua.pdf test-noteoverflow-draftbreak.pdf: %.pdf: %.tex \
+		${NOTEOVERFLOW_SRC}
 	@${settle_many}
 	! grep '^!' $*.log
 	test "$$(grep -c 'marginfix-spill' $*.log)" -eq 0
