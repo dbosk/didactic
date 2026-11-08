@@ -113,25 +113,5 @@ setting gives a result and that no file of the prepared copy changes.
 
 ## The generated literate programs
 
-The rows on generated documents in that appendix are from `measure-flow/`, which
-needs no documents of yours. From the repository's root, after `make didactic.sty`:
-
-    mkdir -p v/current && cp didactic.sty v/current/
-    cd measure-flow && python3 cfgmake.py
-    ./run.sh none no; ./run.sh bc no; ./run.sh mintp no           # plain
-    ./run.sh n current; ./run.sh nn current; ./run.sh m current   # the package
-    python3 stats.py none bc mintp n nn m
-    python3 pages.py none bc mintp n nn m                         # pages per document
-
-The names are in `cfgmake.py`: `n` is breakcode, `nn` no option, `m` minted chunks.
-`nK` and `mK` are for a copy of the package without its `\let\nwdocspar\relax`, in
-`v/kept/`: `sed 's/\\let\\nwdocspar\\relax/\\relax/' didactic.sty`. `nD` and `mD` are the
-limit off with that break dropped.
-`nA`, `nB`, `nW`, and `mA`, `mB`, `mW` are the pairs 1000/10000, 10000/10000 and
-1000/1001, which tells lone last lines from first ones. `queries/pen.py` is the same
-comparison with no package, also from the root: `python3 queries/pen.py EMPTYDIR 300`.
-
-The appendix takes a flow's pages from `pages.py`, every page of its 12 documents.
-`stats.py` leaves out each document's last page, which ends by itself and so says
-nothing of a break, and counts empty space on the rest: it prints `pages=198` where the
-table says 210.
+The rows on generated documents in that appendix are from `measure-flow/`, which needs
+no documents of yours; `measure-flow/README.md` says how to run it.
