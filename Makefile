@@ -1,5 +1,5 @@
 LATEX?=latex
-PDFLATEX?=xelatex -pdf
+PDFLATEX?=xelatex
 LATEXFLAGS=-shell-escape
 PYTHONTEX=python3 $(shell which pythontex) --interpreter python:python3
 
@@ -228,7 +228,8 @@ endef
 # listings kept together across pages.  The document checks its pages itself
 # and logs PASS or FAIL for each check, and a last line if it got there.  A
 # failed test leaves no PDF, only the log (.DELETE_ON_ERROR), so that the next
-# make doesn't call it up to date.
+# make doesn't call it up to date.  Like test-run, the first pass fails on the
+# missing pythontex output, and make ignores that (-); the passes after it don't.
 test-keep.pdf: test-keep.tex didactic.sty
 	-${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	${PYTHONTEX} test-keep
