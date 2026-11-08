@@ -19,10 +19,10 @@
 %<*driver>
 \ProvidesFile{didactic.dtx}
 %</driver>
-%<package>\NeedsTeXFormat{LaTeX2e}
+%<package>\NeedsTeXFormat{LaTeX2e}[2020/10/01]
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/10/11 v2.11.1 didactic]
+  [2026/10/18 v2.12 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -145,6 +145,21 @@
 %   when it's loaded.
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
+% }
+% \changes{v2.12}{2026/10/18}{%
+%   \texttt{marginfigure} and \texttt{margintable} work in a source shared with
+%   the slides: ordinary floats in \texttt{beamer} and without \texttt{memoir};
+%   in \texttt{memoir}
+%   they no longer end the paragraph or start a new page when a float is 
+%   waiting, aren't raised by 1.2\,ex, and add no space to the text.
+%   Margin tables are set ragged like margin figures.
+% }
+% \changes{v2.12}{2026/10/18}{%
+%   Adds the option \texttt{marginfloatorder}: with \texttt{beside}, the 
+%   default, a margin float stays beside its text; \texttt{inorder} keeps the 
+%   order of the numbers, as \textsf{memoir} does.
+%   At the end of a run, a warning names any float whose number is out of page 
+%   order, of any kind.
 % }
 % \changes{v2.11.1}{2026/10/11}{%
 %   |\textbytext| fits its line: it was 13 to 17\,pt too wide, which with 
@@ -506,6 +521,93 @@
 % |use| isn't the default; choose it when you know your bottom floats, or 
 % mark the ones that reach out.
 % Floats at the top of the page always keep the margin empty.
+%
+% \subsection{Figures and tables in the margin}
+%
+% \DescribeEnv{marginfigure}
+% \DescribeEnv{margintable}
+% A small figure or table can go in the margin of the notes, beside the text
+% that discusses it, with its caption under it.
+% |memoir| has the environments |marginfigure| and |margintable| for this,
+% and we make them work in a source shared with the slides:
+% \begin{description}
+% \item[In the notes] (|memoir|) the float is a |\marginpar|, so
+%   \textsf{marginfix} places it with the margin notes, in the order in which
+%   they stand in the text.
+%   It is set ragged, like the notes, and its caption is numbered with the
+%   other figures or tables, so |\cref| refers to it as to any figure or
+%   table.
+% \item[On the slides] (|beamer|) it is an ordinary |figure| or |table|,
+%   centred, with its caption.
+% \item[Elsewhere] (another class, without |beamer|) it is an ordinary
+%   float.
+% \end{description}
+% For instance, in the notes the following frame puts the picture in the
+% margin, beside the sentence, and on the slide it puts the picture under
+% the sentence.
+% \inputminted[linenos]{latex}{marginfloats.tex}
+% In the notes |\linewidth| is the width of the margin, and on the slides 
+% it's the width of the frame, so a picture needs a height too, as here, 
+% or it fills the slide.
+%
+% Write the environment where the float belongs: before the paragraph that
+% discusses it, as above, or inside the paragraph, where you would write a
+% |\marginpar|.
+% Before the paragraph, the top of the float is level with the paragraph's
+% first line; inside it, the float hangs from the line where it stands.
+% Like |\marginpar|, the environment adds no space to the text: a space
+% before it and one after it leave one space between the words around it.
+% In a frame that is only on the slides (|\begin{frame}<presentation>|), the
+% float has no effect on the notes: it isn't set and takes no number, and a
+% |\label| in it is undefined there.
+%
+% We change two things in |memoir|'s environments.
+% |memoir| ends the paragraph at a margin float and, whenever an ordinary
+% float is still waiting to be placed, starts a new page
+% (|\FloatBlock|), to keep the figures in the order of their numbers.
+% In notes with many figures, that leaves pages half empty.
+%
+% \DescribeOpt{marginfloatorder}
+% The option |marginfloatorder| says which of the two you get:
+% \begin{description}
+% \item[beside] (the default) The margin float stays beside its text: the
+%   paragraph goes on and no page ends.
+%   A figure that is still waiting may then come on a later page with a lower
+%   number, so the numbers can come out of page order.
+%   The warning described below says when they did.
+% \item[inorder] The numbers stay in page order, as in |memoir|: the
+%   environment ends the paragraph, and starts a new page when an ordinary
+%   float is waiting, also one for the bottom of the current page.
+%   The price is that half-empty page.
+% \end{description}
+% To keep the order for one float, write |\FloatBlock| before the environment
+% with |beside|.
+%
+% Whatever the option, at the end of each run we compare the pages where the
+% captions ended up, for all floats of each kind (figures, tables, a float type
+% of your own) and not only for margin floats.
+% A caption on a later page than one numbered after it gives one warning, which
+% names both numbers, both pages and both input lines; numbers on the same page
+% don't count.
+% That also covers a margin float that \textsf{marginfix} moves on to the next
+% page, and a figure with |[H]| that overtakes one that waits.
+% The warning takes no extra run, since it reads what the same run wrote; it does
+% mean that it can appear in a run where the pages aren't final yet, so only
+% believe the one from the last run.
+% We see a caption when it goes into its list (|\addcontentsline|), so a caption
+% that doesn't (|\captionsetup{list=no}| from the package \textsf{caption}) isn't
+% compared, and neither is anything under |\nofiles|, which writes no \texttt{.aux}.
+% It stays on in a draft, as it costs next to nothing.
+% On the slides (the class |beamer|) floats don't move, so there is nothing to
+% check.
+%
+% |memoir| also raises a margin float by 1.2\,ex, which pushes it into the
+% space between it and a margin note above it, so that the two touch; ours
+% isn't raised.
+% The optional argument still sets the offset:
+% |\begin{marginfigure}[-1.2ex]| is |memoir|'s; on the slides it's ignored.
+% As with the notes, when the margin is full, \textsf{marginfix} moves the
+% float on to the next page.
 %
 % \subsection{Tools for code examples}
 %
@@ -968,6 +1070,17 @@
 %    \end{macrocode}
 % \end{option}
 %
+% \begin{option}{marginfloatorder}
+% The |marginfloatorder| option chooses between a margin float beside its text
+% (|beside|, the default) and figure numbers in page order (|inorder|), see
+% below.
+%    \begin{macrocode}
+\newcommand\@didactic@marginfloatorder{beside}
+\DeclareOptionX{marginfloatorder}{%
+  \renewcommand\@didactic@marginfloatorder{#1}}
+%    \end{macrocode}
+% \end{option}
+%
 % \begin{option}{sidecapalign}
 % The |sidecapalign| option says where the contents of a float with a side 
 % caption go, see below.
@@ -1117,8 +1230,11 @@
 \setmpjustification{\RaggedRight}{\RaggedRight}
 % margin figure and caption typeset ragged against text block.
 % from the memman page 175.
-\setfloatadjustment{marginfigure}{\mpjustification}
+% Unlike the notes, not indented: a table under its caption would be.
+\setfloatadjustment{marginfigure}{\mpjustification\parindent\z@}
 \setmarginfloatcaptionadjustment{figure}{\captionstyle{\mpjustification}}
+\setfloatadjustment{margintable}{\mpjustification\parindent\z@}
+\setmarginfloatcaptionadjustment{table}{\captionstyle{\mpjustification}}
 
 \renewcommand{\sidefootform}{\mpjustification}
 \fi % we want this to exist even when not using memoir,
@@ -1837,6 +1953,238 @@
 }
 %    \end{macrocode}
 % \end{macro}
+%
+% \subsection{Margin floats in the notes and on the slides}
+%
+% \begin{environment}{marginfigure}
+% \begin{environment}{margintable}
+% We keep |memoir|'s names for the margin floats instead of adding our own.
+% New names would leave |memoir|'s environments as they are, but then a
+% deck would have two names for the same thing, and a source written for
+% |memoir| would have to be changed to work on the slides.
+% With |memoir|'s names, the notes, the slides and a plain |memoir| document
+% read the same.
+% The price is that we change |memoir|'s environments when |memoir| is
+% customized, as the user documentation says.
+%
+% |memoir| builds both on its internal environment |mem@margin@float|,
+% which takes the offset and the float type, sets the contents in a box as
+% wide as the margin and gives that box to |\marginpar|
+% (|\marginfloatmarginmacro|), which \textsf{marginfix} has redefined.
+% It starts with |\FloatBlock|, which ends the paragraph and, when an
+% ordinary float is waiting, starts a new page.
+% We make |\FloatBlock| do nothing inside our environments, after asking the
+% option |marginfloatorder| what to do about the order of the floats, and we
+% make the offset 0\,pt by default instead of $-1.2$\,ex.
+% The offset is the vertical space at the top of the box, after an empty
+% |\hbox| that is aligned with the anchor.
+% \textsf{marginfix} keeps the boxes in the margin from overlapping, so a
+% box that starts right under a note is set |\marginparpush| below it; a
+% negative offset then moves the contents back up into that space.
+% With 0\,pt, the contents start at the top of their box.
+% Since the environment no longer ends the paragraph, it may stand inside
+% one, and there it should add no space to the text, as |\marginpar|
+% doesn't.
+% |\marginpar| uses LaTeX's |\@bsphack| and |\@esphack| for this, but its
+% |\@esphack| runs inside the environment, where there are no spaces to
+% ignore.
+% So we do |\@bsphack| ourselves when the environment begins, and at the
+% end, when there was a space before it, we ignore the spaces after the
+% environment (|\ignorespacesafterend|).
+% |\@bsphack| sets |\@savsk| locally, and |\marginpar|'s own |\@bsphack|
+% happens in the group of |mem@margin@float|, so ours is intact at the end.
+%
+% In the notes, a frame that isn't there (|\begin{frame}<presentation>|) is
+% typeset all the same, in a box that |beamer| throws away.
+% Inside it, a |\marginpar| goes wrong in two ways: between paragraphs, where the
+% box counts as inner mode, it fails with an undefined |\@marbox|, and in a
+% paragraph, where it doesn't, it takes float boxes that never come back, so
+% \LaTeX\ reports lost floats and other floats are lost in fact.
+% So we don't give the box to |\marginpar| in such a frame, and we take the
+% number back, since nothing in the notes will show it.
+% The order of the floats doesn't matter there either, and |\FloatBlock| would
+% end a page from inside the box.
+%    \begin{macrocode}
+\newcommand\@didactic@ifhiddenframe{%
+  \@tempswafalse
+  \@ifundefined{beamer@donoframe}{}{%
+    \ifbeamer@inframe
+      \ifx\beamer@howtotreatframe\beamer@donoframe\@tempswatrue\fi
+    \fi}%
+  \if@tempswa\expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
+\newcommand\@didactic@aftermarginfloat{}
+\newcommand\@didactic@marginfloat[2]{%
+  \@didactic@ifhiddenframe
+    {\let\marginfloatmarginmacro\@gobble
+     \edef\@didactic@aftermarginfloat{%
+       \noexpand\setcounter{#2}{\the\value{#2}}}}%
+    {\@didactic@marginfloatorder@check{#2}}%
+  \@bsphack
+  \let\FloatBlock\relax
+  \begin{mem@margin@float}[#1]{#2}}
+\newcommand\@didactic@endmarginfloat{%
+  \end{mem@margin@float}%
+  \@didactic@aftermarginfloat
+  \relax\ifhmode
+    \spacefactor\@savsf
+    \ifdim\@savsk>\z@\ignorespacesafterend\fi
+  \fi}
+%    \end{macrocode}
+% With |inorder| we simply do what |memoir| does, before |\@bsphack|, so that
+% the environment starts between paragraphs and there is no space to save.
+% With |beside| we do nothing here, and the comparison below reports the outcome.
+%    \begin{macrocode}
+\newcommand\@didactic@blockfloatorder[1]{\FloatBlock}
+\IfStrEqCase{\@didactic@marginfloatorder}{%
+  {beside}{\let\@didactic@marginfloatorder@check\@gobble}%
+  {inorder}{\let\@didactic@marginfloatorder@check\@didactic@blockfloatorder}%
+}[\PackageError{didactic}{%
+    Unknown value `\@didactic@marginfloatorder'\MessageBreak
+    for marginfloatorder}{Use beside or inorder.}%
+  \let\@didactic@marginfloatorder@check\@gobble]
+%    \end{macrocode}
+% We only change |memoir|'s environments when we customize |memoir|, and
+% only if they are built as we expect.
+%    \begin{macrocode}
+\if@didactic@memoir
+\@ifundefined{mem@margin@float}{%
+  \PackageWarningNoLine{didactic}{%
+    Can't find memoir's margin floats; marginfigure\MessageBreak
+    and margintable stay as memoir defines them}%
+}{%
+  \renewenvironment{marginfigure}[1][0pt]
+    {\@didactic@marginfloat{#1}{figure}}
+    {\@didactic@endmarginfloat}%
+  \renewenvironment{margintable}[1][0pt]
+    {\@didactic@marginfloat{#1}{table}}
+    {\@didactic@endmarginfloat}%
+}
+\fi
+%    \end{macrocode}
+% Without |memoir|, there is no margin to put the float in, so the
+% environments make an ordinary float: on the slides a |figure| or |table|
+% in the frame, elsewhere one that floats.
+% We centre the contents, since a margin float is usually narrower than the
+% text.
+% The optional argument, the offset, has no use there and is ignored.
+% If the environments already exist, from |memoir| (with |nomemoir|) or
+% another package, we leave them.
+%    \begin{macrocode}
+\ProvideDocumentEnvironment{marginfigure}{o}
+  {\begin{figure}\centering}{\end{figure}}
+\ProvideDocumentEnvironment{margintable}{o}
+  {\begin{table}\centering}{\end{table}}
+%    \end{macrocode}
+%
+% Then the order of the numbers.
+% We can't tell from the state of \LaTeX\ when a float starts whether its number
+% will come out of page order: a float earlier in the same paragraph isn't in
+% any list yet, and \textsf{marginfix} can move a margin float later.
+% So we look at the outcome: where each caption was shipped out.
+%
+% |\addcontentsline| is where we see a caption, since every way of making one
+% comes through it with the name of the counter: the kernel, |memoir| with its
+% side captions, \textsf{hyperref}, \textsf{float}'s own captions and
+% \textsf{longtable}.
+% |\@caption| doesn't do for the last two, and |\refstepcounter| doesn't do for
+% \textsf{longtable} and has an optional argument with \textsf{cleveref}.
+% Next to the entry for the list, in the same box, we write a line to the
+% \texttt{.aux} with the counter, a running number for the order in which the
+% numbers were given, the number as printed, and the input line, all expanded now,
+% and the page, printed and absolute, expanded when the page is shipped out.
+% The running number is what makes a counter that starts over in each chapter
+% harmless, and the absolute page a page number that starts over.
+% A frame that isn't there (|\begin{frame}<presentation>|) ends in a box that is
+% thrown away, and this line with it.
+%
+% The line goes to the main \texttt{.aux} even in a file of |\include|.
+% With |\includeonly|, the \texttt{.aux} of a chapter left out is what an
+% earlier run wrote, and it is read too; its running numbers and pages would
+% be compared with this run's and give false warnings.
+% The main \texttt{.aux} holds this run and nothing else.
+%    \begin{macrocode}
+\newcount\@didactic@floatseq
+\newcommand\@didactic@floatrec[6]{}
+\newcommand\@didactic@recordfloat[2]{%
+  \if@filesw
+    \edef\@didactic@tmp{#1}\def\@didactic@tmpb{toc}%
+    \ifx\@didactic@tmp\@didactic@tmpb\else
+      \@ifundefined{c@#2}{}{%
+        \global\advance\@didactic@floatseq\@ne
+        \protected@write\@mainaux{}{%
+          \string\@didactic@floatrec{#2}{\the\@didactic@floatseq}%
+          {\csname the#2\endcsname}{\thepage}%
+          {\noexpand\the\ReadonlyShipoutCounter}{\the\inputlineno}}%
+      }%
+    \fi
+  \fi}
+\newcommand\@didactic@contentsline[2]{%
+  \@didactic@recordfloat{#1}{#2}%
+  \@didactic@addcontentsline{#1}{#2}}
+\newcommand\@didactic@recordfloats{%
+  \if@filesw
+    \immediate\write\@mainaux{%
+      \string\providecommand\string\@didactic@floatrec[6]{}}%
+  \fi
+  \let\@didactic@addcontentsline\addcontentsline
+  \let\addcontentsline\@didactic@contentsline}
+%    \end{macrocode}
+% \LaTeX\ reads the \texttt{.aux} at the start of the document, where the lines
+% do nothing, and again at the end, after the last page, where they are compared.
+% That reading is of what this run wrote, so it takes no extra run, and it
+% changes nothing that \LaTeX\ compares to ask for one.
+%
+% The lines are in the order of the pages.
+% For each counter we keep the highest running number of the page we're on and the
+% highest one of the pages before it.
+% A caption with a lower running number than that last one has been overtaken; a
+% lower running number on the same page doesn't count.
+%    \begin{macrocode}
+\newcommand\@didactic@fo[2]{\csname @didactic@fo@#1@#2\endcsname}
+\newcommand\@didactic@foset[3]{%
+  \expandafter\gdef\csname @didactic@fo@#1@#2\endcsname{#3}}
+\newcommand\@didactic@focopy[3]{%
+  \expandafter\global\expandafter\let\csname @didactic@fo@#1@#2\expandafter
+    \endcsname\csname @didactic@fo@#1@#3\endcsname}
+\newcommand\@didactic@floatcheck[6]{%
+  \@ifundefined{@didactic@fo@#1@abspage}{%
+    \@didactic@foset{#1}{abspage}{#5}%
+    \@didactic@foset{#1}{curseq}{0}%
+    \@didactic@foset{#1}{prevseq}{0}%
+  }{}%
+  \ifnum#5>\@didactic@fo{#1}{abspage}\relax
+    \ifnum\@didactic@fo{#1}{curseq}>\@didactic@fo{#1}{prevseq}\relax
+      \@didactic@focopy{#1}{prevseq}{curseq}%
+      \@didactic@focopy{#1}{prevnum}{curnum}%
+      \@didactic@focopy{#1}{prevpage}{curpage}%
+      \@didactic@focopy{#1}{prevline}{curline}%
+    \fi
+    \@didactic@foset{#1}{abspage}{#5}%
+    \@didactic@foset{#1}{curseq}{0}%
+  \fi
+  \ifnum#2<\@didactic@fo{#1}{prevseq}\relax
+    \PackageWarningNoLine{didactic}{%
+      #1 #3 on page #4 comes after #1 \@didactic@fo{#1}{prevnum}
+      on page \@didactic@fo{#1}{prevpage}:\MessageBreak
+      the numbers are out of page order (captions at input\MessageBreak
+      lines #6 and \@didactic@fo{#1}{prevline}).
+      marginfloatorder=inorder or\MessageBreak
+      \string\FloatBlock\space before the later number keeps the order}%
+  \fi
+  \ifnum#2>\@didactic@fo{#1}{curseq}\relax
+    \@didactic@foset{#1}{curseq}{#2}%
+    \@didactic@foset{#1}{curnum}{#3}%
+    \@didactic@foset{#1}{curpage}{#4}%
+    \@didactic@foset{#1}{curline}{#6}%
+  \fi}
+\@ifclassloaded{beamer}{}{%
+  \AddToHook{begindocument/end}{\@didactic@recordfloats}%
+  \AddToHook{enddocument/afterlastpage}{%
+    \let\@didactic@floatrec\@didactic@floatcheck}%
+}
+%    \end{macrocode}
+% \end{environment}
+% \end{environment}
 %
 %
 % \subsection{More semantic environments}

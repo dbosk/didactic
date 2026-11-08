@@ -1,0 +1,41 @@
+% Test of the order of float numbers (didactic): other kinds of float and caption
+% than \caption in a figure.  Each waits on a page of its own while one with a
+% higher number stays where it is, so that each gives a warning if it was seen.
+%
+% Build: see the Makefile.
+%
+% Expected in the log: a warning for each counter, naming both numbers and pages:
+%   1  figure: SIDELATE, with a side caption, after MARGINONE in the margin.
+%   2  listing, a float type of minted's: LISTLATE after LISTHERE, which is [H].
+%   3  table: TABLATE after TABHERE, which is [H] from the package float.
+\documentclass[a4paper]{memoir}
+\usepackage{float}
+\usepackage{lipsum}
+\usepackage{didactic}
+\begin{document}
+\begin{figure}[p]
+  \begin{sidecaption}{SIDELATE}
+    \rule{4cm}{4cm}
+  \end{sidecaption}
+\end{figure}
+Figures. \lipsum[1][1-3]
+\begin{marginfigure}\rule{2cm}{5mm}\caption{MARGINONE}\end{marginfigure}
+\clearpage
+\begin{listing}[p]
+  \centering\rule{4cm}{4cm}\caption{LISTLATE}
+\end{listing}
+Listings. \lipsum[2][1-3]
+\begin{listing}[H]
+  \centering\rule{2cm}{5mm}\caption{LISTHERE}
+\end{listing}
+\clearpage
+\begin{table}[p]
+  \centering\rule{4cm}{4cm}\caption{TABLATE}
+\end{table}
+Tables. \lipsum[3][1-3]
+\begin{table}[H]
+  \centering\rule{2cm}{5mm}\caption{TABHERE}
+\end{table}
+\clearpage
+End.
+\end{document}
