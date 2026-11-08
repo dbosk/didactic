@@ -1,0 +1,25 @@
+% Test of a listing with one wrapped line taller than a page (didactic): a page can't
+% break within a line, so what doesn't fit is lost, and the warning must say so,
+% not that the listing may break.
+%
+% Build: see the Makefile, which looks for the warning about the line, with the
+% line of this file it's on, and no "may break".
+\documentclass[a4paper,oneside]{memoir}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\makeatletter
+\newwrite\@huge@out
+\newcount\@huge@i
+\immediate\openout\@huge@out=\jobname-h.txt
+\def\@huge@line{}
+\@whilenum\@huge@i<2500\do{\advance\@huge@i\@ne
+  \edef\@huge@line{\@huge@line word }}
+\immediate\write\@huge@out{\@huge@line}
+\immediate\closeout\@huge@out
+\makeatother
+\begin{document}
+Lead-in to one line taller than a page:
+\VerbatimInput[breaklines]{\jobname-h.txt}
+Text after.
+\end{document}

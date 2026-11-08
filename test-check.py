@@ -311,6 +311,168 @@ def marginfloat_include_all(c):
     c.clean_log(order=[("figure", "2.2", "7", "2.3", "6")])
 
 
+def warnings(c):
+    """The warnings from didactic in the log, each on one line."""
+    found = re.findall(r"Package didactic Warning: (.*?)\n\n", c.log, re.S)
+    return [re.sub(r"\s*\n\(didactic\)\s+", " ", w) for w in found]
+
+
+def keep_results(c, tag):
+    """Which line each case is on, and the warnings naming a line."""
+    return {n: int(l) for n, l in
+            re.findall(tag + r" case (\w+) line (\d+)", c.log)}
+
+
+def keep_leadin(c):
+    """test-keep-leadin.tex: warnings against the pages of the labels."""
+    lines = keep_results(c, "leadin")
+    pages = {n: (int(a), int(b)) for n, a, b in re.findall(
+        r"leadin result (\w+) lead=(\d+)\s+first=(\d+)", c.log)}
+    c.ok(len(pages) >= 24 and set(pages) == set(lines),
+         f"results for all cases: {sorted(set(pages) ^ set(lines))}, "
+         f"{len(pages)} of them")
+    # What is asked for, or isn't a lead-in: different pages, and no warning.
+    asked = {"g", "x", "y", "t", "o", "gc", "sm", "ma", "sc", "mc", "bc", "fc", "pa"}
+    # Cases where the lead-in and the first line must be parted; if a change of
+    # layout parts them no more, the case tests nothing, and that should show.
+    for n in (list("mnfhsbruljipw") + ["fr", "ee", "pc", "ca", "qu", "fl", "aw",
+                                       "it", "fw", "pr", "pe", "ga"]
+              + (["k"] if "k" in pages else [])):
+        c.ok(pages[n][0] < pages[n][1], f"case {n} is on two pages: {pages[n]}")
+    for n in asked:
+        c.ok(pages[n][0] < pages[n][1], f"case {n} is on two pages: {pages[n]}")
+    for n in ("c", "a", "d", "q", "e", "z", "v", "qb", "fs", "hh", "vz"):
+        c.ok(pages[n][0] == pages[n][1], f"case {n} is on one page: {pages[n]}")
+    found = {}
+    for w in warnings(c):
+        if "apart from what leads" in w:
+            m = re.search(r"starts page (\d+).*input line (\d+)", w)
+            found[int(m.group(2))] = int(m.group(1))
+    for n, line in sorted(lines.items()):
+        parted = pages[n][0] < pages[n][1] and n not in asked
+        c.ok((line in found) == parted,
+             f"case {n}, line {line}, pages {pages[n]}: "
+             f"{'a' if line in found else 'no'} warning")
+        if parted and line in found:
+            c.ok(found[line] == pages[n][1],
+                 f"case {n} names page {found[line]}, it is on {pages[n][1]}")
+    c.ok(not set(found) - set(lines.values()),
+         f"no warning elsewhere: {sorted(set(found) - set(lines.values()))}")
+
+
+def keep_leadin_off(c):
+    """test-keep-leadin-off.tex: nothing of this from what was turned off."""
+    pages = re.findall(r"leadin result (\w+) lead=(\d+)\s+first=(\d+)", c.log)
+    c.ok(any(int(a) < int(b) for _, a, b in pages),
+         "some lead-in and listing are on different pages")
+    w = [w for w in warnings(c) if "apart from what leads" in w]
+    c.ok(not w, f"no warning about a lead-in: {w}")
+
+
+def keep_overfull(c):
+    """test-keep-overfull.tex: the warning names the line and the full page."""
+    lines = keep_results(c, "overfull")
+    pages = {n: int(p) for n, p in
+             re.findall(r"overfull result (\w+) page=(\d+)", c.log)}
+    found = {}
+    for w in warnings(c):
+        if "doesn't fit" in w:
+            m = re.search(r"page (\d+) is overfull.*input line (\d+)", w)
+            c.ok(m, f"names a page and a line: {w}")
+            if m:
+                found[int(m.group(2))] = int(m.group(1))
+    for n in "veltpf":
+        c.ok(lines[n] in found, f"case {n}, line {lines[n]}, warns")
+        c.ok(found.get(lines[n]) == pages[n],
+             f"case {n} names page {found.get(lines[n])}, it is on {pages[n]}")
+    c.ok(lines["c"] not in found, "the control doesn't warn")
+    # All cases but P, whose depth gives no message: see the header.
+    n = len(re.findall(r"Overfull \\vbox", c.log))
+    c.ok(n == 5 and len(found) == 6, f"{n} overfull pages, {len(found)} warnings")
+
+
+def keep_twocol(c):
+    """test-keep-twocol.tex; a page isn't shipped out after the first column."""
+    lines = keep_results(c, "twocol")
+    w = [x for x in warnings(c) if "apart from what leads" in x]
+    c.ok(any(f"input line {lines['m']}" in x for x in w), f"case m warns: {w}")
+    c.ok(not any(f"input line {lines['c']}" in x for x in w), "case c doesn't")
+    o = [x for x in warnings(c) if "doesn't fit" in x and f"input line {lines['o']}" in x]
+    page = c.one("LEADO")["page"]
+    c.ok(len(o) == 1 and f"page {page} is overfull" in o[0], f"case o names page {page}: {o}")
+    r = [x for x in warnings(c) if "doesn't fit" in x and f"input line {lines['r']}" in x]
+    page = c.one("LEADR")["page"]
+    c.ok(len(r) == 1 and f"page {page} is overfull" in r[0], f"case r names page {page}: {r}")
+    t = [x for x in warnings(c) if "doesn't fit" in x and f"input line {lines['t']}" in x]
+    page = c.one("LEADT")["page"]
+    c.ok(len(t) == 1 and f"page {page} is overfull" in t[0], f"case t names page {page}: {t}")
+    c.ok(c.one("LEADM")["xmin"] < 200 and c.one("LISTM")["xmin"] > 200,
+         "LISTM starts the second column, away from LEADM")
+
+
+def keep_noweb(c):
+    """test-keep-noweb.tex and -break: warnings against the pages of the words."""
+    lines = keep_results(c, "noweb")
+    c.ok(len(lines) == 16, f"16 cases, has {len(lines)}")
+    apart, full = {}, {}
+    for w in warnings(c):
+        m = re.search(r"input line (\d+)", w)
+        if "apart from what leads" in w:
+            apart[int(m.group(1))] = int(re.search(r"starts page (\d+)", w).group(1))
+        elif "doesn't fit" in w:
+            full[int(m.group(1))] = w
+    asked = {"g", "y"}
+    for n, line in sorted(lines.items()):
+        lead, code = c.one("LEAD" + n.upper()), c.one("CODE" + n.upper())
+        two = lead["page"] < code["page"]
+        if n in "mnfsuhz" or n in asked:
+            c.ok(two, f"case {n} is on two pages")
+        if n in "qare":
+            c.ok(not two, f"case {n} is on one page")
+        if n in "tc":
+            continue
+        c.ok((line in apart) == (two and n not in asked),
+             f"case {n}, line {line}: {'a' if line in apart else 'no'} warning")
+        if line in apart:
+            c.ok(apart[line] == code["page"],
+                 f"case {n} names page {apart[line]}, it is on {code['page']}")
+    w = [x for x in warnings(c) if "in multicols" in x]
+    c.ok(len(w) == 1 and f"input line {lines['c']}" in w[0], f"case c warns: {w}")
+    c.ok(lines["t"] in full, f"case t warns that it doesn't fit: {sorted(full)}")
+    c.ok(set(full) == {lines["t"]}, f"nothing else doesn't fit: {sorted(full)}")
+    c.ok(not set(apart) - set(lines.values()), "no warning elsewhere")
+
+
+def keep_first(c):
+    """test-keep-first.tex; see its header."""
+    c.ok(c.one("FIRSTLINE")["page"] == 1, "the listing is on page 1")
+    c.ok(not warnings(c), f"no warning: {warnings(c)}")
+
+
+def keep_multicol(c):
+    """test-keep-multicol.tex; see its header."""
+    lines = keep_results(c, "multicol")
+    c.ok(not re.search(r"Overfull \\vbox", c.log), "no Overfull \\vbox")
+    w = [x for x in warnings(c) if "multicols" in x]
+    c.ok(not [x for x in warnings(c) if "too tall" in x], "nothing is too tall")
+    for n in ("a", "b", "p", "pl", "tl", "s"):
+        c.ok(sum(f"input line {lines[n]}" in x for x in w) == 1,
+             f"case {n}, line {lines[n]}, warns once")
+    c.ok(len(w) == 6, f"six warnings about multicols, has {len(w)}: {w}")
+    for lead, first in (("LEADA", "alpha"), ("LEADB", "beta")):
+        # In its own column, it's above it with no stretch; in the next one, it's
+        # at the top of it.
+        a, b = c.one(lead), c.words(first)[0]
+        gap = b["ymin"] - a["ymax"]
+        if abs(a["xmin"] - b["xmin"]) < 50:
+            c.ok(-1 < gap < 40, f"{lead} is right above its listing: {gap:.0f}pt")
+        else:
+            c.ok(b["ymin"] < a["ymin"], f"{first} starts the next column")
+    c.ok(len(c.words("gamma")) == 20, "the listing after the columns is there")
+    gam = c.words("gamma")
+    c.ok(gam[0]["page"] == gam[-1]["page"], "the one after them is kept")
+
+
 def marginfloat_hidden(c):
     """test-marginfloat-hidden.tex; the numbers are those of its header."""
     c.clean_log()                                    # 1
@@ -480,6 +642,14 @@ CHECKS = {
     "test-marginfloat-kinds": marginfloat_kinds,
     "test-marginfloat-article": marginfloat_article,
     "test-marginfloat-hidden": marginfloat_hidden,
+    "test-keep-leadin": keep_leadin,
+    "test-keep-leadin-off": keep_leadin_off,
+    "test-keep-overfull": keep_overfull,
+    "test-keep-multicol": keep_multicol,
+    "test-keep-twocol": keep_twocol,
+    "test-keep-first": keep_first,
+    "test-keep-noweb": keep_noweb,
+    "test-keep-noweb-break": keep_noweb,
     "test-oldkernel-title": oldkernel_title,
     "test-frametitle": frametitle,
     "test-frametitle-slides": frametitle_slides,
