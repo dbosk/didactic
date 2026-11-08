@@ -468,11 +468,14 @@
 % \textsf{biblatex}'s documentation suggests, so that a URL breaks there 
 % only when the line can't break anywhere else.
 % We set \textsf{biblatex}'s counters |biburlnumpenalty|, |biburlucpenalty| 
-% and |biburllcpenalty| to it right after \textsf{biblatex} is loaded, 
-% whether that is before \textsf{didactic} or after, so your own 
-% |\setcounter| of them in the preamble wins.
-% |biburlpenalty=0| leaves the counters as they are, which in 
-% \textsf{biblatex} means that a URL doesn't break after letters or digits.
+% and |biburllcpenalty| to it right after \textsf{biblatex} is loaded,
+% whether that is before \textsf{didactic} or after, so your own
+% |\setcounter| of them after both packages wins.
+% One between the two, with \textsf{biblatex} loaded first, doesn't:
+% \textsf{didactic} sets the counters when it's loaded.
+% |biburlpenalty=0|, or a negative value, leaves the counters as they are,
+% which in \textsf{biblatex} means that a URL doesn't break after letters
+% or digits.
 %
 % \DescribeOpt{bibemergencystretch}
 % A line in the bibliography can run into the margin without a URL too: 
@@ -484,8 +487,8 @@
 % line before it gives up and lets it run over: such a line is then set 
 % loose instead.
 % A |\emergencystretch| of your own in the preamble wins, as does one in 
-% your own |\AtBeginBibliography|, and |bibemergencystretch=0pt| leaves 
-% the bibliography as it is.
+% your own |\AtBeginBibliography|, and |bibemergencystretch=0pt|, or less,
+% leaves the bibliography as it is.
 %
 % \subsection{Beamer blocks and semantic environments for papers}
 %
@@ -2049,8 +2052,8 @@
 %
 % \begin{option}{biburlpenalty}
 % |biburlpenalty| is the penalty for breaking a URL after a letter or a 
-% digit in \textsf{biblatex}'s bibliography and citations, see below; 0 
-% leaves \textsf{biblatex}'s own (no such breaks).
+% digit in \textsf{biblatex}'s bibliography and citations, see below; 0
+% or less leaves \textsf{biblatex}'s own (no such breaks).
 %    \begin{macrocode}
 \newcount\@didactic@biburlpenalty
 \@didactic@biburlpenalty=9000
