@@ -249,8 +249,9 @@ Both have 813 pages and the same 19 warnings, and differ in words on 7 pages of 
 notes and 34 of the paper, the two documents where a margin overflows: there \emph{carry} moves two
 notes each to the next page, and \texttt{break} keeps them with their lines.
 The price is on the page that overflows, which \texttt{break} ends early, with 4.3 and 8.9 lines
-empty against 0.3 and none, and in runs: the paper settles in six with \texttt{break}, in three with
-\emph{carry}.
+empty against 0.3 and none, and in runs: with \texttt{break} the paper's \texttt{.aux} settles on the
+sixth pass, the last the rig runs, so that one more would have left it without a result, and with
+\emph{carry} on the third.
 Over all eight documents \texttt{break} has 114 pages with $e\ge3$ and 64 with $e>5$, against 112
 and 63.
 The course notes, built with Xe\TeX, carry anyway, as \texttt{break} needs pdf\TeX\ or Lua\TeX, and
