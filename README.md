@@ -96,8 +96,10 @@ make all LATEXFLAGS="-shell-escape -interaction=nonstopmode"
 
 The measurements behind the documentation's decisions on page breaks have their
 own rigs, not run by `make`: `measure-real/` (real documents, which aren't in
-the repository; see its README) and `measure-flow/` (generated documents), and
-the scripts in `queries/`.
+the repository; see its README), with its own checks, `test_probe.py` (the
+probe moves no line) and `test_rig.py` (the rig leaves its copy of a document
+alone), and
+`measure-flow/` (generated documents), and the scripts in `queries/`.
 
 What isn't tested, as far as we know:
 

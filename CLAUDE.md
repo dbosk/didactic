@@ -44,8 +44,9 @@ says what it needs and how to run the tests; this file is for working on it.
   re-evaluate them otherwise.
 - Layout is correct or warns: a case that can't be guaranteed gives a warning
   naming the place, never silence; the docs list what the warnings can't see.
-- `measure-real/` measures real documents; its configuration, with the
-  documents' paths, is private and stays outside the repository. Never put the
+- `measure-real/` measures real documents, with its own checks
+  `test_probe.py` and `test_rig.py` (see its README); its configuration, with
+  the documents' paths, is private and stays outside the repository. Never put the
   names of those documents, or of the people or courses in them, into the
   repository. `measure-flow/` and `queries/` are the generated-text rigs and
   the literature searches' records.
