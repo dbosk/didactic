@@ -4,17 +4,33 @@
     python3 test-keep-sweep.py gen VARIANT > test-keep-sweep-VARIANT.tex
     python3 test-keep-sweep.py check VARIANT
 
-`gen` writes a document with each case of CASES at each room from 1 to 14 lines,
-with didactic (m memoir, a article, s memoir with \\sloppybottom, s3 that with
-keepafterheading=3; k with \\parskip, k3 that with keepafterheading=3) or without
-it (mp, ap, sp, kp: the same fonts and margins, so the
-same pages but for what didactic does).  `check` reads the pages from the .aux and the warnings from the .log, of
-the variant and its plain reference, and holds them to the rules below; it prints
-a FAIL line per broken rule and exits non-zero if any broke or if a case is missing.
+`gen` writes a document with each case of CASES at each room from 1 to 14 lines
+(in quarter lines for the rows of FINE), in one of these variants:
+
+  with didactic           m   memoir, 10pt, one side
+                          a   article, 10pt
+                          s   memoir with \\sloppybottom and a taller \\topskip
+                          s3  s with keepafterheading=3
+                          m3  m with keepafterheading=3, only the rows of M3ROWS
+                          c   memoir's option article, where \\chapter doesn't start a
+                              page, only the rows of CHAPTERROWS
+                          e   m with enumitem loaded, only ENUMITEM_CASES
+                          k   m with \\parskip=6pt, only PARSKIPROWS
+                          k3  k with keepafterheading=3
+  plain LaTeX, the        mp, ap, sp, cp, ep, kp: the same fonts and margins without
+  reference               didactic, so the same pages but for what didactic does; m3
+                          and s3 compare with mp and sp, k3 with kp
+  plain LaTeX with the    mq, aq, sq: the penalty before a list or a listing at 10000,
+  break forbidden         what LaTeX does if it may not part them, whatever that leaves
+                          empty; m, m3 compare with mq, a with aq, s, s3 with sq
+
+`check VARIANT` reads the pages from the .aux and the warnings from the .log, of
+the variant and its references, and holds them to the rules below; it prints a FAIL
+line per broken rule and exits non-zero if any broke or if a case is missing.
 
 No double of anything: the documents are built by LaTeX, with the real packages.
-What the rules are, and why, is in the documentation of didactic, the section on
-page breaks around headings and listings:
+What the rules are, and why, is in the documentation of didactic, the subsections
+"Listings across pages" and "Why pages break where they do":
 
   D2  A heading is never parted from its first paragraph.
   D4  Under a heading that stays there are never fewer lines than plain LaTeX keeps,
