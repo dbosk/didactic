@@ -63,11 +63,35 @@ To build the documentation and run the tests, also:
   beamer (for `beamerarticle`), beramono, biblatex, cleveref, csquotes, enumitem,
   fancyvrb, float, fontenc, graphicx, helvet, hyperref, import, lipsum, longtable,
   mathpazo, memoir, multicol, refcount, tabularx, tikz, xcolor; all in TeX Live.
+- A `latexminted` that runs, and the `minted.sty` of its release (see below).
 
-The tests are run with TeX Live 2025, and in `~/texmf` with marginfix 1.6 and
-the noweb above, and with the maintainer's checkouts of beamer and PythonTeX;
-whether the tests need those two checkouts rather than TeX Live's has not been
-established.
+The tests are run with TeX Live 2025 and, in `TEXMFHOME`, these on top of it:
+
+- marginfix 1.6 and the noweb above;
+- minted 3.8.0 (2026/03/03), with fvextra 1.14.0 and latex2pydata 0.7.0
+  (2026/02/25), which minted 3.8.0 requires; TeX Live 2025 ships minted 3.7.0,
+  fvextra 1.13.2 and latex2pydata 0.6.0. They are needed because of
+  `latexminted`: TeX Live 2025's own (0.6.0) fails under Python 3.14
+  (`TypeError: ArgParser.__init__() got an unexpected keyword argument
+  'color'`), so the tests use latexminted 0.7.1 from PyPI (installed with
+  pipx), and it refuses a `minted.sty` older than 3.8.0 ("minted Python
+  executable requires minted.sty >= 3.8.0"). Without them, `didactic.pdf` and
+  ten tests (`test-run`, `test-pair`, `test-pair-slides`, `test-keep`,
+  `test-keep-tall`, `test-frametitle-boxes`, `test-keep-leadin`,
+  `test-keep-leadin-off`, `test-keep-overfull`, `test-keep-once`) fail on
+  that error. Whether TeX Live's latexminted and minted 3.7.0 suffice under
+  Python 3.13 or older has not been tried.
+
+beamer and PythonTeX come from TeX Live 2025 (beamer 3.76, PythonTeX 0.18): a
+`make -k all` from a `git archive` with only marginfix and noweb in
+`TEXMFHOME` failed only on the minted error above (the sweep variants and the
+other tests passed), and rebuilding the eleven failed targets with the three
+minted packages added, and TeX Live's beamer and PythonTeX, built them all
+(2026-11-08; the rest of `make all` was not rerun with them).
+
+Run `make` without `-j` in one directory: the documents share `_minted/` and
+the example files, and parallel builds there gave minted and TeX errors that
+sequential builds of the same targets didn't.
 
 ## Testing
 
@@ -92,7 +116,10 @@ make all LATEXFLAGS="-shell-escape -interaction=nonstopmode"
   listed in `test-mutants.txt`, each of which some test must catch, or a
   survivor recorded with its reason. It isn't part of `make all`: the whole
   batch takes hours; see the header of `test-mutants.txt` for the groups and
-  their times, and `make mutants MUTANTS="label ..."` runs some.
+  their times, and `make mutants MUTANTS="label ..."` runs some. Each mutant is
+  built in a copy of the tracked files, up to about 100 MB at a time per job,
+  under `$TMPDIR`; `python3 test-mutants.py --dir DIR --jobs N label ...` puts
+  the copies elsewhere and runs N at a time.
 
 The measurements behind the documentation's decisions on page breaks have their
 own rigs, not run by `make`: `measure-real/` (real documents, which aren't in
@@ -105,6 +132,11 @@ What isn't tested, as far as we know:
 
 - The keep rules under KOMA-Script's classes, and under `report` and `book`
   beyond `test-keep-chapter-book`; the tests use `memoir` and `article`.
+- The rules room by room under XeLaTeX or LuaLaTeX: the sweep runs under
+  pdflatex only (for its fonts); the other keep tests run under xelatex.
+- `keeplines` and `keepends` on real documents: `measure-real` has the settings
+  `keeplines-0` and `keepends-3` (and `keepafterheading-3`) for it, which the
+  default run leaves out; no figures from them are in the documentation yet.
 - Two-sided layouts, but for a few documents (`test-footcite-twoside`,
   `test-sidecap`, `test-keep-flush`, `test-margin-log`).
 - Real documents other than `memoir` ones, in the measurements.

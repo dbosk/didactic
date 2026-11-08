@@ -17,7 +17,11 @@ says what it needs and how to run the tests; this file is for working on it.
   tree's cache.
 - Requires marginfix 1.6, the `integration` branch of dbosk/marginfix (TeX
   Live ships 1.2), and for the documentation and tests a noweb with `[minted]`
-  and `tominted` (dbosk/noweb, `integration`). See the README.
+  and `tominted` (dbosk/noweb, `integration`), and minted 3.8.0 with fvextra
+  1.14.0 and latex2pydata 0.7.0 to match latexminted 0.7.1 (TeX Live 2025's
+  latexminted fails under Python 3.14). beamer and PythonTeX from TeX Live
+  suffice. See the README.
+- Don't run `make -j` in one directory: the documents share `_minted/`.
 
 ## Tests
 
