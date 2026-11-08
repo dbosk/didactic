@@ -511,7 +511,7 @@
 % We also provide a few predefined blocks in various common colours.
 % They all take a title as mandatory argument.
 %
-% \subsection{Frame titles in the notes}
+% \subsection{Frame titles in the notes}\label{FrameTitles}
 %
 % In the slides a frame title stands on a line of its own, at the top of the
 % frame.
@@ -1433,8 +1433,9 @@
 %   \enquote{up to four lines short}, one house's, and what \LaTeX\ does; the
 %   maintainer's choice.
 %   \emph{Reopens:} a reader study on short pages, or real documents with twice as many
-%   warnings past the limit as the eight have, which is 19 in 813 pages, 12 of them about
-%   a heading: so one in about 20 pages.
+%   warnings past the limit as the eight have.
+%   They have 19 in 813 pages, 12 of them about a heading, one in about 43 pages; so the
+%   threshold is one in about 21.
 %   \emph{Measured, rejected:} 4 leaves a room of 4.25 to 5 lines where a heading and two
 %   lines neither fit nor may move.
 %   0, no limit, on generated chunks woven for \texttt{minted}, leaves up to 8.9 lines,
@@ -1461,10 +1462,10 @@
 %   None. \\*
 % \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} the two counts read are two, the
 %   sample's and \textsf{tcolorbox}'s, neither about code; the maintainer's choice.
-%   \emph{Reopens:} a source about code, or complaints of two lines of code alone on a
-%   page.
+%   \emph{Reopens:} a source about code, or real documents where 3 costs no page against
+%   2.
 %   \emph{Measured, rejected:} 3, the default until then, wasn't compared in pages; it
-%   stays tested (\texttt{test-keep}, \texttt{test-keep-heading3}).} \\
+%   stays tested (\texttt{test-keep}, \texttt{test-keep-tall}).} \\
 % \midrule
 % Lead-in stays with a listing, \texttt{keepleadin} & Yes, within the limit &
 %   Off; a bonus for that break in a list, $-51$. \\*
@@ -1482,7 +1483,8 @@
 %   give it the bonus. \\*
 % \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} the same, thin; the maintainer's
 %   choice.
-%   \emph{Reopens:} a page count that this costs on real documents.
+%   \emph{Reopens:} if it costs 2 pages or more on the real documents; now it costs none,
+%   813 either way.
 %   \emph{Measured:} without it 14 of 218 lists are parted, 13 from a real lead-in, on
 %   813 pages, as with it.
 %   \emph{Rejected:} a penalty of 0 still parts 7.
@@ -1492,7 +1494,8 @@
 %   The same. \\*
 % \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} leaving the default; the
 %   maintainer's choice.
-%   \emph{Reopens:} a reason to treat a list as a paragraph.
+%   \emph{Reopens:} a source or a reader study that asks two lines under a heading for a
+%   list.
 %   It wasn't measured to help: at commit 9083677 it changed no word on any page of the
 %   real documents.} \\
 % \midrule
@@ -1500,7 +1503,8 @@
 %   1000 and 1000 under \textsf{memoir}, 150 and 150 under |article|. \\*
 % \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} fewer pages, then fewer changes
 %   from the defaults, the maintainer's rule.
-%   \emph{Reopens:} a reader study on lone lines, or a change in those page counts.
+%   \emph{Reopens:} a reader study on lone lines, or if the pairs differ by 2 pages or
+%   more on the real documents, or if the result on generated text changes sign.
 %   \emph{Measured, rejected:} 1000 and 10000 ties on the real documents, 813, and has no
 %   lone last line against 8, and as many lone first lines, 3; on about 1630 generated
 %   pages it is 4 longer, 3 of them in \textsf{memoir} without this package.
@@ -1520,6 +1524,17 @@
 %   and 19 fewer breaks inside chunks.
 %   With those woven for \texttt{minted}, under the limit, 6.2 and 28, against 4.5 and 17;
 %   it helps only along with the limit.} \\
+% \midrule
+% Block and frame titles in the notes & Run in &
+%   \textsf{beamerarticle} sets a frame's title as a heading followed by an empty line,
+%   and a block's title on a line of its own. \\*
+% \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} \textsf{beamer}'s own templates
+%   for the article mode, whose fonts we keep (bold, bold italic, italic), and the
+%   maintainer: the text of a frame is one paragraph, which a heading on a line of its
+%   own breaks in two, and a run-in title reads as the start of what it names, as
+%   \cs{paragraph} does (\cref{FrameTitles}).
+%   \emph{Reopens:} a reader's report that where a block or a frame begins or ends is
+%   missed.} \\
 % \midrule
 % What can't be kept warns & Where it can see it &
 %   Mostly silent. \\*
