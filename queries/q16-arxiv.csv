@@ -1,0 +1,9 @@
+# Query: "memoir" AND LaTeX AND (criticism OR limitations OR "page break" OR "ragged bottom" OR "flush bottom")
+# Provider: arxiv
+# Timestamp: 2026-11-03T20:33:17.698066
+# Results: 2
+
+title	authors	year	doi	venue	url
+Measurable regularity properties of infinite-dimensional Lie groups	Helge Glockner	2015	10.48550/arXiv.1601.02568	math.FA	http://arxiv.org/abs/1601.02568v1
+The Influence of $s$-$d$ Exchange Interaction on the Gap Anisotropy and Anisotropy of the Lifetime of Normal State Charge Carriers of Layered Cuprates	Todor M. Mishonov; Nedeltcho I. Zahariev; Albert M. Varonov	2021	10.48550/arXiv.2111.06716	cond-mat.supr-con	http://arxiv.org/abs/2111.06716v6
+

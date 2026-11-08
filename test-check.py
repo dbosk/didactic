@@ -336,12 +336,13 @@ def keep_leadin(c):
     # Cases where the lead-in and the first line must be parted; if a change of
     # layout parts them no more, the case tests nothing, and that should show.
     for n in (list("mnfhsbruljipw") + ["fr", "ee", "pc", "ca", "qu", "fl", "aw",
-                                       "it", "fw", "pr", "pe", "ga"]
+                                       "fw", "pr", "pe", "ga"]
               + (["k"] if "k" in pages else [])):
         c.ok(pages[n][0] < pages[n][1], f"case {n} is on two pages: {pages[n]}")
     for n in asked:
         c.ok(pages[n][0] < pages[n][1], f"case {n} is on two pages: {pages[n]}")
-    for n in ("c", "a", "d", "q", "e", "z", "v", "qb", "fs", "hh", "vz"):
+    # "it", a listing in an item: the lead-in goes along, by the rule of a list.
+    for n in ("c", "a", "d", "q", "e", "z", "v", "qb", "fs", "hh", "vz", "it"):
         c.ok(pages[n][0] == pages[n][1], f"case {n} is on one page: {pages[n]}")
     found = {}
     for w in warnings(c):
@@ -410,8 +411,11 @@ def keep_twocol(c):
          "LISTM starts the second column, away from LEADM")
 
 
-def keep_noweb(c):
-    """test-keep-noweb.tex and -break: warnings against the pages of the words."""
+def keep_noweb(c, overfull=True):
+    """test-keep-noweb.tex and -break: warnings against the pages of the words.
+
+    With the limit of keepmaxgap, in -break, no page is overfull: the tie is released.
+    """
     lines = keep_results(c, "noweb")
     c.ok(len(lines) == 16, f"16 cases, has {len(lines)}")
     apart, full = {}, {}
@@ -438,9 +442,47 @@ def keep_noweb(c):
                  f"case {n} names page {apart[line]}, it is on {code['page']}")
     w = [x for x in warnings(c) if "in multicols" in x]
     c.ok(len(w) == 1 and f"input line {lines['c']}" in w[0], f"case c warns: {w}")
-    c.ok(lines["t"] in full, f"case t warns that it doesn't fit: {sorted(full)}")
-    c.ok(set(full) == {lines["t"]}, f"nothing else doesn't fit: {sorted(full)}")
+    c.ok(set(full) == ({lines["t"]} if overfull else set()),
+         f"only case t, and only without the limit, doesn't fit: {sorted(full)}")
     c.ok(not set(apart) - set(lines.values()), "no warning elsewhere")
+
+
+def keep_once(c):
+    """test-keep-once.tex; see its header."""
+    lines = keep_results(c, "once")
+    c.ok(set(lines) == set("vpnwmgi"), f"seven cases, has {sorted(lines)}")
+    w = warnings(c)
+    c.ok(not [x for x in w if "apart from what leads" in x],
+         f"nothing warns a second time: {w}")
+    for n, line in lines.items():
+        lead, code = c.one("LEAD" + n.upper()), c.one("CODE" + n.upper())
+        c.ok(lead["page"] < code["page"], f"case {n} is on two pages")
+        here = [x for x in w if "goes to the next page" in x
+                and f"test-keep-once, line {line} " in x]
+        c.ok(len(here) == 1, f"case {n}, line {line}, warns once: {w}")
+    c.ok(len([x for x in w if "goes to the next page" in x]) == len(lines),
+         f"no warning elsewhere: {w}")
+    totals = {k: float(v) for k, v in re.findall(r"once total (\w+) ([\d.]+)pt", c.log)}
+    a, b = totals["a1"] - totals["a0"], totals["b1"] - totals["b0"]
+    c.ok(abs(a - b) < 0.01, f"the same space before the list: {a:.2f}pt and {b:.2f}pt")
+    c.ok(c.one("LEADB")["page"] == c.one("ITEMB")["page"], "case B is on one page")
+
+
+def keep_enumitem(c):
+    """test-keep-enumitem.tex; see its header."""
+    lines = keep_results(c, "enumitem")
+    c.ok(set(lines) == set("abdf"), f"four cases, has {sorted(lines)}")
+    w = warnings(c)
+    for n in "ab":
+        c.ok(c.one("LEAD" + n.upper())["page"] == c.one("FIRST" + n.upper())["page"],
+             f"case {n} stays with its lead-in")
+    for n in "df":
+        c.ok(c.one("LEAD" + n.upper())["page"] < c.one("FIRST" + n.upper())["page"],
+             f"case {n} is on two pages")
+    c.ok(not [x for x in w if f"line {lines['d']} " in x], f"case d says nothing: {w}")
+    here = [x for x in w if "goes to the next page" in x and f"line {lines['f']} " in x]
+    c.ok(len(here) == 1, f"case f warns once: {w}")
+    c.ok(len([x for x in w if "goes to the next page" in x]) == 1, f"no warning elsewhere: {w}")
 
 
 def keep_first(c):
@@ -497,9 +539,27 @@ def frametitle(c):
     c.above("TITLEE", "PROSEF")                           # 5
     c.has_text("Figure 0.1: FIGE,")
     c.above("TITLEG", "EXAMPLEG")                         # 6
-    c.ok(c.one("TEXTH")["xmin"] > c.one("TITLEA")["xmin"],  # 7
+    c.ok(c.same_line(c.one("BLOCKI"), c.one("TEXTI")),    # 7
+         "BLOCKI and TEXTI are on one line")
+    c.above("ALERTJ", "ITEMJ")
+    c.ok(c.one("TEXTK")["xmin"] == c.one("TITLEA")["xmin"],
+         "TEXTK starts without an indent, with no title")
+    c.ok(c.one("TEXTH")["xmin"] > c.one("TITLEA")["xmin"],  # 8
          "TEXTH has no heading in front of it")
     c.absent("SLIDEONLY")
+
+
+def blocks_nested(c):
+    """test-block-nested.tex: titles of blocks in blocks."""
+    c.clean_log()
+    c.has_text("OUTERONE")
+    c.has_text("INNERONE TEXTONE")
+    c.above("OUTERONE", "INNERONE")
+    c.absent("INNERTWO INNERTWO")
+    c.ok(len(c.words("INNERONE")) == 1, "the inner title is there once")
+    c.ok(c.same_line(c.one("ALERTTWO"), c.one("TEXTTWO")),
+         "a block after a frame title has its title run in")
+    c.above("FRAMETWO", "ALERTTWO")
 
 
 def oldkernel_title(c):
@@ -510,7 +570,7 @@ def oldkernel_title(c):
 
 def frametitle_slides(c):
     """test-frametitle-slides.tex: the frames as beamer makes them."""
-    c.num_pages(7)
+    c.num_pages(8)
     c.clean_log()
     c.absent("PROSEF")
     c.above("TITLEA", "TEXTA")
@@ -646,12 +706,15 @@ CHECKS = {
     "test-keep-leadin-off": keep_leadin_off,
     "test-keep-overfull": keep_overfull,
     "test-keep-multicol": keep_multicol,
+    "test-keep-once": keep_once,
+    "test-keep-enumitem": keep_enumitem,
     "test-keep-twocol": keep_twocol,
     "test-keep-first": keep_first,
     "test-keep-noweb": keep_noweb,
-    "test-keep-noweb-break": keep_noweb,
+    "test-keep-noweb-break": lambda c: keep_noweb(c, overfull=False),
     "test-oldkernel-title": oldkernel_title,
     "test-frametitle": frametitle,
+    "test-block-nested": blocks_nested,
     "test-frametitle-slides": frametitle_slides,
     "test-frametitle-overlay": frametitle_overlay,
     "test-frametitle-floats": frametitle_floats,

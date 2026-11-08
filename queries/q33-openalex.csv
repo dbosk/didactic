@@ -1,0 +1,67 @@
+# Query: ("program typography" OR "typographic style" OR "pretty printing" OR "pretty-printing" OR "code layout") AND (criticism OR "no effect" OR "no significant" OR replication OR limitations) AND (comprehension OR readability)
+# Provider: openalex
+# Timestamp: 2026-11-04T09:59:18.686127
+# Results: 60
+
+title	authors	year	doi	venue	url
+Pretty-printing for software reengineering	de Merijn Jonge	2002		Centrum Wiskunde & Informatica (CWI), the national research institute for mathematics and computer science in the Netherlands	https://openalex.org/W2484994434
+Typographic style is more than cosmetic	Paul Oman; Curtis R. Cook	1990	10.1145/78607.78611	Communications of the ACM	https://openalex.org/W2085603263
+Typographic Style is More	Paul Oman; Curtis R. Cook	1990			https://openalex.org/W2183946067
+AnyText: Incremental, left-recursive Parsing and Pretty-Printing from a single Grammar Definition with first-class LSP support	Georg Hinkel; Alexander Hert; Niklas Hettler; Kevin Weinert	2025	10.1145/3732771.3742716	ACM SIGPLAN International Conference on Software Language Engineering (SLE)	https://openalex.org/W4411369513
+Stable, flexible, peephole pretty-printing	Stoney Jackson; Prémkumar Dévanbu; Kwan‐Liu Ma	2008	10.1016/j.scico.2007.11.002	Science of Computer Programming	https://openalex.org/W2143447336
+Readability in Children's Picture Books : Design factors supporting children’s reading experience	Прохорова Ольга Аркадьевна	2026		Theseus (Ammattikorkeakoulujen)	https://openalex.org/W7163304893
+Eye Tracking Analysis of Code Layout, Crowding and Dyslexia - An Open Data Set	Ian McChesney; Raymond Bond	2021	10.1145/3448018.3457420	ACM Symposium on Eye Tracking Research and Applications (ETRA)	https://openalex.org/W3164001152
+The role of a typographic style in the development and preparation of instructional texts	Neal Kemp; Steve Towers	1992	10.14742/ajet.2242	Australasian Journal of Educational Technology	https://openalex.org/W1771658425
+lucid: Printing Floating Point Numbers in a Human-Friendly Format	Kevin Wright	2014	10.32614/cran.package.lucid		https://openalex.org/W4399523852
+A paradigm for programming style research	Paul Oman; Carson Cook	1988	10.1145/57669.57675	ACM SIGPLAN Notices	https://openalex.org/W2035781078
+High-Fidelity C/C++ Code Transformation	Daniel Waddington; Bin Yao	2005	10.1016/j.entcs.2005.04.037	Electronic Notes in Theoretical Computer Science	https://openalex.org/W2046704096
+A Pretty Expressive Printer	Sorawee Porncharoenwase; Justin Lee Pombrio; Emina Torlak	2023	10.1145/3622837	Proceedings of the ACM on Programming Languages	https://openalex.org/W4387667003
+A Pretty Expressive Printer (with Appendices)	Sorawee Porncharoenwase; Justin Lee Pombrio; Emina Torlak	2023	10.48550/arxiv.2310.01530	arXiv (Cornell University)	https://openalex.org/W4387355581
+Eye tracking analysis of computer program comprehension in programmers with dyslexia	Ian McChesney; Raymond Bond	2018	10.1007/s10664-018-9649-y	Empirical Software Engineering	https://openalex.org/W2890602480
+The Effect Of Crowding On The Reading Of Program Code For Programmers With Dyslexia	Ian McChesney; Raymond Bond	2021	10.1109/icpc52881.2021.00036	IEEE International Conference on Program Comprehension (ICPC)	https://openalex.org/W3153405051
+Visualizing the Evaluation of Functional Programs for Debugging	John Whitington; Tom Ridge	2017	10.4230/oasics.slate.2017.7	arXiv (Cornell University)	https://openalex.org/W2771832401
+Simpl: A toolkit for domain-specific language development in enterprise information systems	Margus Freudenthal	2013		DSpace repository (University of Tartu)	https://openalex.org/W2135814240
+Comparing the legibility and comprehension of type size, font selection, and rendering technology of onscreen type	Scott Bondurant Chandler	2001		VTechWorks (Virginia Tech)	https://openalex.org/W2587024332
+Declarative Syntax Definition for Modern Language Workbenches	Luís Eduardo de Souza Amorim	2019	10.4233/uuid:43d7992a-7077-47ba-b38f-113f5011d07f	Research Repository (Delft University of Technology)	https://openalex.org/W2947639401
+Linking the Effect of Typographical Style to the Evolvabililty of Software	A. Mohan; Nicolas Gold	2003			https://openalex.org/W91182362
+The Influence of Typography on Perceived Aesthetic Quality, Readability, and Trust in Chinese Digital Media: A Comparative Study of Songti and Heiti Typefaces	Li Chenyang; Azian Haji Tahir	2026	10.59088/gi.v4i1.27	Global Social Science and Humanities Journal.	https://openalex.org/W7143353395
+Readability Research: An Interdisciplinary Approach	Sofie Beier; Sam M Berlow; Esat Boucaud; Zoya Bylinskii; Tianyuan Cai; Jenae Cohn; Kathy Crowley; Stephanie Day; Tilman Dingler; Jonathan Dobres; Jennifer Healey; Jain, Rajiv; Marjorie Jordan; Kerr, Bernard; Qisheng Li; David Miller; Susanne Nobles; Alexandra Papoutsaki; Qian Jing; Tina Rezvanian; Shelley Rodrigo; Ben D. Sawyer; Shannon M. Sheppard; Bram Stein; Rick Treitman; Jen Vanek; Shaun Wallace; Benjamin A. Wolfe	2021	10.48550/arxiv.2107.09615	arXiv (Cornell University)	https://openalex.org/W4287071181
+Coding Guidelines for Prolog	Michael A. Covington; Roberto Bagnara A; Richard A. O’Keefe; Jan Wielemaker; Simon Price	2009	10.48550/arxiv.0911.2899		https://openalex.org/W2952229035
+The effect of font width on eye movements during reading	Katsumi Minakata; Sofie Beier	2021	10.1016/j.apergo.2021.103523	Applied Ergonomics	https://openalex.org/W3181383617
+Arabic E-Reading: Studies on Legibility and Readability for Personal Digital Assistants	Mrouj Almuhajri	2013		Spectrum Research Repository (Concordia University)	https://openalex.org/W2336352873
+Users’ preferences and perceptions of the comprehensibility and readability of medication labels	Emília da Silva Pons; Cassia Garcia Moraes; Maicon Falavigna; Lisana Reginini Sirtori; Fernanda da Cruz; Guilherme Webster; Tatiane da Silva Dal Pizzol	2019	10.1371/journal.pone.0212173	PLoS ONE	https://openalex.org/W2915473140
+Readable Layout of Unbalanced N-ary Trees	David M. Solo	1986		DSpace@MIT (Massachusetts Institute of Technology)	https://openalex.org/W2241875170
+The Effect of Text Typographical Features on Legibility, Comprehension, and Retrieval of EFL Learners	Hassan Soleımanı; Elham Mohammadi	2012	10.5539/elt.v5n8p207	English Language Teaching	https://openalex.org/W2103663005
+Readability Test of Entrepreneurship Learning System for Vocational High School Students	Fitri Nurmahmudah; Aliyah Rasyid Baswedan; Pujiati Pujiati	2026	10.69693/jiis.v2i1.10	Journal of Integrated Innovation Science	https://openalex.org/W7166735618
+CONTEXT-RESPONSIVE DIGITAL TYPOGRAPHY: READABILITY AND LEGIBILITY ACROSS MOBILE, TABLET, AND DESKTOP INTERFACES	M.O Shagaya	2026	10.67203/ndr.2026.enqbk811	Nigerian Design Review Journal of Industrial Design	https://openalex.org/W7166565535
+Traditional Type in the Digital Era	Silvia Weinzettelova	2012	10.2478/v10284-012-0004-0	Bulletin - Prague College Centre for Research and Interdisciplinary Studies	https://openalex.org/W2046587617
+Formalizing the User's Context to Support User Interfaces for Integrated Mathematical Environments	Joseph R. Kiniry	2004	10.1016/j.entcs.2004.09.015	Electronic Notes in Theoretical Computer Science	https://openalex.org/W2116772333
+Exppp - and EXPRESS pretty printer		1993	10.6028/nist.ir.5292		https://openalex.org/W4243765253
+Bridging linguistic education, research, and typography	Nace Pušnik; Janoš Ježovnik	2026	10.25027/ag.34.2.4	ACTA GRAPHICA Journal for Printing Science and Graphic Communications	https://openalex.org/W7166693253
+Science popularization on Instagram: an initial study based on Information Design analysis	Renata Kelly Luna Gomes Ramos; Eva Rolim Miranda; Mônica Felts de La Roca Soares	2025	10.51358/id.v22i1.1220	InfoDesign - Revista Brasileira de Design da Informação	https://openalex.org/W4415752451
+Legibility in Print Text for People with Impaired Vision	Jonny Nersveen; Kvitle Anne Kristin; Johansen Eivind Arnstein	2018	10.3233/978-1-61499-923-2-862	Studies in health technology and informatics	https://openalex.org/W2969439607
+FatFonts	Miguel A. Nacenta; Uta Hinrichs; Sheelagh Carpendale	2012	10.1145/2254556.2254636	International Conference on Advanced Visual Interfaces (AVI)	https://openalex.org/W2123253818
+Carattere Universale. Innovazione senza Stile	Dario Russo	2019	10.19229/2464-9309/5152019	Agathón	https://openalex.org/W2981987237
+Practical Experience with Software Tools to Assess and Improve the Quality of Existing Nuclear Analysis and Safety Codes	N.H. Marshall; E.S. Marwil; S. D. Matthews; B. J. Stacey	1990	10.1007/978-3-642-84279-5_7	Springer eBooks	https://openalex.org/W1508741589
+The effect of typography on survey responses	Neli Jerot	2025		University of Maribor digital library (University of Maribor)	https://openalex.org/W7219209276
+On Code Reuse from StackOverflow: An Exploratory Study on Jupyter Notebook	Yutian Tang; Mingke Yang; Yuming Zhou; Bixin Li	2023	10.22541/au.167748671.10484077/v1		https://openalex.org/W4322502096
+On Code Reuse from StackOverflow: An Exploratory Study on Jupyter Notebook	Yutian Tang; Mingke Yang; Yuming Zhou; Bixin Li	2023	10.22541/au.167710022.23196663/v1		https://openalex.org/W4321482028
+Deriving backtracking monad transformers	Ralf Thomas Walter Hinze	2000	10.1145/357766.351258	ACM SIGPLAN Notices	https://openalex.org/W2999328989
+Telling Through Type: Typography and Narrative in Legal Briefs	Derek H. Kiernan-Johnson	2010		eYLS (Yale Law School)	https://openalex.org/W1928505219
+TYPOGRAPHY AND FONT DESIGN IN ADVERTISING: THEIR INFLUENCE ON VISUAL COMMUNICATION, CONSUMER PERCEPTION, AND BRAND IDENTITY	Maxwell Eshiwhobe Roberts; Keyonne Jakonda; UBAM SULEIMAN IBRAHIM	2026	10.70382/tijssra.v13i6.0128	International Journal of Social Science Research and Anthropology	https://openalex.org/W7211883121
+Optimal laptop VDU parameter setting using Taguchi method	Anshul Gangele; Ajay Mishra	2015	10.5267/j.msl.2015.8.001	Management Science Letters	https://openalex.org/W1805695232
+On Code Reuse from StackOverflow: An Exploratory Study on Jupyter Notebook	Mingke Yang; Zhou Yuming; Bixin Li; Yutian Tang	2023	10.48550/arxiv.2302.11732	arXiv (Cornell University)	https://openalex.org/W4321853979
+A Functional, Comprehensive and Extensible Multi-Platform Querying and Transformation Approach	Tassilo Horn	2016	10.5281/zenodo.58302		https://openalex.org/W2609816633
+A framework for streamlining research workflow in neuroscience and psychology	Jonas Kubilius	2014	10.3389/fninf.2013.00052	Frontiers in Neuroinformatics	https://openalex.org/W1966786108
+The influence of color on program readability and comprehensibility	Gerard K. Rambally	1986	10.1145/953055.5702	ACM SIGCSE Bulletin	https://openalex.org/W2170277810
+The influence of color on program readability and comprehensibility	Gerard K. Rambally	1986	10.1145/5600.5702	ACM Technical Symposium on Computer Science Education (SIGCSE)	https://openalex.org/W4232892930
+FliPpr: A System for Deriving Parsers from Pretty-Printers	Kazutaka Matsuda; Meng Wang	2018	10.1007/s00354-018-0033-7	New Generation Computing	https://openalex.org/W2888996570
+Blowing the crystal goblet : transparent book design 1350-1950	Jon Bath	2009		University Library - University of Saskatchewan (University of Saskatchewan)	https://openalex.org/W159317046
+Poster Layout Optimization Driven by Deep Reinforcement Learning	Yiqiu Yu	2026	10.65102/is2026321	Ingegneria Sismica	https://openalex.org/W7160018665
+Usability in designing a mobile application for elderly users - Case study: Dairo application	Anh Vo	2019		Theseus (Ammattikorkeakoulujen)	https://openalex.org/W2943515857
+Investigation of the Visual-Semantic Relations in Typography	İrem Fulya Özkan	2024	10.36948/ijfmr.2024.v06i02.15702	International Journal For Multidisciplinary Research	https://openalex.org/W4393355155
+Language and Communication Challenges in Kenya’s County Assemblies’ Hansards: Implications for Devolution, Governance, and Democracy.	Mugo Muhia; Peter Muhati; Sammy Gakero Gachigua	2026	10.33886/cijhs.v12i1.771	Chemchemi International Journal of Humanities and Social Sciences	https://openalex.org/W7137881162
+Duygusal Tipografi: Yazı Tiplerinin Semantik Potansiyeli ve Görsel İletişimde Yapay Zekâ (DALL·E) Yorumlaması	Başak ÇAKMAK	2025	10.7827/turkishstudies.82281	Journal of Turkish Studies	https://openalex.org/W4413389484
+Visual Transliterations of Oral Combinations of Languages in Lebanon	Antoine Abi Aad	2011	10.1080/19235003.2011.11782246	Iridescent	https://openalex.org/W2530050002
+Surfing the interzones: posthuman geographies in twentieth century literature and film	Alex McAulay	2019	10.17615/9408-h644	Carolina Digital Repository (University of North Carolina at Chapel Hill)	https://openalex.org/W625658863
+

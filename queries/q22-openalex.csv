@@ -1,0 +1,66 @@
+# Query: (subheading OR subhead OR "section heading") AND ("page break" OR pagination OR "keep with next" OR "foot of the page" OR "bottom of the page") AND (typography OR typesetting)
+# Provider: openalex
+# Timestamp: 2026-11-03T21:09:46.298099
+# Results: 59
+
+title	authors	year	doi	venue	url
+Formatting information: A beginner's introduction to typesetting with LATEX	Peter Flynn	2002		Cork Open Research Archive (University College Cork, Ireland)	https://openalex.org/W2231431194
+Ortotipografia: Sobre práticas e convenções tipográficas para o contexto editorial	Jorge Miguel da Silva Araújo	2022		Portuguese National Funding Agency for Science, Research and Technology (RCAAP Project by FCT)	https://openalex.org/W7115010253
+Notes on Scholarly Journal Typesetting using Adobe InDesign	Paul Royster	2019		Lincoln (University of Nebraska)	https://openalex.org/W2939152511
+The Creation of typographic specifications for desktop publishing software	M. Hill	2000		RIT Scholar Works (Rochester Institute of Technology)	https://openalex.org/W827400432
+Ontological Model of Factors of Prepress Processing of Newspaper and Magazine Publications	А. Kudriashova; Yu. Slipetskyi	2025	10.36910/6775-2524-0560-2025-61-07	COMPUTER-INTEGRATED TECHNOLOGIES EDUCATION SCIENCE PRODUCTION	https://openalex.org/W7114988683
+Output routines extending \plainoutput	Udo Wermuth	2025	10.47397/tb/46-1/tb142wermuth-widow	TUGboat	https://openalex.org/W4410155527
+Automatic typographic-quality typesetting techniques :	Mary Elizabeth Stevens; John L. Little	1967	10.6028/nbs.mono.99		https://openalex.org/W1835326534
+The Design and implementation of a system for processing documents described in generalized markup languages	Frank Cost	1987		RIT Scholar Works (Rochester Institute of Technology)	https://openalex.org/W588433940
+How Interface Elements for Page Turning in eBooks Affect Reader Preference	Jiao Ying Huang	2017		Research Commons (University of Waikato)	https://openalex.org/W2729697236
+Text-editing and photocomposing APL publications	Arlene E. Azzarello	1981	10.1145/800142.805328	International Conference on APL (APL)	https://openalex.org/W4233259043
+The Computer Science Of Tex And Latex	Victor L. Eijkhout	2004	10.5281/zenodo.49901	Zenodo (CERN European Organization for Nuclear Research)	https://openalex.org/W2470989218
+Electronic composition in printing :	Richard W. Lee; Roy W Worral	1968	10.6028/nbs.sp.295		https://openalex.org/W625469028
+Standard layout for scientific CWI-publications	Han Noot	1985		Centrum Wiskunde & Informatica (CWI), the national research institute for mathematics and computer science in the Netherlands	https://openalex.org/W1535806634
+How (LA)TEX changed the face od Mathematics. An E-Interview with Leslie Lamport, the author of LATEX		2000	10.1515/dmvm-2000-0020	Mitteilungen der Deutschen Mathematiker-Vereinigung	https://openalex.org/W4235053667
+New Interfaces for LaTeX Class Design	Frank G. Mittelbach; David P. Carlisle; Chris Rowley	2000	10.5802/cg.277	Cahiers GUTenberg	https://openalex.org/W2328273353
+CONFORM : a context for electronic layout - relating content to form for authors and designers	Susan Wascher	1985		DSpace@MIT (Massachusetts Institute of Technology)	https://openalex.org/W2235285895
+Ten simple rules for typographically appealing scientific texts	Lars Ole Schwen	2020	10.1371/journal.pcbi.1008458	PLoS Computational Biology	https://openalex.org/W3113659071
+A system for interactive viewing of structured documents	Ian H. Witten; Bob Bramwell	1985	10.1145/3166.3169	Communications of the ACM	https://openalex.org/W2041085781
+Author Guidelines including Example Article	Editorial Board	1970	10.3329/jsr.v1i1.1704	Journal of Scientific Research	https://openalex.org/W4237330252
+Django and LaTeX: experience in developing the system for the preparation of methodological guidelines for studying the discipline "Human Anatomy"	Taras Kotyk; Nadiya S. Tokaruk; Mariia Hryshchuk; Oksana H. Popadynets	2018	10.21802/gmj.2018.3.9	Galician Medical Journal	https://openalex.org/W2894634439
+Making a digital library	Richard Entlich; Jan Kennedy Olsen; Lorrin R. Garson; Michael Lesk; Lorraine F. Normore; Stuart L. Weibel	1997	10.1145/248625.248627	ACM Transactions on Information Systems	https://openalex.org/W2061858109
+The Code Decoded	Nicholas J. Turland	2019	10.3897/ab.e38075	Pensoft Publishers eBooks	https://openalex.org/W4213084745
+Lilypond Music-Notation Software in the Digital-Humanities Toolbox	Andrew A. Cashner	2024	10.63744/rfcvh3zcuxby	Digital humanities quarterly	https://openalex.org/W7139954996
+Issue Information		2025	10.1111/bjdp.12496	British Journal of Developmental Psychology	https://openalex.org/W4415751440
+Issue Information		2025	10.1111/bjdp.12495	British Journal of Developmental Psychology	https://openalex.org/W4410779545
+Serializing the Locator Format of the United States Government Publishing Office as XML	Joel Kalvesmaki	2023	10.4242/balisagevol28.kalvesmaki01	Balisage series on markup technologies	https://openalex.org/W4385386758
+LaTeX tutorial for the standardization and automation of population analysis reports	Thomas Frank; Silke Gastine; Klaus Lindauer; Heiner Speth; Ashley Strougo; Andreas Kovar	2021	10.1002/psp4.12705	CPT Pharmacometrics & Systems Pharmacology	https://openalex.org/W3198176887
+The Development of clues dealing with the contextual hints of the make-up of a document that will aid in the automatic application to a specific style sheet	Karen L. Johnson	1994		RIT Scholar Works (Rochester Institute of Technology)	https://openalex.org/W833404824
+New article types for AVJ	David S. Beggs	2020	10.1111/avj.13009	Australian Veterinary Journal	https://openalex.org/W3081438719
+Miscarriage Australia: the use of a human centered design approach to design and develop a website for those affected by miscarriage	Jade Bilardi; Amy Sage Webb; Van-Hau Trieu; Gemma Sharp; Jennifer E. McIntosh; Meredith J Temple-Smith	2023	10.3389/fpubh.2023.1128768	Frontiers in Public Health	https://openalex.org/W4376614434
+Automatically Removing Widows and Orphans with lua-widow-control	Max Chernoff	2022	10.5300/2022-1-4/49	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W4312367526
+Electronic publishing	Lynne S. Rosenthal	1989	10.6028/nist.sp.500-164		https://openalex.org/W4214499501
+A Nonprofit's guide to internally-planned successful print communications	Joseph Wilson	1996		RIT Scholar Works (Rochester Institute of Technology)	https://openalex.org/W804883748
+Design of a Learning Module for the Deaf in a Higher Education Institution Using Padlet	Dorothy DeWitt; Norlidah Alias; Zainuddin Ibrahim; Ngu Kee Shing; Syar Meeze Mohd Rashid	2015	10.1016/j.sbspro.2015.01.464	Procedia - Social and Behavioral Sciences	https://openalex.org/W2006973051
+Integration of life cycle assessment with energy simulation software for polymer exchange membrane (PEM) electrolysis	Hemant Sharma; Guillaume Mandil; Peggy Zwolinski; Emmanuelle Cor; Hugo Mugnier; Élise Monnier	2020	10.1016/j.procir.2020.02.139	Procedia CIRP	https://openalex.org/W3048356725
+Technology and design: Vancouver Magazine before and after desktop publishing	Tatiana MacNeill	2005		Summit (Simon Fraser University)	https://openalex.org/W189181732
+Basics of word processing for thesis writing	Attila Imre	2026	10.47745/sapvol.2026.29	Scientia eBooks	https://openalex.org/W7164921693
+Two complementary techniques for digitized document analysis	George Nagy A; Junichi Kanai; Mukkai S. Krishnamoorthy; Mathews Thomas; Mahesh Viswanathan	1988	10.1145/62506.62539	ACM Conference on Document Processing Systems (DOCPROCS)	https://openalex.org/W2035305892
+Enhancing Natural Resource Programs: Designing Effective Brochures	Martha C. Monroe; Ludovica Weaver	2007	10.32473/edis-fr081-2007	EDIS	https://openalex.org/W2993797079
+A New Digital Edition of Darwin’s 1859 Origin of Species	Adam M. Goldstein	2011	10.1007/s12052-011-0333-6	Evolution Education and Outreach	https://openalex.org/W2026934256
+NOTE ON THE TEXT	Thomas Carlyle	2000	10.1525/9780520353985-005	University of California Press eBooks	https://openalex.org/W4234967526
+Towards structured, block-based PDF	Philip N. Smith; David F. Brailsford	1995		Repository@Nottingham (University of Nottingham)	https://openalex.org/W7222369630
+Evaluating the Competency of Dental Students and House Officers in Inferior Alveolar Nerve Block with Clinical Training Reinforcement	Aman Ahmad; Ahmad Liaquat; Muhammad Usama Hizbullah Haider; Rabia Naseer; Muhammad Rashid; Khaqan Azam	2025	10.33897/fujd.v5i2.491	Foundation University Journal of Dentistry	https://openalex.org/W4413873938
+Practices in Designing a Scholarly Journal and Its Style Guide	Monique Martinez	2015		DigitalCommons - CalPoly (California State Polytechnic University)	https://openalex.org/W839663350
+Capixaba Press: analysis of the graphic and editorial production of Chanaan magazine, published between 1936 and 19391	Júlia Sousa Azerêdo; Letícia Pedruzzi Fonseca	2019	10.5151/9788580393712-09	Editora Blucher eBooks	https://openalex.org/W2938838177
+The IIMI style manual	Raymond Cowell	1988		RePEc: Research Papers in Economics	https://openalex.org/W1592449950
+Weapon Detection Using Deep Learning: A Systematic Review	Harsh Chourasia; Devendra Rathore	2026	10.36948/ijfmr.2026.v08i01.68391	International Journal For Multidisciplinary Research	https://openalex.org/W7131117282
+The Jaguaré Creek Revitalization Project: Transforming São Paulo through a Green Stormwater Infrastructure	Newton Célio Becker de Moura	2017	10.1016/j.proeng.2017.07.165	Procedia Engineering	https://openalex.org/W2755975938
+A Tell-Tale Survivor of Mark Twain's San Francisco Correspondence	Richard Bucci	2025	10.5406/19405103.57.3.06	American Literary Realism	https://openalex.org/W4410110837
+Stretching for Health and Well-Being: Yoga and Women in Britain, 1960-1980	Suzanne Newcombe	2007	10.1163/157342107x207209	Asian Medicine	https://openalex.org/W2082222788
+What Oedipus Did When He Married Jocasta or What Ancient Tragedy Tells Us About Agents, Their Actions, and the World	Johannes L. Brandl; Marian David; Martina Fürst; Maria Elisabeth Reicher	2001	10.1163/18756735-061001000	Grazer Philosophische Studien	https://openalex.org/W4236042113
+(De)Coding Hodgson’s Kiranti Grammars and Verbal Paradigms	Aimée Lahaussois	2023	10.30687/bhasha/2785-5953/2023/02/002	Bhasha	https://openalex.org/W4388304661
+Evolution of newspapers in Portugal : analysis design and editorial content through the case study "cidade de Tomar"	Kozlovskaya, Evgenya	2023		Portuguese National Funding Agency for Science, Research and Technology (RCAAP Project by FCT)	https://openalex.org/W7111737409
+Preparing Legal Documents for NLP Analysis: Improving the Classification of Text Elements by Using Page Features	Frieda Josi; Christian Wartena; Ulrich Heid	2022	10.5121/csit.2022.120102		https://openalex.org/W4207051111
+Guidelines for Authors 2006		2006	10.1002/j.2050-0416.2006.tb00747.x	Journal of the Institute of Brewing	https://openalex.org/W4242044931
+Guidelines for Authors 2007		2007	10.1002/j.2050-0416.2007.tb00298.x	Journal of the Institute of Brewing	https://openalex.org/W4256309168
+Why accessibility is hard and how to make it easier: Lessons from publishers	Bill Kasdorf	2018	10.1002/leap.1146	Learned Publishing	https://openalex.org/W2785327924
+Guidelines for Authors 2004		2004	10.1002/j.2050-0416.2004.tb00220.x	Journal of the Institute of Brewing	https://openalex.org/W4250918098
+Stylistic Analysis of the ‘Muslim Family Laws Ordinance 1961’	Shehbaz Ahmad; Muhammad Tahir Nadeem; Tenzila Khan; Muhammad Ahmad	2015	10.5296/jsel.v3i1.7451	Journal for the Study of English Linguistics	https://openalex.org/W2058311245
+

@@ -1,0 +1,8 @@
+# Query: (heading OR "widows and orphans" OR "page break") AND typesetting AND (criticism OR overrated OR "trade-off" OR "white space")
+# Provider: ieee
+# Timestamp: 2026-11-03T20:08:20.938813
+# Results: 1
+
+title	authors	year	doi	venue	url
+Textual image compression	I.H. Witten; T.C. Bell; M.-E. Harrison; M.L. James; A. Moffat	1992	10.1109/DCC.1992.227477	Data Compression Conference, 1992.	https://ieeexplore.ieee.org/document/227477/
+

@@ -1,0 +1,11 @@
+% Test of noteoverflow (didactic): break, the default, with pdfLaTeX and with no
+% limit on how early a page ends (noteyieldmaxgap=0): no note on another page than its mark.
+% Build and checks: see the Makefile.  The contents are many short paragraphs with
+% many margin notes, more than a page's margin holds.
+\documentclass[a4paper]{memoir}
+\usepackage[british]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[noteyieldmaxgap=0]{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\extrafloats{500}
+\input{test-noteoverflow-contents}

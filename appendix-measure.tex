@@ -1,0 +1,405 @@
+^^A Measurements behind the decisions on page breaks.  \input by appendix.tex, so
+^^A no % comments, only ^^A, and no literal vertical bar, as in that file.
+^^A The numbers come from measure-real/ and measure-flow/; see measure-real/README.md.
+
+\section{Measurements on real documents}\label{app:pb-measure}
+
+This section reports what the page-break defaults do to real documents.
+The numbers are from the package at commit \texttt{de43f08}.
+At \texttt{3c059c3}, which adds one \texttt{.aux} write and a whatsit after a lead-in, every page of
+all eight documents has the same words, with and without the probe, so the tables hold there too.
+A rerun of the two settings on all eight took 15 minutes with 8 jobs, on a loaded 8-core machine,
+and of all eleven settings 75 minutes with 6 jobs.
+The documents aren't in the repository, and they appear here by kind only.
+How to measure them again, or other documents, is in \texttt{measure-real/README.md}.
+
+\subsection{Method}
+
+Eight documents, all built before with the package on \textsf{memoir}: three sets of
+lecture notes, one set of course notes, a book, two literate programs and a paper.
+One is built with Xe\TeX, the others with pdf\TeX.
+Together they have 814 pages and 249 lists.
+
+Each document is copied once, with the generated files of its last build, and those are reused:
+PythonTeX output, biber's and minted's.
+All numbers are from that fixed snapshot, taken on 4 November 2026, so each setting and commit sees
+the same text.
+One set of lecture notes was woven and run through biber in its copy, as its woven source wasn't kept.
+\texttt{audit.py} checks each copy before anything is counted, see below.
+Then each document is built under each setting until its \texttt{.aux} doesn't change, at most six times.
+
+A setting is a small change to a copy of \texttt{didactic.sty}:
+\begin{description}
+\item[current] the package as it is: club and widow penalties are \textsf{memoir}'s 1000, and all
+  keep options have their defaults.
+\item[1000/10000, 10000/10000] other club and widow penalties.
+\item[keepleadin off] \texttt{keepleadin=false}.
+\item[keep options off] also \texttt{keeplines=0}, \texttt{keepends=1},
+  \texttt{keepafterheading=0} and \texttt{keepmaxgap=0}.
+  The documents need the package's macros, so this is the nearest to plain \LaTeX\ with the
+  package's fonts and margins.
+\item[keepafterheading=1] that option's default changed.
+\item[estimate of two lines] the estimate before a heading asks for two lines of room rather than one.
+\item[list rule off] without the package's rule that keeps a list with its lead-in, so that the
+  penalty before a list's first item is \textsf{memoir}'s $-51$.
+\item[list 0, list 10000] the same, with that penalty changed for \texttt{itemize},
+  \texttt{enumerate} and \texttt{description}.
+\end{description}
+
+A probe in the copy of the package writes, at shipout like a label, the page of each paragraph's
+last line and of each list's first item, and for each page that goes through the main output
+routine the penalty it broke at and its natural height.
+A list is parted when those two pages differ.
+A lone line is read from the penalty: 1000 or 1100 is a first line alone, and a separate setting
+with a widow penalty of 1001 tells a last line from a first when both are 1000.
+Its breaks are those of \emph{current}.
+The empty space $e$ on a page is its height less its natural height, in baselines, so that a
+negative $e$ means glue shrank.
+It says nothing of where the space shows under \apcs{flushbottom}.
+
+\subsection{Page counts}
+
+\begin{center}\small
+\begin{tabular}{@{}lrrrrrrrr@{}}
+\toprule
+& keep & keep- & 1000/1000 & 1000/ & 10000/ & keepafter- & list & list \\
+Document & off & leadin off & (current) & 10000 & 10000 & heading=1 & rule off & 10000 \\
+\midrule
+Lecture notes & 121 & 121 & 121 & 121 & 121 & 121 & 121 & 121 \\
+Lecture notes & 67 & 67 & 68 & 68 & 68 & 68 & 68 & 68 \\
+Lecture notes & 108 & 108 & 108 & 108 & 108 & 108 & 108 & 108 \\
+Course notes & 101 & 101 & 101 & 101 & 101 & 101 & 101 & 101 \\
+Book & 124 & 124 & 124 & 124 & 124 & 124 & 124 & 124 \\
+Literate program & 93 & 92 & 93 & 93 & 93 & 93 & 93 & 93 \\
+Literate program & 77 & 77 & 78 & 78 & 78 & 78 & 78 & 78 \\
+Paper & 120 & 121 & 121 & 121 & 122 & 121 & 121 & 121 \\
+\midrule
+Total & 811 & 811 & 814 & 814 & 815 & 814 & 814 & 814 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+So club 1000 with widow 1000 and with widow 10000 tie on these documents, and 10000 for both adds
+a page to one of them.
+The keep options cost three pages in 814, one each.
+On the two literate programs the last page with them holds under ten words, so a small shift
+upstream can change such a count either way.
+With a list's penalty at 0 the total is also 814.
+
+\subsection{Lone lines and empty space}
+
+\begin{center}\small
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Club/widow & First line alone at the foot & Last line alone at the top \\
+\midrule
+1000/1000 (current) & 3 & 10 \\
+1000/10000 & 4 & 0 \\
+10000/10000 & 0 & 0 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+These are on the 676 pages that go through the main output routine, of 814; a page of floats isn't
+counted.
+A paragraph of two lines broken in the middle would count on both sides; none is.
+
+\begin{center}\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Setting & Pages $e\ge3$ & Pages $e>5$ & Largest $e$ \\
+\midrule
+keep options off & 104 & 62 & 48.6 \\
+keepleadin off & 97 & 62 & 45.0 \\
+current & 118 & 69 & 49.2 \\
+1000/10000 & 120 & 69 & 49.2 \\
+10000/10000 & 122 & 71 & 51.0 \\
+keepafterheading=1 & 118 & 69 & 49.2 \\
+list rule off & 118 & 70 & 49.2 \\
+list 0 & 116 & 71 & 49.2 \\
+list 10000 & 118 & 69 & 49.2 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The largest values are the last pages of chapters and of documents, so compare the rows, not the
+values.
+Compared with the keep options off, \emph{current} has 14 more pages with $e\ge3$ and 7 more with
+$e>5$, of 676.
+
+\subsection{A list and its lead-in}
+
+Of the 249 lists, 31 come right after a heading and aren't counted, which leaves 218.
+
+\begin{center}\small
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+Document & Lists & After a heading & keep off & list rule off & list 0 & list 10000 & current \\
+\midrule
+Lecture notes & 5 & 0 & 0 & 0 & 0 & 0 & 0 \\
+Lecture notes & 5 & 0 & 0 & 0 & 0 & 0 & 0 \\
+Lecture notes & 15 & 0 & 1 & 1 & 1 & 0 & 0 \\
+Course notes & 165 & 31 & 8 & 8 & 1 & 0 & 0 \\
+Book & 19 & 0 & 1 & 1 & 1 & 0 & 0 \\
+Literate program & 9 & 0 & 0 & 1 & 1 & 0 & 0 \\
+Literate program & 2 & 0 & 0 & 0 & 0 & 0 & 0 \\
+Paper & 29 & 0 & 4 & 3 & 3 & 0 & 0 \\
+\midrule
+Total & 249 & 31 & 14 & 14 & 7 & 0 & 0 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The source was read for each of the 14 lists parted with the rule off.
+Thirteen have a real lead-in at the foot of the page before, such as \enquote{Countermeasures
+include:}, and three of those are a line right under a heading.
+One is a list resumed after an explanation of the answer before it.
+None follows a listing or table.
+So the problem as asked is 13 lists in 218.
+On each of those pages $e$ is at most 1.4 lines, so these pages are nearly full, and the empty space
+is elsewhere.
+In two cases a figure tops the next page, so that the list isn't its first thing.
+
+What the rule costs is lead-ins going along:
+\begin{center}\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+& Lead-in goes & No longer parted, & Newly & Largest $e$ on \\
+Setting & forward with the list & earlier pages shifted & parted & the page left \\
+\midrule
+list 0 & 3 & 5 & 1 & 2.8 \\
+list 10000 & 8 & 6 & 0 & 3.9 \\
+current & 8 & 6 & 0 & 3.9 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+On these documents \emph{current} has the same words on each page as \emph{list 10000}.
+They differ where the rule is released past \texttt{keepmaxgap}, which doesn't happen to a list here.
+
+\subsection{A heading}
+
+With \texttt{keepafterheading=1}, instead of 2, every document has the same words on every page, and
+the same 814 pages.
+That isn't a setting lost on the way: a trace in the build of the lecture notes and of the course
+notes, where the words changed at the earlier commit below, shows 1 or 2 reaching
+\apcs{@didactic@keep@room} and the lines owed in the first paragraph.
+On a generated heading the setting does change the page, when the first paragraph has one line:
+
+\begin{center}\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+Under the heading & Room in lines & \texttt{keepafterheading=1} & \texttt{keepafterheading=2} \\
+\midrule
+A paragraph of many lines & 4--6 & the same & the same \\
+A list of one-line items & 4--6 & the same & the same \\
+One line, then a paragraph & 4--4.5 & stays with that line & moves \\
+One line, then a paragraph & 5 & stays with that line & stays with two lines \\
+One line, then a paragraph & 5.5--6 & the same & the same \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+So the setting decides only what the chain holds after a first paragraph of one line, since \LaTeX\
+already keeps two lines of a longer one, and a list under a heading has what \LaTeX\ gives it.
+None of these documents has a heading like that at the foot of a page.
+
+At commit \texttt{dd90b97}, before the rule for a list under a heading, the setting changed the words
+on 10 pages, with 118 and 70 pages of $e\ge3$ and $e>5$ against 114 and 68.
+There the estimate before a heading asked for \texttt{keepafterheading} lines of room, and now it
+asks for one, as it can't know what follows.
+The row with an estimate of two lines shows what that change did at the current code: 814 pages,
+with words differing on 4 pages (3 in one set of lecture notes, 1 in the course notes), and 116 and 68 pages of $e\ge3$ and $e>5$ against 118 and 69.
+On one of them, the heading of an exercise with two lines at the foot of a page moves to the next page.
+
+A list directly under a heading was measured at \texttt{dd90b97} with a scratch change that let its
+first item stay with one line, against the two-line rule: no page differed in words.
+That is now the package's rule.
+
+\subsection{Warnings}
+
+Without the probe, \emph{current} gives 19 warnings on all eight documents: 12 about a heading, 6
+that a tie is released, and 1 other.
+With the keep options off there are none, and with \texttt{keepleadin} off 12, all about headings, both with the probe.
+With the list rule off there are 25 against 21, both with the probe.
+
+\subsection{The pair of penalties on generated text}
+
+The real documents tie, so the choice between the pairs rests on generated text.
+These are \texttt{measure-flow/} at the current code, with \textsf{noweb} or \textsf{minted} chunks,
+and \texttt{queries/pen.py}: 6 seeds of 300 paragraphs in \textsf{memoir} and \textsf{article}, with
+and without headings, with no package, which doesn't depend on the commit.
+
+\begin{center}\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Pages & 1000/1000 & 1000/10000 & 10000/10000 \\
+\midrule
+Flows, \textsf{noweb} chunks & 210 & 210 & 210 \\
+Flows, \textsf{minted} chunks & 194 & 195 & 195 \\
+\texttt{pen.py}, \textsf{memoir} & 613 & 616 & 617 \\
+\texttt{pen.py}, \textsf{article} & 610 & 610 & 610 \\
+\midrule
+Total & 1627 & 1631 & 1632 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+So 1000/1000 is 4 pages shorter than 1000/10000 in about 1630.
+Three of those 4 are in \texttt{pen.py} in \textsf{memoir}, and one is a flow whose last page holds
+about a line.
+The price is in lone lines:
+
+\begin{center}\small
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+& \multicolumn{2}{c}{1000/1000} & \multicolumn{2}{c}{1000/10000} & \multicolumn{2}{c}{10000/10000} \\
+Lone lines & first & last & first & last & first & last \\
+\midrule
+Flows, \textsf{noweb} chunks & 2 & 3 & 1 & 0 & 0 & 0 \\
+Flows, \textsf{minted} chunks & 4 & 7 & 2 & 0 & 0 & 0 \\
+\texttt{pen.py} & 55 & 59 & 63 & 0 & 0 & 0 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Generated literate programs}
+
+\texttt{measure-flow/} generates 12 documents of 60 pairs of a code chunk and text each, in \textsf{memoir} with \texttt{article} and \texttt{oneside}, with the lengths of chunks and the share of a lone \texttt{@} measured on the
+maintainer's \texttt{.nw} files.
+They have no margin notes, floats or displays.
+The chunks are set by \textsf{noweb} or by \textsf{minted} as the \texttt{tominted} filter weaves them,
+with filler code.
+Plain means no package, with its fonts and margins.
+
+\begin{center}\small
+\begin{tabular}{@{}llrrrrrrr@{}}
+\toprule
+Chunks & Setting & Pages & Mean $e$ & Largest $e$ & $e\ge2$ & $e\ge3$ & $e\ge5$ & Warnings \\
+\midrule
+noweb & plain, no option & 226 & 7.92 & 41.1 & 154 & 136 & 101 & -- \\
+noweb & plain, breakcode & 210 & 0.84 & 6.2 & 48 & 31 & 2 & -- \\
+noweb & package, no option & 225 & 7.81 & 41.1 & 154 & 136 & 100 & 14 \\
+noweb & package, breakcode & 210 & 0.65 & 5.6 & 33 & 20 & 1 & 1 \\
+noweb & package, breakcode, keepmaxgap=0 & 211 & 0.95 & 7.6 & 50 & 33 & 4 & 0 \\
+minted & plain, breakcode & 196 & 0.96 & 6.2 & 45 & 28 & 4 & -- \\
+minted & package, breakcode & 194 & 0.71 & 4.5 & 34 & 17 & 0 & 6 \\
+minted & keepmaxgap=0 & 197 & 1.48 & 8.9 & 64 & 43 & 17 & 0 \\
+minted & keepleadin=false & 194 & 0.59 & 5.2 & 33 & 12 & 1 & 2 \\
+minted & keeplines=0 & 194 & 0.64 & 4.5 & 32 & 15 & 0 & 6 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Without \textsf{noweb}'s \texttt{breakcode}, its \apcs{filbreak} leaves up to 41 lines empty on a page,
+and the package doesn't touch that break.
+With it the package leaves fewer short pages than plain.
+\textsf{noweb}'s own \enquote{leave no more than this}, 0.2\,in, isn't a bound: plain, a page ends
+6.2 lines short.
+The one page over \texttt{keepmaxgap} with \textsf{noweb} chunks ends after a chunk, at
+\textsf{noweb}'s own penalty.
+
+The package drops \textsf{noweb}'s \apcs{nwdocspar} under \texttt{keepmaxgap}.
+With \textsf{noweb} chunks and \texttt{breakcode}, in 210 pages, which have 198 breaks since a
+document's last page ends by itself, that takes the breaks at
+$-200$ from 37 to 0, those after a chunk at $-301$ from 60 to 76, and those inside a chunk at 301 from
+93 to 112: 19 more, against the smaller gaps in the table.
+
+\texttt{keepmaxgap=0} also keeps \apcs{nwdocspar}, so the two were measured apart: the limit on with
+the break kept, by taking the \apcs{let} out of a copy of the package, and the limit off with the
+break dropped, by a \apcs{let} in the preamble.
+
+\begin{center}\small
+\begin{tabular}{@{}lllrrrrr@{}}
+\toprule
+Chunks & \texttt{keepmaxgap} & \apcs{nwdocspar} & Pages & Mean $e$ & Largest $e$ & $e\ge3$ & $e\ge5$ \\
+\midrule
+noweb & 5 & dropped (current) & 210 & 0.65 & 5.6 & 20 & 1 \\
+noweb & 5 & kept & 211 & 0.95 & 7.6 & 33 & 4 \\
+noweb & 0 & dropped & 210 & 0.65 & 5.6 & 21 & 1 \\
+noweb & 0 & kept & 211 & 0.95 & 7.6 & 33 & 4 \\
+minted & 5 & dropped (current) & 194 & 0.71 & 4.5 & 17 & 0 \\
+minted & 5 & kept & 196 & 1.01 & 6.2 & 28 & 3 \\
+minted & 0 & dropped & 196 & 1.44 & 10.5 & 39 & 14 \\
+minted & 0 & kept & 197 & 1.48 & 8.9 & 43 & 17 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+With \textsf{noweb} chunks all of 7.6 against 5.6 is \apcs{nwdocspar}, and the limit changes one
+page's count in $e\ge3$, as those chunks can break anywhere at a moderate penalty.
+With \textsf{minted} chunks, which the package keeps together, the limit does the larger part, and
+dropping the break matters only along with it.
+
+\subsection{Build time}
+
+One \LaTeX\ pass at v2.13 (\texttt{743a025}), before the keep options, against the current code, with
+each \texttt{.aux} settled first and three passes in turn for each version, by
+\texttt{measure-real/timing.py}.
+CPU seconds are the mean of the three, with their range.
+
+\begin{center}\small
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+& \multicolumn{2}{c}{Pages} & \multicolumn{2}{c}{\texttt{.aux}, kB} & \multicolumn{2}{c}{CPU s} \\
+Document & v2.13 & current & v2.13 & current & v2.13 & current \\
+\midrule
+Lecture notes & 67 & 68 & 150 & 179 & 31.8 (26.6--37.8) & 33.3 (24.0--38.6) \\
+Literate program & 77 & 78 & 45 & 63 & 13.8 (11.5--15.2) & 13.9 (12.2--17.2) \\
+Paper & 121 & 122 & 156 & 188 & 35.6 (32.7--38.6) & 35.0 (26.2--39.6) \\
+Generated, 3000 sections & 250 & 250 & 318 & 710 & 4.9 (4.2--5.3) & 5.8 (5.6--6.0) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+On the real documents no difference shows above the noise.
+Other jobs held the load at 8 to 17 on an 8-core machine, and passes of one version vary by up to half,
+so a real difference under about 20 per cent on these documents wouldn't show.
+The generated document, with a section every few lines, has an \texttt{.aux} over twice the size and is
+about a fifth slower here, not twice.
+The paper's 122 pages come from settling with only four passes.
+
+\subsection{Checks a new measurement must do}
+
+Each of these went wrong once, without showing in the page count.
+\begin{itemize}
+\item An \apcs{input}\{contents.tex\} with no woven file found a test fixture of that name
+  through \texttt{TEXINPUTS}: a lecture counted as a shorter document.
+  \texttt{audit.py} fails on a file read from outside the copy, by \texttt{-recorder}.
+\item Reused PythonTeX output named files by absolute path, read through \textsf{minted}, which
+  \texttt{-recorder} doesn't list.
+  The audit also looks for absolute paths in reused output, and \texttt{prepare.py} points them at the copy.
+\item A probe that wrote a whatsit into an empty paragraph, such as \textsf{noweb}'s
+  \apcs{noindent}\apcs{par}, made a line of it and added pages.
+  Compare with the setting without the probe.
+\item \texttt{biber} with a wrong path emptied the \texttt{.bbl}, which shows only as fewer pages.
+  \texttt{prepare.py} fails on an empty one.
+\item A quota reached on the scratch disk, with \texttt{df} showing free space, can leave a short log.
+  A build with a quota line or without its output line is no result, and \texttt{analyse.py} refuses it.
+\item Builds killed by a timeout left their \LaTeX\ running, which wrote into the next build of that directory.
+\item Delete a build only after its numbers are saved.
+\end{itemize}
+
+\subsection{Limits}
+
+\begin{itemize}
+\item Eight documents, one author, and one set of course notes has 165 of the 249 lists and 8 of the
+  14 parted ones.
+\item Generated files are as last built, the same for every setting.
+  Some woven files are older than their sources, by up to 25 days, and one document has 9 undefined
+  citations from an older bibliography, in every setting.
+\item The probe still moves some lines between pages in two documents, on 13 and 22 pages, with the
+  same page count.
+  The page counts and the warnings for \emph{current} are from a build without it, and so is the
+  check of the list rule off in those two documents.
+  List counts come from the builds with the probe.
+  In those two documents the parted lists were also read in the text of a build without it, and each
+  falls on the same pages.
+\item A list is measured against the last paragraph before it, whatever lies between: hence the reading above.
+\item The choice of breaks doesn't depend on a flush or ragged bottom, as \apcs{flushbottom} and
+  \apcs{raggedbottom} act after a page is broken.
+\item A rerun on documents that have moved on since the snapshot mixes their changes with the
+  package's, so keep a snapshot when comparing commits.
+  One literate program here changed on the day of the snapshot: from its source it now has 79 pages,
+  from the snapshot 78.
+\end{itemize}

@@ -1,0 +1,8 @@
+# Query: (LaTeX OR TeX OR noweb OR CWEB OR "literate programming") AND ("code listing" OR listings OR verbatim OR "code chunk") AND ("page break" OR "across pages" OR typesetting)
+# Provider: arxiv
+# Timestamp: 2026-11-04T09:53:59.575765
+# Results: 1
+
+title	authors	year	doi	venue	url
+Inconsistencies in TeX-Produced Documents	Jovyn Tan; Manuel Rigger	2024	10.1145/3650212.3680370	cs.SE	http://arxiv.org/abs/2407.15511v2
+

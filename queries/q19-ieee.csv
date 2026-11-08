@@ -1,0 +1,9 @@
+# Query: (list OR "bulleted list" OR "list items" OR "lead-in") AND ("page break" OR pagination) AND (criticism OR empirical OR experiment OR evidence)
+# Provider: ieee
+# Timestamp: 2026-11-03T21:05:49.994482
+# Results: 2
+
+title	authors	year	doi	venue	url
+Study and Experiments on Data Pagination and Calculation of Simple and Matrix Totals	Christian Gavrila; Petre G. Pop; Ioana Tamas; Cosmin Striletchi	2022	10.1109/ICEBE55470.2022.00051	2022 IEEE International Conference on e-Business Engineering (ICEBE)	https://ieeexplore.ieee.org/document/10035062/
+Database-Native Authorization for Human and Autonomous Principals: The SHRBAC Model	Ross Slaney	2026	10.1109/COMPSAC69091.2026.00298	2026 IEEE 50th Annual Computers, Software, and Applications Conference (COMPSAC)	https://ieeexplore.ieee.org/document/11645531/
+

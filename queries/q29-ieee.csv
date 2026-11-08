@@ -1,0 +1,9 @@
+# Query: ("one page" OR "single page" OR "one screen" OR screenful) AND (function OR subroutine OR routine OR module OR "source code") AND (length OR size) AND (readability OR comprehension OR maintainability)
+# Provider: ieee
+# Timestamp: 2026-11-04T09:55:50.066513
+# Results: 2
+
+title	authors	year	doi	venue	url
+Enhancing the Assessment Item Rearrangement with Bin Packing Algorithms	Geunsoneg Jung; Xu Jing; Jaehyuk Cha; Sungjae Han	2015	10.1109/ICISSEC.2015.7371000	2015 2nd International Conference on Information Science and Security (ICISS)	https://ieeexplore.ieee.org/document/7371000/
+A comprehensive model for Web sites quality	O. Signore	2005	10.1109/WSE.2005.1	Seventh IEEE International Symposium on Web Site Evolution	https://ieeexplore.ieee.org/document/1517978/
+

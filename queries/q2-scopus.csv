@@ -1,0 +1,7 @@
+# Query: TITLE-ABS-KEY(heading AND "page break" AND (typography OR typesetting OR pagination))
+# Provider: scopus
+# Timestamp: 2026-11-03T20:04:01.024618
+# Results: 0
+
+title	authors	year	doi	venue	url
+

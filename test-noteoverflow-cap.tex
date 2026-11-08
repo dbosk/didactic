@@ -1,0 +1,12 @@
+% Test of noteoverflow (didactic): break with the default noteyieldmaxgap, with
+% pdfLaTeX: a paragraph's notes that would end its page too early stay carried,
+% each logged as capped, with marginfix's warning.
+% Build and checks: see the Makefile.  The contents are many short paragraphs with
+% many margin notes, more than a page's margin holds.
+\documentclass[a4paper]{memoir}
+\usepackage[british]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[]{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\extrafloats{500}
+\input{test-noteoverflow-contents}

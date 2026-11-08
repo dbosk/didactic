@@ -1,0 +1,10 @@
+# Query: TITLE-ABS-KEY(("page breaking" OR pagination) AND (TeX OR LaTeX) AND (criticism OR limitations OR empirical OR evaluation OR "white space"))
+# Provider: scopus
+# Timestamp: 2026-11-03T21:08:44.955514
+# Results: 3
+
+title	authors	year	doi	venue	url
+Adapting the LodView RDF Browser for Navigation over the Multilingual Linguistic Linked Open Data Cloud	A. Kirillovich	2022	10.1109/SETIT54465.2022.9875628	2022 IEEE 9th International Conference on Sciences of Electronics Technologies of Information and Telecommunications Setit 2022	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=85138990992&origin=inward
+A general framework for globally optimized pagination	F. Mittelbach	2019	10.1111/coin.12165	Computational Intelligence	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=85044217076&origin=inward
+A general framework for globally optimized pagination	F. Mittelbach	2016	10.1145/2960811.2960820	Doceng 2016 Proceedings of the 2016 ACM Symposium on Document Engineering	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=84991241404&origin=inward
+

@@ -1,0 +1,11 @@
+# Query: ("one page" OR "single page" OR "one screen" OR screenful) AND (function OR subroutine OR routine OR module OR "source code") AND (length OR size) AND (criticism OR "no effect" OR "no significant" OR myth OR empirical)
+# Provider: ieee
+# Timestamp: 2026-11-04T10:01:22.415890
+# Results: 4
+
+title	authors	year	doi	venue	url
+A Cuckoo Hashing Variant with Improved Memory Utilization and Insertion Time	Ely Porat; Bar Shalem	2012	10.1109/DCC.2012.41	2012 Data Compression Conference	https://ieeexplore.ieee.org/document/6189266/
+Web traffic modeling exploiting TCP connections' temporal clustering through HTML-REDUCE	M. Molina; P. Castelli; G. Foddis	2000	10.1109/65.844500	IEEE Network	https://ieeexplore.ieee.org/document/844500/
+A comprehensive model for Web sites quality	O. Signore	2005	10.1109/WSE.2005.1	Seventh IEEE International Symposium on Web Site Evolution	https://ieeexplore.ieee.org/document/1517978/
+Web-Based Edge Inference for Fine-Grained Image Classification: A Comparative Study of MATLAB Pretrained Deep Learning Models	Satienpong Yiengvanichchakul; Jirapas Jatejaroungkit; Porawat Visutsak	2026	10.1109/ICTechED69022.2026.11682879	2026 International Conference on Technical Education (ICTechED)	https://ieeexplore.ieee.org/document/11682879/
+

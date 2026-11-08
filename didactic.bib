@@ -1,0 +1,1442 @@
+% Bibliography for the appendix on page breaks around headings, lists and
+% first and last lines of paragraphs.  Every entry has a provenance block.
+% Searches and retrievals: 2026-11-03.  Scholar session: heading-foot-of-page.
+% SECONDARY in VERIFIED means the passage attributed to another work was read
+% only as quoted here; the other work itself was not opened.
+
+% === provenance: cramer2016latinreq ===
+% CLAIM: A head at the foot of a page must be followed by two or three lines of
+%   text; facing pages usually align; running short is a recognised tool.
+% FOUND-VIA: WebSearch "\"A page should not begin with the last line of a
+%   paragraph\" subhead \"two lines\" page makeup Chicago Manual", then curl of
+%   https://w3c.github.io/dpub-pagination/
+% PICKED: The only source seen that states a range of lines for heads and bases
+%   it on publishing practice; the editor is at Hachette Livre.
+% QUOTE (§10.3): "A head should never be the last thing on a page; it must be
+%   followed by two or three lines of text."
+% QUOTE (§5.4): "If a document has facing pages, the publisher usually requires
+%   that they align top and bottom."
+% VERIFIED: full-text read. An Editor's Draft, not a Recommendation; it gives
+%   no source for the number.
+% COUNTER: scholar queries C1-C13 -- nothing contradicts it directly; it is the only
+%   verified support for three lines, and chicago2010manual fig. A.3 states two.
+% DATE: 2026-11-03
+@online{cramer2016latinreq,
+  editor  = {Cramer, Dave},
+  title   = {Requirements for {Latin} Text Layout and Pagination},
+  date    = {2016-07-21},
+  organization = {W3C},
+  note    = {W3C Editor's Draft},
+  url     = {https://w3c.github.io/dpub-pagination/},
+  urldate = {2026-11-03},
+}
+
+% === provenance: cramer2014latinreq ===
+% CLAIM: The same sentence on heads stands in the published Working Draft.
+% FOUND-VIA: Known item, the "Latest version" link of cramer2016latinreq; curl
+%   of https://www.w3.org/TR/dpub-latinreq/
+% PICKED: The version W3C published on its Technical Reports page.
+% QUOTE (§9.3): "A head should never be the last thing on a page; it must be
+%   followed by two or three lines of text."
+% VERIFIED: full-text read; applies because the wording is identical.
+% COUNTER: As for cramer2016latinreq.
+% DATE: 2026-11-03
+@online{cramer2014latinreq,
+  editor  = {Cramer, Dave},
+  title   = {Requirements for {Latin} Text Layout and Pagination},
+  date    = {2014-09-30},
+  organization = {W3C},
+  note    = {W3C Working Draft},
+  url     = {https://www.w3.org/TR/2014/WD-dpub-latinreq-20140930/},
+  urldate = {2026-11-03},
+}
+
+% === provenance: pitt2026etd ===
+% CLAIM: A thesis manual requires two full lines after a subheading, otherwise
+%   the subheading moves.
+% FOUND-VIA: WebSearch "thesis dissertation formatting manual heading bottom of
+%   page \"at least two lines\" OR \"at least three lines\" OR \"two lines of
+%   text\" of text following heading university graduate school", then curl of
+%   the URL below.
+% PICKED: Clearest wording among the thesis manuals, and it states the fallback.
+% QUOTE (Margins): "A subheading at the bottom of a page should be followed by
+%   at least two full lines of type. If space does not permit two lines plus a
+%   1” margin, the subheading should begin the next page."
+% VERIFIED: full-text of the page read. Theses are double or one-and-a-half
+%   spaced, so two lines there are taller than two book lines.
+% COUNTER: The same search also asked for three lines; none found. chicago2010manual fig. A.3
+%   states two.
+% DATE: 2026-11-03
+@online{pitt2026etd,
+  author  = {{University of Pittsburgh}},
+  title   = {Document Preparation},
+  organization = {Electronic Theses and Dissertations},
+  url     = {https://etd.pitt.edu/node/60},
+  urldate = {2026-11-03},
+}
+
+% === provenance: utah2026text ===
+% CLAIM: A thesis manual requires two lines and allows the resulting gap.
+% FOUND-VIA: Same WebSearch as pitt2026etd; curl of the URL below.
+% PICKED: The only source that names the resulting gap as an allowed exception.
+% QUOTE (Subheadings, Placement): "For a subheading to end the page there must
+%   be room for the heading space, the subheading and at least two lines of
+%   text. If there is not enough room, the subheading moves to the top of the
+%   next page. This is the only time a gap is allowed in the text when it is
+%   not the end of a chapter or before an equation too long to fit at the
+%   bottom of a page."
+% VERIFIED: full-text of the page read. No limit on the size of the gap.
+% COUNTER: utah2026checklist also allows a footnote-forced gap, so "only" is
+%   not strict.
+% DATE: 2026-11-03
+@online{utah2026text,
+  author  = {{The University of Utah, Graduate School}},
+  title   = {Formatting Requirements: Text},
+  url     = {https://gradschool.utah.edu/thesis/vita},
+  urldate = {2026-11-03},
+}
+
+% === provenance: utah2026checklist ===
+% CLAIM: The same school's checklist repeats two lines and lists the gaps
+%   allowed at the bottom margin.
+% FOUND-VIA: Same WebSearch as pitt2026etd; scripts/fetch_pdf.py --text.
+% PICKED: Corroboration, and it qualifies utah2026text.
+% QUOTE (Margins): "when a subheading is next and there isn’t enough space for
+%   it and 2 lines of text; if a footnote is forcing the bottom line to the
+%   next page, creating a gap at the bottom"
+% VERIFIED: full-text extraction read.
+% COUNTER: None.
+% DATE: 2026-11-03
+@online{utah2026checklist,
+  author  = {{The University of Utah, Graduate School}},
+  title   = {Formatting Checklist for Theses and Dissertations},
+  url     = {https://gradschool.utah.edu/_resources/documents/formatting-checklist.pdf},
+  urldate = {2026-11-03},
+}
+
+% === provenance: iowa2020manuscript ===
+% CLAIM: A thesis manual requires two lines below a heading at the page bottom.
+% FOUND-VIA: Same WebSearch as pitt2026etd; scripts/fetch_pdf.py --text.
+% PICKED: Corroboration.
+% QUOTE (contents entry and section; contents gives p. 20): "Headings may not be
+%   placed at the bottom of the page without at least two lines of text below
+%   them."
+% VERIFIED: full-text extraction read; the page number is from the guide's
+%   contents list.
+% COUNTER: As for pitt2026etd.
+% DATE: 2026-11-03
+@online{iowa2020manuscript,
+  author  = {{University of Iowa, Graduate College}},
+  title   = {Manuscript Construction Guide},
+  date    = {2020-12},
+  url     = {https://GRAD.uiowa.edu/sites/grad.uiowa.edu/files/2020-12/Manuscript%20Construction%20Guide%20PC.pdf},
+  urldate = {2026-11-03},
+}
+
+% === provenance: uwest2026format ===
+% CLAIM: A thesis manual asks for two lines after a subsection near the foot.
+% FOUND-VIA: Same WebSearch as pitt2026etd; curl of the URL below.
+% PICKED: Corroboration.
+% QUOTE (Document Setup): "If they fall toward the bottom of a page, they should
+%   have at least two lines of text following it."
+% VERIFIED: full-text of the page read.
+% COUNTER: As for pitt2026etd.
+% DATE: 2026-11-03
+@online{uwest2026format,
+  author  = {{University of the West, Lewis R. Lancaster Research Library}},
+  title   = {{II}. Document Setup and Format Requirements},
+  url     = {https://lib.uwest.edu/thesis-dissertation-format-guidelines/ii-document-setup-and-format-requirements},
+  urldate = {2026-11-03},
+}
+
+% === provenance: chicago2010manual ===
+% CLAIM: The University of Chicago Press's sample house style sets two lines below a subhead at the
+%   foot, allows a page up to four lines short for a moved subhead, sets two-line minimums beside and
+%   within a list, and allows an orphan but a widow only at full measure.
+% FOUND-VIA: Known item, the user's PDF (pepper:books/, copy supplied by the team lead); text grep
+%   for "makeup" led to §A.17, which points to fig. A.3; the figure is an image, not in the text layer.
+% PICKED: The only source from a major book publisher that states these numbers; the Press's own rules.
+% QUOTE (fig. A.3, Page Makeup item 4; PDF p. 2295): "The minimum number of lines of text below a subhead
+%   at the bottom of a page is two."
+% QUOTE (fig. A.3, item 4): "The text page may be up to four lines short if there is no room for a subhead
+%   at the bottom of a page."
+% QUOTE (fig. A.3, item 5): "A minimum of two lines of a separate text element may fall at the top or bottom
+%   of a page."
+% QUOTE (fig. A.3, item 7): "The first line of a paragraph (orphan) may fall at the foot of a page."
+% QUOTE (§2.113): "(A page can, however, end with the first line of a new paragraph.)"
+% VERIFIED: fig. A.3 read as a rendered image at 300 dpi; §§2.113-2.114, A.17 and the glossary entries read
+%   in text. Labelled "Sample"; the Press's house style, not a rule for all publishers. Copyrighted: quotes
+%   kept short. §2.113 lacks the sentence on subheads that the 17th and 18th have.
+% COUNTER: chicago2024manual's running text states no number. cramer2016latinreq says two or three. Whether
+%   the figure survives in later editions was not established: not found through the 18th's index.
+% DATE: 2026-11-03
+@book{chicago2010manual,
+  author    = {{University of Chicago Press}},
+  title     = {The Chicago Manual of Style},
+  edition   = {16},
+  publisher = {University of Chicago Press},
+  location  = {Chicago},
+  date      = {2010},
+}
+
+% === provenance: chicago2017manual ===
+% CLAIM: The 17th edition has the sentence on subheads, and the same allowance for a first line.
+% FOUND-VIA: Known item; read online through KTH's institutional access from its index entry
+%   "widows (lines), 2.116, 2.117".
+% PICKED: Dates the sentence between the 16th and the 18th.
+% QUOTE (§2.116): "A page should not end with a subhead."
+% VERIFIED: full-text of §§2.116-2.117 read. No number of lines.
+% COUNTER: None.
+% DATE: 2026-11-03
+@book{chicago2017manual,
+  author    = {{University of Chicago Press}},
+  title     = {The Chicago Manual of Style},
+  edition   = {17},
+  publisher = {University of Chicago Press},
+  location  = {Chicago},
+  date      = {2017},
+  url       = {https://www.chicagomanualofstyle.org/book/ed17/part1/ch02/psec116.html},
+  urldate   = {2026-11-03},
+}
+
+% === provenance: chicago2024manual ===
+% CLAIM: The Manual says a page should not end with a subhead, gives no number of lines,
+%   allows a page to end with a paragraph's first line, restricts a short last line at a
+%   page's head, and accepts both facing pages running a line long or short.
+% FOUND-VIA: Known item, the handbook named in the brief; 18th ed. online read through
+%   KTH's institutional access (SOCKS tunnel, curl with a cookie jar, no credentials), from
+%   its index: "widows (lines), 2.121-22", "orphans (lines), 2.121", "lists in text, 6.138-43",
+%   "subheads, 1.61-63". Passages first located by the team lead (cmos18-quotes.md) and
+%   read again here.
+% PICKED: The only classical handbook that could be opened; a primary source for its rule.
+% QUOTE (§2.121): "A page should not end with a subhead."
+% QUOTE (§2.121): "A page can, however, end with the first line of a new paragraph"
+% QUOTE (§2.121): "page length may be adjusted"
+% QUOTE (§2.122): "it is usually acceptable for both pages to run a line long or short to
+%   avoid widows"
+% VERIFIED: full-text of §§2.121-2.122 read; §§1.62-1.63, 2.25, 2.118, 2.139, 6.138, 6.141,
+%   6.142 opened and searched by keyword for page breaks; index checked for subheads, lists,
+%   page proofs, widows and orphans. That one line under a subhead is not forbidden by this text
+%   alone is this review's inference. Copyrighted: quotes kept short.
+% COUNTER: chicago2010manual fig. A.3, the Press's sample, states two lines; cramer2016latinreq and
+%   the thesis manuals state two or more. Older edition reported to forbid first lines
+%   (mittelbach2018forlorn).
+% DATE: 2026-11-03
+@book{chicago2024manual,
+  author    = {{University of Chicago Press}},
+  title     = {The Chicago Manual of Style},
+  edition   = {18},
+  publisher = {University of Chicago Press},
+  location  = {Chicago},
+  date      = {2024},
+  url       = {https://www.chicagomanualofstyle.org/book/ed18/part1/ch02/psec121.html},
+  urldate   = {2026-11-03},
+}
+
+% === provenance: cmosshoptalk2018subheads ===
+% CLAIM: The Chicago publisher's blog says never to end a page with a subhead,
+%   and gives no number of lines.
+% FOUND-VIA: WebSearch "\"subhead\" \"at least two lines\" foot of page Chicago
+%   Manual of Style \"2.\" page makeup \"must be followed by\"", then curl.
+% PICKED: Published by the University of Chicago; the closest to the Chicago
+%   Manual that could be opened. It addresses student papers.
+% QUOTE (list of guidelines): "Never end a page with a subhead."
+% VERIFIED: full-text of the page read. It does not speak for the Manual's book
+%   page make-up.
+% COUNTER: None.
+% DATE: 2026-11-03
+@online{cmosshoptalk2018subheads,
+  author  = {{CMOS Shop Talk}},
+  title   = {How Do {I} Format Sections and Subheads in {Turabian}/{Chicago} Style?},
+  date    = {2018-12-11},
+  organization = {The University of Chicago},
+  url     = {https://cmosshoptalk.com/2018/12/11/how-do-i-format-sections-and-subheads-in-turabian-chicago-style/},
+  urldate = {2026-11-03},
+}
+
+% === provenance: georgefox2026turabian ===
+% CLAIM: A college guide says never to end a page with a subheading, and moves it.
+% FOUND-VIA: WebSearch "Turabian thesis formatting subhead bottom of page \"at
+%   least two lines of text\" below subheading must follow"; fetch_pdf.py --text.
+% PICKED: Corroboration; a college handout.
+% QUOTE (Subheadings): "Never end a page with a subheading. Skip a line and begin
+%   the next section on a new page."
+% VERIFIED: full-text extraction read.
+% COUNTER: None.
+% DATE: 2026-11-03
+@online{georgefox2026turabian,
+  author  = {{George Fox University, Academic Resource Center}},
+  title   = {{Turabian} 9th ed. Style Guide: Notes-Bibliography Style},
+  url     = {https://www.georgefox.edu/arc/resources/turabian-9th-ed-guide.pdf},
+  urldate = {2026-11-03},
+}
+
+% === provenance: jsums2024turabian ===
+% CLAIM: A university checklist says never to end a page with a subhead.
+% FOUND-VIA: Same WebSearch as georgefox2026turabian; fetch_pdf.py --text.
+% PICKED: Corroboration; a university checklist.
+% QUOTE (Subheads): "Never end a page with a subhead. Set your word processor to
+%   keep all headings"
+% VERIFIED: full-text extraction read; the sentence continues past the quote.
+% COUNTER: None.
+% DATE: 2026-11-03
+@online{jsums2024turabian,
+  author  = {{Jackson State University, Wright Center}},
+  title   = {{Kate L. Turabian} Style Requirements for a Thesis or Dissertation Manuscript},
+  date    = {2024-03},
+  url     = {https://www.jsums.edu/wrightcenter/files/2024/03/Kate-L.-Turabian-Style-Requirements-for-a-Manuscript.pdf},
+  urldate = {2026-11-03},
+}
+
+% === provenance: nobts2026template ===
+% CLAIM: A seminary's template treats a subheading alone at the page bottom as an
+%   orphan error.
+% FOUND-VIA: Same WebSearch as georgefox2026turabian; fetch_pdf.py --text.
+% PICKED: Corroboration; shows the heading case classed with orphans.
+% QUOTE (body of the sample): "an orphan error refers to a first line of a
+%   paragraph (or a subheading) by itself at the bottom of a page."
+% VERIFIED: full-text extraction read; line breaks removed from the quote.
+% COUNTER: None.
+% DATE: 2026-11-03
+@online{nobts2026template,
+  author  = {{New Orleans Baptist Theological Seminary}},
+  title   = {Seminar Template},
+  date    = {2026-06-09},
+  url     = {https://www.nobts.edu/cme/current-students/Seminar-TEMPLATE-6.9.26.pdf},
+  urldate = {2026-11-03},
+}
+
+% === provenance: knuth1986texbook ===
+% CLAIM: Club and widow penalties discourage but do not forbid; plain TeX sets
+%   150; a page break's cost is badness plus penalty.
+% FOUND-VIA: Known item, read on the user's reMarkable (/Literate
+%   programming/The TeX book), PDF pages 115 and 122 (PDF page = printed + 11).
+% PICKED: Primary source for TeX's page builder. Metadata from the TeX Live
+%   texbook1.bib entry Knuth:ct-a.
+% QUOTE (p. 104): "so that “club” or “widow” lines that are detached from the
+%   rest of a paragraph will not appear all alone on a page unless the
+%   alternative is worse."
+% VERIFIED: rendered pages read (the copy has no text layer). Only pp. 104, 111,
+%   114, 116 and 340 were read; no statement on headings on those pages.
+% COUNTER: mittelbach2018forlorn and texfaq2026widows qualify how much a finite
+%   penalty achieves.
+% DATE: 2026-11-03
+@book{knuth1986texbook,
+  author    = {Knuth, Donald E.},
+  title     = {The {\TeX}book},
+  series    = {Computers and Typesetting},
+  volume    = {A},
+  publisher = {Addison-Wesley},
+  location  = {Reading, MA},
+  date      = {1986},
+  isbn      = {0-201-13447-0},
+}
+
+% === provenance: knuth2021plain ===
+% CLAIM: Plain TeX sets club and widow penalties to 150, and \beginsection offers
+%   a break before a section and forbids one after its title.
+% FOUND-VIA: Known item, local file tex/plain/base/plain.tex, TeX Live 2025.
+% PICKED: Primary source for the behaviour.
+% QUOTE (plain.tex, \beginsection): "\outer\def\beginsection#1\par{\vskip\z@
+%   plus.3\vsize\penalty-250 \vskip\z@ plus-.3\vsize\bigskip\vskip\parskip
+%   \message{#1}\leftline{\bf#1}\nobreak\smallskip\noindent}"
+% VERIFIED: full-text of the code read. The 30 per cent reading is the author's
+%   interpretation of the code, not tested and not stated by Knuth.
+% COUNTER: Not applicable; a description of code.
+% DATE: 2026-11-03
+@software{knuth2021plain,
+  author  = {Knuth, Donald E.},
+  title   = {plain.tex: the plain {\TeX} format},
+  version = {3.1415926535},
+  note    = {File in \TeX\ Live 2025},
+}
+
+% === provenance: latex2025sources ===
+% CLAIM: LaTeX forbids a break after the first line of the paragraph after a
+%   heading, sets 150 by default, and encourages a break before a heading.
+% FOUND-VIA: Known item, local files latex.ltx and source2e.pdf, TeX Live 2025.
+% PICKED: Primary source for the behaviour.
+% QUOTE (\@afterheading, latex.ltx): "\clubpenalty \@M"
+% QUOTE (latex.ltx): "\@secpenalty = -300"
+% VERIFIED: full-text of the code read; source2e's historical comment agrees
+%   ("\clubpenalty := 10000 % local"). Effect on a one-line paragraph is a reading
+%   of the code, not tested.
+% COUNTER: Not applicable; a description of code. Default behaviour is evidence
+%   of practice, not of benefit.
+% DATE: 2026-11-03
+@manual{latex2025sources,
+  author  = {{\LaTeX\ Project Team}},
+  title   = {The {\LaTeXe} Sources},
+  date    = {2025-06-01},
+  note    = {Patch level 1, \TeX\ Live 2025},
+  url     = {https://ctan.org/pkg/source2e},
+  urldate = {2026-11-03},
+}
+
+% === provenance: latex2025classes ===
+% CLAIM: The standard classes encourage breaks before lists and between items,
+%   and use a ragged bottom only for one-sided documents.
+% FOUND-VIA: Known item, local files article.cls and book.cls, TeX Live 2025.
+% PICKED: Primary source for the behaviour.
+% QUOTE (article.cls): "\@beginparpenalty -\@lowpenalty"
+% QUOTE (article.cls): "\@itempenalty     -\@lowpenalty"
+% QUOTE (article.cls): "\@lowpenalty   51"
+% VERIFIED: full-text of the code read. \if@twoside \else \raggedbottom \fi read
+%   in article.cls and book.cls. \@item skips the before-list penalty when the
+%   list directly follows a heading (\if@nobreak \@nbitem).
+% COUNTER: wilson2025memoir section 18.7 and bos2011css21 Appendix D point the
+%   other way for the lead-in.
+% DATE: 2026-11-03
+@manual{latex2025classes,
+  author  = {{\LaTeX\ Project Team}},
+  title   = {Standard {\LaTeX} Document Classes: article, report, book},
+  date    = {2025},
+  note    = {Files in \TeX\ Live 2025},
+  url     = {https://ctan.org/pkg/latex-base},
+  urldate = {2026-11-03},
+}
+
+% === provenance: mittelbach2018forlorn ===
+% CLAIM: Forbidding widows and orphans outright yields badly filled pages where a
+%   page has little flexibility; many classes nevertheless set 10000.
+% FOUND-VIA: Known item, named in the commissioning brief and in the
+%   widows-and-orphans documentation; scripts/fetch_pdf.py --text from tug.org.
+% PICKED: The LaTeX team's own statement on the topic.
+% QUOTE (p. 246): "many journal classes for LATEX completely forbid widows and
+%   orphans by setting \widowpenalty and \clubpenalty to 10000 which prohibits a
+%   break at such points — TUGboat being no exception."
+% QUOTE (p. 247): "all LATEX can do is run the page or column short, generating a
+%   fairly ugly hole at the bottom."
+% QUOTE (p. 250): "The downside, as discussed previously, is partly empty pages
+%   and if space is a premium (for example, if your conference paper is not
+%   allowed to be more than X pages in total) then this is a possible problem.
+%   Thus you are better off allowing widows and orphans (by changing the parameter
+%   values) and manually correcting them in one way or another."
+% VERIFIED: full-text read; quotes rejoined across lines and columns. No rule on
+%   headings. "very distracting to the reader" (p. 246) cites style guides, not
+%   reader data. Its quotation of an older Chicago edition is used here as SECONDARY.
+% COUNTER: chernoff2022lwc automates what this article says must be manual; no
+%   disagreement on the harm.
+% DATE: 2026-11-03
+@article{mittelbach2018forlorn,
+  author  = {Mittelbach, Frank},
+  title   = {Managing forlorn paragraph lines (a.k.a. widows and orphans) in {\LaTeX}},
+  journal = {TUGboat},
+  volume  = {39},
+  number  = {3},
+  pages   = {246--251},
+  date    = {2018},
+  url     = {https://tug.org/TUGboat/tb39-3/tb123mitt-widows.pdf},
+  urldate = {2026-11-03},
+}
+
+% === provenance: mittelbach2023wao ===
+% CLAIM: The widows-and-orphans package warns rather than decides, offers avoid
+%   (5000) and prevent (10000), and calls local forcing often not the best fix.
+% FOUND-VIA: Known item, texdoc widows-and-orphans, TeX Live 2025.
+% PICKED: Named in the brief; the code gives the numeric levels.
+% QUOTE (doc, §1.3): "This is, however, in many cases not the best solution to get
+%   rid of a widow or orphan when the interest is to achieve high typographical
+%   quality."
+% QUOTE (code, lines 165, 167): "orphans / prevent .code:n = \int_set:Nn
+%   \clubpenalty { 10000 }" and "orphans / avoid .code:n = \int_set:Nn \clubpenalty
+%   { 5000 }"
+% VERIFIED: documentation and option code read; whitespace normalised in the code
+%   quote. No rule on headings.
+% COUNTER: None.
+% DATE: 2026-11-03
+@manual{mittelbach2023wao,
+  author  = {Mittelbach, Frank},
+  title   = {The widows-and-orphans package},
+  date    = {2023},
+  note    = {Documentation and code in \TeX\ Live 2025},
+  url     = {https://ctan.org/pkg/widows-and-orphans},
+  urldate = {2026-11-03},
+}
+
+% === provenance: chernoff2022lwc ===
+% CLAIM: Separating a heading from its paragraph is almost always undesirable;
+%   keeping them together can create a large blank space.
+% FOUND-VIA: scholar search "\"widows and orphans\" AND (typography OR typesetting
+%   OR \"page layout\")" -p openalex (session heading-foot-of-page, also S2-S4,
+%   S6, C1, C4); read in the copy shipped in TeX Live.
+% PICKED: Treats the exact heading case, with options.
+% QUOTE (§9.6, pp. 33-34): "This is almost always undesirable"
+% QUOTE (§9.6, p. 34): "The advantage to this option is that it removes the orphan
+%   and retains any \nobreaks; the disadvantage is that moving the section heading
+%   can create a large blank space at the end of the page."
+% VERIFIED: full-text read. "makes a paragraph harder to read" (p. 28) is asserted
+%   without data.
+% COUNTER: C1-C13 -- no empirical challenge found.
+% DATE: 2026-11-03
+@article{chernoff2022lwc,
+  author  = {Chernoff, Max},
+  title   = {Automatically removing widows and orphans with lua-widow-control},
+  journal = {TUGboat},
+  volume  = {43},
+  number  = {1},
+  pages   = {28--39},
+  date    = {2022},
+  doi     = {10.47397/tb/43-1/tb133chernoff-widows},
+}
+
+% === provenance: wilson2025needspace ===
+% CLAIM: needspace reserves a user-chosen amount and recommends no number.
+% FOUND-VIA: Known item, texdoc needspace, TeX Live 2025.
+% PICKED: Named in the brief.
+% QUOTE (§1): "A short page will be ragged bottom even if \flushbottom is in
+%   effect."
+% VERIFIED: documentation read; its examples use 5 and 4 lines, not as advice.
+% COUNTER: None.
+% DATE: 2026-11-03
+@manual{wilson2025needspace,
+  author  = {Wilson, Peter},
+  title   = {The needspace package},
+  version = {1.3e},
+  date    = {2025-03-13},
+  note    = {Maintained by the \LaTeX\ Project Team},
+  url     = {https://ctan.org/pkg/needspace},
+  urldate = {2026-11-03},
+}
+
+% === provenance: pinson2011nowidow ===
+% CLAIM: nowidow defaults to two lines, for paragraphs.
+% FOUND-VIA: Known item, texdoc nowidow, TeX Live 2025.
+% PICKED: Named in the brief.
+% QUOTE (§2.2): "The minimal number of lines to be kept after the page break
+%   defaults to 2 if not specified or overridden by the defaultlines option."
+% VERIFIED: documentation read; concerns paragraphs, not headings.
+% COUNTER: mittelbach2023wao says this approach is often not the best one.
+% DATE: 2026-11-03
+@manual{pinson2011nowidow,
+  author  = {Pinson, Rapha{\"e}l},
+  title   = {The nowidow package},
+  version = {1.0},
+  date    = {2011-09-20},
+  url     = {https://ctan.org/pkg/nowidow},
+  urldate = {2026-11-03},
+}
+
+% === provenance: bezos2025titlesec ===
+% CLAIM: titlesec's nobottomtitles moves titles near the foot, with a default
+%   threshold of a fifth of the text height.
+% FOUND-VIA: Known item, texdoc titlesec, TeX Live 2025, PDF p. 6.
+% PICKED: Named in the brief; the only documented numeric threshold found.
+% QUOTE (package options, p. 6): "If nobottomtitles is set, titles close to the
+%   bottom margin will be moved to the next page and the margin will be ragged."
+% QUOTE (package options, p. 6): "whose default value is .2\textheight."
+% VERIFIED: documentation read. "bottomtitles is the default", so this is off by
+%   default; the threshold is approximate and measures space, not lines.
+% COUNTER: None.
+% DATE: 2026-11-03
+@manual{bezos2025titlesec,
+  author  = {Bezos, Javier},
+  title   = {The titlesec, titleps and titletoc Packages},
+  date    = {2025-01-04},
+  url     = {https://ctan.org/pkg/titlesec},
+  urldate = {2026-11-03},
+}
+
+% === provenance: kohm2025koma ===
+% CLAIM: Uneven page bottoms are usually undesirable in two-sided documents.
+% FOUND-VIA: Known item, texdoc scrguide-en, TeX Live 2025.
+% PICKED: Named in the brief.
+% QUOTE (§2.1, p. 27): "This means that the position of this line can be different
+%   on each page, up to the height of one line — even more when the end of the page
+%   coincides with headings, figures, tables, or the like. In two-sided documents
+%   that is usually undesirable."
+% VERIFIED: read at the passages cited; other parts searched by keyword only. No
+%   widow, orphan or lines-after-heading rule found.
+% COUNTER: None.
+% DATE: 2026-11-03
+@manual{kohm2025koma,
+  author  = {Kohm, Markus},
+  title   = {{KOMA}-Script: The Guide},
+  date    = {2025-09-05},
+  url     = {https://ctan.org/pkg/koma-script},
+  urldate = {2026-11-03},
+}
+
+% === provenance: wilson2025memoir ===
+% CLAIM: Memoir moves a subhead that is too close to the bottom, stretches the
+%   short page under flush bottom, offers a ragged option, and gives no line count;
+%   it notes the annoyance of a break between a list and its lead-in.
+% FOUND-VIA: Known item, texdoc memman, TeX Live 2025, via pdftotext.
+% PICKED: Requested for the class's long use in book setting; documents the exact
+%   switches.
+% QUOTE (§6.2, p. 75): "In the standard classes a \section or other subhead that is
+%   too close to the bottom of a page is moved to the top of the following page."
+% QUOTE (§6.2, p. 76): "The default setting of 10mm appears to remove any stretch."
+% QUOTE (§18.7, p. 333): "A sentence or two may be used to introduce a list (e.g.,
+%   itemize) and it can be annoying if there is a page break between the
+%   introductory words and the first item."
+% VERIFIED: read at the passages cited; other pages searched by keyword only. The
+%   TeX Live PDF prints its citations as [?]; the relevant passages cite no
+%   typographic work (checked in memman.tex).
+% COUNTER: scholar queries S8, C7 and two WebSearch queries found no critique or
+%   defence; hits were mostly literary memoirs, so a weak negative.
+% DATE: 2026-11-03
+@manual{wilson2025memoir,
+  author  = {Wilson, Peter},
+  title   = {The Memoir Class for Configurable Typesetting: User Guide},
+  version = {3.8.4},
+  date    = {2025-10-02},
+  note    = {Maintained by Lars Madsen},
+  url     = {https://ctan.org/pkg/memoir},
+  urldate = {2026-11-03},
+}
+
+% === provenance: wilson2025memoirsrc ===
+% CLAIM: Memoir sets club and widow penalties to 1000 for stronger discouragement,
+%   with ragged section bottoms off and list penalties at a bonus.
+% FOUND-VIA: Known item, local files memoir.cls and memoir.dtx, TeX Live 2025.
+% PICKED: Primary source for the defaults and their stated reason.
+% QUOTE (memoir.dtx, line 3750): "The default values are 150 each, but we want
+%   stronger discouragement."
+% QUOTE (memoir.dtx, lines 13080-13081): "They are set to a bonus value to encourage
+%   page breaking at these points."
+% VERIFIED: code and comments read (memoir.cls lines 709-710, 3632-3639, 4573).
+%   The rationale is a stated preference, with no evidence or citation.
+% COUNTER: texfaq2026widows and mittelbach2018forlorn qualify the value of raising
+%   finite penalties; neither addresses memoir.
+% DATE: 2026-11-03
+@software{wilson2025memoirsrc,
+  author  = {Wilson, Peter and Madsen, Lars},
+  title   = {The memoir class: documented source},
+  version = {3.8.4},
+  date    = {2025-10-02},
+  note    = {Files memoir.dtx and memoir.cls in \TeX\ Live 2025},
+  url     = {https://ctan.org/pkg/memoir},
+}
+
+% === provenance: wilson2018notes ===
+% CLAIM: Book-design notes hold widows weak, orphans less troubling, give a five-line
+%   minimum for a chapter's last page, and report a claim by Tschichold.
+% FOUND-VIA: Known item, texdoc memdesign, TeX Live 2025; also on the user's
+%   reMarkable (/A few notes on book design).
+% PICKED: A book-design source from the author of memoir; the route to Tschichold.
+% QUOTE (§3.3.3, p. 52): "Five lines on the last page of a chapter is a reasonable
+%   minimum."
+% QUOTE (§3.3.3, p. 52): "An orphan is not nearly so troubling to typographers as a
+%   widow."
+% VERIFIED: full-text extraction read at the passages cited. Its report of
+%   Tschichold (1991) and Wheildon (1995) is SECONDARY: neither book opened.
+% COUNTER: None specific.
+% DATE: 2026-11-03
+@book{wilson2018notes,
+  author    = {Wilson, Peter},
+  title     = {A Few Notes on Book Design},
+  publisher = {The Herries Press},
+  location  = {Normandy Park, WA},
+  date      = {2009},
+  note      = {Last update 2018-09-14; maintained by Lars Madsen},
+  url       = {https://ctan.org/pkg/memdesign},
+  urldate   = {2026-11-03},
+}
+
+% === provenance: texfaq2026widows ===
+% CLAIM: For typical layouts only finite versus infinite penalties make a difference;
+%   publishers resist ragged bottoms, except at design-permitted points.
+% FOUND-VIA: WebSearch "TeX FAQ widows and orphans clubpenalty \"section\" heading
+%   page break \"at bottom of page\" texfaq; LaTeX Companion needspace \"subheading\"
+%   page break recommendation Mittelbach"; curl https://texfaq.org/FAQ-widows
+% PICKED: Community-maintained statement of practice.
+% QUOTE (entry): "for typical layouts, there are only two sensible settings for the
+%   penalties: finite (150 or 500, it doesn’t matter which) to allow widows and
+%   orphans, and infinite (10000 or greater) to forbid them."
+% QUOTE (entry): "many publishers insist on the default \flushbottom; it is seldom
+%   acceptable to introduce stretchability into the vertical list, except at points
+%   (such as section headings) where the document design explicitly permits it."
+% VERIFIED: full-text of the page read. It gives no measurements and does not mention
+%   memoir or 1000.
+% COUNTER: wilson2025memoirsrc and osborne2010pmakeup treat higher finite values as
+%   useful.
+% DATE: 2026-11-03
+@online{texfaq2026widows,
+  author  = {{The TeX FAQ}},
+  title   = {Controlling widows and orphans},
+  url     = {https://texfaq.org/FAQ-widows},
+  urldate = {2026-11-03},
+}
+
+% === provenance: osborne2010pmakeup ===
+% CLAIM: One book author's account of a publisher's page rules: facing pages equal,
+%   longer or shorter by at most one line; suggests raising the penalties to 300.
+% FOUND-VIA: Same WebSearch as texfaq2026widows; curl of the URL below.
+% PICKED: First-hand account of working to publisher rules.
+% QUOTE (rules): "Every pair of facing pages (even–odd) must have the same length."
+% QUOTE (rules): "Some pairs of pages can be longer or shorter than x by up to one
+%   line."
+% QUOTE (rules): "If your publisher prohibits orphans and widows, you may want to
+%   increase them; you could try \clubpenalty=300 and \widowpenalty=300."
+% VERIFIED: full-text of the page read. One author's account, not a universal
+%   standard; no heading rule.
+% COUNTER: cramer2016latinreq §5.3 says book designs differ on this.
+% DATE: 2026-11-03
+@online{osborne2010pmakeup,
+  author  = {Osborne, Martin J.},
+  title   = {Notes on page makeup using {\LaTeX}},
+  date    = {2010-10-19},
+  url     = {https://economics.utoronto.ca/osborne/latex/PMAKEUP.HTM},
+  urldate = {2026-11-03},
+}
+
+% === provenance: bos2011css21 ===
+% CLAIM: The CSS sample style sheet avoids a break after headings and before lists,
+%   and orphans and widows default to two.
+% FOUND-VIA: Known item, curl of https://www.w3.org/TR/CSS2/
+% PICKED: Named in the brief.
+% QUOTE (Appendix D): "h4, h5, h6 { page-break-after: avoid }"
+% QUOTE (Appendix D): "ul, ol, dl { page-break-before: avoid }"
+% QUOTE (§13.3.2): "Initial: 2"
+% VERIFIED: full-text read. Appendix D is an informative sample. That two lines
+%   follow a heading is an inference from combining these rules.
+% COUNTER: Defaults show practice, not benefit.
+% DATE: 2026-11-03
+@online{bos2011css21,
+  editor  = {Bos, Bert and {\c{C}}elik, Tantek and Hickson, Ian and Lie, H{\aa}kon Wium},
+  title   = {Cascading Style Sheets Level 2 Revision 1 ({CSS} 2.1) Specification},
+  date    = {2011-06-07},
+  organization = {W3C},
+  note    = {W3C Recommendation},
+  url     = {https://www.w3.org/TR/CSS2/},
+  urldate = {2026-11-03},
+}
+
+% === provenance: atanassov2018cssbreak ===
+% CLAIM: CSS defines orphans and widows as minimum lines, and drops the rules when
+%   break points run out.
+% FOUND-VIA: Known item, curl of https://www.w3.org/TR/css-break-3/
+% PICKED: Named in the brief; the current module.
+% QUOTE (§3.3): "The orphans property specifies the minimum number of line boxes in a
+%   block container that must be left in a fragment before a fragmentation break."
+% QUOTE (§4.4): "then rules 1, 2 and 4 are dropped in order to find additional
+%   breakpoints."
+% VERIFIED: full-text read; section number of the second quote is from the heading
+%   structure of the document as fetched and should be rechecked before quoting it by
+%   number.
+% COUNTER: Defaults show practice, not benefit.
+% DATE: 2026-11-03
+@online{atanassov2018cssbreak,
+  editor  = {Atanassov, Rossen and Etemad, Elika J.},
+  title   = {{CSS} Fragmentation Module Level 3},
+  date    = {2018-12-04},
+  organization = {W3C},
+  note    = {W3C Candidate Recommendation},
+  url     = {https://www.w3.org/TR/css-break-3/},
+  urldate = {2026-11-03},
+}
+
+% === provenance: berglund2006xsl11 ===
+% CLAIM: XSL-FO's orphans and widows default to two.
+% FOUND-VIA: Known item, curl of https://www.w3.org/TR/xsl11/
+% PICKED: Named in the brief.
+% QUOTE (§7.20.6): "Initial: 2"
+% VERIFIED: full-text of §§7.20.6-7.20.7 read.
+% COUNTER: Defaults show practice, not benefit.
+% DATE: 2026-11-03
+@online{berglund2006xsl11,
+  editor  = {Berglund, Anders},
+  title   = {Extensible Stylesheet Language ({XSL}) Version 1.1},
+  date    = {2006-12-05},
+  organization = {W3C},
+  note    = {W3C Recommendation},
+  url     = {https://www.w3.org/TR/xsl11/},
+  urldate = {2026-11-03},
+}
+
+% === provenance: docbook2026sectiontitle ===
+% CLAIM: DocBook's FO stylesheets keep section titles with what follows and set no
+%   keep on lists.
+% FOUND-VIA: Known item, curl of the DocBook XSL parameter reference.
+% PICKED: Named in the brief.
+% QUOTE (section.title.properties): "<xsl:attribute
+%   name=\"keep-with-next.within-column\">always</xsl:attribute>"
+% VERIFIED: parameter pages read for section.title.properties and
+%   list.block.properties. That two lines follow is an inference via XSL's default.
+% COUNTER: Defaults show practice, not benefit.
+% DATE: 2026-11-03
+@online{docbook2026sectiontitle,
+  author  = {{The DocBook Project}},
+  title   = {{DocBook} {XSL} Stylesheets: section.title.properties},
+  url     = {http://docbook.sourceforge.net/release/xsl/current/doc/fo/section.title.properties.html},
+  urldate = {2026-11-03},
+}
+
+% === provenance: adobe2026incopy ===
+% CLAIM: Adobe's software lets the user choose up to five lines to keep with a
+%   heading, and describes this as "the next few lines".
+% FOUND-VIA: WebSearch "InDesign Keep Options \"Keep With Next\" lines \"up to five\"
+%   headings paragraph Adobe help"; curl of the URL below.
+% PICKED: Named in the brief; the same text as InDesign's manual as seen in snippets.
+% QUOTE (Control paragraph breaks using keep options): "For Keep With Next _ Lines,
+%   specify the number of lines (up to five) of the subsequent paragraph that the last
+%   line of the current paragraph stays with. This option is especially useful for
+%   making sure that a heading stays with the next few lines of the paragraph that
+%   follows it."
+% VERIFIED: full-text of the InCopy page read. The InDesign help page returned 403 to
+%   the fetch tool and was not read.
+% COUNTER: None.
+% DATE: 2026-11-03
+@online{adobe2026incopy,
+  author  = {{Adobe}},
+  title   = {Format paragraphs in {Adobe InCopy}},
+  url     = {https://helpx.adobe.com/incopy/desktop/format-text/paragraph-formatting/formatting-paragraphs.html},
+  urldate = {2026-11-03},
+}
+
+% === provenance: microsoft2026keep ===
+% CLAIM: Word offers keep-with-next for subheads, with no line count.
+% FOUND-VIA: Known item, curl of the Microsoft Support page.
+% PICKED: Named in the brief.
+% QUOTE (Keep with next): "Right-click the paragraph or subhead that you want to keep
+%   with the content that follows it."
+% VERIFIED: full-text of the page read; it states no number of lines.
+% COUNTER: None.
+% DATE: 2026-11-03
+@online{microsoft2026keep,
+  author  = {{Microsoft}},
+  title   = {Keep text together in {Word}},
+  url     = {https://support.microsoft.com/en-us/office/keep-text-together-af94e5b8-3a5a-4cb0-9c53-dea56b43d96d},
+  urldate = {2026-11-03},
+}
+
+% === provenance: binder2023lonely ===
+% CLAIM: A practitioner calls two lines pretty standard, reports one client preferring
+%   one, and calls the choice a preference.
+% FOUND-VIA: WebSearch "heading at bottom of page how many lines of text must follow
+%   typography rule at least two lines after subheading book typesetting"; curl.
+% PICKED: First-hand practice; the only explicit case of one line found. Weak authority.
+% QUOTE (post of Nov 2, 2023): "I recommend enabling Keep With Next: 2 lines in your
+%   title/heading paragraph styles. This is pretty standard—we normally want to have
+%   two lines of a multi-line paragraph together, though I do have one client who
+%   prefers the single line"
+% QUOTE (post of Nov 3, 2023): "Yes, choosing between 1 or 2 lines is just a preference."
+% VERIFIED: full thread read. Anecdotal.
+% COUNTER: Thesis manuals and cramer2016latinreq set a floor of at least two.
+% DATE: 2026-11-03
+@online{binder2023lonely,
+  author  = {Binder, Barb},
+  title   = {Reply in \enquote{Lonely Heading at the Bottom of Page}},
+  date    = {2023-11-02},
+  organization = {Adobe Community, InDesign},
+  url     = {https://community.adobe.com/t5/indesign-discussions/lonely-heading-at-the-bottom-of-page/m-p/14206035},
+  urldate = {2026-11-03},
+}
+
+% === provenance: sims2021listtags ===
+% CLAIM: One in-house style guide requires two list items at a break; a practitioner
+%   keeps the first item with its lead-in.
+% FOUND-VIA: WebSearch "bulleted list page break lead-in sentence keep with first item
+%   minimum items on a page technical writing style guide"; curl.
+% PICKED: The only verified statement of a minimum number of items. Weak authority,
+%   and second hand for the guide.
+% QUOTE (post of Feb 22, 2021): "Our style guide mandates at least 2 list items at the
+%   top or bottom of a page if the list can't be kept all on one page. The only
+%   exception is if an item is long enough to split over the page break."
+% QUOTE (post of Feb 23, 2021): "Also, the first list item has to stay with the
+%   preceding paragraph because it's an introduction into the list."
+% VERIFIED: full thread read. Unnamed guide.
+% COUNTER: latex2025classes and wilson2025memoirsrc encourage breaks between items.
+% DATE: 2026-11-03
+@online{sims2021listtags,
+  author  = {Sims, Lin},
+  title   = {Posts in \enquote{Opinions wanted: Setting up list tags}},
+  date    = {2021-02-22},
+  organization = {Adobe Community, FrameMaker},
+  url     = {https://community.adobe.com/questions-643/opinions-wanted-setting-up-list-tags-750548},
+  urldate = {2026-11-03},
+}
+
+% === provenance: bryon2026widowing ===
+% CLAIM: One user wants a heading with three following lines pushed to the next page.
+% FOUND-VIA: WebSearch "Chicago Manual of Style page makeup \"subhead\" bottom of page
+%   \"two lines of text\" must follow widow first line of paragraph"; curl.
+% PICKED: The only verified statement that three lines were felt to be too few. An
+%   anecdote about a single style sheet, used only to bound the evidence.
+% QUOTE (question): "We have some issues where the style sheet can fit the heading and
+%   three lines of text on the bottom of the page instead of pushing it to the next
+%   page so the topic makes more sense."
+% VERIFIED: full thread read. The poster's date was not captured.
+% COUNTER: Sets no rule; other sources set two.
+% DATE: 2026-11-03
+@online{bryon2026widowing,
+  author  = {{Bryon}},
+  title   = {How to handle widowing},
+  organization = {PTC Community, Arbortext},
+  url     = {https://community.ptc.com/t5/Arbortext/how-to-handle-widowing/m-p/65252},
+  urldate = {2026-11-03},
+}
+
+% === provenance: gpo2016style ===
+% CLAIM: A government style manual permits a widow to keep uniform page depth, and a
+%   first line at the page end whenever necessary.
+% FOUND-VIA: Known item; scripts/fetch_pdf.py --text from govinfo.gov.
+% PICKED: A freely available style manual that favours full pages.
+% QUOTE (§2.6): "Widow lines (lines less than full width of measure) at top of pages
+%   are to be avoided, if possible, but are permitted if absolutely necessary to
+%   maintain uniform makeup and page depth."
+% QUOTE (§2.7): "Paragraphs may start on the last line of a page whenever necessary."
+% VERIFIED: full-text extraction read; line breaks removed. Keyword search found no rule
+%   on heads at the foot, so it does not speak to headings.
+% COUNTER: cramer2016latinreq and thesis manuals rank the break above the gap for
+%   headings; subjects differ, so no direct conflict.
+% DATE: 2026-11-03
+@manual{gpo2016style,
+  author       = {{U.S. Government Publishing Office}},
+  title        = {Style Manual: An Official Guide to the Form and Style of Federal Government Publishing},
+  organization = {U.S. Government Publishing Office},
+  location     = {Washington, DC},
+  date         = {2016},
+  url          = {https://www.govinfo.gov/content/pkg/GPO-STYLEMANUAL-2016/pdf/GPO-STYLEMANUAL-2016.pdf},
+  urldate      = {2026-11-03},
+}
+
+% === provenance: butterick2026widow ===
+% CLAIM: A practitioner uses widow and orphan control only when they cause a visible
+%   problem, finding the blank lines worse.
+% FOUND-VIA: Known item; curl of the URL below.
+% PICKED: Prominent dissent from a practitioner.
+% QUOTE (page body): "I only use it if widows and orphans are causing a visible problem.
+%   Otherwise, I find that the blank lines at the bottom of the page are more annoying
+%   than the widows and orphans."
+% VERIFIED: full-text of the page read. Opinion, no data; aimed at word-processed
+%   documents.
+% COUNTER: mittelbach2018forlorn and chernoff2022lwc hold widows to be harmful.
+% DATE: 2026-11-03
+@online{butterick2026widow,
+  author  = {Butterick, Matthew},
+  title   = {Widow and orphan control},
+  organization = {Butterick's Practical Typography},
+  url     = {https://practicaltypography.com/widow-and-orphan-control.html},
+  urldate = {2026-11-03},
+}
+
+% === provenance: butterick2026keeplines ===
+% CLAIM: The same practitioner always keeps heading lines together, while warning of
+%   gaps.
+% FOUND-VIA: Known item; curl of the URL below.
+% PICKED: Shows that the dissent on widows does not extend to headings.
+% QUOTE (page body): "Use this option with headings to prevent them from starting at the
+%   bottom of one page and continuing at the top of the next."
+% VERIFIED: full-text of the page read. Concerns the heading's own lines.
+% COUNTER: None.
+% DATE: 2026-11-03
+@online{butterick2026keeplines,
+  author  = {Butterick, Matthew},
+  title   = {Keep lines together},
+  organization = {Butterick's Practical Typography},
+  url     = {https://practicaltypography.com/keep-lines-together.html},
+  urldate = {2026-11-03},
+}
+
+% === provenance: butterick2026headings ===
+% CLAIM: The same practitioner advises keep with next for headings, with no line count.
+% FOUND-VIA: Known item; curl of the URL below.
+% PICKED: Corroboration.
+% QUOTE (page body): "use the keep lines together and keep with next paragraph options
+%   to prevent headings from breaking awkwardly."
+% VERIFIED: full-text of the page read.
+% COUNTER: None.
+% DATE: 2026-11-03
+@online{butterick2026headings,
+  author  = {Butterick, Matthew},
+  title   = {Headings},
+  organization = {Butterick's Practical Typography},
+  url     = {https://practicaltypography.com/headings.html},
+  urldate = {2026-11-03},
+}
+
+% === provenance: dillon1990splitting ===
+% CLAIM: Splitting sentences across screens did not reduce comprehension but increased
+%   rereading.
+% FOUND-VIA: WebSearch "study reader effect sentence split across page turn reading
+%   comprehension eye tracking page boundary paragraph interrupted text print"; Crossref
+%   bibliographic query; OpenAlex works/doi lookup.
+% PICKED: The closest experimental evidence found.
+% QUOTE (abstract): "The results indicate that neither variable significantly affects
+%   comprehension but adjusted manipulation levels are significantly higher in the small
+%   window condition. Splitting sentences across screens also caused readers to return to
+%   the previous page to reread text significantly more."
+% VERIFIED: abstract only. Screens and sentences, 1990; it does not test headings or print.
+% COUNTER: None found, and no replication seen. Also used in the listings chapter, as prose only.
+% DATE: 2026-11-03
+@article{dillon1990splitting,
+  author  = {Dillon, Andrew and Richardson, John and McKnight, Cliff},
+  title   = {The effects of display size and text splitting on reading lengthy text from screen},
+  journal = {Behaviour \& Information Technology},
+  volume  = {9},
+  number  = {3},
+  pages   = {215--227},
+  date    = {1990},
+  doi     = {10.1080/01449299008924238},
+}
+
+% === provenance: veytsman2011evidence ===
+% CLAIM: Experiments question how far traditional legibility rules matter, in general.
+% FOUND-VIA: scholar query C2 (OpenAlex), title "Towards evidence-based typography"; curl
+%   of the tug.org PDF.
+% PICKED: From the TeX community itself.
+% QUOTE (abstract, p. 285): "During several centuries of typography many rules have been
+%   developed purporting to ensure better legibility and readability of printed copy.
+%   However, modern experimental research questions the absolute importance of these rules."
+% VERIFIED: read in part; keyword search found no widow or orphan discussion. General scope
+%   only.
+% COUNTER: Not applicable.
+% DATE: 2026-11-03
+@article{veytsman2011evidence,
+  author  = {Veytsman, Boris and Akhmadeeva, Leyla},
+  title   = {Towards evidence-based typography: Literature review and experiment design},
+  journal = {TUGboat},
+  volume  = {32},
+  number  = {3},
+  pages   = {285--288},
+  date    = {2011},
+  url     = {https://tug.org/TUGboat/tb32-3/tb102veytsman-typo.pdf},
+  urldate = {2026-11-03},
+}
+
+% === provenance: vanderwaarde2025nineteen ===
+% CLAIM: Typographic experiments rarely give reliable support for design decisions.
+% FOUND-VIA: scholar query C2 (OpenAlex); scripts/fetch_pdf.py --text.
+% PICKED: A recent critical review.
+% QUOTE (abstract): "experiments rarely provide reliable evidence to support design
+%   decisions."
+% VERIFIED: abstract read, full text searched by keyword: no mention of widows, orphans
+%   or page breaks.
+% COUNTER: It cuts against any future appeal to experiments as well.
+% DATE: 2026-11-03
+@article{vanderwaarde2025nineteen,
+  author  = {van der Waarde, Karel and Thiessen, Myra},
+  title   = {Nineteen Questions to Evaluate Typographic Research: Chaff and Wheat},
+  journal = {Visible Language},
+  volume  = {59},
+  number  = {1},
+  pages   = {77--99},
+  date    = {2025},
+  doi     = {10.34314/86rq0906},
+}
+
+% === provenance: schwen2020tensimple ===
+% CLAIM: A guide for scientific texts says single separated lines should be avoided and
+%   a heading style should ensure it is not followed by a page break.
+% FOUND-VIA: scholar queries S1, S2, S4, S6, C1, C2 (OpenAlex), title "Ten simple rules
+%   for typographically appealing scientific texts"; curl of the PLOS page.
+% PICKED: Corroboration in a journal, addressed to scientists.
+% QUOTE (Fig 6 caption): "Orphans and widows, single lines of text separated from the
+%   rest of their paragraph, should be avoided."
+% QUOTE (Structure): "making sure it is not followed by a page break"
+% VERIFIED: full-text read. No number, and no evidence for the benefit.
+% COUNTER: As for the other prescriptive sources.
+% DATE: 2026-11-03
+@article{schwen2020tensimple,
+  author  = {Schwen, Lars Ole},
+  title   = {Ten simple rules for typographically appealing scientific texts},
+  journal = {PLOS Computational Biology},
+  volume  = {16},
+  number  = {12},
+  pages   = {e1008458},
+  date    = {2020},
+  doi     = {10.1371/journal.pcbi.1008458},
+}
+
+% === provenance: harrison2020widows ===
+% CLAIM: SECONDARY: Wheildon's readers reportedly did not notice widows.
+% FOUND-VIA: WebSearch "widows and orphans evidence reading research do they matter
+%   overrated typography no empirical study"; curl of the URL below.
+% PICKED: The only reported reader data on widows, and only because nothing better was
+%   found.
+% QUOTE (Widows and orphans): "In the research, no readers said they were offended by –
+%   or even aware of – widows."
+% VERIFIED: SECONDARY. Blog read; Wheildon's book NOT read; method for the widow finding
+%   not seen. Mainly newspapers and magazines. wilson2018notes (pp. 50-51) describes
+%   Wheildon's font studies as about 250 readers in Sydney rating fonts.
+% COUNTER: Rest nothing on this until the book is read.
+% DATE: 2026-11-03
+@online{harrison2020widows,
+  author  = {Harrison, Kim},
+  title   = {Widows and orphans in printed text: Impact and best practices},
+  date    = {2020-06-01},
+  organization = {Cutting Edge PR},
+  url     = {https://cuttingedgepr.com/?p=14563},
+  urldate = {2026-11-03},
+}
+
+% === provenance: cambric2026widow ===
+% CLAIM: A vendor guide holds that a page three or four lines short can be worse than a
+%   widow.
+% FOUND-VIA: WebSearch "Chicago Manual of Style page makeup \"subhead\" bottom of page
+%   \"two lines of text\" must follow widow first line of paragraph"; curl.
+% PICKED: The only statement with a number of short lines; weak authority.
+% QUOTE (Trade-offs): "A page that’s three or four lines short creates a visual gap that’s
+%   arguably worse than the widow it was trying to fix."
+% VERIFIED: full-text of the page read. A book-production vendor; no evidence.
+% COUNTER: None.
+% DATE: 2026-11-03
+@online{cambric2026widow,
+  author  = {{Cambric}},
+  title   = {What Is Widow and Orphan Control? (And Why It Matters for Your Book)},
+  url     = {https://cambric.pub/guides/widow-orphan-control},
+  urldate = {2026-11-03},
+}
+
+% === provenance: izma2023widows ===
+% CLAIM: SECONDARY: Bringhurst treats widows and orphans differently.
+% FOUND-VIA: WebSearch "widows and orphans evidence reading research do they matter
+%   overrated typography no empirical study"; curl of the mailing-list archive.
+% PICKED: A typesetter quoting the passage at length; the book could not be opened.
+% QUOTE (quoting Bringhurst): "Isolated lines created when paragraphs *begin* on the
+%   *last* line of a page are known as *orphans*. They have no past, but they do have a
+%   future, and they need not trouble the typographer."
+% QUOTE (quoting Bringhurst): "It is the custom -- in most, if not all, the world's
+%   typographic cultures -- to give them one additional line for company."
+% VERIFIED: SECONDARY. Message read; Bringhurst NOT read at this passage.
+% COUNTER: None.
+% DATE: 2026-11-03
+@online{izma2023widows,
+  author  = {Izma, Steve},
+  title   = {Re: widows vs orphans},
+  date    = {2023-06-15},
+  organization = {groff mailing list},
+  url     = {https://lists.libreplanet.org/archive/html/groff/2023-06/msg00124.html},
+  urldate = {2026-11-03},
+}
+
+
+
+% === provenance: bosk2026scholar ===
+% CLAIM: The database searches were run and recorded with this tool.
+% FOUND-VIA: Known item, the tool used; repository dbosk/scholar, command scholar.
+% PICKED: Names the tool the method relies on.
+% QUOTE (scholar search --help): "Search bibliographic databases with structured queries."
+% VERIFIED: full-text of the help read; author name from the repository owner and the
+%   git user of this checkout.
+% COUNTER: Not applicable.
+% DATE: 2026-11-03
+@software{bosk2026scholar,
+  author  = {Bosk, Daniel},
+  title   = {scholar: a command-line tool for structured literature searches},
+  date    = {2026},
+  url     = {https://github.com/dbosk/scholar},
+  urldate = {2026-11-03},
+}
+
+% === provenance: vanzandt2025fancyvrb ===
+% CLAIM: fancyvrb breaks a verbatim across pages by default and keeps it whole only by an option.
+% FOUND-VIA: Known item, texdoc fancyvrb, TeX Live 2025.
+% PICKED: The package under minted and under this package's listings.
+% QUOTE (§4.1.16): "in very special circumstances, we may want to make sure that a verbatim
+%   environment is not broken, even if it does not fit on the current page."
+% VERIFIED: full-text of §4.1.16 read; default false. States no reason about readers.
+% COUNTER: None; a description of a tool.
+% DATE: 2026-11-04
+@manual{vanzandt2025fancyvrb,
+  author  = {Van Zandt, Timothy and Girou, Denis and Rahtz, Sebastian and Vo{\ss}, Herbert},
+  title   = {The fancyvrb package: Fancy Verbatims in {\LaTeX}},
+  date    = {2025-07-28},
+  url     = {https://ctan.org/pkg/fancyvrb},
+  urldate = {2026-11-04},
+}
+
+% === provenance: poore2025minted ===
+% CLAIM: minted's samepage option is off by default and listing floats do not break.
+% FOUND-VIA: Known item, texdoc minted, TeX Live 2025.
+% PICKED: Named in the brief; the weave most decks use.
+% QUOTE (options, samepage): "Forces the whole listing to appear on the same page, even if it
+%   doesn't fit."
+% VERIFIED: option and FAQ entry read. The manual gives no reason about readers.
+% COUNTER: None.
+% DATE: 2026-11-04
+@manual{poore2025minted,
+  author  = {Poore, Geoffrey M.},
+  title   = {The minted package: Highlighted source code in {\LaTeX}},
+  version = {3.7.0},
+  date    = {2025-05-14},
+  url     = {https://ctan.org/pkg/minted},
+  urldate = {2026-11-04},
+}
+
+% === provenance: heinz2024listings ===
+% CLAIM: listings lets a listing cross pages and offers no key for keeping one whole short of a float.
+% FOUND-VIA: Known item, texdoc listings, TeX Live 2025.
+% PICKED: Named in the brief.
+% QUOTE (How to get closed frames on each page): "The package supports closed frames only for
+%   listings which don't cross pages."
+% VERIFIED: passage read; rest of the manual searched by keyword for page breaks, so absence of a key
+%   rests on that search.
+% COUNTER: None.
+% DATE: 2026-11-04
+@manual{heinz2024listings,
+  author  = {Heinz, Carsten and Moses, Brooks and Hoffmann, Jobst},
+  title   = {The Listings Package},
+  version = {1.10c},
+  date    = {2024-09-23},
+  url     = {https://ctan.org/pkg/listings},
+  urldate = {2026-11-04},
+}
+
+% === provenance: sturm2025tcolorbox ===
+% CLAIM: A tcolorbox is unbreakable unless asked; when breakable it places at least two lines before
+%   a break by default.
+% FOUND-VIA: Known item, texdoc tcolorbox, TeX Live 2025.
+% PICKED: Named in the brief; the only tool read with a line count at a break.
+% QUOTE (p. 411): "Assures that the given <number> of lines of the upper box part or the lower box
+%   part are placed before a break happens."
+% QUOTE (p. 410): "/tcb/breakable=true|false|unlimited (default true, initially false)"
+% VERIFIED: full-text of the keys read; "initially 2" for lines before break. It concerns boxes in
+%   general, not code, and only the part before the break.
+% COUNTER: None.
+% DATE: 2026-11-04
+@manual{sturm2025tcolorbox,
+  author  = {Sturm, Thomas F.},
+  title   = {Manual for the tcolorbox package},
+  version = {6.8.0},
+  date    = {2025-09-09},
+  url     = {https://ctan.org/pkg/tcolorbox},
+  urldate = {2026-11-04},
+}
+
+% === provenance: ramsey2026noweb ===
+% CLAIM: noweb's LaTeX style keeps a code chunk on one page by default, and its breakcode option
+%   trades that for less white space.
+% FOUND-VIA: Known item, noweb.sty and the nowebstyle manual page in the user's installation.
+% PICKED: Named in the brief; a literate-programming tool with an explicit default.
+% QUOTE (noweb.sty): "\def\nwendcode{\endtrivlist \endgroup \filbreak} % keeps code on 1 page"
+% QUOTE (nowebstyle manual page, breakcode): "Make noweb use less vertical white space, at the cost of
+%   breaking up code chunks."
+% VERIFIED: code and manual page read. \filbreak's meaning from knuth1986texbook p. 111. The source
+%   gives no reason about readers beyond this comment.
+% COUNTER: None.
+% DATE: 2026-11-04
+@software{ramsey2026noweb,
+  author  = {Ramsey, Norman},
+  title   = {noweb: noweb.sty and the nowebstyle manual page},
+  url     = {https://www.cs.tufts.edu/~nr/noweb/},
+  urldate = {2026-11-04},
+}
+
+% === provenance: knuth2025cweb ===
+% CLAIM: CWEB asks for code parts of about a dozen lines, for comprehension, and its macros offer a
+%   filled page break before each section.
+% FOUND-VIA: Known item, texdoc cwebman and cwebmac.tex, TeX Live 2025.
+% PICKED: Named in the brief; the original literate tools.
+% QUOTE (manual, sections): "This C code should ideally be about a dozen lines long, so that it is
+%   easily comprehensible as a unit and so that its structure is readily perceived."
+% QUOTE (cwebmac.tex, \M): "\vfil\penalty-100\vfilneg % beginning of section"
+% VERIFIED: passages read. The dozen lines concern program structure, not page breaks; that the macro
+%   prefers a break between sections is a reading of the code, with \filbreak in knuth1986texbook p. 111.
+% COUNTER: None.
+% DATE: 2026-11-04
+@manual{knuth2025cweb,
+  author  = {Knuth, Donald E. and Levy, Silvio},
+  title   = {The {CWEB} System of Structured Documentation},
+  version = {4.12.1},
+  date    = {2025-01},
+  url     = {https://ctan.org/pkg/cweb},
+  urldate = {2026-11-04},
+}
+
+% === provenance: gnu2026standards ===
+% CLAIM: The GNU standards ask for page divisions in source files not within a function, on logical pages.
+% FOUND-VIA: Known item; curl of https://www.gnu.org/prep/standards/standards.txt
+% PICKED: A named coding standard that mentions pages at all.
+% QUOTE (§5.1): "Please use formfeed characters (control-L) to divide the program into pages at logical
+%   places (but not within a function). It does not matter just how long the pages are, since they do not
+%   have to fit on a printed page."
+% VERIFIED: full-text of the section read. Concerns source files, not typeset listings; no reason given.
+% COUNTER: linux2026style and vanrossum2001pep8 speak of screens or logical sections.
+% DATE: 2026-11-04
+@online{gnu2026standards,
+  author  = {{Free Software Foundation}},
+  title   = {{GNU} Coding Standards},
+  date    = {2026-04-27},
+  url     = {https://www.gnu.org/prep/standards/standards.txt},
+  urldate = {2026-11-04},
+}
+
+% === provenance: linux2026style ===
+% CLAIM: The Linux kernel style wants functions to fit one or two screens.
+% FOUND-VIA: Known item; curl of the URL below.
+% PICKED: Corroboration; a widely used standard.
+% QUOTE (§6): "They should fit on one or two screenfuls of text"
+% VERIFIED: full-text of the section read. Screens, not pages; no evidence given.
+% COUNTER: tempero2024decomposition finds the benefit of small functions inconclusive.
+% DATE: 2026-11-04
+@online{linux2026style,
+  author  = {{The Linux kernel community}},
+  title   = {Linux kernel coding style},
+  url     = {https://docs.kernel.org/process/coding-style.html},
+  urldate = {2026-11-04},
+}
+
+% === provenance: vanrossum2001pep8 ===
+% CLAIM: PEP 8 allows form feeds to separate pages of related sections.
+% FOUND-VIA: Known item; curl of the URL below.
+% PICKED: Corroboration.
+% QUOTE (Blank Lines): "many tools treat these characters as page separators, so you may use them to
+%   separate pages of related sections of your file."
+% VERIFIED: full-text of the section read. No rule on printing.
+% COUNTER: None.
+% DATE: 2026-11-04
+@online{vanrossum2001pep8,
+  author  = {van Rossum, Guido and Warsaw, Barry and Coghlan, Alyssa},
+  title   = {{PEP} 8: Style Guide for {Python} Code},
+  date    = {2001},
+  url     = {https://peps.python.org/pep-0008/},
+  urldate = {2026-11-04},
+}
+
+% === provenance: ndsu2026listings ===
+% CLAIM: A thesis guide accepts listings over several pages and suggests an appendix for those.
+% FOUND-VIA: WebSearch "code listing should not break across pages book style guide publisher \"code
+%   listing\" page break guideline authors"; curl of the URL below.
+% PICKED: The only style guide read with a rule on listings across pages.
+% QUOTE (Multiple-page listings): "If a listing cannot fit on a single page, you should consider placing
+%   it in an appendix."
+% VERIFIED: full-text of the page read. One university's thesis office.
+% COUNTER: None.
+% DATE: 2026-11-04
+@online{ndsu2026listings,
+  author  = {{North Dakota State University, Center for Writers}},
+  title   = {Listings \& Code},
+  url     = {https://www.ndsu.edu/cfwriters/disquisitions/dqkb/listings-and-code},
+  urldate = {2026-11-04},
+}
+
+% === provenance: greywolve2019golang ===
+% CLAIM: One reader finds code split across pages hard to read, mainly for large blocks.
+% FOUND-VIA: WebSearch "technical book author guidelines publisher code listings \"page break\" OR \"across
+%   pages\" long listing split annotated O'Reilly Manning No Starch style guide code examples length"; curl.
+% PICKED: The only first-hand statement of the harm found; an anecdote.
+% QUOTE (comment of Sep 3, 2019): "It's not desirable (to me) because it makes reading large blocks of code
+%   more difficult."
+% QUOTE (same comment): "Personally this change is much more about large blocks of code than smaller blocks
+%   anyway."
+% VERIFIED: issue read. One person's view of printed web pages.
+% COUNTER: Sets no rule.
+% DATE: 2026-11-04
+@online{greywolve2019golang,
+  author  = {{greywolve}},
+  title   = {x/website: better {HTML} printing, don't page break inside code blocks},
+  date    = {2019-08-29},
+  organization = {golang/go issue 33933},
+  url     = {https://github.com/golang/go/issues/33933},
+  urldate = {2026-11-04},
+}
+
+% === provenance: oman1990typographic ===
+% CLAIM: Experiments support typographic style for program comprehension; the abstract does not mention
+%   page breaks.
+% FOUND-VIA: Reviewer's pointer, after the topic queries; WebSearch "Oman Cook typographic style is more than
+%   cosmetic CACM 1990 program comprehension experiment book format page"; OpenAlex works/doi lookup; CERIAS record.
+% PICKED: The classic study on program typography.
+% QUOTE (abstract): "Four experiments demonstrate that the typographic style principles embodied in the book
+%   format significantly aid program comprehension and reduce maintenance effort."
+% VERIFIED: abstract only; the publisher's page stopped at a bot check. It may treat pages in full text.
+% COUNTER: gellenbeck1991signaling finds modest effects for signaling.
+% DATE: 2026-11-04
+@article{oman1990typographic,
+  author  = {Oman, Paul W. and Cook, Curtis R.},
+  title   = {Typographic style is more than cosmetic},
+  journal = {Communications of the ACM},
+  volume  = {33},
+  number  = {5},
+  pages   = {506--520},
+  date    = {1990},
+  doi     = {10.1145/78607.78611},
+}
+
+% === provenance: oman1990book ===
+% CLAIM: The book paradigm of program formatting claims organizational benefits from two experiments; the
+%   abstract does not mention page breaks.
+% FOUND-VIA: OpenAlex title search, known item from oman1990typographic.
+% PICKED: The same authors' account of the book format.
+% QUOTE (abstract): "high-level organizational clues about the code; low-level organization chunks and beacons"
+% VERIFIED: abstract only.
+% COUNTER: As for oman1990typographic.
+% DATE: 2026-11-04
+@article{oman1990book,
+  author  = {Oman, P. W. and Cook, C. R.},
+  title   = {The book paradigm for improved maintenance},
+  journal = {IEEE Software},
+  volume  = {7},
+  number  = {1},
+  pages   = {39--45},
+  date    = {1990},
+  doi     = {10.1109/52.43048},
+}
+
+% === provenance: gellenbeck1991signaling ===
+% CLAIM: A controlled experiment found typographic signaling of limited help on a 913-line program.
+% FOUND-VIA: Reviewer's pointer, after the topic queries; OpenAlex title search (W12190031).
+% PICKED: The reviewer named it; closest experiment on formatting of source listings.
+% QUOTE (abstract): "little evidence exists to show that this type of formatting makes programs easier to read
+%   and understand."
+% QUOTE (abstract): "only modest improvements in comprehension when typographic signaling was used with header
+%   comments and mnemonic names."
+% VERIFIED: abstract only; venue not confirmed by the record, so none is given. No mention of pages.
+% COUNTER: oman1990typographic reports stronger effects for its book format.
+% DATE: 2026-11-04
+@misc{gellenbeck1991signaling,
+  author       = {Gellenbeck, Edward M. and Cook, Curtis R.},
+  title        = {Does Signaling Help Professional Programmers Read and Understand Computer Programs},
+  date         = {1991},
+  howpublished = {Abstract in OpenAlex, record W12190031},
+}
+
+% === provenance: tempero2024decomposition ===
+% CLAIM: A controlled experiment found the effect of functional decomposition on understanding inconclusive.
+% FOUND-VIA: WebSearch "function length one page or one screen readability empirical evidence program comprehension
+%   \"fit on one\" screen page routine size study criticism"; curl of the conference page; Crossref bibliographic query.
+% PICKED: A recent negative result, on the unit a listing is said to cut in two.
+% QUOTE (abstract): "the influence of function decomposition on code understanding is inconclusive"
+% VERIFIED: abstract only. It concerns how code is divided into functions, not pages.
+% COUNTER: linux2026style assumes the benefit.
+% DATE: 2026-11-04
+@inproceedings{tempero2024decomposition,
+  author    = {Tempero, Ewan and Denny, Paul and Finnie-Ansley, James and Luxton-Reilly, Andrew and Kirk, Diana and Leinonen, Juho and Shakil, Asma and Sheehan, Robert and Tizard, James and Tu, Yu-Cheng and W{\"u}nsche, Burkhard},
+  title     = {On the comprehensibility of functional decomposition: An empirical study},
+  booktitle = {Proceedings of the 32nd IEEE/ACM International Conference on Program Comprehension},
+  date      = {2024},
+  doi       = {10.1145/3643916.3644432},
+}
+
+% === provenance: ribeiro2018attributes ===
+% CLAIM: Coding guidelines contradict each other on layout style and code size; the matter is unsettled.
+% FOUND-VIA: scholar queries S13-S17, C14-C18 (session heading-foot-of-page); fetch_pdf.py --text.
+% PICKED: A review with an empirical study, on what the guidelines for code layout rest on.
+% QUOTE (abstract): "five attributes (code size, semantic complexity, internal documentation, layout style, and
+%   identifier length) out of 13 presented contradictions regarding their influence"
+% QUOTE (abstract): "Coding guidelines contradictions still demand further investigation"
+% VERIFIED: abstract read; full text searched by keyword: no mention of page breaks.
+% COUNTER: oman1990typographic reports effects of its book format.
+% DATE: 2026-11-04
+@article{ribeiro2018attributes,
+  author  = {Ribeiro, Talita Vieira and Travassos, Guilherme Horta},
+  title   = {Attributes Influencing the Reading and Comprehension of Source Code -- Discussing Contradictory Evidence},
+  journal = {CLEI Electronic Journal},
+  volume  = {21},
+  number  = {1},
+  date    = {2018},
+  doi     = {10.19153/cleiej.21.1.5},
+}
+
+% === provenance: shneiderman1986display ===
+% CLAIM: Larger displays can help comprehension if used for better presentation; this is about displays.
+% FOUND-VIA: scholar query C15 (session heading-foot-of-page, IEEE and others).
+% PICKED: The nearest reader work on how much code is visible at once that could be read at all.
+% QUOTE (abstract): "The new, larger display screens can improve program comprehension-if the added space is used
+%   for mome effective presentation, not just more code or larger type."
+% VERIFIED: abstract only; "mome" is the record's spelling.
+% COUNTER: None read. Reisel and Shneiderman 1987 found and not read.
+% DATE: 2026-11-04
+@article{shneiderman1986display,
+  author  = {Shneiderman, Ben and Shafer, Philip and Simon, Roland and Weldon, Linda},
+  title   = {Display Strategies for Program Browsing: Concepts and Experiment},
+  journal = {IEEE Software},
+  volume  = {3},
+  number  = {3},
+  pages   = {7--15},
+  date    = {1986},
+  doi     = {10.1109/MS.1986.233405},
+}

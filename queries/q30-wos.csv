@@ -1,0 +1,18 @@
+# Query: TS=(("printed code" OR "paper listing" OR "program listing" OR "code on paper") AND (comprehension OR review OR inspection OR reading))
+# Provider: wos
+# Timestamp: 2026-11-04T09:57:20.782549
+# Results: 11
+
+title	authors	year	doi	venue	url
+An Architecture for QR Code Detection and Recognition in Industrial Environments Using Augmented Reality Devices	Wojtkiewicz, Krystian; Miklasz, Jakub	2026	10.1007/978-981-92-0068-9_42	RECENT CHALLENGES IN INTELLIGENT INFORMATION AND DATABASE SYSTEMS, ACIIDS 2026, PT I	https://www.webofscience.com/wos/woscc/full-record/WOS:001814296600042
+Research on the Application of Deep Learning-based Product Spray Code Text Recognition Algorithm	Fan, Mingxing; Lin, Kairong; Wu, Longhui; Feng, Hao	2024	10.1109/ICAICE63571.2024.10864144	2024 5TH INTERNATIONAL CONFERENCE ON ARTIFICIAL INTELLIGENCE AND COMPUTER ENGINEERING, ICAICE	https://www.webofscience.com/wos/woscc/full-record/WOS:001447151900095
+Digital Twins in Type 1 Diabetes: A Systematic Review	Cappon, Giacomo; Facchinetti, Andrea	2025	10.1177/19322968241262112	JOURNAL OF DIABETES SCIENCE AND TECHNOLOGY	https://www.webofscience.com/wos/woscc/full-record/WOS:001249107300001
+Building a robust pharmacy research program: Reflections from a large healthcare system not affiliated with a college of pharmacy	Herges, Joseph R.; Wieruszewski, Erin D.; Barreto, Jason N.; Taraba, Jodi L.; Barreto, Erin F.; Oyen, Lance J.; Nei, Andrea M.; Wieruszewski, Patrick M.; Thurber, Kristina M.; Schramm, Garrett E.; Formea, Christine M.; Rudis, Maria I.	2024	10.1002/jac5.1957	JOURNAL OF THE AMERICAN COLLEGE OF CLINICAL PHARMACY	https://www.webofscience.com/wos/woscc/full-record/WOS:001215138800001
+Adventures in NICAD: A Ten-Year Retrospective MIP Abstract	Roy, Chanchal K.; Cordy, James R.	2018	10.1145/3196321.3196325	2018 IEEE/ACM 26TH INTERNATIONAL CONFERENCE ON PROGRAM COMPREHENSION (ICPC 2018)	https://www.webofscience.com/wos/woscc/full-record/WOS:000555427300004
+AUGMENTED EDUCATION IN A DIGITAL WORLD	Weiss, Charles T.	2016		INTED2016: 10TH INTERNATIONAL TECHNOLOGY, EDUCATION AND DEVELOPMENT CONFERENCE	https://www.webofscience.com/wos/woscc/full-record/WOS:000402738402123
+Readability dependence on lithography conditions for printing code marks using a squared optical fiber matrix and light-emitting diodes	Watanabe, Jun; Kato, Kazuhide; Iwasaki, Jun-ya; Horiuchi, Toshiyuki	2015	10.7567/JJAP.54.06FP11	JAPANESE JOURNAL OF APPLIED PHYSICS	https://www.webofscience.com/wos/woscc/full-record/WOS:000358264900089
+Readability of Intentionally Degraded Two Dimensional Code Marks Printed Lithographically Using a Squared Optical Fiber Matrix	Watanabe, Jun; Iwasaki, Jun-ya; Horiuchi, Toshiyuki	2015	10.1117/12.2192647	PHOTOMASK JAPAN 2015: PHOTOMASK AND NEXT-GENERATION LITHOGRAPHY MASK TECHNOLOGY XXII	https://www.webofscience.com/wos/woscc/full-record/WOS:000358002100040
+Estimating actual, potential, reference crop and pan evaporation using standard meteorological data: a pragmatic synthesis	McMahon, T. A.; Peel, M. C.; Lowe, L.; Srikanthan, R.; McVicar, T. R.	2013	10.5194/hess-17-1331-2013	HYDROLOGY AND EARTH SYSTEM SCIENCES	https://www.webofscience.com/wos/woscc/full-record/WOS:000318440800007
+A video processing method for convenient mobile reading of printed barcodes with camera phones	Bäckström, C; Södergård, C; Udd, S	2006		MULTIMEDIA CONTENT ANALYSIS, MANAGEMENT, AND RETRIEVAL 2006	https://www.webofscience.com/wos/woscc/full-record/WOS:000236918800025
+Code-switching during shared and independent reading: Lessons learned from a preschooler	Bauer, EB	2000		RESEARCH IN THE TEACHING OF ENGLISH	https://www.webofscience.com/wos/woscc/full-record/WOS:000088864900005
+

@@ -1,0 +1,67 @@
+# Query: heading AND "page break" AND (typography OR typesetting OR pagination)
+# Provider: openalex
+# Timestamp: 2026-11-03T20:03:42.311559
+# Results: 60
+
+title	authors	year	doi	venue	url
+Beyond The Page-Break: Towards Better Tools for Remediation of Born-Digital Documents	Mark W. R. Anderson	2024	10.1145/3648188.3678215	ACM Conference on Hypertext and Social Media (HT)	https://openalex.org/W4401983365
+Formatting information: A beginner's introduction to typesetting with LATEX	Peter Flynn	2002		Cork Open Research Archive (University College Cork, Ireland)	https://openalex.org/W2231431194
+Conventions of Typography Related to Traditional Poetry	HS Pacheco	2006	10.21606/drs.2006.13	Proceedings of DRS	https://openalex.org/W2187908602
+tabular: Render Tables, Listings, and Figures for Clinical Submissions	Vignesh Thanikachalam	2026	10.32614/cran.package.tabular		https://openalex.org/W7164354677
+21. The Textbook in a Changing Multimodal Landscape	Jeff Bezemer; Günther Kress	2016	10.1515/9783110296099-022	De Gruyter eBooks	https://openalex.org/W2518939482
+Approaching typographic variation	Jürgen Spitzmüller	2021	10.21638/spbu09.2021.417	Vestnik of Saint Petersburg University Language and Literature	https://openalex.org/W4214897949
+The T/sub T/X report macro package	K. Barry; S. Ketterer; R. W. McGaffey	1989	10.2172/5871780		https://openalex.org/W49230622
+Zvýraznění bloků textu s možností stránkového zlomu	Vít Zýka	1999	10.5300/1999-3/146	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2314023370
+A Primer for TEX Users	Judi Jones	1982		DSpace@MIT (Massachusetts Institute of Technology)	https://openalex.org/W1608475971
+Output routines extending \plainoutput	Udo Wermuth	2025	10.47397/tb/46-1/tb142wermuth-widow	TUGboat	https://openalex.org/W4410155527
+The Design and implementation of a system for processing documents described in generalized markup languages	Frank Cost	1987		RIT Scholar Works (Rochester Institute of Technology)	https://openalex.org/W588433940
+The Computer Science Of Tex And Latex	Victor L. Eijkhout	2004	10.5281/zenodo.49901	Zenodo (CERN European Organization for Nuclear Research)	https://openalex.org/W2470989218
+Revisiting a summer vacation	Steven R. Bagley; David F. Brailsford; Brian W. Kernighan	2013	10.1145/2494266.2494275	ACM Symposium on Document Engineering (DocEng)	https://openalex.org/W2076639120
+knitroff: Dynamic Reports in 'troff' with 'knitr'	Daniel García	2026	10.32614/cran.package.knitroff		https://openalex.org/W7222522503
+Electronic composition in printing :	Richard W. Lee; Roy W Worral	1968	10.6028/nbs.sp.295		https://openalex.org/W625469028
+TrueType-fonty v TeXu	Vladimír Koutný	1999	10.5300/1999-3/159	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2334932064
+How (LA)TEX changed the face od Mathematics. An E-Interview with Leslie Lamport, the author of LATEX		2000	10.1515/dmvm-2000-0020	Mitteilungen der Deutschen Mathematiker-Vereinigung	https://openalex.org/W4235053667
+Lexique anglo-français du Companion	Jacques André; Jean-Côme Charpentier	2007	10.5802/cg.336	Cahiers GUTenberg	https://openalex.org/W2331947001
+New Interfaces for LaTeX Class Design	Frank G. Mittelbach; David P. Carlisle; Chris Rowley	2000	10.5802/cg.277	Cahiers GUTenberg	https://openalex.org/W2328273353
+Ten simple rules for typographically appealing scientific texts	Lars Ole Schwen	2020	10.1371/journal.pcbi.1008458	PLoS Computational Biology	https://openalex.org/W3113659071
+T sub E Xnical typesetting: A guide through the TEX typesetting program	Stan Ketterer	1989	10.2172/5291546		https://openalex.org/W4232509801
+Typst: A Modern Typesetting Engine for Science	Andrey Voynov; Alberto Corbí; Pau López-Oliver; David Gil	2026	10.9781/ijimai.2026.2269	International Journal of Interactive Multimedia and Artificial Intelligence	https://openalex.org/W7130368314
+The Christian Coalition and the End Game	Norman Gulley	1997		Digital Commons - Andrews University (Andrews University)	https://openalex.org/W2625621699
+PaperFit: Vision-in-the-Loop Typesetting Optimization for Scientific Documents	Bihui Yu; Xinglong Xu; Junjie Jiang; Jiabei Cheng; Caijun Jia; Siyuan Li; Conghui He; Jingxuan Wei; Cheng Tan	2026	10.48550/arxiv.2605.10341	arXiv (Cornell University)	https://openalex.org/W7160958579
+Sustainable by design: an investigation into ecologically friendly typography	Charles Bigelow; Dealva J. Dowd-Hinkle; Daniel Horowitz; Garret Voorhees	2011		RIT Scholar Works (Rochester Institute of Technology)	https://openalex.org/W857730719
+Instructional typographies using desktop publishing techniques to produce effective learning and training materials	Wendy Priestly	1991	10.14742/ajet.2286	Australasian Journal of Educational Technology	https://openalex.org/W1916371934
+Changing Text: A Social Semiotic Analysis of Textbooks	Jeff Bezemer; Günther Kress	2010	10.16993/dfl.26	Designs for Learning	https://openalex.org/W65120234
+Lilypond Music-Notation Software in the Digital-Humanities Toolbox	Andrew A. Cashner	2024	10.63744/rfcvh3zcuxby	Digital humanities quarterly	https://openalex.org/W7139954996
+Serializing the Locator Format of the United States Government Publishing Office as XML	Joel Kalvesmaki	2023	10.4242/balisagevol28.kalvesmaki01	Balisage series on markup technologies	https://openalex.org/W4385386758
+Object Recognition from Scientific Document Based on Compartment and Text Blocks Refinement Framework	Jinghong Li; Wen Gu; Koichi Ota; Shinobu Hasegawa	2024	10.1007/s42979-024-03130-7	SN Computer Science	https://openalex.org/W4401818357
+Digital archiving of Malayalam content II	CV Radhakrishnan; KV Rajeesh	2026	10.47397/tb/47-2/tb146radhakrishnan-malayalam-archiving	TUGboat	https://openalex.org/W7204693043
+Prevođenje korisničkih uputa s hrvatskoga na engleski jezik	Končar, Jelena	2020		ODRAZ (University of Zagreb Faculty of Humanities and SocialSciences)	https://openalex.org/W7134621281
+Translation of User Manuals from Croatian into English	Jelena Končar	2020			https://openalex.org/W3040641082
+Digitizing the Pyrates: Making a Digital Critical Edition of Captain Charles Johnson's A General History of the Pyrates (1724-1726)	Ingrid Reiche	2016	10.22215/etd/2016-11674		https://openalex.org/W3154205050
+John Marr and Other Sailors: An Online Electronic ‘Facsimile’ Text of the First Edition (1888)	Herman Melville; Paul Royster	1888		Lincoln (University of Nebraska)	https://openalex.org/W1570033263
+Preparing Legal Documents for NLP Analysis: Improving the Classification of Text Elements by Using Page Features	Frieda Josi; Christian Wartena; Ulrich Heid	2022	10.5121/csit.2022.120102		https://openalex.org/W4207051111
+A generic comparison process for documentation files	Michelle Timmons	1997		Dublin City University Open Access Institutional Repository (Dublin City University)	https://openalex.org/W124632626
+Automatically Removing Widows and Orphans with lua-widow-control	Max Chernoff	2022	10.5300/2022-1-4/49	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W4312367526
+Markup systems and the future of scholarly text processing	James H. Coombs; Allen H. Renear; Steven J. DeRose	1987	10.1145/32206.32209	Communications of the ACM	https://openalex.org/W2094864311
+A language for music printing	John S. Gourlay	1986	10.1145/5689.5690	Communications of the ACM	https://openalex.org/W2004261233
+Open Source Tools for Text Processing	Jiří Rybička	2022	10.11118/978-80-7509-880-1		https://openalex.org/W4313262812
+Technology and design: Vancouver Magazine before and after desktop publishing	Tatiana MacNeill	2005		Summit (Simon Fraser University)	https://openalex.org/W189181732
+A New Digital Edition of Darwin’s 1859 Origin of Species	Adam M. Goldstein	2011	10.1007/s12052-011-0333-6	Evolution Education and Outreach	https://openalex.org/W2026934256
+OCR of historical printings with an application to building diachronic corpora: A case study using the RIDGES herbal corpus	Uwe Springmann; Anke Lüdeling	2017	10.63744/bjrqzuj2zv4f	Digital humanities quarterly	https://openalex.org/W2521646835
+The real world of accessibility: challenges in digital publishing at an academic publisher	Julie Jacques			Summit (Simon Fraser University)	https://openalex.org/W7139797795
+Random dynamic fonts	Bernard. Desruisseaux	1996	10.82308/37525	eScholarship@McGill (McGill)	https://openalex.org/W7161794276
+The Search for an Alternative Workflow at UBC Press: Support- and Service-Based Models	Alexander Sutcliffe	2014		Summit (Simon Fraser University)	https://openalex.org/W434218189
+The History of Arcadia in Print		2024	10.7765/9781526174987.00008	Manchester University Press eBooks	https://openalex.org/W4399587588
+Markup to generate markup to generate markup	Peter Flynn	2013	10.4242/balisagevol10.flynn01	Balisage series on markup technologies	https://openalex.org/W2422102396
+Rita+ : an SGML based document processing system	Guido Zsilavecz	1993		Open University of Cape Town (University of Cape Town)	https://openalex.org/W2230566206
+What Oedipus Did When He Married Jocasta or What Ancient Tragedy Tells Us About Agents, Their Actions, and the World	Johannes L. Brandl; Marian David; Martina Fürst; Maria Elisabeth Reicher	2001	10.1163/18756735-061001000	Grazer Philosophische Studien	https://openalex.org/W4236042113
+Basics of word processing for thesis writing	Attila Imre	2026	10.47745/sapvol.2026.29	Scientia eBooks	https://openalex.org/W7164921693
+Institutional Membership		1985	10.1111/j.1467-8659.1985.tb00233.x	Computer Graphics Forum	https://openalex.org/W4205308725
+A Review of Pattern Languages for Software Documentation	Jõao Santos; Filipe Figueiredo Correia	2020	10.1145/3424771.3424786	European Conference on Pattern Languages of Programs	https://openalex.org/W3112847625
+Copyright, Compilations, and Public Policy: Lingering Issues after the West Publishing-Mead Data Central Settlement	Cary E. Donham	1988		bepress Legal Repository	https://openalex.org/W356816476
+Processing Structured Hypermedia - A Matter of Style	Jacco van Ossenbruggen	2001		Data Archiving and Networked Services (DANS)	https://openalex.org/W2116009141
+The tangled web: Managing and confronting scholarly ebook production at UBC Press	Alison Knight	2007		Summit (Simon Fraser University)	https://openalex.org/W188971272
+Instructions for authors	Donald Y.M. Leung; Nancy Hopper; John C. Galati; Mari Reynolds	2004	10.1016/s0091-6749(03)02722-2	Journal of Allergy and Clinical Immunology	https://openalex.org/W4240130189
+Posthumous Writings: Latin and Dutch Quartos II	Jeroen M.M. van de Ven	2022	10.1163/9789004467996_010	BRILL eBooks	https://openalex.org/W4390810899
+COMPARATIVE ANALYSIS OF PDF GENERATION TECHNOLOGIES IN WEB-ORIENTED SYSTEMS	Nikita Shkirai; Oleksandr Shmaraiev; Yuliia Babych	2026	10.70286/isu-25.02.2026.010		https://openalex.org/W7133601243
+

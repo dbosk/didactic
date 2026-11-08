@@ -1,14 +1,16 @@
 % Test of keeping listings together (didactic): in the notes (memoir +
 % beamerarticle), a listing of at most keeplines lines doesn't break across
 % pages, a longer one leaves at least keepends lines on each side of a
-% break, and the paragraph that leads into a listing stays with it.
+% break, and the paragraph that leads into a listing stays with it.  This document
+% pins keepends=3; the default of 2 is in test-keep-heading and test-keep-sweep.
 % Each case starts on a new page, after a rule that leaves room for a few
 % lines only, so that without didactic the listing would break there.
 %
 % Build: see the Makefile (LaTeX, PythonTeX, LaTeX until the page references
 % settle).  The
 % document checks itself: the last page lists every check with PASS or
-% FAIL, and the log has a line "didactic keep test: <check> PASS/FAIL"
+% FAIL, and the log has a line "didactic keep test: PASS/FAIL <check>",
+% the result first as TeX wraps long lines in the log,
 % for each, then "didactic keep test: all checks ran"; the Makefile fails
 % on any FAIL or SKIP, when that last line is missing, and on an overfull page.
 %
@@ -37,6 +39,8 @@
 %   S  a short listing over the full width by \lstexample*, with room for
 %      2 lines: on the next page with its lead-in.
 %   Y  the same by didactic_mint(fullwidth=True), through PythonTeX.
+%   S2 as S with room for 5.5 lines and a lead-in of three, where moving them
+%      would leave more than keepmaxgap: the listing starts the next page, alone.
 %   N  a listing after a paragraph with an \ltnote in it, with room for 2
 %      lines: on the next page with its lead-in.  M the same with \marginpar,
 %      P with a float before the lead-in.  (Between the lead-in and the listing,
@@ -56,12 +60,30 @@
 %   H  the depth after a listing is that of its last line, not of what came
 %      before it, so that the text after it is at the right height.  (The
 %      lead-in has a depth of 7pt, the listing's last line almost none.)
+%   T  a short listing (10 lines) with room for 8 of its lines: moving it
+%      would leave more than keepmaxgap (5) lines empty, so it breaks, with
+%      at least three lines on each side.
+%   U  a section heading followed by four lines of text, with room for it
+%      and one line, within keepmaxgap: it moves to the next page with three
+%      lines (keepafterheading).
+%   X  a place to break of noweb between two paragraphs (\nwdocspar), with room
+%      for a few lines of the second: with keepmaxgap it isn't taken, the text
+%      goes on on this page.
+%   Z  a listing of 15 lines, over the default of keeplines, with room for 4:
+%      it breaks, rather than moving as a whole.
+%   V  the heading of a block (example), with room for one of its lines:
+%      the block moves to the next page.
+%   R  a section heading, a sentence and a longtable whose caption and
+%      first row don't fit, with room for little: the heading moves to the page
+%      of the table, as the estimate before it sees.  (When only the table's
+%      place shows it, in the next run: test-keep-heading, AB to AD.)
 \documentclass[a4paper]{memoir}
 \usepackage[british]{babel}
 \usepackage{amsmath,amssymb,amsthm}
-\usepackage{didactic}
+\usepackage[keepends=3]{didactic}
 \usepackage[noamsthm,notheorems]{beamerarticle}
 \usepackage{refcount}
+\usepackage{longtable}
 \IfFileExists{noweb.sty}{\usepackage[minted]{noweb}}{}
 
 \makeatletter
@@ -132,7 +154,7 @@
       \fi
     \fi
   \fi
-  \typeout{didactic keep test: #1 \@keeptest@result}%
+  \typeout{didactic keep test: \@keeptest@result\space #1}%
   \item #1: \@keeptest@result\ (#2 on page \getpagerefnumber{#2}, #4 on
     page \getpagerefnumber{#4})}
 \makeatother
@@ -224,6 +246,14 @@ Lead-in S, code over the full width by \verb|\lstexample*|:\label{s-lead}
 \lstexample*{text}{\jobname-s.txt}
 Text after S.
 
+\roomfor{4.5}
+Lead-in S2,\\
+over three lines,\\
+code over the full width:\label{s2-lead}
+\testfile{z}{5}{|}{|}%
+\lstexample*{text}{\jobname-z.txt}
+Text after S2.
+
 \roomfor{2}
 Lead-in Y, by \verb|didactic_mint(fullwidth=True)|:\label{y-lead}
 \begin{pycode}
@@ -257,6 +287,55 @@ Lead-in O, a listing with a colour:\label{o-lead}
 \testfile{o}{3}{}{}%
 \VerbatimInput[commandchars=\\\{\},formatcom=\color{blue}]{\jobname-o.txt}
 Text after O.
+
+\roomfor{9}
+Lead-in T, to a short listing with room for eight of its ten lines.%
+\label{t-lead}
+\testlisting{t}{10}
+Text after T.
+
+\roomfor{4}
+\section*{Heading U}\label{u-head}
+First line of U\\
+second line\\
+third line\label{uL3}\\
+fourth line.
+
+\roomfor{1}
+\begin{example}[Heading V]\label{v-head}
+First line of V\label{vL1}\\
+second line\label{vL2}\\
+third line\\
+fourth line.
+\end{example}
+
+\roomfor{4}
+\section*{Heading R}\label{r-head}
+Table R lists the rows.
+\begin{longtable}{ll}
+\caption{A caption of several lines, several lines, several lines, several
+  lines, several lines, several lines, several lines, several
+  lines.}\label{r-tab}\\
+a & b\\ a & b\\ a & b\\ a & b\\
+\end{longtable}
+
+\roomfor{4}
+Before X.\label{x-before}
+\ifdefined\nwdocspar\nwdocspar\fi
+
+First line of X\label{x-1}\\
+second line\\
+third line\\
+fourth line\\
+fifth line\\
+sixth line\\
+seventh line\\
+eighth line.
+
+\roomfor{4}
+Lead-in Z.\label{z-lead}
+\testlisting{z}{15}
+Text after Z.
 
 \roomfor{3}
 \begin{enumerate}
@@ -306,7 +385,7 @@ Text after H.
 \testcheck{F the whole chunk}{f-lead}{=}{fL5}
 \else
 \makeatother
-\typeout{didactic keep test: F no noweb.sty SKIP}%
+\typeout{didactic keep test: SKIP F no noweb.sty}%
 \item F: SKIP, no noweb.sty
 \fi
 \testcheck{G first and last line together}{gL1}{=}{gL5}
@@ -322,10 +401,11 @@ Text after H.
 \else
   \def\@keeptest@result{FAIL}%
 \fi
-\typeout{didactic keep test: H depth after the listing \@keeptest@result}%
+\typeout{didactic keep test: \@keeptest@result\space H depth after the listing}%
 \item H depth after the listing: \@keeptest@result\ (\@keeptest@hdepth)
 \makeatother
 \testcheck{J lead-in with the pair}{j-lead}{=}{j-pair}
+\testcheck{S2 listing on the next page, alone}{s2-lead}{<}{zL1}
 \testcheck{S lead-in with the listing}{s-lead}{=}{sL1}
 \testcheck{S the whole listing}{s-lead}{=}{sL5}
 \testcheck{Y lead-in with the listing}{y-lead}{=}{yL1}
@@ -334,6 +414,15 @@ Text after H.
 \testcheck{M lead-in with the listing, a margin note in the paragraph}{m-lead}{=}{mL1}
 \testcheck{P lead-in with the listing, a float before it}{p-lead}{=}{pL1}
 \testcheck{O lead-in with the listing in colour}{o-lead}{=}{oL1}
+\item[] Limits on the empty space and headings:
+\testcheck{T breaks, rather than leave the room empty}{tL1}{<}{tL10}
+\testcheck{T lead-in with line 3}{t-lead}{=}{tL3}
+\testcheck{U heading with three lines}{u-head}{=}{uL3}
+\testcheck{V block heading with its second line}{vL1}{=}{vL2}
+\testcheck{R heading with its long table}{r-head}{=}{r-tab}
+\testcheck{X text goes on after the place to break of noweb}{x-before}{=}{x-1}
+\testcheck{Z lead-in with line 3}{z-lead}{=}{zL3}
+\testcheck{Z breaks}{zL1}{<}{zL15}
 \end{itemize}
 \typeout{didactic keep test: all checks ran}
 
