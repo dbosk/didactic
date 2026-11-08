@@ -1,0 +1,23 @@
+% A heading in a box says nothing about the page (didactic): nothing of it reaches
+% the next paragraph outside.
+\documentclass[a4paper]{article}
+\usepackage{didactic}
+\makeatletter
+\newcommand\checkstate[1]{%
+  \ifnum\@didactic@keep@headstate=\z@
+    \typeout{didactic box test: PASS #1}%
+  \else
+    \typeout{didactic box test: FAIL #1, state \the\@didactic@keep@headstate}%
+  \fi}
+\makeatother
+\begin{document}
+\setbox0\vbox{\section{In a vbox}Text in the box.}
+\checkstate{after a vbox}
+\setbox0\vbox{\paragraph{Run-in in a vbox}Text in the box.}
+\checkstate{after a run-in heading in a vbox}
+\setbox0\vbox{\begin{minipage}{.5\linewidth}\section{In a minipage}Text.\end{minipage}}
+\checkstate{after a minipage}
+Next paragraph.\par
+\checkstate{after the next paragraph}
+\typeout{didactic box test: all checks ran}
+\end{document}

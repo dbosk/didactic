@@ -1,0 +1,39 @@
+% A heading's style runs once (didactic): counters, writes, footnotes and margin
+% notes in \@startsection's style come out as without didactic, at each
+% keepafterheading.  The Makefile runs this with keepafterheading 0, 2 and 3, as
+% \testk, and the document checks itself.
+\ifdefined\testk\PassOptionsToPackage{keepafterheading=\testk}{didactic}\fi
+\documentclass[a4paper]{article}
+\usepackage{didactic}
+\makeatletter
+\newcounter{styledone}
+\newcounter{styleref}
+\newcommand\sA{\@startsection{paragraph}{4}{\z@}{1ex}{1ex}{\stepcounter{styledone}\bfseries}}
+\newcommand\sB{\@startsection{section}{1}{\z@}{1ex}{1ex}{\refstepcounter{styleref}\bfseries}}
+\newcommand\sC{\@startsection{section}{1}{\z@}{1ex}{1ex}{\global\advance\c@styledone by 5 \bfseries}}
+\newcommand\sD{\@startsection{section}{1}{\z@}{1ex}{1ex}{\marginpar{M}\bfseries}}
+\newcommand\sE{\@startsection{section}{1}{\z@}{1ex}{1ex}{\typeout{didactic style ran}\bfseries}}
+\makeatother
+\newcommand\testis[2]{%
+  \ifnum\value{#1}=#2\relax\typeout{didactic style test: PASS #1=#2}%
+  \else\typeout{didactic style test: FAIL #1=\arabic{#1}, not #2}\fi}
+\begin{document}
+\sA{A}
+\testis{styledone}{1}
+Text.
+
+\sB{B}
+\testis{styleref}{1}
+Text.
+
+\sC{C}
+\testis{styledone}{6}
+Text.
+
+\sD{D}
+Text with a margin note in its heading's style.
+
+\sE{E}
+Text.
+\typeout{didactic style test: all checks ran}
+\end{document}

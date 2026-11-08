@@ -1,0 +1,8 @@
+# Query: TITLE-ABS-KEY(("page break" OR "page turn" OR "page boundary") AND (sentence OR paragraph) AND (reading OR memory OR recall))
+# Provider: scopus
+# Timestamp: 2026-11-03T20:13:19.474535
+# Results: 1
+
+title	authors	year	doi	venue	url
+Log-based reading speed prediction: A case study on war and peace	I. Tukh	2019	10.1007/978-3-030-37334-4_11	Lecture Notes in Computer Science Including Subseries Lecture Notes in Artificial Intelligence and Lecture Notes in Bioinformatics	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=85077503920&origin=inward
+

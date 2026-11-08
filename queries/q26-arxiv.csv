@@ -1,0 +1,11 @@
+# Query: ("program typography" OR "typographic style" OR "pretty printing" OR "pretty-printing" OR "code layout") AND (program OR code) AND (comprehension OR readability OR page)
+# Provider: arxiv
+# Timestamp: 2026-11-04T09:52:32.966377
+# Results: 4
+
+title	authors	year	doi	venue	url
+Grammatical Aspects for Language Descriptions	Andrey Breslav	2010	10.48550/arXiv.1001.2817	cs.PL	http://arxiv.org/abs/1001.2817v1
+SNEG - Mathematica package for symbolic calculations with second-quantization-operator expressions	Rok Zitko	2011	10.1016/j.cpc.2011.05.013	quant-ph	http://arxiv.org/abs/1105.4697v1
+Extended Report on the Obfuscated Integration of Software Protections	Jens Van den Broeck; Bart Coppens; Bjorn De Sutter	2019	10.48550/arXiv.1907.01445	cs.CR	http://arxiv.org/abs/1907.01445v2
+VisCode: Embedding Information in Visualization Images using Encoder-Decoder Network	Peiying Zhang; Chenhui Li; Changbo Wang	2020	10.48550/arXiv.2009.03817	cs.CV	http://arxiv.org/abs/2009.03817v1
+

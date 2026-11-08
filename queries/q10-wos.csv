@@ -1,0 +1,7 @@
+# Query: TS=((heading OR "widows and orphans" OR "page break") AND typesetting AND (criticism OR overrated OR "trade-off" OR "white space"))
+# Provider: wos
+# Timestamp: 2026-11-03T20:08:47.808744
+# Results: 0
+
+title	authors	year	doi	venue	url
+

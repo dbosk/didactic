@@ -1,0 +1,7 @@
+# Query: TITLE-ABS-KEY(("widow penalty" OR "orphan penalty" OR "club penalty" OR clubpenalty OR widowpenalty OR "widow control" OR "orphan control") AND (typesetting OR pagination OR TeX OR LaTeX))
+# Provider: scopus
+# Timestamp: 2026-11-03T21:11:16.658541
+# Results: 0
+
+title	authors	year	doi	venue	url
+

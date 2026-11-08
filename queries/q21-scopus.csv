@@ -1,0 +1,9 @@
+# Query: TITLE-ABS-KEY((heading OR subheading OR subhead OR "section heading") AND ("page break" OR pagination OR "keep with next" OR "foot of the page" OR "bottom of the page") AND (reading OR comprehension OR experiment OR empirical OR criticism))
+# Provider: scopus
+# Timestamp: 2026-11-03T21:09:39.975689
+# Results: 2
+
+title	authors	year	doi	venue	url
+Cognitive Anchor and Order Construction: Morphological Characteristics and Design Strategies of Reading Progress Perception in Printed Books	Y. Lu	2026	10.19619/j.issn.1007-1938.2026.00.009	Publishing and Printing	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=105042689879&origin=inward
+Correction to: A theoretical and empirical analysis of tensions between learning objects and constructivism (Education and Information Technologies, (2025), 30, 15, (22101-22150), 10.1007/s10639-025-13636-z)	J.E. Dahl	2025	10.1007/s10639-025-13689-0	Education and Information Technologies	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=105011189589&origin=inward
+

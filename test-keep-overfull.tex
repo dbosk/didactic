@@ -18,7 +18,9 @@
 \documentclass[a4paper,oneside]{memoir}
 \usepackage[british]{babel}
 \usepackage{amsmath,amssymb,amsthm}
-\PassOptionsToPackage{keeplines=20,keepleadin=true}{didactic}
+% With the limit of keepmaxgap the tie is released before the page is overfull, so
+% this test turns the limit off, to reach the case it is about.
+\PassOptionsToPackage{keeplines=20,keepleadin=true,keepmaxgap=0}{didactic}
 \usepackage{didactic}
 \usepackage[noamsthm,notheorems]{beamerarticle}
 \usepackage{refcount}

@@ -1,0 +1,77 @@
+% A list of enumitem and its lead-in (didactic): test-check.py compares the warnings
+% with the pages of the words.
+%   A  A list that \newlist makes stays with its lead-in, like enumerate.
+%   B  So does an itemize with an option.
+%   D  A penalty that you set with beginpenalty is yours: the list starts the next page
+%      at it, and nothing warns.
+%   F  Space before the list, by before=, gives a place to break: that parts them, and
+%      warns once, naming this line.
+%   G  A listing in the first item of such a list: the penalty is yours there too,
+%      and nothing warns.
+%   H, I  The same with beginpenalty=0 and =50: whatever its sign.
+\documentclass[a4paper,10pt,oneside]{memoir}
+\usepackage{didactic}
+\usepackage{enumitem}
+\newlist{steps}{enumerate}{2}
+\setlist[steps,1]{label=\arabic*)}
+\makeatletter
+\newcommand\roomfor[1]{\clearpage\noindent\mbox{}R\par
+ \vspace*{\dimexpr\pagegoal-\pagetotal-#1\baselineskip\relax}\par}
+\newcommand\case[1]{\typeout{enumitem case #1 line \the\inputlineno}}
+\makeatother
+\begin{document}
+\roomfor{2}
+LEADA in.
+\case{a}\begin{steps}\item FIRSTA\item second\item third\end{steps}
+After.
+
+\roomfor{2}
+LEADB in.
+\case{b}\begin{itemize}[nosep]\item FIRSTB\item second\end{itemize}
+After.
+
+\roomfor{2}
+LEADD in.
+\case{d}\begin{itemize}[beginpenalty=-500]\item FIRSTD\item second\end{itemize}
+After.
+
+\roomfor{2}
+LEADF in.
+\case{f}\begin{itemize}[before=\vspace{4pt}]\item FIRSTF\item second\end{itemize}
+After.
+
+\roomfor{2}
+LEADG in.
+\begin{itemize}[beginpenalty=-500]\item
+\case{g}\begin{Verbatim}
+FIRSTG
+line 2
+line 3
+line 4
+\end{Verbatim}
+\end{itemize}
+After.
+\roomfor{2}
+LEADH in.
+\begin{itemize}[beginpenalty=0]\item
+\case{h}\begin{Verbatim}
+FIRSTH
+line 2
+line 3
+line 4
+\end{Verbatim}
+\end{itemize}
+After.
+
+\roomfor{2}
+LEADI in.
+\begin{itemize}[beginpenalty=50]\item
+\case{i}\begin{Verbatim}
+FIRSTI
+line 2
+line 3
+line 4
+\end{Verbatim}
+\end{itemize}
+After.
+\end{document}

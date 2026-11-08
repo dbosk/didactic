@@ -1,0 +1,13 @@
+# Query: (list OR "bulleted list" OR "list items" OR "lead-in") AND ("page break" OR pagination) AND (criticism OR empirical OR experiment OR evidence)
+# Provider: arxiv
+# Timestamp: 2026-11-03T21:06:20.598535
+# Results: 6
+
+title	authors	year	doi	venue	url
+Pagination: It's what you say, not how long it takes to say it	Joshua Hailpern; Niranjan Damera Venkata; Marina Danilevsky	2014	10.48550/arXiv.1404.3233	cs.CL	http://arxiv.org/abs/1404.3233v1
+Graphify: Automated Synthesis of Type-Safe Graph Backends via $O(S)$ GraphQL-to-Gremlin Transpilation	Johannes Graf	2026	10.48550/arXiv.2604.27223	cs.DB	http://arxiv.org/abs/2604.27223v1
+Mobile Supply: The Last Piece of Jigsaw of Recommender System	Zhenhao Jiang; Biao Zeng; Hao Feng; Jin Liu; Jie Zhang; Jia Jia; Ning Hu	2023	10.48550/arXiv.2308.03855	cs.IR	http://arxiv.org/abs/2308.03855v2
+A high-resolution study of levels in the astrophysically important nucleus $^{26}$Mg and resulting updated level assignments	P. Adsley; J. W. Brümmer; T Faestermann; S. P. Fox; F. Hammache; R. Hertenberger; A. Meyer; R. Neveling; D. Seiler; N. de Séréville; H. -F. Wirth	2018	10.1103/PhysRevC.97.045807	nucl-ex	http://arxiv.org/abs/1802.00693v3
+Static Analysis for AWS Best Practices in Python Code	Rajdeep Mukherjee; Omer Tripp; Ben Liblit; Michael Wilson	2022	10.48550/arXiv.2205.04432	cs.PL	http://arxiv.org/abs/2205.04432v1
+Text Clustering with Large Language Model Embeddings	Alina Petukhova; João P. Matos-Carvalho; Nuno Fachada	2024	10.1016/j.ijcce.2024.11.004	cs.CL	http://arxiv.org/abs/2403.15112v5
+

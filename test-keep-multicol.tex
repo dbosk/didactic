@@ -4,6 +4,8 @@
 % a box (MP, a minipage, and MQ with a pair) has nothing to say, and a pair is
 % one warning, whatever is in its cells (PL).  The same in multicols* (S).  A listing
 % taller than \textheight (TL) says nothing about that, which isn't the limit here.
+% A listing of four lines (SH), at most keeplines, that comes at the foot of a column:
+% it breaks there as fancyvrb lets it, and isn't moved whole to the next column.
 %
 % Build: see the Makefile; test-check.py checks that there is no Overfull \vbox,
 % that the lead-in stays near its listing (not stretched away from it), and that
@@ -21,6 +23,13 @@
   \immediate\openout\@mcol@out=\jobname-#1.txt
   \@mcol@i\z@
   \@whilenum\@mcol@i<20\do{\advance\@mcol@i\@ne
+    \immediate\write\@mcol@out{#1 \the\@mcol@i}}%
+  \immediate\closeout\@mcol@out
+  \VerbatimInput{\jobname-#1.txt}}
+\newcommand\testshort[1]{%
+  \immediate\openout\@mcol@out=\jobname-#1.txt
+  \@mcol@i\z@
+  \@whilenum\@mcol@i<4\do{\advance\@mcol@i\@ne
     \immediate\write\@mcol@out{#1 \the\@mcol@i}}%
   \immediate\closeout\@mcol@out
   \VerbatimInput{\jobname-#1.txt}}
@@ -84,6 +93,11 @@ Text after.
 \end{multicols}
 \begin{multicols*}{2}
 \case{s}\testlisting{star}
+\end{multicols*}
+\clearpage
+\begin{multicols*}{2}
+\noindent\rule{1pt}{\dimexpr\textheight-2.5\baselineskip\relax}\par
+\case{sh}\testshort{short}
 \end{multicols*}
 After the columns, a listing is kept again.
 \testlisting{gamma}

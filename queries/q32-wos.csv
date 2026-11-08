@@ -1,0 +1,14 @@
+# Query: TS=(("program comprehension" OR "code comprehension" OR "code readability") AND ("page break" OR "page boundary" OR "page turn" OR "across pages" OR pagination OR scrolling OR "screen size" OR "display size"))
+# Provider: wos
+# Timestamp: 2026-11-04T09:59:04.077441
+# Results: 7
+
+title	authors	year	doi	venue	url
+Annotation Visualizer: A software visualization tool for code annotations	Lima, Phyllipe; Pereira, Nathalya Stefhany; Gomes, Everaldo; Guerra, Eduardo; Meirelles, Paulo	2023	10.1016/j.simpa.2023.100491	SOFTWARE IMPACTS	https://www.webofscience.com/wos/woscc/full-record/WOS:000966332500001
+Deja Vu: semantics-aware recording and replay of high-speed eye tracking and interaction data to support cognitive studies of software engineering tasks-methodology and analyses	Zyrianov, Vlas; Peterson, Cole S.; Guarnera, Drew T.; Behler, Joshua; Weston, Praxis; Sharif, Bonita; Maletic, Jonathan, I	2022	10.1007/s10664-022-10209-3	EMPIRICAL SOFTWARE ENGINEERING	https://www.webofscience.com/wos/woscc/full-record/WOS:000859469500019
+Automated Recording and Semantics-Aware Replaying of High-Speed Eye Tracking and Interaction Data to Support Cognitive Studies of Software Engineering Tasks	Zyrianov, Vlas; Guarnera, Drew T.; Peterson, Cole S.; Sharif, Bonita; Maletic, Jonathan, I	2020	10.1109/ICSME46990.2020.00051	2020 IEEE INTERNATIONAL CONFERENCE ON SOFTWARE MAINTENANCE AND EVOLUTION (ICSME 2020)	https://www.webofscience.com/wos/woscc/full-record/WOS:000613139300041
+Developer Reading Behavior While Summarizing Java Methods: Size and Context Matters	Abid, Nahla J.; Sharif, Bonita; Dragan, Natalia; Alrasheed, Hend; Maletic, Jonathan I.	2019	10.1109/ICSE.2019.00052	2019 IEEE/ACM 41ST INTERNATIONAL CONFERENCE ON SOFTWARE ENGINEERING (ICSE 2019)	https://www.webofscience.com/wos/woscc/full-record/WOS:000560373200034
+SimplyHover: Improving Comprehension of else Statements	Jbara, Ahmad; Shacham, Or; Ben Michael, Bar; Tavor, Omer	2020	10.1145/3387904.3389297	2020 IEEE/ACM 28TH INTERNATIONAL CONFERENCE ON PROGRAM COMPREHENSION, ICPC	https://www.webofscience.com/wos/woscc/full-record/WOS:001039164500050
+Looks Can Mean Achieving: Understanding Eye Gaze Patterns of Proficiency in Code Comprehension	Saddler, Jonathan A.	2019	10.1145/3314111.3322876	ETRA 2019: 2019 ACM SYMPOSIUM ON EYE TRACKING RESEARCH & APPLICATIONS	https://www.webofscience.com/wos/woscc/full-record/WOS:000626312000057
+An exploratory study of how developers seek, relate, and collect relevant information during software maintenance tasks	Ko, Andrew J.; Myers, Brad A.; Coblenz, Michael J.; Aung, Htet Htet	2006		IEEE TRANSACTIONS ON SOFTWARE ENGINEERING	https://www.webofscience.com/wos/woscc/full-record/WOS:000241988400004
+

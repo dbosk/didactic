@@ -1,0 +1,8 @@
+# Query: TS=(("page breaking" OR pagination) AND (TeX OR LaTeX) AND (criticism OR limitations OR empirical OR evaluation OR "white space"))
+# Provider: wos
+# Timestamp: 2026-11-03T21:08:37.988575
+# Results: 1
+
+title	authors	year	doi	venue	url
+A general framework for globally optimized pagination	Mittelbach, Frank	2019	10.1111/coin.12165	COMPUTATIONAL INTELLIGENCE	https://www.webofscience.com/wos/woscc/full-record/WOS:000466182600001
+

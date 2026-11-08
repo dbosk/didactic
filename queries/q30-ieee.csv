@@ -1,0 +1,12 @@
+# Query: ("printed code" OR "paper listing" OR "program listing" OR "code on paper") AND (comprehension OR review OR inspection OR reading)
+# Provider: ieee
+# Timestamp: 2026-11-04T09:56:48.525195
+# Results: 5
+
+title	authors	year	doi	venue	url
+E l3 B or CMC7 cheque code MR and conventional reading heads comparison	J. Desserre; M. Helle; J.-P. Lazzari	1978	10.1109/TMAG.1978.1059790	IEEE Transactions on Magnetics	https://ieeexplore.ieee.org/document/1059790/
+Adventures in NICAD: A Ten-Year Retrospective	Chanchal K. Roy; James R. Cordy	2018		2018 IEEE/ACM 26th International Conference on Program Comprehension (ICPC)	https://ieeexplore.ieee.org/document/8973074/
+Research on the Application of Deep Learning-Based Product Spray Code Text Recognition Algorithm	Mingxing Fan; Kairong Lin; Longhui Wu; Hao Feng	2024	10.1109/ICAICE63571.2024.10864144	2024 5th International Conference on Artificial Intelligence and Computer Engineering (ICAICE)	https://ieeexplore.ieee.org/document/10864144/
+IEEE Standard Glossary of Software Engineering Terminology		1990	10.1109/IEEESTD.1990.101064	IEEE Std 610.12-1990	https://ieeexplore.ieee.org/document/159342/
+ISO/IEC/IEEE International Standard - Systems and software engineering -- Vocabulary		2010	10.1109/IEEESTD.2010.5733835	ISO/IEC/IEEE 24765:2010(E)	https://ieeexplore.ieee.org/document/5733835/
+

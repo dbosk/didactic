@@ -1,0 +1,9 @@
+# Query: TITLE-ABS-KEY(("code listing" OR "program listing" OR "source code listing") AND ("page break" OR "across pages" OR pagination OR "page turn" OR split) AND (comprehension OR reading OR experiment OR empirical OR evidence OR criticism))
+# Provider: scopus
+# Timestamp: 2026-11-04T09:58:17.209387
+# Results: 2
+
+title	authors	year	doi	venue	url
+Analytical technique for allocating production to subzones to evaluate prospect candidates in the terminal zone of fault blocks III and IV, Wilmington Field, CA	V.K. Bust	2005	10.2523/94259-ms	SPE Western Regional Meeting Proceedings	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=22344437891&origin=inward
+Mathematical model for describing the operation of centrifugal jet pump associations used in wells	F.C. Mendonça	2000		2000 ASAE Annual International Meeting Technical Papers Engineering Solutions for A New Century	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=2342542381&origin=inward
+

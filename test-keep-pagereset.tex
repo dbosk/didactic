@@ -1,0 +1,34 @@
+% Page numbers that are reset say nothing about what moved (didactic): the
+% moved-heading warning goes by the pages shipped.  In the Makefile: A and C warn,
+% and B, with the page number raised right under the heading, doesn't.
+\documentclass[a4paper]{article}
+\usepackage{didactic}
+\newcommand\roomfor[1]{%
+  \clearpage
+  \noindent\rule{\linewidth}{0.4pt}\par
+  \vspace*{\dimexpr\textheight-\topskip-#1\baselineskip-\baselineskip\relax}%
+  \par}
+\begin{document}
+% A: moves, and the page number is reset right after the heading.
+\setcounter{page}{7}
+\roomfor{8}
+\section{Moves, number reset}
+\setcounter{page}{1}
+\noindent\parbox{\linewidth}{\rule{0pt}{10\baselineskip}T}\par
+After.
+
+% B: stays, and the page number jumps right after the heading.
+\roomfor{30}
+\section{Stays, number raised}
+\setcounter{page}{50}
+Text under the heading.
+
+More text.
+
+% C: moves, in roman numbers.
+\clearpage\pagenumbering{roman}
+\roomfor{8}
+\section{Moves, in roman numbers}
+\noindent\parbox{\linewidth}{\rule{0pt}{10\baselineskip}T}\par
+After.
+\end{document}

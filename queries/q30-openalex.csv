@@ -1,0 +1,67 @@
+# Query: ("printed code" OR "paper listing" OR "program listing" OR "code on paper") AND (comprehension OR review OR inspection OR reading)
+# Provider: openalex
+# Timestamp: 2026-11-04T09:56:36.947994
+# Results: 60
+
+title	authors	year	doi	venue	url
+Additional SANE program listings		1998	10.1016/s0099-1767(98)90098-8	Journal of Emergency Nursing	https://openalex.org/W4256749094
+CiteRead: Integrating Localized Citation Contexts into Scientific Paper Reading	Napol Rachatasumrit; Jonathan Bragg; Amy Xian Zhang; Daniel S. Weld	2022	10.1145/3490099.3511162	ACM International Conference on Intelligent User Interfaces (IUI)	https://openalex.org/W4220895811
+Book Reviews : Perfect Pascal Programs Publisher: Tab Books, Inc. Year of Publication: 1985 Length: 278 pages Price: $16.95 Intended Audience: Apple Pascal programmers Usefulness: Moderate to high Clarity: Good Difficulty: Intermediate to advanced	Robert Platt	1988	10.1177/089443938800600134	Social Science Computer Review	https://openalex.org/W2065892766
+Listing of colleges and universities offering programs in reading at the graduate level	Robert M. Wilson	1967	10.1080/19388076709557001	Journal of the Reading Specialist	https://openalex.org/W2122711203
+Numerical methods in engineering and applied science—numbers are fun, B. M. Irons and N. G. Shrive, Ellis Horwood, Chichester, 1987. No. of pages: 248, 14 program listings	B. A. Schrefler	1988	10.1002/nme.1620260121	International Journal for Numerical Methods in Engineering	https://openalex.org/W1991670588
+A toolbox for APL programmers	Robert Charles Metzger	1979	10.1145/390009.804467	ACM SIGAPL APL Quote Quad	https://openalex.org/W1988395455
+Programmer's guide for the GNAT computer program (numerical analysis of stratification in supercritical oxygen)	J. P. Heinmiller	1971		NASA STI Repository (National Aeronautics and Space Administration)	https://openalex.org/W778366363
+Edit-insertion programs for automatic typesetting of computer printout	Carla G. Messina	1970	10.6028/nbs.tn.500		https://openalex.org/W210793765
+Using visual organizers to enhance EFL instruction	S. Kang	2004	10.1093/elt/58.1.58	ELT Journal	https://openalex.org/W2125496985
+Augmented Reality in Assembly Systems: State of the Art and Future Perspectives	Michela Dalle Mura; Gino Dini	2021	10.1007/978-3-030-72632-4_1	IFIP advances in information and communication technology	https://openalex.org/W3141507022
+House of Reliability Costs: Developing Reliability Program Activities	Shuki Dror	2013	10.1002/qre.1575	Quality and Reliability Engineering International	https://openalex.org/W1908066330
+Reading in the 21st Century	Donald C. O’Shea	2006	10.1117/1.2197518	Optical Engineering	https://openalex.org/W2085210095
+Automatic Preparation of Flow Chart Listings	A. E. Scott	1958	10.1145/320911.320919	Journal of the ACM	https://openalex.org/W1990989322
+Automated and interactive analysis of eye fixation data in reading	Reinhold M. Kliegl	1981	10.3758/bf03207919	Behavior Research Methods	https://openalex.org/W2048539803
+Artificial Neural Network Learning, Attention, and Memory	Vincenzo Manca	2024	10.3390/info15070387	Information	https://openalex.org/W4400248169
+An examination of the relationship between reading and drama in education.	David Booth	1978		Durham e-Theses (Durham University)	https://openalex.org/W1479906430
+Summer Pre-College Programs for Students with Disabilities, 1999.	Linda Harrison; Daniel Gardner	1999			https://openalex.org/W33883639
+Neuroscience and Literacy: An Integrative View	George Ellis; Carole Bloch	2020	10.48550/arxiv.2012.03240	arXiv (Cornell University)	https://openalex.org/W4287556771
+Neuroscience and Literacy: An Integrative View	George Ellis; Carole Bloch	2021	10.20944/preprints202012.0139.v3	Preprints.org	https://openalex.org/W3124826520
+Reproduction code for paper	Anonymous	2026	10.5281/zenodo.19336682	Zenodo (CERN European Organization for Nuclear Research)	https://openalex.org/W7143287918
+jskerker/SantaCruz_Integrated_Model: Updated code for paper review	Jennifer B Skerker	2026	10.5281/zenodo.18333183	Zenodo (CERN European Organization for Nuclear Research)	https://openalex.org/W7125369225
+Bringing order to chaos: Research on Easy Swedish	Solveig Arle; Carina Frondén	2022	10.1017/s0332586522000105	Nordic Journal of Linguistics	https://openalex.org/W4293724342
+Paper List		2021	10.1109/isscs52333.2021.9497457	International Symposium on Signals, Circuits and Systems	https://openalex.org/W4253825683
+Paper List		2022	10.1109/upec55022.2022.9917586	International Universities Power Engineering Conference (UPEC)	https://openalex.org/W4313170828
+Approaches to program comprehension	D. J. Robson; Keith H. Bennett; Barry Cornelius; Malcolm Munro	1991	10.1016/0164-1212(91)90092-k	Journal of Systems and Software	https://openalex.org/W1988021859
+Design and Application of Automatic Ink-jet Printed Code Inspection and Control System for Cigarette Packet	Jun Sun; Zhenhua Zhang	2009	10.3969/j.issn.1002-0861.2010.05.005	Tobacco Science & Technology	https://openalex.org/W2372506328
+Additional SANE program listing		1998	10.1016/s0099-1767(98)90009-5	Journal of Emergency Nursing	https://openalex.org/W4230937216
+Additional SANE program listing		1999	10.1016/s0099-1767(99)70141-8	Journal of Emergency Nursing	https://openalex.org/W4242990997
+Juan-VidalPerez/TruthBiasInHumanReinforcementLearning: Code for paper review 1	Juan Vidal-Perez	2026	10.5281/zenodo.23086037	Zenodo (CERN European Organization for Nuclear Research)	https://openalex.org/W7215082810
+LCC113: English for Communicative Competence III	UiTM, Academy of Language Studies	2023		UiTM Institutional Repositories (Universiti Teknologi MARA)	https://openalex.org/W7113496530
+A Comparison of Reading Achievement in Second Grade Students Using the Accelerated Reading Program and Independent Reading.	Adrienne Toro	2001			https://openalex.org/W1824573128
+Object-oriented inspection in the face of delocalisation	Alastair Dunsmore; Marc Roper; Murray Wood	2000	10.1145/337180.337343	ACM/IEEE International Conference on Software Engineering: Companion Proceedings (ICSE-Companion)	https://openalex.org/W2168335247
+Uemgreen 2019 Paper List		2019	10.1109/uemgreen46813.2019.9221507		https://openalex.org/W4235170830
+Paper List with Authors Details		2022	10.1109/mesiicon55227.2022.10093627	International Interdisciplinary Conference on Mathematics, Engineering and Science (MESIICON)	https://openalex.org/W4364320787
+Fostering Fifth Graders’ Reading Comprehension through the use of Intensive Reading in Physical Science	Alethia Paola Bogoya González	2011	10.14483/22487085.2930	Colombian Applied Linguistics Journal	https://openalex.org/W1785617715
+Significant Treatment: An Assessment of Issues-Programs List Availability in Missouri Radio Station Public Inspection Files	Mark Smith; Elizabeth W. Clark	2007	10.1080/10955040701583288	Journal of Radio Studies	https://openalex.org/W2181152298
+Program Listing: Sixth Order		2000	10.1016/s0167-8922(00)80022-x	Tribology series	https://openalex.org/W4246573094
+Attributes Influencing the Reading and Comprehension of Source Code – Discussing Contradictory Evidence	Talita Vieira Ribeiro; Guilherme Horta Travassos	2018	10.19153/cleiej.21.1.5	CLEI electronic journal	https://openalex.org/W2799607937
+Easing Program Comprehension by Sharing Navigation Data	Robert A DeLine; Mary P. Czerwinski; George G. Robertson	2005	10.1109/vlhcc.2005.32	IEEE Symposium on Visual Languages and Human-Centric Computing (VL/HCC)	https://openalex.org/W2128042018
+INTEGRATING THE CONCEPTS OF SAFETY AND SECURITY IN READING COMPREHENSION PASSAGES OF THE ENGLISH LANGUAGE CURRICULUM FOR JUNIOR SECONDARY SCHOOLS IN NIGERIA	Hanna Onyi Yusuf; Uduak Idoghor	2016	10.46827/ejes.v0i0.202	Open Access Publishing Group - European Journal of Education Studies	https://openalex.org/W2521653165
+POLYGON; program listing	Bruce A. Chuchel	1985	10.3133/ofr85233b	Antarctica A Keystone in a Changing World	https://openalex.org/W100803533
+Developing reading comprehension through content based activities	Nubia Gualtero Aranda	2016	10.82992/intellectum/handle.10818.6667	Intellectum (Universidad de La Sabana)	https://openalex.org/W7168858637
+Quality Evaluation of Modern Code Reviews Through Intelligent Biometric Program Comprehension	Haytham Hijazi; Joao A. Duraes; Ricardo Couceiro; João Castelhano; Raul Barbosa; Júlio Medeiros; Miguel S. Castelo-Branco; P. Carvalho; Henrique Madeira	2022	10.1109/tse.2022.3158543	IEEE Transactions on Software Engineering	https://openalex.org/W4226423392
+The effect of scope delimiters on program comprehension	Floyd Sykes; Raymond T. Tillman; Ben Shneiderman	1983	10.1002/spe.4380130908	Software Practice and Experience	https://openalex.org/W2037894793
+Code for paper ALL-IN meta-analysis: breathing life into living systematic reviews	Judith ter Schure	2021	10.17605/osf.io/u6wtp		https://openalex.org/W7168058941
+An Analysis of Kenyan Learners’ Proficiency in English Based on Reading Comprehension and Vocabulary	Logamurthie Athiemoolam; Agnes Kibui	2013	10.3126/nelta.v17i1-2.8088	Journal of NELTA	https://openalex.org/W1990320617
+3D-printed coded apertures for x-ray backscatter radiography	Ian D. Jupp; Andre M. A. Munoz; David W. Lane; Matthew J. F. Healy; Anna Vella; David Lockley	2017	10.1117/12.2273756	Radiation Detectors in Medicine, Industry, and National Security	https://openalex.org/W2752430670
+Parallel Programming, List Homomorphisms and the Maximum Segment Sum Problem.	Murray Cole	1993			https://openalex.org/W1827496441
+Correction: Pharm.D. program listing	James A. Sterchele; David F. Kisor	1988	10.1177/106002808802200931	Annals of Pharmacotherapy	https://openalex.org/W2774301206
+Source code for Paper ICSE 2024 Second Cycle #822	Anonymous	2023	10.5281/zenodo.8203947	Zenodo (CERN European Organization for Nuclear Research)	https://openalex.org/W4385440262
+Constructing a Pedagogy of Comedy: Sarcasm and Print Codes as Social Literacies in "Winnie-the-Pooh".	Liberty Kohn; Wynn Yarbrough	2010		Journal of language & literacy education	https://openalex.org/W2239945188
+Powder Diffraction Program Information 1990 Program List	D. K. Smith; Syb Gorter	1991	10.1107/s0021889891003473	Journal of Applied Crystallography	https://openalex.org/W2131525152
+The Impact of a Text-Reader Support Program on Intermediate Students' Reading Comprehension	Tieha McGee	2013			https://openalex.org/W2266746189
+A third grade bilingual teacher's knowledge and practices for developing reading comprehension	Myriam Guerra-Balic	2012		ScholarWorks @ UTRGV (The University of Texas Rio Grande Valley)	https://openalex.org/W2120454147
+1992 program listings with aircraft operators and types		1992	10.1016/s1046-9095(05)80212-0	Journal of Air Medical Transport	https://openalex.org/W4253368534
+Modernizing federal labour standards: review of Part III of the Canada Labour Code: consultation paper	Yue Walek	2017		Books | Encyclopedia of Canadian Laws	https://openalex.org/W2791508004
+THE CORRELATION BETWEEN STUDENTS' READING ANXIETY AND THEIR READING COMPREHENSION OF THE EIGHTH GRADE STUDENTS IN SMP NEGERI 1 PRINGSEWU	BUNAYYA MAULA ZAKI	2026		Digilib Repository Unila (Lampung University)	https://openalex.org/W7164775794
+Data and codes for paper 'Frictional phenomena within a quasi zero stiffness vibration device'	Alexander D. Shaw	2024	10.5281/zenodo.10340199	Zenodo (CERN European Organization for Nuclear Research)	https://openalex.org/W4393771477
+Code for paper "Reconstructing an Implosion with Space-Time Smoothing of Velocimetry Traces"	Michael J. Grosskopf	2022	10.11578/dc.20220729.7	OSTI OAI (U.S. Department of Energy Office of Scientific and Technical Information)	https://openalex.org/W4299134444
+Automatic translation of printed code to impulses acceptable to computing equipment	J. T. Davidson; R. L. Fortune	1955	10.1145/1455292.1455298	Western Joint IRE-AIEE-ACM Computer Conference (WJCC)	https://openalex.org/W2016287858
+

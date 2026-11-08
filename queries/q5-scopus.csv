@@ -1,0 +1,10 @@
+# Query: TITLE-ABS-KEY("page breaking" AND (TeX OR LaTeX))
+# Provider: scopus
+# Timestamp: 2026-11-03T20:05:48.309185
+# Results: 3
+
+title	authors	year	doi	venue	url
+A general framework for globally optimized pagination	F. Mittelbach	2019	10.1111/coin.12165	Computational Intelligence	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=85044217076&origin=inward
+A general framework for globally optimized pagination	F. Mittelbach	2016	10.1145/2960811.2960820	Doceng 2016 Proceedings of the 2016 ACM Symposium on Document Engineering	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=84991241404&origin=inward
+Document layout optimization with automated paraphrasing	Y. Kido	2015	10.1145/2682571.2797095	Doceng 2015 Proceedings of the 2015 ACM Symposium on Document Engineering	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=84959251503&origin=inward
+
