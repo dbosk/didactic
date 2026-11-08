@@ -114,7 +114,7 @@ setting gives a result and that no file of the prepared copy changes.
 ## The generated literate programs
 
 The rows on generated documents in that appendix are from `measure-flow/`, which
-needs no documents of yours:
+needs no documents of yours. From the repository's root, after `make didactic.sty`:
 
     mkdir -p v/current && cp didactic.sty v/current/
     cd measure-flow && python3 cfgmake.py
@@ -129,4 +129,9 @@ The names are in `cfgmake.py`: `n` is breakcode, `nn` no option, `m` minted chun
 limit off with that break dropped.
 `nA`, `nB`, `nW`, and `mA`, `mB`, `mW` are the pairs 1000/10000, 10000/10000 and
 1000/1001, which tells lone last lines from first ones. `queries/pen.py` is the same
-comparison with no package: `python3 queries/pen.py EMPTYDIR 300`.
+comparison with no package, also from the root: `python3 queries/pen.py EMPTYDIR 300`.
+
+The appendix takes a flow's pages from `pages.py`, every page of its 12 documents.
+`stats.py` leaves out each document's last page, which ends by itself and so says
+nothing of a break, and counts empty space on the rest: it prints `pages=198` where the
+table says 210.
