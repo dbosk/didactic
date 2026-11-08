@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}[2021/06/01]
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/11/08 v2.16 didactic]
+  [2026/11/08 v2.16.1 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -150,6 +150,12 @@
 %   when it's loaded.
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
+% }
+% \changes{v2.16.1}{2026/11/08}{%
+%   \texttt{biburlpenalty} is off unless given (\#89).
+%   With it, a URL breaks after a letter or a digit only in a piece wider than 
+%   the line, and never inside its scheme and \texttt{://}.
+%   \textsf{biblatex}'s counters for such breaks stay as they are.
 % }
 % \changes{v2.16}{2026/11/08}{%
 %   With \textsf{biblatex}, sets \texttt{\textbackslash emergencystretch} 
@@ -463,19 +469,25 @@
 % A URL or DOI in the bibliography, or in a citation, can only break after 
 % the punctuation in it, such as a slash, and a long one between two such 
 % places runs into the margin.
-% So with \textsf{biblatex} we let a URL break after any letter or digit 
-% too, with a penalty of |biburlpenalty|, 9\,000 unless given: high, as 
-% \textsf{biblatex}'s documentation suggests, so that a URL breaks there 
-% only when the line can't break anywhere else.
-% We set \textsf{biblatex}'s counters |biburlnumpenalty|, |biburlucpenalty| 
-% and |biburllcpenalty| to it right after \textsf{biblatex} is loaded,
-% whether that is before \textsf{didactic} or after, so your own
-% |\setcounter| of them after both packages wins.
-% One between the two, with \textsf{biblatex} loaded first, doesn't:
-% \textsf{didactic} sets the counters when it's loaded.
-% |biburlpenalty=0|, or a negative value, leaves the counters as they are,
-% which in \textsf{biblatex} means that a URL doesn't break after letters
-% or digits.
+% With the option |biburlpenalty|, such a URL breaks after a letter or a
+% digit instead, but only there: in a piece between two places to break
+% that is wider than the line, so that it would run into the margin
+% anyway.
+% Elsewhere it breaks where it did, at a space, after |://|, a |/|, a |.|
+% and the like, and \TeX\ sets the line loose rather than break after a
+% letter.
+% It never breaks inside the scheme and its |://|, such as |https://|.
+% This holds for the URLs, DOIs and other links of \textsf{biblatex}'s
+% bibliography and citations, also those in the margin; a |\url| in the
+% text breaks as \textsf{url} has it.
+% The option is off unless given: |biburlpenalty| alone is the same as
+% |biburlpenalty=9000|, the penalty of such a break, and 0 or less turns it
+% off.
+% \textsf{biblatex}'s own counters |biburlnumpenalty|, |biburlucpenalty|
+% and |biburllcpenalty| put a break after every letter or digit; we leave
+% them as they are, 0 unless you set them.
+% Where a line can't be set within \TeX's tolerance even so, it runs over,
+% and \LaTeX\ warns about the Overfull |\hbox|, as without the option.
 %
 % \DescribeOpt{bibemergencystretch}
 % A line in the bibliography can run into the margin without a URL too: 
@@ -1382,10 +1394,11 @@
 % The options off aren't v2.13: what is left of them still changes some pages, so these
 % two counts aren't a comparison with v2.13, which the measurement of build time in the
 % appendix makes for three of the documents, at commit 73fe0fd: one page more on each.
-% v2.16 changes a \textsf{biblatex} bibliography's lines too: a URL may break after
-% a letter or a digit (|biburlpenalty|), and the bibliography has an
+% v2.16 changes a \textsf{biblatex} bibliography's lines too: it has an
 % |\emergencystretch| of 3\,em (|bibemergencystretch|), so a bibliography's lines,
 % and with them its pages, can differ; the counts above are of v2.15, without that.
+% (In v2.16 a URL could also break after any letter or digit; since v2.16.1 that
+% takes |biburlpenalty|, and then only where the URL would run over otherwise.)
 % \begin{itemize}
 % \item A listing of at most |keeplines| lines doesn't break, and a longer one leaves
 %   |keepends| lines on each side of a break.
@@ -2051,13 +2064,15 @@
 % \end{option}
 %
 % \begin{option}{biburlpenalty}
-% |biburlpenalty| is the penalty for breaking a URL after a letter or a 
-% digit in \textsf{biblatex}'s bibliography and citations, see below; 0
-% or less leaves \textsf{biblatex}'s own (no such breaks).
+% |biburlpenalty| is the penalty for breaking a URL after a letter or a
+% digit, where nothing else keeps it out of the margin, in
+% \textsf{biblatex}'s bibliography and citations, see below.
+% It is off (0) unless given; given without a value it is 9\,000, and 0 or
+% less turns it off.
 %    \begin{macrocode}
 \newcount\@didactic@biburlpenalty
-\@didactic@biburlpenalty=9000
-\DeclareOptionX{biburlpenalty}{\@didactic@biburlpenalty=#1\relax}
+\@didactic@biburlpenalty=\z@
+\DeclareOptionX{biburlpenalty}[9000]{\@didactic@biburlpenalty=#1\relax}
 %    \end{macrocode}
 % \end{option}
 %
@@ -2892,27 +2907,220 @@
 }
 %    \end{macrocode}
 %
+% \paragraph{Where a URL breaks.}
+% \textsf{url} sets a URL as a formula, and a line can break only where it
+% puts a penalty: after the characters of |\UrlBreaks| (such as |/| and
+% |.|) and |\UrlBigBreaks| (|:| and |-| in \textsf{biblatex}).
+% A piece between two of these that is wider than the line can't fit on any
+% line, so it runs into the margin.
+% \textsf{biblatex}'s counters |biburlnumpenalty|, |biburlucpenalty| and
+% |biburllcpenalty| add a penalty after every digit and letter, which
+% v2.16 set to 9\,000 by default.
+% That made such breaks the rule, not the last resort it meant
+% (\#89): margin citations broke |https://silly.business| as
+% |https://sil|\,/\,|ly.business|, and |https:|\,/\,|//| after the colon.
+%
+% A penalty can't make a break a last resort, because of the way \TeX\
+% breaks a paragraph into lines.
+% It tries first without hyphenating (|\pretolerance|), then with
+% (|\tolerance|), and with |\emergencystretch| only if both found no way
+% within those limits.
+% A penalty below 10\,000 is a place to break in every one of these passes,
+% so a letter break that lets the first or the second pass succeed is taken,
+% and the emergency stretch, which would have set the line loose instead,
+% never comes into play.
+% The cost doesn't help either: a break with penalty $p$ adds $p^2$ to the
+% demerits, $8.1\times10^7$ at 9\,000, more than any line within the
+% tolerance costs, so \TeX\ avoids it where it can, but within a pass, not
+% across passes.
+% We measured this: a citation in a box 5.1--5.8\,cm wide that needs the
+% emergency pass without letter breaks is set in the first or the second pass
+% with them.
+% A trial, setting each entry or note once without letter breaks and again
+% with them if a line runs over, would run a citation's code twice, with its
+% labels, links and trackers, so we don't do that.
+%
+% Instead we decide before \textsf{url} sets the URL, from the URL alone.
+% We split it into its pieces, each ending with a character that
+% \textsf{url} breaks after, and measure each piece in the font of the URL.
+% Only a piece wider than the line gets a penalty of |biburlpenalty| after
+% each of its letters and digits: without them it would run into the margin
+% whatever \TeX\ did, so these breaks are used only where the alternative is
+% an overfull line.
+% The other pieces keep \textsf{url}'s own breaks, after a |/|, a |.| and so
+% on, and the spaces of the entry around them; where these leave \TeX\ no
+% line within its tolerance, it sets one loose, or lets it run over with
+% \LaTeX's own warning, as without the option.
+% The scheme, such as |https|, and its |://| are set as plain characters,
+% so the URL never breaks inside them; it can break after |://|.
+% We count as places to break all the characters of |\UrlBreaks| and
+% |\UrlBigBreaks|, though \textsf{url} doesn't break after a |/| right after
+% another one: a piece may then be wider than we measured, and with no
+% letter breaks it runs over, with a warning.
+%
+% \begin{macro}{\@didactic@urlsetup}
+% \textsf{url} gives us one place where the whole URL passes through before
+% it is set: |\UrlLeft| comes right before the characters of the URL and
+% |\UrlRight| after them.
+% \textsf{biblatex} calls |\biburlsetup| for its bibliography and its
+% citations, so we add to that, and a |\url| in the text isn't touched.
+% We keep the |\UrlLeft| that was there and call it first; we don't take
+% our own for it, should |\biburlsetup| run twice.
+%    \begin{macrocode}
+\newcommand\@didactic@urlsetup{%
+  \ifx\UrlLeft\@didactic@url@left\else
+    \let\@didactic@url@outerleft\UrlLeft
+    \let\UrlLeft\@didactic@url@left
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@url@left}
+% We take the characters up to |\UrlRight| and build in
+% |\@didactic@url@out| what \textsf{url} gets to set instead.
+% The width of the line is |\linewidth|, which is narrower than |\hsize| in
+% a list such as the bibliography, and the same in a margin note.
+% A mark that the URL can't contain ends the characters, and |://| after it
+% makes sure the scheme's pattern below matches once.
+%    \begin{macrocode}
+\def\@didactic@url@mark{\@didactic@url@mark}
+\def\@didactic@url@left#1\UrlRight{%
+  \@didactic@url@outerleft
+  \let\@didactic@url@out\@empty
+  \let\@didactic@url@piece\@empty
+  \dimen@\linewidth
+  \ifdim\hsize<\dimen@ \dimen@\hsize \fi
+  \edef\@didactic@url@width{\the\dimen@}%
+  \@didactic@url@scheme#1\@didactic@url@mark://\@nil
+  \@didactic@url@out
+  \UrlRight}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@url@scheme}
+% If the URL has no |://|, it's all pieces (a DOI, say).
+% If what comes before its first |://| is a scheme, letters, digits, |+|,
+% |.| and |-| starting with a letter, we set the scheme, the colon and the
+% first slash as plain characters (class 0, which \textsf{url} doesn't break
+% after), and the second slash as itself, so the URL can break after it.
+% Otherwise the |://| is just characters of the URL.
+%    \begin{macrocode}
+\def\@didactic@url@scheme#1://#2\@nil{%
+  \if\relax\detokenize{#2}\relax
+    \@didactic@url@pieces#1%
+  \else
+    \@tempswafalse
+    \if\relax\detokenize{#1}\relax\else
+      \@didactic@url@isscheme#1\@didactic@url@mark
+    \fi
+    \if@tempswa
+      \@didactic@url@plain#1\@didactic@url@mark
+      \appto\@didactic@url@out{\mathchar`\:\mathchar`\//}%
+      \@didactic@url@rest#2%
+    \else
+      \@didactic@url@rest#1://#2%
+    \fi
+  \fi}
+\def\@didactic@url@rest#1\@didactic@url@mark://{%
+  \@didactic@url@pieces#1\@didactic@url@mark}
+\def\@didactic@url@isscheme#1#2\@didactic@url@mark{%
+  \@didactic@url@ifalnum{#1}{\ifnum`#1>64 \@tempswatrue\fi}{}%
+  \if@tempswa\@didactic@url@schemechars#2\@didactic@url@mark\fi}
+\def\@didactic@url@schemechars#1{%
+  \ifx#1\@didactic@url@mark\else
+    \@didactic@url@ifalnum{#1}{}{%
+      \if\noexpand#1+\else\if\noexpand#1.\else\if\noexpand#1-\else
+        \@tempswafalse\fi\fi\fi}%
+    \expandafter\@didactic@url@schemechars
+  \fi}
+\def\@didactic@url@plain#1{%
+  \ifx#1\@didactic@url@mark\else
+    \eappto\@didactic@url@out{\mathchar\number`#1\relax}%
+    \expandafter\@didactic@url@plain
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@url@pieces}
+% A piece ends after a character that \textsf{url} breaks after: one whose
+% math code it has set to class 2 (|\UrlBreaks|) or 3 (|\UrlBigBreaks|).
+% The characters it sets itself, such as the percent sign, have class 8
+% and don't end a piece.
+% Lua\TeX\ gives the math code in its own form, with the class times 
+% |"200000| and the family times |"1000000|, and an active one as 
+% |"1000000|, class 0; there the class is the remainder of a division by 
+% |"1000000| divided by |"200000|.
+%    \begin{macrocode}
+\def\@didactic@url@pieces#1{%
+  \ifx#1\@didactic@url@mark
+    \@didactic@url@flush
+  \else
+    \appto\@didactic@url@piece{#1}%
+    \count@\mathcode`#1\relax
+    \ifnum\count@>"8000
+      \@tempcnta\count@ \divide\@tempcnta"1000000
+      \multiply\@tempcnta"1000000 \advance\count@-\@tempcnta
+      \divide\count@"200000
+    \else
+      \divide\count@ 4096
+    \fi
+    \ifcase\count@ \or\or \@didactic@url@flush \or \@didactic@url@flush \fi
+    \expandafter\@didactic@url@pieces
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@url@flush}
+% We measure a piece as \textsf{url} will set it, in a formula in the same
+% font, and pass it on as it is if it fits in the line, and otherwise with a
+% penalty after each of its letters and digits.
+%    \begin{macrocode}
+\def\@didactic@url@flush{%
+  \ifx\@didactic@url@piece\@empty\else
+    \setbox\@tempboxa\hbox{$\m@th\fam\z@\@didactic@url@piece$}%
+    \ifdim\wd\@tempboxa>\@didactic@url@width\relax
+      \expandafter\@didactic@url@letters\@didactic@url@piece
+        \@didactic@url@mark
+    \else
+      \eappto\@didactic@url@out{\expandonce\@didactic@url@piece}%
+    \fi
+    \let\@didactic@url@piece\@empty
+  \fi}
+\def\@didactic@url@letters#1{%
+  \ifx#1\@didactic@url@mark\else
+    \appto\@didactic@url@out{#1}%
+    \@didactic@url@ifalnum{#1}{%
+      \eappto\@didactic@url@out{\penalty\the\@didactic@biburlpenalty\relax}}{}%
+    \expandafter\@didactic@url@letters
+  \fi}
+\def\@didactic@url@ifalnum#1{%
+  \@tempswafalse
+  \count@`#1\relax
+  \ifnum\count@>47 \ifnum\count@<58 \@tempswatrue\fi\fi
+  \ifnum\count@>64 \ifnum\count@<91 \@tempswatrue\fi\fi
+  \ifnum\count@>96 \ifnum\count@<123 \@tempswatrue\fi\fi
+  \if@tempswa\expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
+%    \end{macrocode}
+% \end{macro}
+%
 % \begin{macro}{\@didactic@bibbreaks}
-% A long URL in the bibliography should break rather than run into the 
-% margin, so we set \textsf{biblatex}'s penalties for breaking after 
-% digits, upper-case and lower-case letters to |biburlpenalty|.
-% \textsf{biblatex} reads them when it typesets a URL, so they need only 
-% be set before the document's bibliography.
-% Likewise a line of long names should be set loose rather than run into 
-% the margin, so the bibliography gets an |\emergencystretch| of 
-% |bibemergencystretch|, unless the document has set one of its own, which 
+% With |biburlpenalty|, every URL in the bibliography and the citations is
+% split as above; \textsf{biblatex}'s own counters stay as they are, 0
+% unless the document sets them, as they would put a letter break
+% everywhere.
+% A line of long names should be set loose rather than run into
+% the margin, so the bibliography gets an |\emergencystretch| of
+% |bibemergencystretch|, unless the document has set one of its own, which
 % we only know in the bibliography.
-% Unlike the |csquotes| setting above, these are settings that a document 
-% may make itself, so we don't wait for the end of the preamble, which would 
-% undo that: we make them as soon as \textsf{biblatex} is loaded, now if it 
+% Unlike the |csquotes| setting above, these are settings that a document
+% may make itself, so we don't wait for the end of the preamble, which would
+% undo that: we make them as soon as \textsf{biblatex} is loaded, now if it
 % is already, and otherwise right after it is.
 % Then a document's own |\AtBeginBibliography| comes after ours too.
 %    \begin{macrocode}
 \newcommand\@didactic@bibbreaks{%
   \ifnum\@didactic@biburlpenalty>\z@
-    \setcounter{biburlnumpenalty}{\@didactic@biburlpenalty}%
-    \setcounter{biburlucpenalty}{\@didactic@biburlpenalty}%
-    \setcounter{biburllcpenalty}{\@didactic@biburlpenalty}%
+    \appto\biburlsetup{\@didactic@urlsetup}%
   \fi
   \ifdim\@didactic@bibemergencystretch>\z@
     \AtBeginBibliography{%
