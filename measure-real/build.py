@@ -6,7 +6,7 @@ quota or full disk, a log cut short, an .aux that doesn't settle) is marked as
 such, with its log.  Never run two of these on one work directory and tag.
 """
 import concurrent.futures as cf, hashlib, json, os, re, shutil, subprocess
-from lib import BAD, PAPER, SETTINGS, args, latex, pages_of, run
+from lib import BAD, PAPER, SETTINGS, args, latex, pages_of, run, workcopy
 from probe import style
 
 a, docs = args(__doc__,
@@ -29,14 +29,8 @@ def build(d, name):
     if os.path.exists(top):
         shutil.rmtree(top)
     os.makedirs(top)
-    # Hard links save space: one source copy per document.  What LaTeX writes
-    # is in the output directory, which is a real copy, or a new file.
-    subprocess.run(["cp", "-al", os.path.join(a.work, "src", d.name) + "/.", top + "/"], check=True)
-    cwd = os.path.join(top, d.dir)
+    cwd = workcopy(a.work, d, top)  # hard links, but what LaTeX writes is a real copy
     out = os.path.join(cwd, d.out)
-    if d.out != ".":
-        shutil.rmtree(out)
-        shutil.copytree(os.path.join(d.src(a.work), d.out), out, symlinks=True)
     sty = os.path.join(cwd, "didactic.sty")
     if os.path.exists(sty):
         os.remove(sty)

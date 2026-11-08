@@ -7,7 +7,7 @@ job's load falls on both.  CPU time is what to compare; wall-clock time shows th
 Run nothing else of yours meanwhile.
 """
 import os, re, resource, shutil, subprocess, time
-from lib import args, latex, pages_of, run
+from lib import args, latex, pages_of, run, workcopy
 
 a, docs = args(__doc__,
                ("--sty", dict(action="append", required=True, help="NAME=PATH, twice")),
@@ -34,14 +34,10 @@ def prepare(d, name):
         os.makedirs(os.path.join(top, "_minted"), exist_ok=True)
         cwd = top
     else:
-        subprocess.run(["cp", "-al", os.path.join(a.work, "src", d.name) + "/.", top + "/"], check=True)
-        cwd = os.path.join(top, d.dir)
-        if d.out != ".":
-            shutil.rmtree(os.path.join(cwd, d.out))
-            shutil.copytree(os.path.join(d.src(a.work), d.out), os.path.join(cwd, d.out), symlinks=True)
-            aux = os.path.join(cwd, d.out, d.main + ".aux")
-            if os.path.exists(aux):  # written by another version
-                os.remove(aux)
+        cwd = workcopy(a.work, d, top)
+        aux = os.path.join(cwd, d.out, d.main + ".aux")
+        if os.path.exists(aux):  # written by another version
+            os.remove(aux)
     s = os.path.join(cwd, "didactic.sty")
     if os.path.exists(s):
         os.remove(s)

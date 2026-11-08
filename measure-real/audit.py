@@ -8,7 +8,7 @@ when minted reads them.  Prints FAIL for what makes the row wrong and NOTE for
 what limits it.  Exits with 1 on any FAIL.
 """
 import collections, os, re, shutil, subprocess
-from lib import args, latex, pages_of, run
+from lib import args, latex, pages_of, run, workcopy
 
 a, docs = args(__doc__, ("--sty", dict(required=True, help="the didactic.sty to use")))
 home = os.path.expanduser("~")
@@ -33,11 +33,7 @@ for d in docs:
     if os.path.exists(top):
         shutil.rmtree(top)
     os.makedirs(top)
-    subprocess.run(["cp", "-al", os.path.join(a.work, "src", d.name) + "/.", top + "/"], check=True)
-    cwd = os.path.join(top, d.dir)
-    if d.out != ".":
-        shutil.rmtree(os.path.join(cwd, d.out))
-        shutil.copytree(os.path.join(d.src(a.work), d.out), os.path.join(cwd, d.out), symlinks=True)
+    cwd = workcopy(a.work, d, top)
     sty = os.path.join(cwd, "didactic.sty")
     if os.path.exists(sty):
         os.remove(sty)

@@ -65,6 +65,9 @@ times passes in turn with two versions. Run nothing else of yours meanwhile.
 `probe.py` holds the code added to the copy of the package.
 `test_probe.py --sty ../didactic.sty` checks that a page output inside a small font
 gets the same unit of a line as the others, and that the probe moves no line.
+`test_rig.py --sty ../didactic.sty` runs a small document with output "." through
+`prepare.py`, `audit.py` and `build.py`, two settings at a time, and checks that every
+setting gives a result and that no file of the prepared copy changes.
 
 ## What went wrong before, which these checks are for
 
@@ -88,6 +91,11 @@ gets the same unit of a line as the others, and that the probe moves no line.
   `current` differ in words.
 - Builds killed by a timeout whose LaTeX children kept running and wrote into the
   next build of that directory.
+- With output ".", the default, `build.py` left the document's own directory hard-linked
+  to the prepared copy, so LaTeX wrote its `.aux`, `.log` and `.pdf` into the copy and
+  into every other setting's build at once: a truncated PDF, or an `.aux` that never
+  settled. What LaTeX writes is now a real copy in `build.py`, `audit.py` and
+  `timing.py` alike; `test_rig.py` checks it.
 - `prepare.py` ran one LaTeX pass before biber with whatever `didactic.sty` was
   installed, and kept the `.aux` it wrote. Every build starts from that `.aux`, and one
   set of lecture notes settles in two states, with a table on one page or the next, so
