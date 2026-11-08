@@ -542,7 +542,7 @@
 % |\setbeamertemplate{frametitle}[default]| only works after both packages, since
 % before |didactic| it can't be told from not having set a template.
 %
-% \subsection{Adding margin notes of different kinds}
+% \subsection{Adding margin notes of different kinds}\label{MarginNoteKinds}
 %
 % \DescribeMacro{\indentedmarginpar}
 % We want to be able to put quite some content in the margins.
@@ -1536,6 +1536,22 @@
 %   \cs{paragraph} does (\cref{FrameTitles}).
 %   \emph{Reopens:} a reader's report that where a block or a frame begins or ends is
 %   missed.} \\
+% \midrule
+% A margin note beside its mark, \texttt{noteoverflow} & \texttt{break} &
+%   \textsf{marginfix} 1.2, in \TeX\ Live: a note that doesn't fit moves to the next
+%   page. \\*
+% \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} correct or warn: a note stays
+%   beside the line that calls it out, and a footnote in the margin with its mark; the
+%   maintainer (\cref{MarginNoteKinds}).
+%   \emph{Reopens:} if it costs twice what it costs on the eight documents: now no
+%   page, and 2 more pages with three lines or more empty.
+%   \emph{Measured:} against \texttt{carry}, 813 pages either way; pages with three lines
+%   or more empty 114 against 112, with more than five 64 against 63, of 674 text pages.
+%   Only two documents differ, where a margin overflows: \texttt{carry} moves two notes
+%   in each to the next page, and \texttt{break} ends those pages early instead, with
+%   4.3 and 8.9 lines empty, and needs up to six runs to settle, against three.
+%   Under Xe\TeX\ it carries, as \texttt{break} needs \texttt{\textbackslash vadjust pre}
+%   (\cref{app:pb-measure}).} \\
 % \midrule
 % What can't be kept warns & Where it can see it &
 %   Mostly silent. \\*
