@@ -53,7 +53,7 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-marginfloat-cases.pdf test-marginfloat-order.pdf \
 	test-marginfloat-inorder.pdf test-marginfloat-hidden.pdf \
 	${TEST_FLOATORDER:=.pdf} test-marginfloat-include.pdf \
-	test-format.pdf test-oldkernel-title.pdf check
+	test-format.pdf test-oldkernel-title.pdf test-biburl check
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -479,6 +479,40 @@ test-margin-log.pdf test-margin-log-article.pdf: %.pdf: %.tex test-margin-log.te
 test-oldkernel.pdf: test-oldkernel.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	grep -q 'didactic-margin: odd=[0-9.]* even=[0-9.]* width=[0-9.]*' test-oldkernel.log
+
+# biburlpenalty and bibemergencystretch: biblatex's URL break penalties and
+# the bibliography's \emergencystretch, with biblatex loaded before didactic,
+# after it or not at all; one run per case, order:options:penalty set in
+# the preamble:expected penalty:stretch set in the preamble:expected stretch.
+BIBURL_CASES=before:::9000::3em after:::9000::3em \
+	before:biburlpenalty=500::500::3em after:biburlpenalty=0::0::3em \
+	before:biburlpenalty=-5::0::3em \
+	before::100:100::3em after::100:100::3em \
+	before:bibemergencystretch=1em::9000::1em \
+	after:bibemergencystretch=0pt::9000::0pt \
+	before:::9000:2em:2em after:::9000:2em:2em none:::0::
+.PHONY: test-biburl
+test-biburl: test-biburl.tex didactic.sty test-biburl-overfull.pdf
+	for c in ${BIBURL_CASES}; do \
+	  IFS=:; set -- $$c; unset IFS; ${RM} test-biburl.aux; \
+	  ${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode \
+	    "\\def\\testorder{$$1}\\def\\testoptions{$$2}\\def\\testset{$$3}\\def\\testexpect{$$4}\\def\\testsetstretch{$$5}\\def\\testexpectstretch{$$6}\\input{$<}" \
+	    >/dev/null; \
+	  grep 'didactic biburl test:' test-biburl.log || exit 1; \
+	  ! grep -q 'didactic biburl test:.*FAIL' test-biburl.log || exit 1; \
+	done
+
+# what biburlpenalty is for: a bibliography whose URL and DOI have 90 letters
+# and digits without punctuation is set without an Overfull \hbox; both
+# entries must be there, with their URL and DOI.
+test-biburl-overfull.pdf: test-biburl-overfull.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	biber $(basename $@)
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	! grep -A3 'Overfull .hbox' $(basename $@).log
+	test "$$(grep -c 'entry{' $(basename $@).bbl)" -eq 2
+	pdftotext $@ - | grep -q 'DOI:'
+	pdftotext $@ - | grep -q 'URL:'
 
 VERSION=$(shell sed -En "s/^.*v([0-9]+(\.[0-9]+)+) didactic.*$$/\1/p" didactic.dtx)
 .PHONY: release

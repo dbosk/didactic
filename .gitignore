@@ -378,3 +378,8 @@ test-noteoverflow-*.unq
 /measure-flow/cfg.json
 /measure-flow/r/
 /v/
+test-biburl.pdf
+test-biburl.unq
+test-biburl-overfull.pdf
+test-biburl-overfull.unq
+test-biburl-overfull.bib

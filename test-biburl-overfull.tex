@@ -1,0 +1,34 @@
+% Test of what biburlpenalty is for (didactic): a bibliography whose URL
+% and DOI have a long stretch without punctuation, 90 letters and digits,
+% wider than the text, is set without an Overfull \hbox.  Without
+% biburlpenalty (before v2.16, or with biburlpenalty=0), biblatex breaks a
+% URL only after its punctuation, so both lines run into the margin.
+%
+% Build: see the Makefile (pdflatex/xelatex, biber, again), which fails on
+% an Overfull \hbox in the log, or if the bibliography doesn't have both
+% entries.
+\documentclass[a4paper]{memoir}
+\begin{filecontents*}[overwrite]{\jobname.bib}
+@online{longurl,
+  author = {Ada Writer},
+  title = {A Page with a Long Address},
+  year = {2026},
+  url = {https://example.org/pages/abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqr/index.html},
+}
+@article{longdoi,
+  author = {Bo Reader},
+  title = {An Article with a Long DOI},
+  journal = {Journal of Examples},
+  year = {2026},
+  doi = {10.1000/abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqr},
+}
+\end{filecontents*}
+\usepackage[backend=biber]{biblatex}
+\usepackage{didactic}
+% didactic turns biblatex's doi and url off; turn them on again.
+\ExecuteBibliographyOptions{doi=true,url=true}
+\addbibresource{\jobname.bib}
+\begin{document}
+\nocite{longurl,longdoi}
+\printbibliography
+\end{document}
