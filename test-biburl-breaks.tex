@@ -1,0 +1,169 @@
+% Test of where URLs break in citations and the bibliography (didactic,
+% biburlpenalty, #89).  Each case is a page: "CASE <name> <width>" and a
+% narrow box with a full citation, or a narrow bibliography;
+% test-biburl-breaks.py reads the words of the PDF with their places,
+% makes lines of those on one baseline, and checks where the lines break
+% inside each URL.
+%
+% Build: see the Makefile, which runs it in four modes, each time with
+%   \def\testmode{default|on|same|lua}
+% (default: no options; the others biburlpenalty=9000; same: pdflatex, OT1
+% and \urlstyle{same}; lua: lualatex) and then the script, with the mode.
+%
+% The URLs, by what their pieces (what lies between two places where
+% url.sty breaks) do in the box:
+%   fits, w1, w3, w4: all pieces fit.  Never a break after a letter or a
+%     digit.  w1 and w3 have %-escapes, which url.sty breaks after; w4 has
+%     _, which it breaks after too, also when it sets it itself (OT1 and
+%     \urlstyle{same}).
+%   long: a piece of 70 letters, wider than the box.  With biburlpenalty
+%     it breaks after letters in that piece, the last resort; by default
+%     it doesn't, and runs into the margin, as with biblatex alone.
+%   m40: a piece of 40 letters.  In the 3 cm box and in a margin note it
+%     is wider than the line (though not than \textwidth), so it breaks
+%     after letters; in 8 and 9 cm boxes it fits on a line of its own, and
+%     the line before it ends short rather than run over.  (The margin
+%     note isn't set by default: the piece runs off the paper there.)
+%   esc: in a box of width 0, where TeX breaks wherever it may, so the
+%     lines show every place to break: letter breaks, but never inside
+%     https:// or between the two digits of a %-escape.
+%   arch: in a box of width 0 too: an archived URL, with a second
+%     https:// inside, where url.sty doesn't break between the slashes, as
+%     TeX doesn't after a / right after a :, nor after a % right after a /;
+%     with biburlpenalty that stays so.
+%   rel1, rel2: in boxes of width 0 too, URLs with :: and -- (two
+%     relations, between which TeX puts no penalty) and with /: (a binary
+%     character before a relation, which TeX takes for an ordinary one).
+%     The script compares their breaks with those of the default mode,
+%     which are url.sty's own: with biburlpenalty there may be no others
+%     than those and letter breaks, and none of those may be missing but in
+%     the scheme.
+%   para: fits in the middle of a paragraph, at widths where TeX sets every
+%     line full in its first pass: no line but the last ends short.
+%   outer: fits, with a \UrlLeft and \UrlRight of the document's own, [
+%     and ], which must still be there.
+% With biburlpenalty: never a break inside https://, and no Overfull
+% \hbox.  The URLs have no -: a word that ends in one at the end of a line
+% is joined to the next one by pdftotext.  In OT1's roman fonts _ is a
+% rule, not a character, so the script finds it in the URL by the
+% characters around it.
+\documentclass[a4paper]{article}
+\begin{filecontents*}[overwrite]{\jobname.bib}
+@online{fits,
+  keywords = {inbib},
+  author = {Ada Writer},
+  title = {Why Long Addresses Break},
+  year = {2026},
+  url = {https://silly.business/2026/11/whyurlsbreak/index.html},
+}
+@online{long,
+  keywords = {inbib},
+  author = {Bo Reader},
+  title = {A Page with a Long Address},
+  year = {2026},
+  url = {https://example.org/pages/abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqr/index.html},
+}
+@online{w1,
+  keywords = {inbib},
+  author = {Cy Wiki},
+  title = {Encoded},
+  year = {2026},
+  url = {https://de.wikipedia.org/wiki/Universit%C3%A4tsbibliothek_M%C3%BCnchen},
+}
+@online{w3,
+  keywords = {inbib},
+  author = {Di Query},
+  title = {Query},
+  year = {2026},
+  url = {https://example.org/search?q=very%20long%20query%20with%20many%20words%20in%20it},
+}
+@online{w4,
+  author = {Ed Under},
+  title = {Underscores},
+  year = {2026},
+  url = {https://example.org/some_file_name_with_many_underscores_in_it.txt},
+}
+@online{m40,
+  keywords = {inbib},
+  author = {Fo Middle},
+  title = {Forty},
+  year = {2026},
+  url = {https://example.org/abcdefghijklmnopqrstuvwxyzabcdefghijklmn/x.html},
+}
+@online{arch,
+  author = {Ha Archive},
+  title = {Archived},
+  year = {2026},
+  url = {https://ar.org/w/https://e.org/a/%41b},
+}
+@online{rel1,
+  author = {Io Relation},
+  title = {Brackets},
+  year = {2026},
+  url = {http://[2001:db8::1]:8080/a--b/c},
+}
+@online{rel2,
+  author = {Ju Relation},
+  title = {Slash},
+  year = {2026},
+  url = {http://e.org/a/:b},
+}
+@online{esc,
+  author = {Gu Escape},
+  title = {Escapes},
+  year = {2026},
+  url = {https://example.org/p%41q%C3%A4rs/x},
+}
+\end{filecontents*}
+\ifdefined\testmode\else\def\testmode{default}\fi
+\def\testdefault{default}
+\def\testsame{same}
+\usepackage[backend=biber]{biblatex}
+\ifx\testmode\testdefault\else
+  \PassOptionsToPackage{biburlpenalty=9000}{didactic}
+\fi
+\usepackage{didactic}
+\ifx\testmode\testsame\AtBeginDocument{\urlstyle{same}}\fi
+% didactic turns biblatex's url off; turn it on again.
+\ExecuteBibliographyOptions{url=true}
+\addbibresource{\jobname.bib}
+\pagestyle{empty}
+\newcommand\testcase[3]{%
+  \clearpage\noindent CASE #1\par\noindent\parbox[t]{#2}{#3}}
+\newcommand\testcite[2]{\testcase{#1 #2}{#2}{\fullcite{#1}}}
+\begin{document}
+\makeatletter
+\@for\@tempa:={3.0,3.1,3.2,3.3,3.4,3.5,3.6,3.7,3.8,3.9,4.0,4.1,4.2,4.3,4.4,
+    4.5,4.6,4.7,4.8,4.9,5.0,5.1,5.2,5.3,5.4,5.5,5.6,5.7,5.8,5.9,6.0}\do{%
+  \testcite{fits}{\@tempa cm}}
+\@for\@tempa:={3.0,4.5,6.0}\do{\testcite{long}{\@tempa cm}}
+\testcite{w1}{3cm}
+\testcite{w1}{4cm}
+\testcite{w3}{4cm}
+\testcite{w4}{4cm}
+\testcite{w4}{4.5cm}
+\testcite{w4}{4.7cm}
+\testcite{w4}{5.5cm}
+\testcite{m40}{3cm}
+\testcite{m40}{8cm}
+\testcite{m40}{9cm}
+\ifx\testmode\testdefault\else
+  \clearpage\noindent CASE margin m40\marginpar{\fullcite{m40}}\par
+\fi
+\testcase{esc 0pt}{\z@}{\hfuzz\maxdimen\hbadness\@M\fullcite{esc}}
+\testcase{arch 0pt}{\z@}{\hfuzz\maxdimen\hbadness\@M\fullcite{arch}}
+\testcase{rel1 0pt}{\z@}{\hfuzz\maxdimen\hbadness\@M\fullcite{rel1}}
+\testcase{rel2 0pt}{\z@}{\hfuzz\maxdimen\hbadness\@M\fullcite{rel2}}
+\@for\@tempa:={5.6,7.2,8.8}\do{%
+  \clearpage\noindent\parbox[t]{\@tempa cm}{\noindent CASE para \@tempa cm
+    Some words of ordinary text come before the citation, which is
+    \fullcite{fits}, and then more words follow it so that the paragraph has
+    several lines.}}
+\begingroup
+  \def\UrlLeft{[}\def\UrlRight{]}%
+  \testcase{outer 4.5cm}{4.5cm}{\fullcite{fits}}
+\endgroup
+\nocite{fits,long}
+\makeatother
+\testcase{bib 4.5cm}{4.5cm}{\printbibliography[heading=none,keyword=inbib]}
+\end{document}

@@ -36,6 +36,9 @@
 #            -flush, test-keep, -once, -enumitem, -include, test-check.py on -once and
 #            -enumitem, and the sweep in variants m, s, k, m3, c, k3 and a, against their
 #            references (5 to 9 minutes; 7)
+#   biburl   test-biburl, which builds test-biburl-overfull and test-biburl-breaks (in
+#            five modes, under xelatex, pdflatex and lualatex) (1 to 2 minutes; 1.5);
+#            with the Makefile's engines, as the target chooses them
 # All with pdflatex, for speed, where make all uses xelatex, but title with xelatex: its
 # check reads a letter inside a picture, whose box depends on the engine.
 #
@@ -1489,3 +1492,136 @@ rv8_check didactic.dtx
 -             {\the\numexpr\ReadonlyShipoutCounter+\@ne}%
 +           \relax
 +           \relax
+
+# ===== biburlpenalty (#89) =====
+# Run as a group on 2026-11-09 with test-mutants.py --jobs 3 (round 3 of #89); the
+# outcomes below are from it.
+
+# scheme protection off: the scheme is just characters of the URL
+#: biburl
+#= killed test-biburl
+u_scheme didactic.dtx
+-     \if@tempswa
+-       \@didactic@url@plain#1\@didactic@url@mark
++     \iffalse
++       \@didactic@url@plain#1\@didactic@url@mark
+
+# biburlpenalty on by default
+#: biburl
+#= killed test-biburl
+u_default didactic.dtx
+- \@didactic@biburlpenalty=\z@
++ \@didactic@biburlpenalty=9000
+
+# no last resort: no letter breaks in a piece wider than the line
+#: biburl
+#= killed test-biburl
+u_nolast didactic.dtx
+-     \ifdim\wd\@tempboxa>\@didactic@url@width\relax
++     \ifdim\wd\@tempboxa>\maxdimen
+
+# letter breaks in every piece.  Survives since the ragged break: where a piece fits, a
+# ragged break before it (penalty 1000) costs less than a letter break (9000), so TeX
+# takes no letter break there even when one is offered; that only pieces wider than the
+# line get them is a second guard, which no output shows.
+#: biburl
+#= survived
+u_everywhere didactic.dtx
+-     \ifdim\wd\@tempboxa>\@didactic@url@width\relax
++     \ifdim\wd\@tempboxa>\z@
+
+# LuaTeX's form of the math code taken as TeX's
+#: biburl
+#= killed test-biburl
+u_luaclass didactic.dtx
+-     \else\ifnum\count@>"8000
++     \else\ifnum\count@>\maxdimen
+
+# v2.16's way back: biblatex's counters set to the option
+#: biburl
+#= killed test-biburl
+u_counters didactic.dtx
+-     \appto\biburlsetup{\@didactic@urlsetup}%
++     \setcounter{biburlnumpenalty}{\@didactic@biburlpenalty}\setcounter{biburlucpenalty}{\@didactic@biburlpenalty}\setcounter{biburllcpenalty}{\@didactic@biburlpenalty}%
+
+# the line's width taken as \textwidth (review of round 1)
+#: biburl
+#= killed test-biburl
+u_textwidth didactic.dtx
+-   \dimen@\linewidth
+-   \ifdim\hsize<\dimen@ \dimen@\hsize \fi
++   \dimen@\textwidth
++   \relax
+
+# the document's own \UrlLeft not called (review of round 1)
+#: biburl
+#= killed test-biburl
+u_noouter didactic.dtx
+-   \@didactic@url@outerleft
+-   \let\@didactic@url@out\@empty
++   \relax
++   \let\@didactic@url@out\@empty
+
+# class 2 (\UrlBreaks) not a place to break (review of round 1)
+#: biburl
+#= killed test-biburl
+u_bigonly didactic.dtx
+-   \else\ifnum\count@=\tw@
+-     \@tempswatrue
+-   \else\ifnum\count@=\thr@@
++   \else\ifnum\count@=\tw@
++     \relax
++   \else\ifnum\count@=\thr@@
+
+# the letter breaks' penalty 0 rather than the option's (review of round 1)
+#: biburl
+#= killed test-biburl
+u_pen0 didactic.dtx
+-       \eappto\@didactic@url@out{\penalty\the\@didactic@biburlpenalty\relax}%
++       \eappto\@didactic@url@out{\penalty\z@\relax}%
+
+# url.sty's own characters (the percent sign, OT1's _) not tried
+#: biburl
+#= killed test-biburl
+u_noprobe didactic.dtx
+-   \ifnum\count@<\z@
+-     \@didactic@url@probe{#1}%
++   \ifnum\count@<\z@
++     \relax
+
+# a letter break between the two digits of an escape
+#: biburl
+#= killed test-biburl
+u_escape didactic.dtx
+-        \else \def\@didactic@url@esc{1}\@tempswafalse \fi}%
++        \else \def\@didactic@url@esc{1}\@tempswatrue \fi}%
+
+# no ragged break
+#: biburl
+#= killed test-biburl
+u_noragged didactic.dtx
+-   \penalty\@didactic@url@raggedpenalty\relax
++   \penalty\@M
+
+# the ragged break's penalty 0: lines end short in the para rows
+#: biburl
+#= killed test-biburl
+u_ragged0 didactic.dtx
+- \def\@didactic@url@raggedpenalty{1000}
++ \def\@didactic@url@raggedpenalty{0}
+
+# no look at the next character: breaks inside :: and --, and after a / before a :
+#: biburl
+#= killed test-biburl
+u_nolook didactic.dtx
+-       \@didactic@url@class{#2}%
+-       \edef\@didactic@url@next{\the\count@}%
++       \def\@didactic@url@next{0}%
++       \relax
+
+# url.sty's own characters all taken for binary ones, also LaTeX's active -, a relation
+#: biburl
+#= killed test-biburl
+u_probeopen didactic.dtx
+-         \ifnum\@didactic@url@open>\@ne
++         \ifnum\z@>\@ne
