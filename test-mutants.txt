@@ -1494,8 +1494,8 @@ rv8_check didactic.dtx
 +           \relax
 
 # ===== biburlpenalty (#89) =====
-# Run as a group on 2026-11-09 with test-mutants.py --jobs 3: 7 minutes, the group's first
-# run 77 s; the outcomes below are from it.
+# Run as a group on 2026-11-09 with test-mutants.py --jobs 3 (round 3 of #89); the
+# outcomes below are from it.
 
 # scheme protection off: the scheme is just characters of the URL
 #: biburl
@@ -1567,9 +1567,11 @@ u_noouter didactic.dtx
 #= killed test-biburl
 u_bigonly didactic.dtx
 -   \else\ifnum\count@=\tw@
--     \@tempswatrue \def\@didactic@url@pen{\binoppenalty}%
+-     \@tempswatrue
+-   \else\ifnum\count@=\thr@@
 +   \else\ifnum\count@=\tw@
-+     \def\@didactic@url@pen{\binoppenalty}%
++     \relax
++   \else\ifnum\count@=\thr@@
 
 # the letter breaks' penalty 0 rather than the option's (review of round 1)
 #: biburl
@@ -1601,23 +1603,25 @@ u_noragged didactic.dtx
 -   \penalty\@didactic@url@raggedpenalty\relax
 +   \penalty\@M
 
-# the ragged break's penalty 0.  Survives: the tests look at where URLs break and at
-# Overfull lines, not at whether a line ends short; the measurement of the penalty in
-# the documentation (\@didactic@url@break) does.
+# the ragged break's penalty 0: lines end short in the para rows
 #: biburl
-#= survived
+#= killed test-biburl
 u_ragged0 didactic.dtx
 - \def\@didactic@url@raggedpenalty{1000}
 + \def\@didactic@url@raggedpenalty{0}
 
-# no explicit penalty before the ragged break's stretch.  Survives: it matters only where
-# TeX puts no penalty after a character that ends a piece, such as a binary one right
-# before a relation (a / before a :), where the glue then becomes a break of penalty 0
-# rather than url.sty's; no URL in the tests has that.
+# no look at the next character: breaks inside :: and --, and after a / before a :
 #: biburl
-#= survived
-u_nofirst didactic.dtx
--   \penalty#1\relax
--   \hskip\z@\@plus\@didactic@url@width
-+   \relax
-+   \hskip\z@\@plus\@didactic@url@width
+#= killed test-biburl
+u_nolook didactic.dtx
+-       \@didactic@url@class{#2}%
+-       \edef\@didactic@url@next{\the\count@}%
++       \def\@didactic@url@next{0}%
++       \relax
+
+# url.sty's own characters all taken for binary ones, also LaTeX's active -, a relation
+#: biburl
+#= killed test-biburl
+u_probeopen didactic.dtx
+-         \ifnum\@didactic@url@open>\@ne
++         \ifnum\z@>\@ne
