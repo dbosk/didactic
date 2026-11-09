@@ -450,13 +450,13 @@ test-noteoverflow.pdf test-noteoverflow-lua.pdf test-noteoverflow-draftbreak.pdf
 	@${settle_many}
 	! grep '^!' $*.log
 	test "$$(grep -c 'marginfix-spill' $*.log)" -eq 0
-	test "$$(grep -c 'mfx@yield' $*.aux)" -gt 0
+	test "$$(grep -c '^\\mfx@yield{' $*.aux)" -gt 0
 test-noteoverflow-carry.pdf test-noteoverflow-draft.pdf: %.pdf: %.tex ${NOTEOVERFLOW_SRC}
 	@${settle_many}
 	! grep '^!' $*.log
 	test "${call count_spill,intended}" -gt 0
 	test "${call count_spill,unresolved}" -eq 0
-	test "$$(grep -c 'mfx@yield' $*.aux)" -eq 0
+	test "$$(grep -c '^\\mfx@yield{' $*.aux)" -eq 0
 test-noteoverflow-xe.pdf: %.pdf: %.tex ${NOTEOVERFLOW_SRC}
 	@${settle_many}
 	! grep '^!' $*.log
