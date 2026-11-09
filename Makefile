@@ -504,19 +504,31 @@ test-biburl: test-biburl.tex didactic.sty test-biburl-overfull.pdf \
 	  ! grep -q 'didactic biburl test:.*FAIL' test-biburl.log || exit 1; \
 	done
 
-# where URLs break, read from the PDF: see test-biburl-breaks.py.  Once by
-# default and once with biburlpenalty=9000.
+# where URLs break, read from the PDF: see test-biburl-breaks.py.  By default
+# and with biburlpenalty=9000 (on), and with it under pdflatex with OT1 and
+# \urlstyle{same} (same) and under lualatex (lua); then test-biburl-memoir,
+# a memoir document under pdflatex.
 .PHONY: test-biburl-breaks
-test-biburl-breaks: test-biburl-breaks.tex test-biburl-breaks.py didactic.sty
-	for m in default: on:biburlpenalty=9000; do \
+test-biburl-breaks: test-biburl-breaks.tex test-biburl-memoir.tex \
+		test-biburl-breaks.py didactic.sty
+	rc=0; for m in default on same lua; do \
+	  case $$m in same) e=pdflatex;; lua) e=lualatex;; *) e="${PDFLATEX}";; esac; \
 	  ${RM} test-biburl-breaks.aux test-biburl-breaks.bbl; \
 	  for p in 1 2; do \
-	    ${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode \
-	      "\\def\\testoptions{$${m#*:}}\\input{$<}" >/dev/null; \
+	    $$e ${LATEXFLAGS} -interaction=nonstopmode \
+	      "\\def\\testmode{$$m}\\input{$<}" >/dev/null; \
 	    test $$p = 2 || biber test-biburl-breaks >/dev/null || exit 1; \
 	  done; \
-	  python3 test-biburl-breaks.py $${m%%:*} || exit 1; \
-	done
+	  python3 test-biburl-breaks.py $$m || rc=1; \
+	done; \
+	${RM} test-biburl-memoir.aux test-biburl-memoir.bbl; \
+	for p in 1 2 3; do \
+	  pdflatex ${LATEXFLAGS} -interaction=nonstopmode test-biburl-memoir \
+	    >/dev/null; \
+	  test $$p != 1 || biber test-biburl-memoir >/dev/null || exit 1; \
+	done; \
+	python3 test-biburl-breaks.py memoir || rc=1; \
+	exit $$rc
 
 # what biburlpenalty is for: a bibliography whose URL and DOI have 90 letters
 # and digits without punctuation is set without an Overfull \hbox; both

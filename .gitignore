@@ -386,3 +386,6 @@ test-biburl-overfull.bib
 test-biburl-breaks.pdf
 test-biburl-breaks.unq
 test-biburl-breaks.bib
+test-biburl-memoir.pdf
+test-biburl-memoir.unq
+test-biburl-memoir.bib

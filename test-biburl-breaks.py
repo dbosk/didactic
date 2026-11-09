@@ -1,23 +1,36 @@
 #!/usr/bin/env python3
 """Check where the URLs of test-biburl-breaks.pdf break (didactic, #89).
 
-    python3 test-biburl-breaks.py default|on
+    python3 test-biburl-breaks.py default|on|same|lua
+    python3 test-biburl-breaks.py memoir
 
-reads test-biburl-breaks.pdf (with pdftotext) and test-biburl-breaks.log.
-Each page is a case: "CASE <name>", then a citation or a bibliography.  The
-script takes the page's lines, drops the spaces in them (url.sty's stretchable
-space shows as spaces in pdftotext), joins them and finds each URL in the
-result; a line that ends inside a URL is a break, and the character before it
+reads test-biburl-breaks.pdf, or test-biburl-memoir.pdf for memoir, with
+pdftotext -bbox, and its .log.  Each page is a case, "CASE <name> <width>" and then a citation or a
+bibliography (see test-biburl-breaks.tex).  The words of a page are made into
+lines by their baselines, left to right, so a margin note's line and the text's
+line beside it don't get in each other's way; the spaces are dropped (url.sty's
+stretchable space shows as spaces), the lines joined, and each URL found in the
+result: a line that ends inside a URL is a break, and the character before it
 says what kind.
 
-By default (the option off) no URL breaks after a letter or a digit, as with
-biblatex alone, not even the long one, which runs into the margin.  With
-biburlpenalty (on) a URL whose pieces fit in the line (fits) doesn't either,
-no URL breaks inside its scheme and ://, the long one breaks after a letter
-in its 70-letter piece (there is no other way to avoid running into the
-margin), and the log has no Overfull \\hbox.  Every case must be found, with each URL it should have; it prints a
-line per case, PASS or FAIL, and exits 1 on any FAIL.
+default (biburlpenalty off): no URL breaks after a letter or a digit, as with
+biblatex alone.  on, same, lua (biburlpenalty=9000), and memoir (the review's
+case of a memoir document, with biburlpenalty):
+- a URL whose pieces fit doesn't break after a letter or a digit;
+- one with a piece wider than the line does (the last resort), but not right
+  before a character url.sty breaks after, such as the / that ends the piece:
+  biburlpenalty is high, so the line ends one character later, at the / (but
+  in the box of width 0, which breaks everywhere);
+- none breaks inside https://, or between the two digits of a %-escape;
+- in the boxes of width 0, which break wherever they may, there are letter
+  breaks (else they would show nothing), and no break where url.sty has none:
+  between the slashes of a :// inside the URL, or after a % right after a /;
+- the document's own \\UrlLeft and \\UrlRight are still there;
+- the log has no Overfull \\hbox.
+Every case must be found, with each URL it should have; a line per case, PASS
+or FAIL, and the exit status is 1 on any FAIL.
 """
+import html
 import re
 import subprocess
 import sys
@@ -26,67 +39,127 @@ URLS = {
     "fits": "https://silly.business/2026/11/whyurlsbreak/index.html",
     "long": "https://example.org/pages/abcdefghijklmnopqrstuvwxyz"
             "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqr/index.html",
+    "w1": "https://de.wikipedia.org/wiki/Universit%C3%A4tsbibliothek_M%C3%BCnchen",
+    "w3": "https://example.org/search?q=very%20long%20query%20with%20many"
+          "%20words%20in%20it",
+    "w4": "https://example.org/some_file_name_with_many_underscores_in_it.txt",
+    "m40": "https://example.org/abcdefghijklmnopqrstuvwxyzabcdefghijklmn/x.html",
+    "esc": "https://example.org/p%41q%C3%A4rs/x",
+    "arch": "https://ar.org/w/https://e.org/a/%41b",
 }
 SCHEME = len("https://")
+# characters that url.sty (with biblatex) breaks after, in these URLs
+BREAKS = set("/.:?=&_%-")
+# the URLs of a case, and whether a piece of each is wider than the line
+WIDE = {("long", w) for w in ("3.0cm", "4.5cm", "6.0cm")} | {
+    ("m40", "3cm"), ("m40", "m40"), ("esc", "0pt"), ("arch", "0pt")}
+BIB = {"fits": False, "long": True, "w1": False, "w3": False, "m40": True}
 
 
-def breaks(lines, url):
+def pages(pdf):
+    """Per page, its lines: the words on one baseline, left to right."""
+    out = subprocess.run(["pdftotext", "-bbox", pdf, "-"], capture_output=True,
+                         text=True, check=True).stdout
+    for page in re.findall(r"<page[^>]*>(.*?)</page>", out, re.S):
+        words = [(float(y), float(x), html.unescape(w)) for x, y, w in re.findall(
+            r'<word xMin="([\d.]+)" yMin="[\d.]+" xMax="[\d.]+" yMax="([\d.]+)">'
+            r"(.*?)</word>", page)]
+        words.sort()
+        lines, last = [], None
+        for y, x, w in words:
+            if last is None or y - last > 2:
+                lines.append([])
+            lines[-1].append((x, w))
+            last = y
+        yield [[w for x, w in sorted(line)] for line in lines]
+
+
+def breaks(lines, url, drop=""):
     """The positions in url after which a line ends, or None if url is
-    not in the lines."""
+    not in the lines.  The characters in drop aren't in the text (OT1's
+    roman _ is a rule): url is looked for without them, and a line end
+    next to one is taken to come after it."""
+    shown = [i for i, c in enumerate(url) if c not in drop]
     text = "".join(lines)
-    start = text.find(url)
+    start = text.find("".join(url[i] for i in shown))
     if start < 0:
         return None
     result, pos = [], 0
     for line in lines:
         pos += len(line)
-        if start < pos < start + len(url):
-            result.append(pos - start)
+        if start < pos < start + len(shown):
+            result.append(shown[pos - start])
     return result
 
 
-def check_url(name, url, cuts, mode):
+def check_url(url, cuts, wide, mode):
     """The failures of one URL broken at cuts."""
     fails = []
     letters = [c for c in cuts if url[c - 1].isalnum()]
-    if (name == "fits" or mode == "default") and letters:
+    if (mode == "default" or not wide) and letters:
         fails.append("breaks after a letter or digit")
-    if mode == "on":
+    if mode != "default":
         if any(0 < c < SCHEME for c in cuts):
             fails.append("breaks inside https://")
-        if name == "long" and not letters:
-            fails.append("doesn't break in its long piece")
+        if any(c >= 2 and url[c - 2] == "%" for c in cuts):
+            fails.append("breaks inside a %-escape")
+        if wide and not letters:
+            fails.append("doesn't break in its wide piece")
+        inner = url.find("://", SCHEME)
+        if inner > 0 and inner + 2 in cuts:
+            fails.append("breaks between the slashes of an inner ://")
+        if any(url[c - 2:c] == "/%" for c in cuts):
+            fails.append("breaks after a % right after a /")
+        if url not in (URLS["esc"], URLS["arch"]) and any(url[c] in BREAKS for c in letters
+                                      if c < len(url)):
+            fails.append("breaks after a letter right before a place to break")
     return fails
 
 
 def main():
     mode = sys.argv[1]
-    text = subprocess.run(["pdftotext", "test-biburl-breaks.pdf", "-"],
-                          capture_output=True, text=True, check=True).stdout
+    pdf = "test-biburl-memoir.pdf" if mode == "memoir" else "test-biburl-breaks.pdf"
     expected = {f"fits {w / 10:.1f}cm" for w in range(30, 61)}
-    expected.add("bib 4.5cm")
     expected |= {f"long {w}cm" for w in ("3.0", "4.5", "6.0")}
+    expected |= {"w1 3cm", "w1 4cm", "w3 4cm", "w4 4cm", "w4 4.5cm",
+                 "w4 4.7cm", "w4 5.5cm", "m40 3cm",
+                 "m40 8cm", "m40 9cm", "esc 0pt", "arch 0pt", "outer 4.5cm",
+                 "bib 4.5cm"}
+    if mode != "default":
+        expected.add("margin m40")
+    if mode == "memoir":
+        expected = {"text m40", "list m40", "margin m40", "mbib m40"}
     seen, failed = set(), False
-    for page in text.split("\f"):
-        found = re.search(r"CASE\s+(\S+)\s+(\S+)", page)
-        if not found:
+    for lines in pages(pdf):
+        words = [w for line in lines for w in line]
+        if words[:1] != ["CASE"] or len(words) < 3:
             continue
-        case = f"{found.group(1)} {found.group(2)}"
+        name, width = words[1], words[2]
+        case = f"{name} {width}"
         seen.add(case)
-        lines = [re.sub(r"\s", "", line)
-                 for line in page[found.end():].split("\n")]
+        lines[0] = lines[0][3:]
+        lines = ["".join(re.sub(r"\s", "", w) for w in line) for line in lines]
         lines = [line for line in lines if line]
-        names = ["fits", "long"] if case.startswith("bib") else [found.group(1)]
+        if name in ("text", "list", "mbib"):
+            todo = [("m40", False)]
+        elif name == "bib":
+            todo = list(BIB.items())
+        elif name in ("outer", "margin"):
+            todo = [("fits" if name == "outer" else "m40", name == "margin")]
+        else:
+            todo = [(name, (name, width) in WIDE)]
         fails, shown = [], []
-        for name in names:
-            cuts = breaks(lines, URLS[name])
+        for key, wide in todo:
+            url = URLS[key]
+            cuts = breaks(lines, url, "_" if mode == "same" else "")
             if cuts is None:
-                fails.append(f"{name}: URL not found")
+                fails.append(f"{key}: URL not found")
                 continue
-            shown.append(" | ".join(URLS[name][a:b] for a, b in
-                                    zip([0] + cuts, cuts + [len(URLS[name])])))
-            fails += [f"{name}: {f}" for f in
-                      check_url(name, URLS[name], cuts, mode)]
+            shown.append(" | ".join(url[a:b] for a, b in
+                                    zip([0] + cuts, cuts + [len(url)])))
+            fails += [f"{key}: {f}" for f in check_url(url, cuts, wide, mode)]
+            if name == "outer" and f"[{url}]" not in "".join(lines):
+                fails.append("the document's \\UrlLeft or \\UrlRight is gone")
         print(f"didactic biburl breaks: {mode} {case}:",
               "FAIL (" + "; ".join(fails) + ")" if fails else "PASS",
               "; ".join(shown))
@@ -94,8 +167,8 @@ def main():
     for case in sorted(expected - seen):
         print(f"didactic biburl breaks: {mode} {case}: FAIL (case missing)")
         failed = True
-    if mode == "on":
-        log = open("test-biburl-breaks.log", errors="replace").read()
+    if mode != "default":
+        log = open(pdf[:-4] + ".log", errors="replace").read()
         overfull = log.count("Overfull \\hbox")
         print(f"didactic biburl breaks: {mode} Overfull \\hbox:",
               "PASS" if overfull == 0 else f"FAIL ({overfull})")

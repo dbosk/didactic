@@ -1,0 +1,42 @@
+% Test of where a URL breaks in a memoir document (didactic,
+% biburlpenalty, #89), the case of the review of round 1: memoir, one-sided,
+% 10pt, so Palatino from didactic, under pdflatex, with a URL whose piece of
+% 40 letters fits in the text but not after what comes before it on a line.
+% Each case is a page, "CASE <name> m40": in the text, in a list, in a
+% margin citation and in the bibliography.  test-biburl-breaks.py memoir
+% checks that the URL never breaks after a letter or a digit but in the
+% margin (where the piece is wider than the line), never inside https://,
+% and that the log has no Overfull \hbox: the line before the piece ends
+% short instead.
+%
+% Build: see the Makefile (pdflatex, biber, pdflatex twice).
+\documentclass[a4paper,10pt,oneside]{memoir}
+\begin{filecontents*}[overwrite]{\jobname.bib}
+@online{m40,
+  author = {Fo Middle},
+  title = {Forty},
+  year = {2026},
+  url = {https://example.org/abcdefghijklmnopqrstuvwxyzabcdefghijklmn/x.html},
+}
+\end{filecontents*}
+\usepackage[backend=biber,style=verbose]{biblatex}
+\usepackage[biburlpenalty]{didactic}
+% didactic turns biblatex's url off; turn it on again.
+\ExecuteBibliographyOptions{url=true}
+\addbibresource{\jobname.bib}
+\pagestyle{empty}
+\begin{document}
+\noindent CASE text m40\par
+In the text: \fullcite{m40}.
+\clearpage
+\noindent CASE list m40\par
+\begin{itemize}
+\item In a list: \fullcite{m40}.
+\end{itemize}
+\clearpage
+\noindent CASE margin m40\par
+A margin citation\autocite{m40}.
+\clearpage
+\noindent CASE mbib m40\par
+\printbibliography[heading=none]
+\end{document}
