@@ -476,11 +476,14 @@
 % With it, a URL breaks after a letter or a digit too, but only where it 
 % would run into the margin otherwise: in a piece between two places to break 
 % that is wider than the line.
-% Elsewhere it breaks at a space, after |://|, a |/|, a |.|, a percent sign 
-% and the like, and where the line can't be set full there, it ends short: 
-% the URL's next piece starts the next line, and the line before it is set 
-% ragged, as in the case of a piece of 40 letters at the end of a line of 
-% text.
+% Elsewhere it breaks where \textsf{url} does, at a space, after |://|, a 
+% |/|, a |.|, a percent sign and the like, and where the line can't be set 
+% full there, it ends short: the URL's next piece starts the next line, and 
+% the line before it is set ragged, as in the case of a piece of 40 letters 
+% at the end of a line of text.
+% A line that \TeX\ can set full in its first pass (within 
+% |\pretolerance|) stays full; one that would need its second pass may end 
+% short instead, rather than stretch the spaces of the URL.
 % It never breaks inside the scheme and its |://|, such as |https://|, or 
 % inside an escape such as \texttt{\%C3}.
 % This holds for the URLs, DOIs and other links of \textsf{biblatex}'s 
@@ -509,6 +512,8 @@
 % A |\emergencystretch| of your own in the preamble wins, as does one in 
 % your own |\AtBeginBibliography|, and |bibemergencystretch=0pt|, or less,
 % leaves the bibliography as it is.
+% With |biburlpenalty|, it rarely acts on a line with a URL: that line ends 
+% short in one of \TeX's earlier passes instead, see above.
 %
 % \subsection{Beamer blocks and semantic environments for papers}
 %
@@ -2962,16 +2967,15 @@
 % line and the line can't be set full before it, the line ends short and the 
 % piece starts the next one, as \textsf{url}'s breaks alone can't do.
 % That line is ragged, the price of having neither a letter break nor an 
-% overfull line; \TeX\ takes it only where a full line would be bad enough 
-% for \LaTeX\ to warn about it, see |\@didactic@url@break|.
+% overfull line; \TeX\ takes it where it can't set the line full in its 
+% first pass, see |\@didactic@url@break|.
 % The scheme, such as |https|, and its |://| are set as plain characters,
 % so the URL never breaks inside them; it can break after |://|.
 % A character that \textsf{url} breaks after isn't a place to break where 
-% \TeX\ takes it for an ordinary one, such as a |/| right after a |:| or 
-% another |/|, and we follow \TeX's rule for that; we don't look ahead, 
-% though, so a binary character right before a relation, such as a |/| 
-% before a |:|, ends a piece and becomes a place to break, where \TeX\ 
-% alone has none.
+% \TeX\ puts no penalty after it, such as a |/| right after a |:| or 
+% before one, or the first of |::|; we follow \TeX's rules for that, so 
+% the places to break are \textsf{url}'s own, but for the scheme and the 
+% letter breaks.
 %
 % \begin{macro}{\@didactic@urlsetup}
 % \textsf{url} gives us one place where the whole URL passes through before
@@ -3030,7 +3034,7 @@
 %    \begin{macrocode}
 \def\@didactic@url@scheme#1://#2\@nil{%
   \if\relax\detokenize{#2}\relax
-    \@didactic@url@pieces#1%
+    \@didactic@url@pieces#1\@didactic@url@mark
   \else
     \@tempswafalse
     \if\relax\detokenize{#1}\relax\else
@@ -3039,14 +3043,14 @@
     \if@tempswa
       \@didactic@url@plain#1\@didactic@url@mark
       \appto\@didactic@url@out{%
-        \mathchar`\:\mathchar`\//\@didactic@url@break\binoppenalty}%
+        \mathchar`\:\mathchar`\//\@didactic@url@break}%
       \@didactic@url@rest#2%
     \else
       \@didactic@url@rest#1://#2%
     \fi
   \fi}
 \def\@didactic@url@rest#1\@didactic@url@mark://{%
-  \@didactic@url@pieces#1\@didactic@url@mark}
+  \@didactic@url@pieces#1\@didactic@url@mark\@didactic@url@mark}
 \def\@didactic@url@isscheme#1#2\@didactic@url@mark{%
   \@didactic@url@ifalnum{#1}{\ifnum`#1>64 \@tempswatrue\fi}{}%
   \if@tempswa\@didactic@url@schemechars#2\@didactic@url@mark\fi}
@@ -3073,7 +3077,7 @@
 % doesn't come between their two digits; a piece may start inside one, as 
 % \textsf{url} breaks after the percent sign.
 %    \begin{macrocode}
-\def\@didactic@url@pieces#1{%
+\def\@didactic@url@pieces#1#2{%
   \ifx#1\@didactic@url@mark
     \@didactic@url@flush{}%
   \else
@@ -3082,9 +3086,14 @@
     \fi
     \appto\@didactic@url@piece{#1}%
     \@didactic@url@escstep{#1}%
-    \@didactic@url@ifbreak{#1}%
-      {\expandafter\@didactic@url@flush\expandafter{\@didactic@url@pen}}{}%
-    \expandafter\@didactic@url@pieces
+    \ifx#2\@didactic@url@mark
+      \def\@didactic@url@next{9}%
+    \else
+      \@didactic@url@class{#2}%
+      \edef\@didactic@url@next{\the\count@}%
+    \fi
+    \@didactic@url@ifbreak{#1}{\@didactic@url@flush\@ne}{}%
+    \expandafter\@didactic@url@pieces\expandafter#2%
   \fi}
 %    \end{macrocode}
 % \end{macro}
@@ -3103,19 +3112,25 @@
 % For those we try: in a paragraph of width 0, \TeX\ breaks wherever it 
 % may, so if the character between two letters makes two lines, the line 
 % can break there.
-% |\@didactic@url@pen| is then the penalty to break there.
 % But \TeX\ takes a binary character for an ordinary one after another 
 % binary one, a relation, an opening, a punctuation or an operator, or at 
-% the start, and puts no penalty after it then: after the slashes of |//| 
-% but the last, or a percent sign right after a |/|.
-% So we keep the class of the character before in |\@didactic@url@prev|, 
-% and such a character is no place to break.
+% the start, and also before a relation, a closing or a punctuation, or at 
+% the end, and puts no penalty after it then: after the slashes of |//| but 
+% the last, a percent sign right after a |/|, or a |/| before a |:|.
+% It puts none between two relations either, as in |::| or |--|, nor after 
+% one at the end.
+% So we keep the class of the character before in |\@didactic@url@prev| 
+% and look at the one after (|\@didactic@url@next|, 9 at the end), and 
+% such a character is no place to break: the places to break are 
+% \textsf{url}'s own.
+% |\@didactic@url@class| gives a character's class, and for one of 
+% \textsf{url}'s own whether it breaks.
 % Lua\TeX\ gives the math code in its own form, with the class times 
 % |"200000| and the family times |"1000000|, and an active one as 
 % |"1000000|; there the class is the remainder of a division by 
 % |"1000000| divided by |"200000|.
 %    \begin{macrocode}
-\def\@didactic@url@ifbreak#1{%
+\def\@didactic@url@class#1{%
   \ifcat\noexpand#1\relax
     \count@\m@ne
   \else
@@ -3134,15 +3149,26 @@
   \ifnum\count@<\z@
     \@didactic@url@probe{#1}%
   \else\ifnum\count@=\tw@
-    \@tempswatrue \def\@didactic@url@pen{\binoppenalty}%
+    \@tempswatrue
   \else\ifnum\count@=\thr@@
-    \@tempswatrue \def\@didactic@url@pen{\relpenalty}%
-  \fi\fi\fi
+    \@tempswatrue
+  \fi\fi\fi}
+\def\@didactic@url@ifbreak#1{%
+  \@didactic@url@class{#1}%
   \ifnum\count@=\tw@
     \ifcase\@didactic@url@prev\relax
     \or \@tempswafalse \count@\z@ \or \@tempswafalse \count@\z@
     \or \@tempswafalse \count@\z@ \or \@tempswafalse \count@\z@
     \or \or \@tempswafalse \count@\z@ \fi
+  \fi
+  \ifnum\count@=\tw@
+    \ifcase\@didactic@url@next\relax
+    \or\or\or \@tempswafalse \count@\z@ \or\or \@tempswafalse \count@\z@
+    \or \@tempswafalse \count@\z@ \or\or\or \@tempswafalse \count@\z@ \fi
+  \fi
+  \ifnum\count@=\thr@@
+    \ifnum\@didactic@url@next=\thr@@ \@tempswafalse \fi
+    \ifnum\@didactic@url@next=9 \@tempswafalse \fi
   \fi
   \edef\@didactic@url@prev{\the\count@}%
   \if@tempswa\expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
@@ -3151,9 +3177,13 @@
 %
 % \begin{macro}{\@didactic@url@probe}
 % We try a character once per URL.
-% The penalty to break after it is the one it ends with, such as the 
-% 1\,000 after |_|, or else, as for the percent sign, |\binoppenalty|; 
-% such a character is binary (|\count@| is 2), the others are ordinary.
+% If it ends with a penalty of its own, such as the 1\,000 after |_|, it 
+% breaks wherever it is, and we take it for an ordinary character.
+% Otherwise it is binary, as the percent sign, or a relation, as |-|, which 
+% \LaTeX\ makes active to keep it from ligatures: a second try after an 
+% empty opening, where \TeX\ takes a binary character for an ordinary one 
+% but not a relation, tells which (|\count@| is 2 or 3), and the rules 
+% above apply.
 %    \begin{macrocode}
 \def\@didactic@url@probe#1{%
   \expandafter\ifx\csname @didactic@url@brk@\number`#1\endcsname\relax
@@ -3164,12 +3194,18 @@
       \hbadness\@M \hfuzz\maxdimen
       \noindent$\m@th\fam\z@\mathchar`\x#1%
         \xdef\@didactic@url@lastpen{\the\lastpenalty}\mathchar`\x$\par
-      \xdef\@didactic@url@lines{\the\prevgraf}}%
+      \xdef\@didactic@url@lines{\the\prevgraf}%
+      \noindent$\m@th\fam\z@\mathopen{}#1\mathchar`\x$\par
+      \xdef\@didactic@url@open{\the\prevgraf}}%
     \def\@didactic@url@cls{0}%
     \ifnum\@didactic@url@lines>\@ne
       \ifnum\@didactic@url@lastpen=\z@
         \edef\@didactic@url@lastpen{\the\binoppenalty}%
-        \def\@didactic@url@cls{2}%
+        \ifnum\@didactic@url@open>\@ne
+          \def\@didactic@url@cls{3}%
+        \else
+          \def\@didactic@url@cls{2}%
+        \fi
       \fi
     \else
       \let\@didactic@url@lastpen\@empty
@@ -3190,8 +3226,8 @@
 % We measure a piece as \textsf{url} will set it, in a formula in the same 
 % font, and pass it on as it is if it fits in the line, and otherwise with a 
 % penalty after each of its letters and digits.
-% The argument is the penalty of the place to break that ends the piece, 
-% and empty for the last one.
+% The argument is empty for the last piece, which ends with no place to 
+% break.
 %    \begin{macrocode}
 \def\@didactic@url@flush#1{%
   \ifx\@didactic@url@piece\@empty\else
@@ -3206,7 +3242,7 @@
       \eappto\@didactic@url@out{\expandonce\@didactic@url@piece}%
     \fi
     \if\relax\detokenize{#1}\relax\else
-      \appto\@didactic@url@out{\@didactic@url@break{#1}}%
+      \appto\@didactic@url@out{\@didactic@url@break}%
     \fi
     \let\@didactic@url@piece\@empty
   \fi}
@@ -3250,23 +3286,35 @@
 %
 % \begin{macro}{\@didactic@url@break}
 % At the end of a piece, the line can break as \textsf{url} has it, the 
-% line set full as the rest of the paragraph: that is the penalty in the 
-% argument, which takes the place of the one \TeX\ would put there.
+% line set full as the rest of the paragraph, at the penalty \TeX\ puts 
+% after the character.
 % And it can break with stretch at the end of the line, so that the line 
 % ends short and the next piece starts the next line: the glue before 
-% the second penalty, which a break there keeps, while a break elsewhere 
+% our penalty, which a break there keeps, while a break elsewhere 
 % leaves it with the glue after, which takes it back.
+% The glue itself is never a place to break: inside a formula, \TeX\ 
+% breaks only at penalties.
 % The stretch is the width of the line, more than a line can lack, as a 
 % piece that fits is narrower than the line: such a line has a badness of 
 % at most 100, within \TeX's tolerance in every pass.
 % The penalty of that break, |\@didactic@url@raggedpenalty|, is 1\,000.
-% \TeX\ takes it over a full line where it costs less: a line with 
-% badness $b$ and a break with penalty $p$ cost $(10+b)^2+p^2$ in demerits, 
-% so a ragged line (badness at most 100, penalty 1\,000) wins over a full 
-% one (\textsf{url}'s penalty of 200) only where that full line has a badness 
-% above about 1\,000, where \LaTeX\ warns about an Underfull |\hbox| 
-% (|\hbadness|).
-% A well set full line wins.
+% Within one of \TeX's passes, it takes the break where it costs less: a 
+% line with badness $b$ and a break with penalty $p$ cost $(10+b)^2+p^2$ in 
+% demerits, so a ragged line (badness at most 100, penalty 1\,000) wins 
+% over a full one (\textsf{url}'s penalty of 200) only where that full line 
+% has a badness above about 1\,000.
+% But a ragged line is good enough for \TeX's first pass (|\pretolerance|, 
+% 100 in \LaTeX), and \TeX\ doesn't try its second pass (|\tolerance|) once 
+% the first has found a way.
+% So a line that \TeX\ can set full within |\pretolerance| stays full, 
+% while one that would need the second pass, with a badness of 101 to 200, 
+% may end short instead, rather than stretch the URL's own spacing, as in 
+% |https:/ / silly .|; the review of round 2 found that in 16 of 108 
+% paragraphs on its grid.
+% The user accepted that (2026-11-09).
+% And with the option, |bibemergencystretch| rarely acts on a line with a 
+% URL: such a line, which the emergency pass used to set loose, is now set 
+% short in the first or the second pass.
 % We measured it on the citations of |test-biburl-breaks|, against the 
 % code before the ragged break (commit e62ce93): of 27 rows with a ragged 
 % line, 23 had a line with an Underfull warning there, three a line beyond 
@@ -3276,13 +3324,9 @@
 % The price is a ragged line, which can be short: in a box of 8\,cm, 
 % |https://example.| ends one line, |org/| makes the next, and the piece of 
 % 40 letters the third, as the line before could be set full.
-% Since the explicit penalty comes first, the glue is never a place to break 
-% on its own, also where \TeX\ would put no penalty after the character, 
-% as before a relation.
 %    \begin{macrocode}
 \def\@didactic@url@raggedpenalty{1000}
-\def\@didactic@url@break#1{%
-  \penalty#1\relax
+\def\@didactic@url@break{%
   \hskip\z@\@plus\@didactic@url@width
   \penalty\@didactic@url@raggedpenalty\relax
   \hskip\z@\@plus-\@didactic@url@width}
