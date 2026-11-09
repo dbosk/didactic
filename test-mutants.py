@@ -48,7 +48,10 @@ GROUPS = {
               ["test-keep-noweb", "test-keep-noweb-break"], []),
     "parted": (["test-keep-parted"], ["test-keep-parted"], []),
     "rules": (RULES, ["test-keep-once", "test-keep-enumitem"], ["m", "s", "k", "m3", "c", "k3", "a"]),
+    "biburl": (["test-biburl"], [], []),
 }
+# targets that are no PDF of their own; they choose their engines themselves
+PHONY = {"test-biburl"}
 # All with pdflatex, for speed, but the frame titles with the Makefile's xelatex:
 # test-frametitle-boxes reads a letter inside a picture, whose box in pdftotext's output
 # depends on the engine.
@@ -145,8 +148,9 @@ def tests(group, d, timeout):
     if status != 0:
         return ["ERROR: didactic.ins"]
     for t in docs:
-        engine = "" if group == "title" else "PDFLATEX=pdflatex"
-        status, out = sh(f'make -o didactic.sty {t}.pdf "{FLAGS}" {engine}', d, timeout)
+        engine = "" if group == "title" or t in PHONY else "PDFLATEX=pdflatex"
+        target = t if t in PHONY else f"{t}.pdf"
+        status, out = sh(f'make -o didactic.sty {target} "{FLAGS}" {engine}', d, timeout)
         if BROKEN.search(out):
             return ["ERROR: disk"]
         if status != 0:
