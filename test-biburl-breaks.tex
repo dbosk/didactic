@@ -31,6 +31,15 @@
 %     https:// inside, where url.sty doesn't break between the slashes, as
 %     TeX doesn't after a / right after a :, nor after a % right after a /;
 %     with biburlpenalty that stays so.
+%   rel1, rel2: in boxes of width 0 too, URLs with :: and -- (two
+%     relations, between which TeX puts no penalty) and with /: (a binary
+%     character before a relation, which TeX takes for an ordinary one).
+%     The script compares their breaks with those of the default mode,
+%     which are url.sty's own: with biburlpenalty there may be no others
+%     than those and letter breaks, and none of those may be missing but in
+%     the scheme.
+%   para: fits in the middle of a paragraph, at widths where TeX sets every
+%     line full in its first pass: no line but the last ends short.
 %   outer: fits, with a \UrlLeft and \UrlRight of the document's own, [
 %     and ], which must still be there.
 % With biburlpenalty: never a break inside https://, and no Overfull
@@ -87,6 +96,18 @@
   year = {2026},
   url = {https://ar.org/w/https://e.org/a/%41b},
 }
+@online{rel1,
+  author = {Io Relation},
+  title = {Brackets},
+  year = {2026},
+  url = {http://[2001:db8::1]:8080/a--b/c},
+}
+@online{rel2,
+  author = {Ju Relation},
+  title = {Slash},
+  year = {2026},
+  url = {http://e.org/a/:b},
+}
 @online{esc,
   author = {Gu Escape},
   title = {Escapes},
@@ -131,6 +152,13 @@
 \fi
 \testcase{esc 0pt}{\z@}{\hfuzz\maxdimen\hbadness\@M\fullcite{esc}}
 \testcase{arch 0pt}{\z@}{\hfuzz\maxdimen\hbadness\@M\fullcite{arch}}
+\testcase{rel1 0pt}{\z@}{\hfuzz\maxdimen\hbadness\@M\fullcite{rel1}}
+\testcase{rel2 0pt}{\z@}{\hfuzz\maxdimen\hbadness\@M\fullcite{rel2}}
+\@for\@tempa:={5.6,7.2,8.8}\do{%
+  \clearpage\noindent\parbox[t]{\@tempa cm}{\noindent CASE para \@tempa cm
+    Some words of ordinary text come before the citation, which is
+    \fullcite{fits}, and then more words follow it so that the paragraph has
+    several lines.}}
 \begingroup
   \def\UrlLeft{[}\def\UrlRight{]}%
   \testcase{outer 4.5cm}{4.5cm}{\fullcite{fits}}

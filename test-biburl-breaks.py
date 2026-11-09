@@ -31,6 +31,7 @@ Every case must be found, with each URL it should have; a line per case, PASS
 or FAIL, and the exit status is 1 on any FAIL.
 """
 import html
+import json
 import re
 import subprocess
 import sys
@@ -46,32 +47,38 @@ URLS = {
     "m40": "https://example.org/abcdefghijklmnopqrstuvwxyzabcdefghijklmn/x.html",
     "esc": "https://example.org/p%41q%C3%A4rs/x",
     "arch": "https://ar.org/w/https://e.org/a/%41b",
+    "rel1": "http://[2001:db8::1]:8080/a--b/c",
+    "rel2": "http://e.org/a/:b",
 }
-SCHEME = len("https://")
+ZERO = ("esc", "arch", "rel1", "rel2")
+CUTS = "test-biburl-breaks.cuts"
+PARA = ("5.6", "7.2", "8.8")
 # characters that url.sty (with biblatex) breaks after, in these URLs
 BREAKS = set("/.:?=&_%-")
 # the URLs of a case, and whether a piece of each is wider than the line
 WIDE = {("long", w) for w in ("3.0cm", "4.5cm", "6.0cm")} | {
-    ("m40", "3cm"), ("m40", "m40"), ("esc", "0pt"), ("arch", "0pt")}
+    ("m40", "3cm"), ("m40", "m40")} | {(k, "0pt") for k in ZERO}
 BIB = {"fits": False, "long": True, "w1": False, "w3": False, "m40": True}
 
 
 def pages(pdf):
-    """Per page, its lines: the words on one baseline, left to right."""
+    """Per page, its lines: the words on one baseline, left to right, each
+    as (xMin, xMax, word)."""
     out = subprocess.run(["pdftotext", "-bbox", pdf, "-"], capture_output=True,
                          text=True, check=True).stdout
     for page in re.findall(r"<page[^>]*>(.*?)</page>", out, re.S):
-        words = [(float(y), float(x), html.unescape(w)) for x, y, w in re.findall(
-            r'<word xMin="([\d.]+)" yMin="[\d.]+" xMax="[\d.]+" yMax="([\d.]+)">'
-            r"(.*?)</word>", page)]
+        words = [(float(y), float(x0), float(x1), html.unescape(w))
+                 for x0, x1, y, w in re.findall(
+                     r'<word xMin="([\d.]+)" yMin="[\d.]+" xMax="([\d.]+)" '
+                     r'yMax="([\d.]+)">(.*?)</word>', page)]
         words.sort()
         lines, last = [], None
-        for y, x, w in words:
+        for y, x0, x1, w in words:
             if last is None or y - last > 2:
                 lines.append([])
-            lines[-1].append((x, w))
+            lines[-1].append((x0, x1, w))
             last = y
-        yield [[w for x, w in sorted(line)] for line in lines]
+        yield [sorted(line) for line in lines]
 
 
 def breaks(lines, url, drop=""):
@@ -92,9 +99,16 @@ def breaks(lines, url, drop=""):
     return result
 
 
+def scheme(url):
+    """The length of the URL's scheme and ://, or 0."""
+    end = url.find("://")
+    return end + 3 if 0 < end < 10 else 0
+
+
 def check_url(url, cuts, wide, mode):
     """The failures of one URL broken at cuts."""
     fails = []
+    SCHEME = scheme(url)
     letters = [c for c in cuts if url[c - 1].isalnum()]
     if (mode == "default" or not wide) and letters:
         fails.append("breaks after a letter or digit")
@@ -110,7 +124,7 @@ def check_url(url, cuts, wide, mode):
             fails.append("breaks between the slashes of an inner ://")
         if any(url[c - 2:c] == "/%" for c in cuts):
             fails.append("breaks after a % right after a /")
-        if url not in (URLS["esc"], URLS["arch"]) and any(url[c] in BREAKS for c in letters
+        if url not in [URLS[k] for k in ZERO] and any(url[c] in BREAKS for c in letters
                                       if c < len(url)):
             fails.append("breaks after a letter right before a place to break")
     return fails
@@ -129,18 +143,31 @@ def main():
         expected.add("margin m40")
     if mode == "memoir":
         expected = {"text m40", "list m40", "margin m40", "mbib m40"}
-    seen, failed = set(), False
-    for lines in pages(pdf):
-        words = [w for line in lines for w in line]
+    if mode != "memoir":
+        expected |= {f"{k} 0pt" for k in ZERO} | {f"para {w}cm" for w in PARA}
+    seen, failed, zero = set(), False, {}
+    for boxes in pages(pdf):
+        words = [w for line in boxes for _, _, w in line]
         if words[:1] != ["CASE"] or len(words) < 3:
             continue
         name, width = words[1], words[2]
         case = f"{name} {width}"
         seen.add(case)
-        lines[0] = lines[0][3:]
-        lines = ["".join(re.sub(r"\s", "", w) for w in line) for line in lines]
-        lines = [line for line in lines if line]
-        if name in ("text", "list", "mbib"):
+        left = boxes[0][0][0]
+        boxes[0] = boxes[0][3:]
+        boxes = [line for line in boxes if line]
+        lines = ["".join(re.sub(r"\s", "", w) for _, _, w in line)
+                 for line in boxes]
+        fails, shown = [], []
+        if name == "para":
+            right = left + float(width[:-2]) / 2.54 * 72
+            short = [lines[i] for i, line in enumerate(boxes[:-1])
+                     if right - line[-1][1] > 8]
+            if short:
+                fails.append("lines end short: " + ", ".join(short))
+        if name == "para":
+            todo = [("fits", False)]
+        elif name in ("text", "list", "mbib"):
             todo = [("m40", False)]
         elif name == "bib":
             todo = list(BIB.items())
@@ -148,7 +175,6 @@ def main():
             todo = [("fits" if name == "outer" else "m40", name == "margin")]
         else:
             todo = [(name, (name, width) in WIDE)]
-        fails, shown = [], []
         for key, wide in todo:
             url = URLS[key]
             cuts = breaks(lines, url, "_" if mode == "same" else "")
@@ -158,12 +184,41 @@ def main():
             shown.append(" | ".join(url[a:b] for a, b in
                                     zip([0] + cuts, cuts + [len(url)])))
             fails += [f"{key}: {f}" for f in check_url(url, cuts, wide, mode)]
+            if width == "0pt":
+                zero[key] = cuts
             if name == "outer" and f"[{url}]" not in "".join(lines):
                 fails.append("the document's \\UrlLeft or \\UrlRight is gone")
         print(f"didactic biburl breaks: {mode} {case}:",
               "FAIL (" + "; ".join(fails) + ")" if fails else "PASS",
               "; ".join(shown))
         failed |= bool(fails)
+    if mode == "default":
+        with open(CUTS, "w") as f:
+            json.dump(zero, f)
+    elif mode != "memoir":
+        try:
+            with open(CUTS) as f:
+                own = json.load(f)
+        except OSError:
+            own = {}
+        for key in ZERO:
+            url, fails = URLS[key], []
+            if key not in own or key not in zero:
+                fails.append("no breaks of the default mode to compare with")
+            else:
+                extra = [c for c in zero[key]
+                         if not url[c - 1].isalnum() and c not in own[key]]
+                lost = [c for c in own[key] if c not in zero[key]
+                        and not 0 < c < scheme(url)]
+                if extra:
+                    fails.append("breaks where url.sty doesn't: " + ", ".join(
+                        url[:c] + " |" for c in extra))
+                if lost:
+                    fails.append("doesn't break where url.sty does: " + ", ".join(
+                        url[:c] + " |" for c in lost))
+            print(f"didactic biburl breaks: {mode} {key} as url.sty:",
+                  "FAIL (" + "; ".join(fails) + ")" if fails else "PASS")
+            failed |= bool(fails)
     for case in sorted(expected - seen):
         print(f"didactic biburl breaks: {mode} {case}: FAIL (case missing)")
         failed = True
