@@ -29,6 +29,10 @@
 # option noteyieldmaxgap is now notemaxgap.
 job=test-noteplace
 status=0
+# $MARGINFIX: a directory with the marginfix.sty to test against, put first on
+# TEXINPUTS (say TeX Live's, $(kpsewhich -var-value TEXMFDIST)/tex/latex/marginfix,
+# or a build of another branch); unset, the one found.
+[ -n "$MARGINFIX" ] && export TEXINPUTS="$(cd "$MARGINFIX" && pwd)//:$TEXINPUTS"
 ENGINE=${ENGINE:-pdflatex}
 MAXRUNS=${MAXRUNS:-8}
 TEXTIMEOUT=${TEXTIMEOUT:-120}
@@ -119,6 +123,44 @@ check clubzero clubforbid 4 'notemaxgap=0' "$W,noclub,limitwarn"
 L4='\def\testpre{\raggedbottom}\def\testtall{.985}\def\testbody{FIRSTLINE\newline SECOND\newline THIRD\yieldnote{}\newline FOURTH \filler}'
 check lastlimit x 4 'notemaxgap=1' "$W,limitwarn,gap=1" "$L4"
 check lastroom x 4 'notemaxgap=2' "kept,lonewarn,gap=2" "$L4"
+# Notes already decided whose lines an early end takes back: A is set beside
+# LINEA, B (a footnote too tall for the margin left) at the foot, and then NOTEY,
+# on the page's last line, fits neither in the margin nor (not a footnote) at
+# the foot.  The paragraph can't break, so the page ends before LINEA, taking
+# the three lines back: A, B's copy for the foot and NOTEY go with them to the
+# next page, each beside or under its line there, or with a warning.
+DEC='\def\testtall{.1}\def\testbody{{\interlinepenalty=10000 \clubpenalty=10000 \widowpenalty=10000 \noindent FIRSTLINE LINEA\label{c-a}\marginpar{\label{n-a}A}\newline LINEB\label{c-b}\footnote{\label{n-b}B \filler}\newline LINEC\yieldnote[\par\rule{1pt}{2\baselineskip}]\par}}'
+check decided x 3 '' "kept,pairs,lonewarn" "$DEC"
+# A note that fits, called out on a line that TeX's own page break then takes
+# to the next page: the paragraph can't break, and when its last line doesn't
+# fit, all of it goes, after the note was called out.  The note goes with its
+# line; marginfix 1.2 alone sets it on the page before, beside nothing.
+MOVED='\def\testtall{.1}\def\testbody{{\interlinepenalty=10000 \noindent FIRSTLINE\newline SECOND\newline THIRD\yieldnote{}\newline FOURTH\par}}'
+# Page 1 has another callout (TALL, at its top) in linemoves; in linemovesalone
+# it has none, so that a mark from the special output for NOTEY, in the page
+# so far, is the last mark the page build could take for page 1's own.
+check linemoves x 3 '' kept "$MOVED"
+ALONE='\def\testfirst{\noindent x text\par\noindent\rule{1cm}{\dimexpr\textheight-\testroom\baselineskip-1\baselineskip}\par}'
+check linemovesalone x 3 '' kept "$ALONE${MOVED#\\def\\testtall{.1\}}"
+# Two callouts in the paragraph that moves: the special output for the second
+# reads a page so far that holds the mark of the first.
+TWO='\def\testbody{{\interlinepenalty=10000 \noindent FIRSTLINE\newline SECOND\yieldnote{}\newline THIRD\marginpar{\label{n-b}OTHER}\label{c-b}\newline FOURTH\par}}'
+check linemovestwo x 3 '' kept,pairs "$ALONE$TWO"
+# The same in two columns, where a column, not a page, is made at a time (the
+# paragraph goes to the second column of page 1; the row caught lineno, which
+# replaces \@makecol in two columns, so that a reading there lost every note);
+# and with a page of floats between the page of the callouts and the page their
+# lines go to, where no column is made at all.
+check linemovestwocol x 3 '' kept,pairs "\\def\\testclass{article}\\def\\testclassopt{a4paper,twocolumn}$ALONE$TWO"
+FP='\def\testpre{\renewcommand\floatpagefraction{.1}}'
+FIG='\begin{figure}[p]\rule{1cm}{.8\textheight}\caption{FLOATPAGE}\end{figure}'
+check linemovesfloat x 3 '' kept,pairs "$FP$ALONE${TWO/testbody\{/testbody\{$FIG}"
+# A column whose marks can't be read by splitting it: glue that shrinks
+# without limit, put there in the output routine (document text can't),
+# before didactic reads.  The reading falls back to \botmarks, with a warning
+# naming the page.
+SHRINKOUT='\def\testshrinkout{}'
+check readfallback x 3 '' "warned,callwarn" "$SHRINKOUT\\def\\testtall{.1}\\def\\testbody{FIRSTLINE\\yieldnote{} \\filler}"
 # Nothing in the way: the note stays with its line.
 check runin runin 4 '' kept,lonewarn
 check theorem theorem 4 '' kept,lonewarn

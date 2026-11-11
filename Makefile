@@ -477,6 +477,12 @@ test-noteoverflow-old.pdf: test-noteoverflow-old.tex didactic.sty
 
 # what didactic reads of marginfix and the kernel is there, with the shape it
 # expects, or didactic says which isn't and carries the notes (see the script).
+# MARGINFIX=<directory> runs this and the note rows (test-noteplace,
+# test-notefoot, test-noteoverflow-foot, test-footreuse-spread) against the
+# marginfix.sty there, put first on TEXINPUTS; unset, the one found.  TeX
+# Live's: MARGINFIX=$(kpsewhich -var-value TEXMFDIST)/tex/latex/marginfix;
+# another branch: the directory where its make marginfix.sty left it.
+export MARGINFIX
 test-marginfix-interface: test-marginfix-interface.tex \
 		test-marginfix-interface.sh didactic.sty
 	./test-marginfix-interface.sh

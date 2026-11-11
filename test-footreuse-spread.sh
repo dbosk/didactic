@@ -11,6 +11,9 @@
 # $PRE (TeX code put first, to load another implementation, say) can be set.
 src=test-footreuse-spread
 status=0
+# $MARGINFIX: a directory with the marginfix.sty to test against, put first on
+# TEXINPUTS; unset, the one found.
+[ -n "$MARGINFIX" ] && export TEXINPUTS="$(cd "$MARGINFIX" && pwd)//:$TEXINPUTS"
 ENGINE=${ENGINE:-pdflatex}
 MAXRUNS=${MAXRUNS:-8}
 settle() { # <job> <definitions>; sets $settled and $i, the runs

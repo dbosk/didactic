@@ -51,6 +51,9 @@
 # may change a run after the note it reuses moves.
 src=test-noteoverflow-foot
 status=0
+# $MARGINFIX: a directory with the marginfix.sty to test against, put first on
+# TEXINPUTS; unset, the one found.
+[ -n "$MARGINFIX" ] && export TEXINPUTS="$(cd "$MARGINFIX" && pwd)//:$TEXINPUTS"
 settle() { # <job> <engine> <definitions>
   rm -f "$1.aux" "$1.bbl"
   for i in 1 2 3 4 5 6 7 8 9 10 11 12; do

@@ -24,6 +24,9 @@ test-noteplace.tex writes to the log.  EXPECT is one of:
   limitwarn   if NOTEY is off its callout's page, a warning names the limit
               (notemaxgap).
   continued   the rest of a split note is marked as continued.
+  callwarn    a warning says that the callouts of a page can't be read.
+  pairs       every other note with labels c-X at its callout and n-X in it is
+              on its callout's page, or a warning names a note off its page.
   gap=N       page 1 leaves at most N lines empty under its last line of text
               (the limit on empty space, notemaxgap, honoured).
 Prints one line, "PASS" or "FAIL" with what failed, and the facts.
@@ -144,6 +147,18 @@ for e in expect:
         empty = (geo["top"] + geo["height"] - max(ys)) / line - 0.5 if ys else 99
         if empty > int(e[4:]) + 0.5:
             fails.append("page 1 leaves %.1f lines empty, more than %s" % (empty, e[4:]))
+    elif e == "pairs":
+        others = re.findall(r"\\newlabel\{c-([^}]*)\}\{\{[^}]*\}\{([^}]*)\}", aux)
+        if not others:
+            fails.append("no labels c-X")
+        for x, pc in others:
+            pn = label("n-" + x)
+            if pn is None:
+                fails.append("note %s not set" % x)
+            elif pn != pc and not warned:
+                fails.append("note %s on page %s, its callout on %s, without a warning" % (x, pn, pc))
+    elif e == "callwarn" and not re.search(r"Can't read the callouts of page \d+", joined):
+        fails.append("no warning that the callouts of a page can't be read")
     elif e == "continued" and not re.search(r"continued|forts", " ".join(w[0] for ws in pages for w in ws)):
         fails.append("no continued note")
 facts["club"], facts["widow"], facts["warned"], facts["logged"] = club(), widow(), warned, logged

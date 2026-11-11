@@ -16,9 +16,23 @@
 % \testfloor: the same document with noteoverflow=carry, for the runs LaTeX needs
 % without moving any note (the floor of the runs to settle).
 \ifdefined\testfloor\PassOptionsToPackage{noteoverflow=carry}{didactic}\fi
+\usepackage{amsmath,amssymb}% before didactic, which may load unicode-math
 \usepackage{didactic}
 \usepackage[noamsthm,notheorems]{beamerarticle}
 \ifdefined\testpre\testpre\fi
+% \testshrinkout: glue that shrinks without limit in each column while
+% didactic reads the column's marks, taken out again after (document text can't
+% put it there: TeX stops with an error)
+\ifdefined\testshrinkout
+  \makeatletter
+  \AddToHook{begindocument/end}{%
+    \let\testreadlast\@didactic@readlast
+    \def\@didactic@readlast{%
+      \setbox\@outputbox\vbox{\unvbox\@outputbox\vskip\z@ minus 1fil}%
+      \testreadlast
+      \setbox\@outputbox\vbox{\unvbox\@outputbox\unskip}}}
+  \makeatother
+\fi
 \newcommand\yieldnote[1][]{\label{callout-y}\marginpar{\label{note-y}NOTEY#1}}
 % Where the text column is, for test-noteplace.py (in bp, as pdftotext gives):
 % from the left edge of odd and of even pages, and its width.

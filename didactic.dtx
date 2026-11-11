@@ -4481,12 +4481,12 @@
 %   and margin notes: we patch the place where it puts the page so far back 
 %   and hands the note to |\@addmarginpar|, to decide there; and the place 
 %   where it adds a float, for the room the margin notes take.
-% \item[\texttt{\textbackslash @makecol}] where the page is built: we read 
-%   which callouts are on the page before the margin is set.
 % \item[\texttt{\textbackslash @xympar}] where the kernel makes a margin note: 
 %   we mark its callout.
 % \item[\texttt{\textbackslash MFX@combinefloats@before}] where 
-%   \textsf{marginfix} builds the margin of a page.
+%   \textsf{marginfix} builds the margin of a column, with the column in 
+%   |\@outputbox|, a macro without parameters: we wrap it, to read which 
+%   callouts are in the column and hold back the notes of the others.
 % \item[\texttt{\textbackslash mfx@marginlist}] its list of waiting notes, 
 %   each |\mfx@build@note|\meta{box}\meta{box}|{|\meta{position}|}|,
 %   with |\mfx@build@skip{|\meta{dimen}|}| and |\mfx@build@clear| between
@@ -4499,6 +4499,11 @@
 % \item[\texttt{\textbackslash mfx@placeid}] (optional) the number of the next 
 %   note \textsf{marginfix} places, which must advance when we take a note 
 %   away from it; \textsf{marginfix} 1.2 doesn't number its notes.
+% \item[\texttt{\textbackslash Mfx@inject@insert}] (optional) what 
+%   \textsf{marginfix} puts in the margin to block it, which is not a note.
+% \item[\texttt{\textbackslash MFX@copyclass}] (optional) where 
+%   \textsf{marginfix} makes the rest of a note it splits, |#1| from |#2|: the 
+%   rest gets the number of its note.
 % \item[\texttt{\textbackslash MFX@check@page@}] (optional) 
 %   \textsf{marginfix}'s warning for a note set on another page than its 
 %   callout, to which we add why; without it we warn ourselves.
@@ -4508,12 +4513,14 @@
 % oldest kernel \textsf{didactic} asks for, and with the kernel's 
 % |\@specialoutput| changed, and fails if the outcome isn't the one above.
 %
-% \begin{macro}{\@didactic@needmacro,\@didactic@needpatch,\@didactic@wish}
+% \begin{macro}{\@didactic@needmacro,\@didactic@needshape,\@didactic@needpatch,
+%   \@didactic@wish}
 % A required name that is missing, or a patch that doesn't apply, is added 
 % to |\@didactic@missing|; an optional one to |\@didactic@lacking|.
 % A patch is checked with \textsf{etoolbox}'s |\ifpatchable|, which tests the 
 % very text we replace, so that a kernel that has moved it is caught here and 
-% not by a page set wrong.
+% not by a page set wrong; a macro we wrap, by the start of its |\meaning|, 
+% which shows its parameters.
 %    \begin{macrocode}
 \let\@didactic@missing\@empty
 \let\@didactic@lacking\@empty
@@ -4521,6 +4528,13 @@
   \ifdefined#1\else\@didactic@miss\@didactic@missing#1\fi}
 \newcommand\@didactic@needpatch[2]{%
   \ifpatchable{#1}{#2}{}{\@didactic@miss\@didactic@missing#1}}
+\newcommand\@didactic@needshape[2]{%
+  \ifdefined#1%
+    \edef\@didactic@tmp{\meaning#1}%
+    \edef\@didactic@tmpb{\detokenize{#2}}%
+    \IfBeginWith{\@didactic@tmp}{\@didactic@tmpb}{}%
+      {\@didactic@miss\@didactic@missing#1}%
+  \else\@didactic@miss\@didactic@missing#1\fi}
 \newcommand\@didactic@wish[1]{%
   \ifdefined#1\else\@didactic@miss\@didactic@lacking#1\fi}
 \newcommand\@didactic@miss[2]{%
@@ -4542,16 +4556,18 @@
   \@didactic@needpatch\@specialoutput
     {\unvbox\@holdpg\@next\@currbox\@currlist}%
   \@didactic@needpatch\@specialoutput{\@reinserts\@addtocurcol}%
-  \@didactic@needmacro\@makecol
   \@didactic@needmacro\@xympar
-  \@didactic@needmacro\MFX@combinefloats@before
+  \@didactic@needshape\MFX@combinefloats@before{macro:->}%
   \@didactic@needmacro\mfx@marginlist
   \@didactic@needmacro\MFX@minus@inf
   \@didactic@wish\MFX@marginside
   \@didactic@wish\mfx@placeid
   \@didactic@wish\MFX@check@page@
+  \@didactic@wish\Mfx@inject@insert
+  \@didactic@wish\MFX@copyclass
   \ifx\@didactic@missing\@empty
     \global\@didactic@noteplacetrue
+    \@didactic@numbernotes
     \typeout{didactic-interface: ok%
       \ifx\@didactic@lacking\@empty\else
         \space(without\@didactic@lacking)\fi}%
@@ -4586,6 +4602,220 @@
     \def\marginnoteoverflow##1{%
       \def\@didactic@noteoverflow{##1}%
       \@didactic@checkoverflow\@didactic@noteoverflow}}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{Which notes' lines are on a page}
+%
+% A note is handed to \textsf{marginfix} when its callout's line is added to 
+% the page, but the page may still end above that line: \TeX\ chooses the 
+% break when the page is full, and the best break may come before the 
+% callout, as when a paragraph that can't break goes to the next page as a 
+% whole; and \textsf{didactic} ends a page early for a note that doesn't fit, 
+% below.
+% Then the note must go with its line.
+% \textsf{marginfix} 1.2 sets it on the page it was handed over on, beside 
+% nothing; later versions hold it back by marks of their own.
+% We don't rely on those: each note gets a number of ours, and a mark with it 
+% follows its callout's line, so that when a page is built the last of our 
+% marks on it says which notes' lines are there.
+% Every note numbered higher waits for the next page.
+% That works the same with every \textsf{marginfix}, \TeX~Live's included.
+%
+% \begin{macro}{\@didactic@tagnote}
+% The kernel's |\@xympar| makes a margin note; by then |\count\@marbox| is 
+% $-1$, the kernel's sign for a margin note.
+% We keep it negative and store our number in it, as $-1-n$, so that $-1$ 
+% still means a note we haven't numbered.
+% The material \textsf{marginfix} injects to block the margin 
+% (|\Mfx@inject@insert|, from 1.5 on) is not a note and gets no number.
+%    \begin{macrocode}
+\newcount\@didactic@noteid
+\newcommand\@didactic@tagnote{%
+  \ifnum\@floatpenalty<\z@
+    \@didactic@ifinjected\@marbox{}{%
+      \global\advance\@didactic@noteid\@ne
+      \global\count\@marbox\numexpr-1-\@didactic@noteid\relax}%
+  \fi}
+\newcommand\@didactic@ifinjected[1]{%
+  \ifdefined\Mfx@inject@insert
+    \ifx#1\Mfx@inject@insert
+      \expandafter\expandafter\expandafter\@firstoftwo
+    \else
+      \expandafter\expandafter\expandafter\@secondoftwo
+    \fi
+  \else
+    \expandafter\@secondoftwo
+  \fi}
+\newcommand\@didactic@noteof[1]{\numexpr-1-\count#1\relax}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@callout}
+% In the special output for a note, where the kernel puts the page so far 
+% back, we put our mark after it, so that it travels with the callout's line 
+% wherever the page breaks.
+% Penalties at the end of the page so far are legal breaks, after the line: 
+% we take them off and put them back after the mark, which must stay with 
+% the line.
+% This is the first of the two patches of |\@specialoutput| checked above; the 
+% decision for a note that doesn't fit goes here too, below.
+%    \begin{macrocode}
+\newmarks\@didactic@notemarks
+\newcommand\@didactic@callout{%
+  \unvbox\@holdpg
+  \expandafter\@didactic@peek\@currlist\@elt\relax\@nil
+  \ifnum\@didactic@noteof\@didactic@head>\z@
+    \@didactic@attach{%
+      \marks\@didactic@notemarks{\the\@didactic@noteof\@didactic@head}}%
+  \fi}
+\def\@didactic@peek\@elt#1#2\@nil{\def\@didactic@head{#1}}
+\newcommand\@didactic@attach[1]{%
+  \let\@didactic@pens\@empty
+  \@didactic@unpenalty
+  #1\@didactic@pens}
+\newcommand\@didactic@unpenalty{%
+  \ifnum\lastnodetype=13
+    \edef\@didactic@pens{\penalty\the\lastpenalty\relax\@didactic@pens}%
+    \unpenalty
+    \expandafter\@didactic@unpenalty
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@readlast}
+% When a column is made, the last of our marks in it is the highest number of 
+% a note whose line is there; if it has none of our marks, no note's line is 
+% there, and the number stays what the last column made said.
+% We read it where \textsf{marginfix} builds the margin of the column, in 
+% |\MFX@combinefloats@before|, from the column in |\@outputbox|: not at the 
+% start of |\@makecol|, which \textsf{lineno} (loaded by a package 
+% \textsf{didactic} uses) replaces in two columns by a copy it took before 
+% ours (the row |linemovestwocol|).
+% We can't take \TeX's |\botmarks| for it.
+% \TeX\ sets the marks at every output, the special outputs for notes and 
+% floats too, and a column without marks gets the last value as its own: the 
+% mark of a note whose paragraph then went to the next page whole would count 
+% as on this one.
+% Not from the special output for that note: we put the mark into the page 
+% there, after \TeX\ has set the marks for it.
+% But a later special output on the same page, for another note or a float, 
+% reads a page so far that holds the mark, and sets |\botmarks| to it; if the 
+% paragraph then goes on, the column made has none of our marks and inherits 
+% that one.
+% The row |linemovestwo| of |test-noteplace| pins it (two callouts in a 
+% paragraph that moves whole, from a page with no callout of its own); 
+% |linemovesalone|, with one callout, shows why one isn't enough to see it.
+% So we read the column itself: we split a copy of it, all of it, and take 
+% |\splitbotmarks|, which is empty when the part split off has no mark.
+% A column is split only where it may break; |\vsplit| to |\maxdimen| keeps 
+% going until the copy is empty.
+% That is right on a page with no callout (nothing read, the number stays), 
+% one whose only callout's line went on (likewise), one after several special 
+% outputs (they don't change the number, only columns made do), a page of 
+% floats (no column is made, the number stays; the row |linemovesfloat|) and 
+% the first page (it starts at zero).
+%
+% Splitting fails on glue that shrinks without limit, which \TeX\ doesn't let 
+% into a page but code in the output routine could put there; we test for it 
+% first, as \textsf{marginfix} does: a box with such glue, set to no height, 
+% is not overfull.
+% Then we fall back to |\botmarks|, with a warning that a note called out 
+% near the foot of the page may be set there, a page before its line.
+%    \begin{macrocode}
+\newcount\@didactic@pagelast
+\newcommand\@didactic@readlast{%
+  \begingroup
+    \vbadness\@M \vfuzz\maxdimen
+    \splittopskip\z@skip \splitmaxdepth\maxdimen
+    \setbox\z@\vbox{\unvcopy\@outputbox}%
+    \setbox\tw@\vbox to\z@{\unvcopy\z@}%
+    \ifnum\badness<1000000
+      \edef\@didactic@tmp{\botmarks\@didactic@notemarks}%
+      \ifx\@didactic@tmp\@empty\else
+        \global\@didactic@pagelast\@didactic@tmp\relax
+      \fi
+      \PackageWarningNoLine{didactic}{Can't read the callouts of page
+        \thepage:\MessageBreak a margin note called out near its foot may
+        be set there,\MessageBreak a page before its line}%
+    \else
+      \let\@didactic@last\@empty
+      \@didactic@splitall
+      \ifx\@didactic@last\@empty\else
+        \global\@didactic@pagelast\@didactic@last\relax
+      \fi
+    \fi
+  \endgroup}
+\newcommand\@didactic@splitall{%
+  \setbox\tw@\vsplit\z@ to\maxdimen
+  \edef\@didactic@tmp{\splitbotmarks\@didactic@notemarks}%
+  \ifx\@didactic@tmp\@empty\else\let\@didactic@last\@didactic@tmp\fi
+  \ifvoid\z@\else\expandafter\@didactic@splitall\fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@sift,\@didactic@unsift}
+% Before \textsf{marginfix} builds the margin of the page we take the notes 
+% numbered higher than that out of its list, and after it we put them back 
+% at the end, where what the page couldn't hold waits too, at the top of the 
+% next page (|\MFX@minus@inf|).
+% A skip goes with the note before it.
+% The rest of a note \textsf{marginfix} has split carries the number of its 
+% note (|\MFX@copyclass| makes the rest, from 1.5 on): it goes with its note's 
+% line, which is on this page or an earlier one.
+%    \begin{macrocode}
+\let\@didactic@held\@empty
+\let\@didactic@kept\@empty
+\newcommand\@didactic@sift{%
+  \global\let\@didactic@kept\@empty
+  \global\let\@didactic@held\@empty
+  \let\@didactic@to\@didactic@kept
+  \begingroup
+    \def\mfx@build@note##1##2##3{%
+      \ifnum\@didactic@noteof##1>\@didactic@pagelast
+        \@didactic@append\@didactic@held{%
+          \noexpand\mfx@build@note\noexpand##1\noexpand##2{\MFX@minus@inf}}%
+        \global\let\@didactic@to\@didactic@held
+      \else
+        \@didactic@append\@didactic@kept{%
+          \noexpand\mfx@build@note\noexpand##1\noexpand##2{##3}}%
+        \global\let\@didactic@to\@didactic@kept
+      \fi}%
+    \def\mfx@build@skip##1{%
+      \ifx\@didactic@to\@didactic@held
+        \@didactic@append\@didactic@held{\noexpand\mfx@build@skip{##1}}%
+      \else
+        \@didactic@append\@didactic@kept{\noexpand\mfx@build@skip{##1}}%
+      \fi}%
+    \def\mfx@build@clear{%
+      \@didactic@append\@didactic@kept{\noexpand\mfx@build@clear}}%
+    \mfx@marginlist
+  \endgroup
+  \global\let\mfx@marginlist\@didactic@kept}
+\newcommand\@didactic@unsift{%
+  \xdef\mfx@marginlist{\unexpanded\expandafter{\mfx@marginlist}%
+    \unexpanded\expandafter{\@didactic@held}}%
+  \global\let\@didactic@held\@empty}
+\newcommand\@didactic@append[2]{\xdef#1{\unexpanded\expandafter{#1}#2}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@numbernotes}
+% The changes themselves, at the end of |\begin{document}|, once the check 
+% above has found every name; otherwise no note is numbered and 
+% \textsf{marginfix} does as it does alone.
+%    \begin{macrocode}
+\newcommand\@didactic@numbernotes{%
+  \pretocmd\@xympar{\@didactic@tagnote}{}{}%
+  \patchcmd\@specialoutput{\unvbox\@holdpg\@next\@currbox\@currlist}
+    {\@didactic@callout\@next\@currbox\@currlist}{}{}%
+  \let\@didactic@MFX@combinefloats@before\MFX@combinefloats@before
+  \def\MFX@combinefloats@before{%
+    \@didactic@readlast\@didactic@sift
+    \@didactic@MFX@combinefloats@before\@didactic@unsift}%
+  \ifdefined\MFX@copyclass
+    \apptocmd\MFX@copyclass{\global\count##1\count##2\relax}{}{}%
+  \fi}
 %    \end{macrocode}
 % \end{macro}
 %

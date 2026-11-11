@@ -17,6 +17,9 @@
 # and lastroom are the limit honoured for a note on the last lines of a page).
 src=test-notefoot
 status=0
+# $MARGINFIX: a directory with the marginfix.sty to test against, put first on
+# TEXINPUTS; unset, the one found.
+[ -n "$MARGINFIX" ] && export TEXINPUTS="$(cd "$MARGINFIX" && pwd)//:$TEXINPUTS"
 ENGINE=${ENGINE:-pdflatex}
 TEXTIMEOUT=${TEXTIMEOUT:-120}  # seconds: a run that takes longer never ends
 settle() { # <job> <maxruns> <definitions>; sets $settled and $runs

@@ -9,6 +9,9 @@
 #           carry, and a warning naming it
 src=test-marginfix-interface
 status=0
+# $MARGINFIX: a directory with the marginfix.sty to test against, put first on
+# TEXINPUTS; unset, the one found.
+[ -n "$MARGINFIX" ] && export TEXINPUTS="$(cd "$MARGINFIX" && pwd)//:$TEXINPUTS"
 TL12=$(kpsewhich -var-value TEXMFDIST)/tex/latex/marginfix
 build() { # <job> <definitions> [TEXINPUTS]
   rm -f "$1.aux"
