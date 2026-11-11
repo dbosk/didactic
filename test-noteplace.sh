@@ -254,6 +254,33 @@ check tallmark x 11 '' "$W,together" \
   "\\def\\testbody{\\section{HEADINGX} \\rule{0pt}{4\\baselineskip} FIRSTLINE\\markright{M}$B}"
 check nopagebreak x 5 '' "$W,tied" \
   "\\def\\testbody{Lead LEADIN\\nopagebreak\\par\\nopagebreak FIRSTLINE$B}"
+# A note that misses the foot of the margin by at most two lines stays beside its
+# line and runs past the foot of the margin, with a warning (over=N); by more it is
+# carried (a margin note has no foot to go to).  The tall note at the top leaves
+# about a line and a half of the margin, less the push.
+OV='\def\testtall{.95}\def\testbody{FIRSTLINE \filler\ end\yieldnote[\par TWO\par THREE] \filler\par}'
+OV1='\def\testtall{.975}\def\testbody{FIRSTLINE \filler\ end\yieldnote{} \filler\par}'
+check overone x 9 '' over=1 "$OV1"
+check overtwo x 9 '' over=2 "$OV"
+check overthree x 9 '' "carried,noover" '\def\testtall{.95}\def\testbody{FIRSTLINE \filler\ end\yieldnote[\par TWO\par THREE\par FOUR\par FIVE] \filler\par}'
+# In carry mode (and draft) nothing runs over: the note is carried.
+check overcarry x 9 'noteoverflow=carry' "carried,noover" "$OV"
+# The allowance is for the column with the callout's line: when TeX's own break
+# takes the line to the next page (it may not break between the line and the
+# display under it), the note goes with it, and LOWX, three lines called out on
+# the line above, is pushed up as ever, not run over (noover-LOWZ).  With TeX
+# Live's marginfix 1.2 every line with a margin note may end a page (the kernel's
+# penalty after the note, which margin-inrun takes away), so the line stays and
+# NOTEY runs over there, as it may.
+check overguard x 4 '' "kept,noover-LOWZ" '\def\testtall{.9}\def\testbody{FIRSTLINE \filler\ more\marginpar{LOWX\par LOWY\par LOWZ} \oneline\ end\yieldnote[\par TWO\par THREE] \[ x = y \] after \filler\par}'
+# A small note after the one that runs over goes no lower: it is carried, not
+# set in what is left below the foot.
+check overlater x 9 '' "over=2,noover-SMALL" '\def\testtall{.95}\def\testbody{FIRSTLINE \filler\ end\yieldnote[\par TWO\par THREE]\marginpar{SMALL} \filler\par}'
+# A float at the top of the page takes margin as well, and the warning says so.
+check overfloat x 9 '' over=2 '\def\testtall{.85}\def\testbody{\begin{figure}[t]\rule{1cm}{3\baselineskip}\end{figure}FIRSTLINE \filler\ end\yieldnote[\par TWO\par THREE] \filler\par}'
+# A note a little taller than the whole margin, alone at its top, is set whole and
+# runs over, not split (marginfix's split of tall notes reads the same height).
+check overtall x 9 '' "warned,nocontinued" '\def\testtall{1.01}\def\testbody{FIRSTLINE \filler\ end\yieldnote{} \filler\par}'
 # What leads into a list isn't tied by a penalty of 10000: the keep rules warn.
 check leadlist x 5 '' "$W,leadwarn" \
   "\\def\\testbody{Lead LEADIN:\\begin{itemize}\\item FIRSTLINE$B\\end{itemize}}"

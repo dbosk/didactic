@@ -390,3 +390,5 @@ test-biburl-breaks.cuts
 test-biburl-memoir.pdf
 test-biburl-memoir.unq
 test-biburl-memoir.bib
+test-marginfix-interface-*.pdf
+test-marginfix-interface-*.unq

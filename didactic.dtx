@@ -721,16 +721,18 @@
 % Then a note moves to the next page, away from its mark.
 % \textsf{didactic} decides what happens to such a note where it is called 
 % out, in the same run.
-% With |noteoverflow=foot|, the default, a footnote that doesn't fit in the 
-% margin goes to the foot of its page, if it fits there; any other note, or a 
-% footnote that doesn't fit at the foot either, makes the page end before the 
-% line that calls it out, so that the line and its note start the next page.
-% With |noteoverflow=break| no footnote goes to the foot: the page ends early 
-% for every note that doesn't fit.
-% A page ends early only where the page may end anyway (never between a 
-% heading and its lines, nor where the document forbids a lone line) and only 
-% if it leaves no more than |keepmaxgap| lines empty; otherwise the note is 
-% carried to a later page, with a warning that names it and says why.
+% With |noteoverflow=foot|, the default, a note that misses the foot of the
+% margin by no more than two lines of the text stays beside its line and runs
+% past the foot of the margin, with a warning that says by how much and what
+% took the margin (the notes above it, the floats on the page).
+% Nothing is under the margin at the foot of a page as \LaTeX\ and
+% \textsf{memoir} set it, since the folio is under the text; a running foot as
+% wide as the text and the margin (\textsf{memoir}'s |\headwidth| widened into
+% the margin, as in its |companion| style) would be in its way.
+% A footnote that misses by more goes to the foot of its page, if it fits there.
+% Any other note is carried to a later page, with a warning that names it and
+% says why.
+% For now |noteoverflow=break| does the same as |foot|.
 % With |noteoverflow=carry|, the default with the option |draft|, every note 
 % that doesn't fit is carried, with a warning.
 % The mode is read where a note is called out, and obeys groups, so 
@@ -4494,6 +4496,10 @@
 % \item[\texttt{\textbackslash MFX@copyclass}] (optional) where 
 %   \textsf{marginfix} makes the rest of a note it splits, |#1| from |#2|: the 
 %   rest gets the number of its note.
+% \item[\texttt{\textbackslash marginheightadjustment}] (optional, public)
+%   what \textsf{marginfix} adds to the height of every margin: we add to it
+%   for the one column where a note runs past the foot of the margin, and put
+%   it back; without it no note runs over.
 % \item[\texttt{\textbackslash MFX@check@page@}] (optional) 
 %   \textsf{marginfix}'s warning for a note set on another page than its 
 %   callout, which we silence, since we give that warning ourselves, with the 
@@ -4556,6 +4562,7 @@
   \@didactic@wish\MFX@check@page@
   \@didactic@wish\Mfx@inject@insert
   \@didactic@wish\MFX@copyclass
+  \@didactic@wish\marginheightadjustment
   \ifx\@didactic@missing\@empty
     \global\@didactic@noteplacetrue
     \@didactic@numbernotes
@@ -4874,11 +4881,13 @@
     \ifdefstring{\@didactic@noteoverflow}{carry}
       {\@didactic@setwhy{noteoverflow is carry}%
        \global\@didactic@used\@didactic@room}
-      {\@didactic@iffootfits{\the\@didactic@noteof\@didactic@head}
-        {\@didactic@tofoot}
-        {\@didactic@setwhy{it fits neither beside its line nor at the
-           foot}%
-         \global\@didactic@used\@didactic@room}}%
+      {\@didactic@ifover
+        {\@didactic@over}
+        {\@didactic@iffootfits{\the\@didactic@noteof\@didactic@head}
+          {\@didactic@tofoot}
+          {\@didactic@setwhy{it fits neither beside its line nor at the
+             foot}%
+           \global\@didactic@used\@didactic@room}}}%
   \fi}
 % A deferrable note gives way to the notes after it, in \textsf{marginfix}'s 
 % modes |defer| and |warn| whole, in |split| down to what is worth splitting 
@@ -4900,6 +4909,84 @@
 \newcommand\@didactic@room{%
   \dimexpr\@colroom
     \ifdefined\marginheightadjustment+\marginheightadjustment\fi\relax}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@ifover,\@didactic@over}
+% A note that misses the foot of the margin by no more than two lines of the
+% text stays beside its line and runs past the foot of the margin, with a
+% warning: there it is still where the reader looks for it, and nothing is under
+% the margin at the foot of the page (the folio is under the text; a running
+% foot as wide as text and margin would be in its way, see the documentation).
+% Only in |foot| mode, and only once in a column: after it the margin counts as
+% full and beyond, so that no other note runs over as well.
+% \textsf{marginfix} gives it the room when it builds the column, through its
+% |\marginheightadjustment| (|\@didactic@overapply|, below): by exactly as much
+% as the note misses, and a scaled point more since a note fits only if it is
+% shorter than the room, so that nothing is left for a note after it.
+% The cause goes into the warning: what the notes above it take of the margin,
+% and what floats on the page take of the column.
+%    \begin{macrocode}
+\newcount\@didactic@ovid
+\newcount\@didactic@ovnote
+\newdimen\@didactic@ovd
+\newdimen\@didactic@ovsaved
+\let\@didactic@ovwhy\@empty
+\newcommand\@didactic@overmax{2\@didactic@keep@L}
+\newcommand\@didactic@ifover{%
+  \ifdefined\marginheightadjustment
+    \ifdim\dimexpr\@didactic@used+\@didactic@noteht\relax
+        <\dimexpr\@didactic@room+\@didactic@overmax\relax
+      \expandafter\expandafter\expandafter\@firstoftwo
+    \else
+      \expandafter\expandafter\expandafter\@secondoftwo
+    \fi
+  \else
+    \expandafter\@secondoftwo
+  \fi}
+\newcommand\@didactic@over{%
+  \global\@didactic@ovid\@didactic@noteof\@didactic@head
+  \global\@didactic@ovd
+    \dimexpr\@didactic@used+\@didactic@noteht-\@didactic@room+1sp\relax
+  \xdef\@didactic@ovwhy{the notes above it take \the\@didactic@used\space of
+    the margin's \the\@didactic@room
+    \ifdim\@colroom<\textheight\space(floats on the page take
+      \the\dimexpr\textheight-\@colroom\relax)\fi}%
+  \@didactic@setwhy{}%
+  \global\@didactic@used
+    \dimexpr\@didactic@room+\@didactic@overmax+1sp\relax}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@overapply,\@didactic@overdone}
+% When the column is built, the note runs over only if its callout is in the
+% column: \TeX's own break may have taken its line to the next column since we
+% decided, and then the note goes with it, and the room must not go to another
+% note, which would then run over unasked.
+% The adjustment is put back after the column's margin is built, and the
+% warning comes then, with the page the note is on.
+%    \begin{macrocode}
+\newif\if@didactic@overon
+\newcommand\@didactic@overapply{%
+  \global\@didactic@overonfalse
+  \ifnum\@didactic@ovid>\z@
+    \ifnum\@didactic@ovid>\@didactic@pagelast\else
+      \global\@didactic@overontrue
+      \global\@didactic@ovnote\@didactic@ovid
+      \global\@didactic@ovsaved\marginheightadjustment
+      \global\advance\marginheightadjustment\@didactic@ovd
+    \fi
+    \global\@didactic@ovid\z@
+  \fi}
+\newcommand\@didactic@overdone{%
+  \if@didactic@overon
+    \global\marginheightadjustment\@didactic@ovsaved
+    \global\@didactic@overonfalse
+    \PackageWarningNoLine{didactic}{Margin note called out at
+      \csname @didactic@ln@\the\@didactic@ovnote\endcsname\MessageBreak
+      on page \thepage\space runs \the\@didactic@ovd\space past the foot of
+      the margin:\MessageBreak \@didactic@ovwhy}%
+  \fi}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -5321,7 +5408,9 @@
   \let\@didactic@MFX@combinefloats@before\MFX@combinefloats@before
   \def\MFX@combinefloats@before{%
     \@didactic@readlast\@didactic@sift
+    \@didactic@overapply
     \@didactic@MFX@combinefloats@before
+    \@didactic@overdone
     \@didactic@carrywarn
     \@didactic@unsift\@didactic@newpage}%
   \ifdefined\MFX@check@page@\def\MFX@check@page@##1##2{}\fi

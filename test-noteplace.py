@@ -34,6 +34,16 @@ test-noteplace.tex writes to the log.  EXPECT is one of:
               on its callout's page, or a warning names a note off its page.
   gap=N       page 1 leaves at most N lines empty under its last line of text
               (the limit on empty space, keepmaxgap, honoured).
+  over=N      NOTEY is on its callout's page and runs past the foot of the text
+              block in the margin, by more than the third of a line that the
+              depth of a note's last line may take anyway and at most N lines (by
+              the foot of its words' boxes), and a warning says it runs past the
+              foot of the margin.
+  noover      no word in the margins of any page ends more than a third of a
+              line below the foot of the text block (no note runs over
+              unasked); noover-WORD, no such word that
+              starts with WORD.
+  nocontinued no "(continued)" in the text: no note was split.
 Prints one line, "PASS" or "FAIL" with what failed, and the facts.
 """
 import re
@@ -56,7 +66,10 @@ geo = {k: float(v) for k, v in geo.items()}
 out = subprocess.run(["pdftotext", "-bbox", job + ".pdf", "-"], capture_output=True, text=True,
                      errors="replace").stdout
 pages = []
+bottoms = []
 for n, p in enumerate(out.split("<page ")[1:], 1):
+    bottoms.append([(w, float(x0), float(y1)) for x0, y0, x1, y1, w in re.findall(
+        r'<word xMin="([\d.]+)" yMin="([\d.]+)" xMax="([\d.]+)" yMax="([\d.]+)">([^<]*)</word>', p)])
     left = geo["odd"] if n % 2 else geo["even"]
     words = []
     for x0, y0, x1, y1, w in re.findall(
@@ -130,6 +143,16 @@ joined = re.sub(r"\n\((?:marginfix|didactic)\) *", " ", log).replace("\n", "")
 warned = bool(re.search(r"[Mm]argin note called out at.{0,160}? on page \d+ is set on (?:page|a later page)|Margin note from .{0,160}? moved from page|"
                         r"A margin note from page", joined))
 logged = bool(re.search(r"^marginfix-spill: .*unresolved", log, re.M))
+def margin_words(n):
+    """Words of page n outside the text column, the notes in the margins, with
+    the foot of each word's box."""
+    left = geo["odd"] if n % 2 else geo["even"]
+    return [(w, y1) for w, x, y1 in bottoms[n - 1]
+            if x > left + geo["width"] + 2 or x < left - 2]
+
+
+foot = geo["top"] + geo["height"]
+line12 = 12 * 72 / 72.27
 for e in expect:
     if e == "kept" and off:
         fails.append("note-y on page %s, its callout on %s" % (facts["note"], facts["callout"]))
@@ -150,6 +173,24 @@ for e in expect:
         fails.append("a line alone at a page break without a warning")
     elif e == "limitwarn" and off and "keepmaxgap" not in joined:
         fails.append("note-y off its page without a warning naming keepmaxgap")
+    elif e.startswith("over="):
+        n = page_of("NOTEY")
+        below = [y for w, y in margin_words(n)] if n else []
+        over = (max(below) - foot) / line12 if below else 0
+        if off or n is None:
+            fails.append("NOTEY not on its callout's page")
+        elif not .3 < over <= int(e[5:]) + .4:
+            fails.append("NOTEY's margin ends %.2f lines past the foot, not in (.3, %s]" % (over, e[5:]))
+        if not re.search(r"runs .{0,60}?past the foot of the margin", joined):
+            fails.append("no warning that a note runs past the foot of the margin")
+    elif e == "noover" or e.startswith("noover-"):
+        word = e[7:]
+        for n in range(1, len(pages) + 1):
+            low = [w for w, y in margin_words(n) if y > foot + .3 * line12 and w.startswith(word)]
+            if low:
+                fails.append("page %d: margin words below the text block: %s" % (n, " ".join(low[:5])))
+    elif e == "nocontinued" and "(continued)" in out:
+        fails.append("a note was split (continued)")
     elif e.startswith("gap=") and pages:
         ys = [y for w, x, y, body in pages[0] if body]
         line = 12 * 72 / 72.27
