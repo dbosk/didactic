@@ -4693,16 +4693,17 @@
 \newcommand\@didactic@callout{%
   \let\@didactic@after\relax
   \let\@didactic@skip\relax
+  \@didactic@endedfalse
   \expandafter\@didactic@peek\@currlist\@elt\relax\@elt\relax\@nil
   \ifnum\@didactic@noteof\@didactic@head>\z@
     \@didactic@decide
   \fi
   \unvbox\@holdpg
   \@didactic@after
-  \ifnum\@didactic@noteof\@didactic@head>\z@
+  \if@didactic@ended\else\ifnum\@didactic@noteof\@didactic@head>\z@
     \@didactic@attach{%
       \marks\@didactic@notemarks{\the\@didactic@noteof\@didactic@head}}%
-  \fi
+  \fi\fi
   \@didactic@skip}
 \def\@didactic@peek\@elt#1\@elt#2#3\@nil{%
   \def\@didactic@head{#1}\def\@didactic@pair{#2}}
@@ -4888,9 +4889,12 @@
        \global\@didactic@used\@didactic@room}
       {\@didactic@iffootfits{\the\@didactic@noteof\@didactic@head}
         {\@didactic@tofoot}
-        {\@didactic@setwhy{it fits neither beside its line nor at the
-           foot}%
-         \global\@didactic@used\@didactic@room}}%
+        {\@didactic@ifcanend
+          {\@didactic@endpage}
+          {\edef\@tempa{it fits neither beside its line nor at the
+             foot, and \@didactic@endwhy}%
+           \expandafter\@didactic@setwhy\expandafter{\@tempa}%
+           \global\@didactic@used\@didactic@room}}}%
   \fi}
 % A deferrable note gives way to the notes after it, in \textsf{marginfix}'s 
 % modes |defer| and |warn| whole, in |split| down to what is worth splitting 
@@ -5230,7 +5234,8 @@
 %    \begin{macrocode}
 \newcommand\@didactic@iffootfits[1]{%
   \@tempswafalse
-  \ifcsname @didactic@fb@#1\endcsname
+  \ifdefstring{\@didactic@noteoverflow}{foot}{}{\let\@didactic@nofoot\relax}%
+  \ifdefined\@didactic@nofoot\else\ifcsname @didactic@fb@#1\endcsname
     \expandafter\let\expandafter\@didactic@fbx
       \csname @didactic@fb@#1\endcsname
     \dimen@\dimexpr\ht\@didactic@fbx+\dp\@didactic@fbx\relax
@@ -5245,7 +5250,7 @@
         \@tempswatrue
       \fi
     \fi
-  \fi
+  \fi\fi
   \if@tempswa\expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
 %    \end{macrocode}
 % \end{macro}
@@ -5268,11 +5273,321 @@
   \@cons\@freelist\@currbox
   \@cons\@freelist\@marbox
   \ifdefined\mfx@placeid\global\advance\mfx@placeid\@ne\fi
+  \wd\@didactic@fbx\dimexpr\columnwidth+\@didactic@noteof\@didactic@head sp\relax
   \def\@didactic@after{%
     \@didactic@attach{\insert\footins{\floatingpenalty\@MM
       \box\@didactic@fbx}}}%
   \let\@didactic@skip\@didactic@skipnext}
 \def\@didactic@skipnext\@next\@currbox\@currlist#1#2{}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{Ending the page early}
+%
+% A note that fits neither beside its line nor at the foot can still stand 
+% beside its line: on the next page, if this page ends before the line.
+% We end it there ourselves, in the special output for the note, where the 
+% page so far is in |\@holdpg| and the callout's line is its last line: we 
+% split off the part above the line at the latest place where the page may 
+% end, put both parts back with a forced break between them, and call the note 
+% out again after its line, which now starts the next page.
+% The note is then decided again there, where it fits at the top of an empty 
+% margin, or is carried; it may not end a page a second time 
+% (|\@didactic@rf@|\meta{number}), so each note ends at most one page, and 
+% every page so ended has text on it: the decision terminates.
+%
+% \begin{macro}{\@didactic@splitabove}
+% The latest place to break above the callout's line: |\vsplit| to just less 
+% than the least height the page so far can be set to (its height less all it 
+% can shrink, found by halving), so that the part with the line can't be 
+% taken, and \TeX\ chooses among the places to break as it does for a page, 
+% by their penalties.
+% The parts go to |\@didactic@top| and |\@didactic@rest|.
+% A page so far that can shrink without limit can't be split (\TeX\ stops 
+% with an error), so then nothing is split.
+%    \begin{macrocode}
+\newbox\@didactic@top
+\newbox\@didactic@rest
+\newcommand\@didactic@splitabove[1]{%
+  \begingroup
+    \vbadness\@M \vfuzz\maxdimen
+    \splittopskip\z@skip \splitmaxdepth\maxdimen
+    \global\setbox\@didactic@top\box\voidb@x
+    \global\setbox\@didactic@rest\box\voidb@x
+    \setbox\z@\vbox to\z@{\unvcopy#1}%
+    \ifnum\badness<1000000 \else
+      \dimen@\z@ \dimen@ii\ht#1\relax
+      \loop\ifdim\dimexpr\dimen@ii-\dimen@\relax>.1\p@
+        \dimen4\dimexpr(\dimen@+\dimen@ii)/2\relax
+        \setbox\z@\vbox to\dimen4{\unvcopy#1}%
+        \ifnum\badness=1000000 \dimen@\dimen4 \else \dimen@ii\dimen4 \fi
+      \repeat
+      \setbox\tw@\copy#1%
+      \setbox\z@\vsplit\tw@ to\dimen@
+      \global\setbox\@didactic@top\vbox{\unvbox\z@}%
+      \global\setbox\@didactic@rest\box\tw@
+    \fi
+  \endgroup}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@keepok}
+% Whether the page may end between the two parts by the rules for headings 
+% and lead-ins, which the keep code leaves as marks (|h| right after a heading 
+% on a line of its own, |r| after the line of a run-in heading, |l| after the 
+% first line of a list that a lead-in leads into): the penalties can't tell, 
+% since a tie released for room lets the page break there when it must, which 
+% an early end doesn't.
+% Two cases part them.
+% The rest may start with the first line of such a list: its first mark of 
+% the class is |l| and comes after less than a line and a half of it.
+% Or the part above may end with fewer lines after a heading than 
+% |keepafterheading| asks: its last mark is |h| with fewer than that many lines 
+% after it, or |r| with fewer than one less.
+% Where a mark is we find by halving on the height of a split of a copy, so 
+% that marks of other classes, inserts and |\write|s between it and the break 
+% don't matter: \TeX\ keeps them where they are in either part.
+% The reason, when the page may not end, goes to |\@didactic@endwhy|.
+%    \begin{macrocode}
+\newmarks\@didactic@nomarks
+\newcommand\@didactic@marksof[1]{%
+  \begingroup
+    \vbadness\@M \vfuzz\maxdimen
+    \splittopskip\z@skip \splitmaxdepth\maxdimen
+    \setbox\z@\vbox{\unvcopy#1}%
+    \let\@didactic@first\@empty \let\@didactic@last\@empty
+    \ifvoid\z@\else\@didactic@marksof@\fi
+    \xdef\@didactic@firstmk{\@didactic@first}%
+    \xdef\@didactic@lastmk{\@didactic@last}%
+  \endgroup}
+\newcommand\@didactic@marksof@{%
+  \setbox\tw@\vsplit\z@ to\maxdimen
+  \ifx\@didactic@first\@empty
+    \edef\@didactic@first{\splitfirstmarks\@didactic@keepmarks}%
+  \fi
+  \edef\@didactic@tmp{\splitbotmarks\@didactic@keepmarks}%
+  \ifx\@didactic@tmp\@empty\else\let\@didactic@last\@didactic@tmp\fi
+  \ifvoid\z@\else\expandafter\@didactic@marksof@\fi}
+% |\@didactic@markat|\meta{box}\marg{f or l}: the height of the part of a 
+% copy of the box that holds its first keep mark (|f|), or all of its keep 
+% marks (|l|), to |\@didactic@markht|.
+\newdimen\@didactic@markht
+\newcommand\@didactic@markat[2]{%
+  \begingroup
+    \vbadness\@M \vfuzz\maxdimen
+    \splittopskip\z@skip \splitmaxdepth\maxdimen
+    \dimen@\z@ \dimen@ii\dimexpr\ht#1+\dp#1\relax
+    \loop\ifdim\dimexpr\dimen@ii-\dimen@\relax>.5\p@
+      \dimen4\dimexpr(\dimen@+\dimen@ii)/2\relax
+      \setbox\tw@\copy#1%
+      \setbox\z@\vsplit\tw@ to\dimen4
+      \if#2f%
+        \edef\@didactic@tmp{\splitfirstmarks\@didactic@keepmarks}%
+        \ifx\@didactic@tmp\@empty\dimen@\dimen4 \else\dimen@ii\dimen4 \fi
+      \else
+        \@didactic@marksof\tw@
+        \ifx\@didactic@firstmk\@empty\dimen@ii\dimen4 \else\dimen@\dimen4 \fi
+      \fi
+    \repeat
+    \global\@didactic@markht\dimen@ii
+  \endgroup}
+\newif\if@didactic@keepok
+\newcommand\@didactic@keepok{%
+  \@didactic@keepoktrue
+  \let\@didactic@endwhy\@empty
+  \@didactic@marksof\@didactic@rest
+  \if l\@didactic@firstmk
+    \@didactic@markat\@didactic@rest f%
+    \ifdim\@didactic@markht<1.5\@didactic@keep@L
+      \@didactic@keepokfalse
+      \def\@didactic@endwhy{ending its page early would part a list from
+        what leads into it}%
+    \fi
+  \fi
+  \if@didactic@keepok
+    \@didactic@marksof\@didactic@top
+    \@tempcnta\z@
+    \if h\@didactic@lastmk \@tempcnta\@didactic@keepafterheading \fi
+    \if r\@didactic@lastmk
+      \@tempcnta\numexpr\@didactic@keepafterheading-1\relax
+    \fi
+    \ifnum\@tempcnta>\z@
+      \@didactic@markat\@didactic@top l%
+      \ifdim\dimexpr\ht\@didactic@top+\dp\@didactic@top-\@didactic@markht
+          +.5\@didactic@keep@L\relax<\@tempcnta\@didactic@keep@L
+        \@didactic@keepokfalse
+        \def\@didactic@endwhy{ending its page early would part a heading
+          from its first lines}%
+      \fi
+    \fi
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@gaplimit,\@didactic@ifcanend}
+% Whether the page may end before the callout's line, here: the note hasn't 
+% ended a page yet; the part above is at least a line, so that the page keeps 
+% text; it leaves no more than |notemaxgap| lines of the column empty (unset, 
+% |keepmaxgap|; |none|, no limit); and the keep rules allow it.
+% If they don't, we step back to the place to break before that one, as long 
+% as the limit holds.
+% A note called out between paragraphs, in vertical mode, ends the page at 
+% the end of the page so far, if the page may end there: the last item there 
+% is a penalty below 10\,000, or glue after something that isn't discarded.
+%    \begin{macrocode}
+\newdimen\@didactic@gapmax
+\newcommand\@didactic@gaplimit{%
+  \ifdefempty{\@didactic@notemaxgap}%
+    {\@didactic@gapmax\@didactic@keepmaxgap\@didactic@keep@L}%
+    {\ifdefstring{\@didactic@notemaxgap}{none}{\@didactic@gapmax\maxdimen}%
+      {\@didactic@gapmax\numexpr\@didactic@notemaxgap\relax\@didactic@keep@L}}}
+\newcommand\@didactic@ifcanend{%
+  \@tempswafalse
+  \let\@didactic@endwhy\@empty
+  \ifcsname @didactic@rf@\the\@didactic@noteof\@didactic@head\endcsname
+    \def\@didactic@endwhy{it ended a page early once already}%
+  \else\ifnum\outputpenalty=-\@Mii
+    \@didactic@splitabove\@holdpg
+    \@tempcnta\z@
+    \@didactic@endloop
+  \else
+    \global\setbox\@didactic@top\copy\@holdpg
+    \global\setbox\@didactic@rest\box\voidb@x
+    \setbox\z@\vbox{\unvcopy\@holdpg\@didactic@vwalk}%
+    \if@tempswa
+      \@didactic@ifgapok
+    \else
+      \def\@didactic@endwhy{the page can't end before its callout}%
+    \fi
+  \fi\fi
+  \if@tempswa\expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
+\newcommand\@didactic@ifgapok{%
+  \@didactic@gaplimit
+  \ifdim\dimexpr\@colroom-\ht\@didactic@top\relax>\@didactic@gapmax
+    \@tempswafalse
+    \def\@didactic@endwhy{ending its page early would leave more than
+      notemaxgap lines empty}%
+  \fi}
+\newcommand\@didactic@endloop{%
+  \ifvoid\@didactic@rest
+    \def\@didactic@endwhy{the page can't end before its line}%
+  \else\ifdim\ht\@didactic@top<\topskip
+    \def\@didactic@endwhy{the page can't end before its line}%
+  \else
+    \@tempswatrue
+    \@didactic@ifgapok
+    \if@tempswa
+      \@didactic@keepok
+      \if@didactic@keepok\else
+        \@tempswafalse
+        \advance\@tempcnta\@ne
+        \ifnum\@tempcnta<20
+          \setbox\z@\copy\@didactic@top
+          \global\setbox\@didactic@top\copy\@didactic@top
+          \begingroup
+            \setbox\tw@\copy\@didactic@rest
+            \@didactic@splitabove\z@
+            \global\setbox\@didactic@rest
+              \vbox{\unvbox\@didactic@rest\unvbox\tw@}%
+          \endgroup
+          \expandafter\expandafter\expandafter\@didactic@endloop
+        \fi
+      \fi
+    \fi
+  \fi\fi}
+\newcommand\@didactic@vwalk{%
+  \let\@didactic@next\relax
+  \ifcase\numexpr\lastnodetype+1\relax
+  \or\or \global\@tempswatrue
+  \or \global\@tempswatrue
+  \else
+    \ifnum\lastnodetype=13
+      \ifnum\lastpenalty<\@M \global\@tempswatrue
+      \else \unpenalty \let\@didactic@next\@didactic@vwalk \fi
+    \else\ifnum\lastnodetype=12
+      \unkern \let\@didactic@next\@didactic@vwalk
+    \else\ifnum\lastnodetype=11
+      \unskip \let\@didactic@next\@didactic@vprev
+    \fi\fi\fi
+  \fi
+  \@didactic@next}
+\newcommand\@didactic@vprev{%
+  \let\@didactic@next\relax
+  \ifnum\lastnodetype<\z@\else
+    \ifnum\lastnodetype>10 \let\@didactic@next\@didactic@vwalk
+    \else \global\@tempswatrue \fi
+  \fi
+  \@didactic@next}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@endpage}
+% Ending the page: the two parts go back with a forced break between them, 
+% and after them the kernel's trigger for the note, so that its special output 
+% comes again on the next page with the note still first in |\@currlist|; the 
+% kernel's |\@next|, which would hand it to \textsf{marginfix} now, is skipped.
+% The notes already decided on lines of the rest go with their lines: those in 
+% the margin are held back by their marks (above), those at the foot are taken 
+% off the foot of this page when it is built (|\@didactic@pullfeet|, below).
+%    \begin{macrocode}
+\newif\if@didactic@ended
+\newcommand\@didactic@endpage{%
+  \expandafter\gdef\csname @didactic@rf@\the\@didactic@noteof
+    \@didactic@head\endcsname{}%
+  \global\setbox\@holdpg\box\voidb@x
+  \@didactic@endedtrue
+  \def\@didactic@after{%
+    \unvbox\@didactic@top
+    \penalty-\@M
+    \unvbox\@didactic@rest
+    \penalty-\@Miv \vbox{}\penalty\outputpenalty}%
+  \let\@didactic@skip\@didactic@skipnext}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@pullfeet}
+% A copy at the foot of a note whose line went to the next page goes there 
+% too: when a column is made, before its footnotes are attached, we take the 
+% boxes of the notes numbered higher than the last callout in the column off 
+% the end of |\footins| (each copy carries its number in its width, above the 
+% column's) and insert them again, for the next page.
+% Only in one column, the only place there are copies.
+%    \begin{macrocode}
+\newbox\@didactic@pullbox
+\newbox\@didactic@one
+\newcount\@didactic@colast
+\newcommand\@didactic@pullfeet{%
+  \ifvoid\footins\else
+    \begingroup
+      \let\@outputbox\@cclv
+      \count@\@didactic@pagelast
+      \@didactic@readlast
+      \global\@didactic@colast\@didactic@pagelast
+      \global\@didactic@pagelast\count@
+    \endgroup
+    \global\setbox\@didactic@pullbox\box\voidb@x
+    \global\setbox\footins\vbox{\unvbox\footins\@didactic@pull}%
+    \ifvoid\@didactic@pullbox\else
+      \ifdim\dimexpr\ht\footins+\dp\footins\relax=\z@
+        \global\setbox\footins\box\voidb@x
+      \fi
+      \insert\footins{\floatingpenalty\@MM\unvbox\@didactic@pullbox}%
+    \fi
+  \fi}
+\newcommand\@didactic@pull{%
+  \let\@didactic@next\relax
+  \ifnum\lastnodetype=\tw@
+    \setbox\@didactic@one\lastbox
+    \@tempcnta\numexpr\wd\@didactic@one-\columnwidth\relax
+    \ifnum\@tempcnta>\@didactic@colast
+      \global\setbox\@didactic@pullbox
+        \vbox{\box\@didactic@one\unvbox\@didactic@pullbox}%
+      \let\@didactic@next\@didactic@pull
+    \else
+      \box\@didactic@one
+    \fi
+  \fi
+  \@didactic@next}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -5328,6 +5643,7 @@
   \pretocmd\@xympar{\@didactic@tagnote}{}{}%
   \patchcmd\@specialoutput{\unvbox\@holdpg\@next\@currbox\@currlist}
     {\@didactic@callout\@next\@currbox\@currlist}{}{}%
+  \pretocmd\@makecol{\@didactic@pullfeet}{}{}%
   \patchcmd\@specialoutput{\@reinserts\@addtocurcol}
     {\@didactic@floatroom\@reinserts\@addtocurcol}{}{}%
   \let\@didactic@MFX@combinefloats@before\MFX@combinefloats@before
