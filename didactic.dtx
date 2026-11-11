@@ -4646,8 +4646,7 @@
       \global\advance\@didactic@noteid\@ne
       \global\count\@marbox\numexpr-1-\@didactic@noteid\relax
       \expandafter\xdef\csname @didactic@ln@\the\@didactic@noteid\endcsname{%
-        \ifdefined\CurrentFile\CurrentFile\else\jobname.tex\fi
-        :\the\inputlineno}%
+        \@didactic@here}%
       \@didactic@keepcopy}%
   \fi}
 \newcommand\@didactic@ifinjected[1]{%
@@ -4660,6 +4659,13 @@
   \else
     \expandafter\@secondoftwo
   \fi}
+% |\@didactic@here| is the place in the input, file and line, for warnings: 
+% |\CurrentFile| is empty in the main file, where it is the job's.
+\newcommand\@didactic@here{%
+  \ifdefined\CurrentFile
+    \expandafter\ifx\expandafter\relax\detokenize\expandafter{\CurrentFile}\relax
+      \jobname.tex\else\CurrentFile\fi
+  \else\jobname.tex\fi:\the\inputlineno}
 \newcommand\@didactic@noteof[1]{%
   \ifnum\count#1<-1000000 \numexpr-1000001-\count#1\relax
   \else\numexpr-1-\count#1\relax\fi}
@@ -5121,8 +5127,7 @@
 \newcommand\@didactic@hboxwhere{%
   \edef\@didactic@hfz{\the\hfuzz}%
   \edef\@didactic@hbd{\the\hbadness}%
-  \edef\@didactic@hboxat{%
-    \ifdefined\CurrentFile\CurrentFile\else\jobname.tex\fi:\the\inputlineno}}
+  \edef\@didactic@hboxat{\@didactic@here}}
 \newcommand\@didactic@quiet{\hfuzz\maxdimen\hbadness\@M}
 \newdimen\@didactic@hboxlo
 \newdimen\@didactic@hboxhi
@@ -5283,10 +5288,14 @@
 % page so far as at least as tall as the margin the notes take.
 % A float that stays in the text block takes no margin room, and the rule 
 % doesn't apply; nor with a \textsf{marginfix} that doesn't mark them.
+% \textsf{marginfix} unmarks a box by letting the name be |\relax| when the 
+% box is free again, so the test is that, not whether the name exists: an 
+% earlier float in the same box would otherwise hold back one that takes no 
+% margin room (the test |test-marginfloat-moved|).
 % This is the second patch of |\@specialoutput| checked above.
 %    \begin{macrocode}
 \newcommand\@didactic@floatroom{%
-  \ifcsname mfx@wide@\number\@currbox\endcsname
+  \expandafter\ifx\csname mfx@wide@\number\@currbox\endcsname\relax\else
     \ifdim\@pageht<\@didactic@used \@pageht\@didactic@used \fi
   \fi}
 %    \end{macrocode}

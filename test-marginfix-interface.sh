@@ -2,6 +2,7 @@
 # Build test-marginfix-interface.tex in its variants and check the log.
 #   found   the marginfix found: "didactic-interface: ok", and marginfix's list
 #           of waiting notes made of \mfx@build@note, two boxes and a position
+#   xelatex, lualatex  the same under those engines: ok
 #   tl12    TeX Live's marginfix 1.2: ok as well (its missing names are optional)
 #   old     the oldest kernel didactic asks for (latexrelease): ok, or carry with
 #           a warning naming what is missing; either way said
@@ -13,9 +14,9 @@ status=0
 # TEXINPUTS; unset, the one found.
 [ -n "$MARGINFIX" ] && export TEXINPUTS="$(cd "$MARGINFIX" && pwd)//:$TEXINPUTS"
 TL12=$(kpsewhich -var-value TEXMFDIST)/tex/latex/marginfix
-build() { # <job> <definitions> [TEXINPUTS]
+build() { # <job> <definitions> [TEXINPUTS] [engine]
   rm -f "$1.aux"
-  TEXINPUTS=${3:-$TEXINPUTS} timeout 120 pdflatex -interaction=nonstopmode \
+  TEXINPUTS=${3:-$TEXINPUTS} timeout 120 ${4:-pdflatex} -interaction=nonstopmode \
     -jobname="$1" "$2\\input{$src}" > /dev/null 2>&1
 }
 say() { # <name> <ok?> <detail>
@@ -29,6 +30,12 @@ list=$(tr -d '\n' < $src-found.log | grep -o 'interface-list: macro:->[^ ]* [^ ]
 echo "$l" | grep -q '^didactic-interface: ok' \
   && echo "$list" | grep -q 'interface-list: macro:->\\mfx@build@note \\[^ ]* \\[^ ]* {-\?[0-9.]*pt}'
 say found $? "($l; $list)"
+for e in xelatex lualatex; do
+  build $src-$e '' "" $e
+  l=$(line $src-$e)
+  echo "$l" | grep -q '^didactic-interface: ok'
+  say $e $? "($l)"
+done
 build $src-tl12 '' "$TL12//:"
 l=$(line $src-tl12)
 echo "$l" | grep -q '^didactic-interface: ok'
@@ -44,7 +51,7 @@ l=$(line $src-broken)
 echo "$l" | grep -q '^didactic-interface: carry.*@specialoutput' \
   && tr -d '\n' < $src-broken.log | grep -q 'Package didactic Warning:.*@specialoutput'
 say broken $? "($l)"
-for j in found tl12 old broken; do
+for j in found xelatex lualatex tl12 old broken; do
   n=$(grep -c '^!' $src-$j.log); [ "$n" = 0 ] || { say "$j errors" 1 "($n)"; }
 done
 exit $status
