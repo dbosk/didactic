@@ -64,9 +64,12 @@ job dense 4 "$C{dense}" foot beside nofalse
 job break 4 "$C{dense}\\def\\testoptions{noteoverflow=break}" nofoot beside nofalse \
   pagesge=$src-dense
 job article 4 "$C{dense}\\def\\testclass{article}" foot beside nofalse
-job twocol 8 "$C{dense}\\def\\testclassopt{twocolumn}" nofoot
+# In two columns the notes beside the first column are within the text block,
+# so where a note is can't tell foot from margin; foot works as break there,
+# with a warning only when asked for.
+job twocol 8 "$C{dense}\\def\\testclassopt{twocolumn}"
 job twofoot 8 "$C{dense}\\def\\testclassopt{twocolumn}\\def\\testoptions{noteoverflow=foot}" \
-  nofoot 'works=noteoverflow=foot works as'
+  'works=noteoverflow=foot works as'
 # In multicols every footnote of didactic's is lost today, with multicol's
 # warning that marginpars aren't allowed there, also with TeX Live's multicol
 # first on TEXINPUTS (on one machine ~/texmf had a multicol of 1992 first).

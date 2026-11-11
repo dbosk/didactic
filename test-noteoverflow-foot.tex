@@ -4,7 +4,10 @@
 % new source in full (verbose), a few cite one again (short) and a few have a
 % plain footnote, each with a citation in it, one early, which goes in the margin,
 % and one later, at the foot, of a work cited again after it: more notes than the
-% margins hold.  The sources are made up.
+% margins hold.  The sources are made up.  The plain footnotes and the margin note
+% have zref labels as didactic gives a citation's footnote, at the mark
+% (didacticfn@...) and in the note (didacticfnnote@...), so that the check counts
+% every note.
 %
 % Build: see the Makefile, which runs it with
 %   \def\testoptions{<options of didactic>}  (none: the default)
@@ -84,13 +87,13 @@
 
 \section{Dense}
 \citesrc{src1}\citesrc{src2}\citesrc{src3}\citesrc{src4}
-\filler\footnote{A plain footnote, which cites \textcite[Ch.~9]{src21} in it,
+\filler\zlabel{didacticfn@plainA}\footnote{\zlabel{didacticfnnote@plainA}A plain footnote, which cites \textcite[Ch.~9]{src21} in it,
   and \autocite{src24}, which biblatex sets in the note's text.}
 \citesrc{src5}\citesrc{src6}\citesrc{src1}\citesrc{src7}\citesrc{src7}\citesrc{src8}
 
 \citesrc{src9}\citesrc{src10}\citesrc{src11}\citesrc{src2}\citesrc{src12}
 \citesrc{src13}\citesrc{src14}\citesrc{src15}
-\filler\footnote{Another plain footnote, which cites \textcite{src22}, cited
+\filler\zlabel{didacticfn@plainB}\footnote{\zlabel{didacticfnnote@plainB}Another plain footnote, which cites \textcite{src22}, cited
   again below, and \textcite{src25}, cited only here.}
 \citesrc{src16}
 
@@ -103,10 +106,12 @@
   % nor at the foot (its line is low on the page): it is carried to the next
   % page's margin, where it fits.
   ENDPART\clearpage
-  \filler\marginpar{\rule{1pt}{.55\textheight}}\par
+  \filler\zlabel{didacticfn@tallmp}\marginpar{\zlabel{didacticfnnote@tallmp}%
+    \rule{1pt}{.55\textheight}}\par
   \vspace*{.6\textheight}
   \noindent LOWLINE, which shows where the page is filled to.\par
-  \filler\footnote{A tall footnote. \rule{1pt}{.5\textheight}}\par
+  \filler\zlabel{didacticfn@tallfn}\footnote{\zlabel{didacticfnnote@tallfn}%
+    A tall footnote. \rule{1pt}{.5\textheight}}\par
   \filler\ \filler\ \filler\ \filler\ \filler\ \filler
 \fi
 

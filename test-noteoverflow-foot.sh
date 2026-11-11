@@ -107,9 +107,9 @@ job xenowhere xelatex '\def\testnowhere{}' 'foot away'
 job xenowherebreak xelatex '\def\testnowhere{}\def\testoptions{noteoverflow=break}' \
   'nofoot away'
 job nowhere pdflatex '\def\testnowhere{}' foot
-job twocol pdflatex '\def\testclassopt{twocolumn}' 'nofoot spill away'
+job twocol pdflatex '\def\testclassopt{twocolumn}' 'any spill away'
 job twofoot pdflatex '\def\testclassopt{twocolumn}\def\testoptions{noteoverflow=foot}' \
-  'nofoot spill away warn'
+  'any spill away warn'
 hbox() { # test-noteoverflow-foot-hbox, with foot and with break (no bibliography)
   [ -z "$CASES" ] || case " $CASES " in *" hbox "*) ;; *) return;; esac
   for m in foot break ref; do

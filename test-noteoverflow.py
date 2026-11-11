@@ -27,7 +27,7 @@ page = {k: int(v) for k, v in re.findall(r"\\newlabel\{(f[mn]-\d+)\}\{\{[^}]*\}\
 marks = {k[3:]: v for k, v in page.items() if k.startswith("fm-")}
 notes = {k[3:]: v for k, v in page.items() if k.startswith("fn-")}
 away = sorted((int(n) for n in marks if n in notes and notes[n] != marks[n]))
-said = len(re.findall(r"[Mm]argin note called out at.{0,160}? on page \d+ is set on page|Margin note from .{0,160}? moved from page|"
+said = len(re.findall(r"[Mm]argin note called out at.{0,160}? on page \d+ is set on (?:page|a later page)|Margin note from .{0,160}? moved from page|"
                       r"A margin note from page", joined))
 twice = len(re.findall(r"Label `f[mn]-\d+' multiply defined", joined))
 fails = []

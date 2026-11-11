@@ -24,7 +24,12 @@ test-noteplace.tex writes to the log.  EXPECT is one of:
   limitwarn   if NOTEY is off its callout's page, a warning names the limit
               (notemaxgap).
   continued   the rest of a split note is marked as continued.
+  footwarn    a warning says that noteoverflow=foot works as break here;
+  nofootwarn  no such warning.
   callwarn    a warning says that the callouts of a page can't be read.
+  exactwarn   as many of didactic's warnings that a note is set on another page
+              as notes set on another page than their callout, NOTEY and the
+              notes labelled c-X/n-X; notes labelled c-dX (deferrable) apart.
   pairs       every other note with labels c-X at its callout and n-X in it is
               on its callout's page, or a warning names a note off its page.
   gap=N       page 1 leaves at most N lines empty under its last line of text
@@ -118,7 +123,7 @@ if facts["callout"] is None or facts["note"] is None:
 # is: a log line, not a warning, so it counts here only to tell the installed
 # build's silence apart from a note that went unnoticed).
 joined = re.sub(r"\n\((?:marginfix|didactic)\) *", " ", log).replace("\n", "")
-warned = bool(re.search(r"[Mm]argin note called out at.{0,160}? on page \d+ is set on page|Margin note from .{0,160}? moved from page|"
+warned = bool(re.search(r"[Mm]argin note called out at.{0,160}? on page \d+ is set on (?:page|a later page)|Margin note from .{0,160}? moved from page|"
                         r"A margin note from page", joined))
 logged = bool(re.search(r"^marginfix-spill: .*unresolved", log, re.M))
 for e in expect:
@@ -159,6 +164,20 @@ for e in expect:
                 fails.append("note %s on page %s, its callout on %s, without a warning" % (x, pn, pc))
     elif e == "callwarn" and not re.search(r"Can't read the callouts of page \d+", joined):
         fails.append("no warning that the callouts of a page can't be read")
+    elif e == "exactwarn":
+        pairs = re.findall(r"\\newlabel\{c-([^}]*)\}\{\{[^}]*\}\{([^}]*)\}", aux)
+        off_n = sum(1 for x, pc in pairs if not x.startswith("d")
+                    and label("n-" + x) not in (None, pc))
+        off_n += 1 if facts["callout"] and facts["note"] and off else 0
+        said = len(re.findall(r"Margin note called out at.{0,160}? on page \d+ is set on page \d+",
+                              joined))
+        if said != off_n:
+            fails.append("%d notes off their callout's page (deferrable ones apart), %d warnings"
+                         % (off_n, said))
+    elif e == "footwarn" and "noteoverflow=foot works as" not in joined:
+        fails.append("no warning that foot works as break")
+    elif e == "nofootwarn" and "noteoverflow=foot works as" in joined:
+        fails.append("a warning that foot works as break, not asked for")
     elif e == "continued" and not re.search(r"continued|forts", " ".join(w[0] for ws in pages for w in ws)):
         fails.append("no continued note")
 facts["club"], facts["widow"], facts["warned"], facts["logged"] = club(), widow(), warned, logged

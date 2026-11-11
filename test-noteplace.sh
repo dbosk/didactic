@@ -161,6 +161,24 @@ check linemovesfloat x 3 '' kept,pairs "$FP$ALONE${TWO/testbody\{/testbody\{$FIG
 # naming the page.
 SHRINKOUT='\def\testshrinkout{}'
 check readfallback x 3 '' "warned,callwarn" "$SHRINKOUT\\def\\testtall{.1}\\def\\testbody{FIRSTLINE\\yieldnote{} \\filler}"
+# Who gets the warning that a note is set on another page than its callout:
+# every such note once, whoever moved it, but the rest of a note marginfix
+# cut (it continues a note set on its page) and a deferrable note, which is
+# marginfix's to move (its own notice in the mode warn).  tallcut: a note
+# taller than the margin, called out low on the page, which marginfix moves
+# whole to the next page (too little room to cut it there): one warning;
+# deferrable: a deferrable note in the mode split that moves for the note
+# after it: marginfix's notice, none of didactic's.
+TALLCUT='\def\testtall{.1}\def\testbody{FIRSTLINE\marginpar{\label{n-a}TALLCUT\par\rule{1pt}{1.3\textheight}}\label{c-a} \filler\par}'
+check tallcut x 9 '' "pairs,exactwarn" "$TALLCUT"
+DEFER='\def\testtall{.1}\def\testbody{FIRSTLINE\marginpar{\label{n-d1}\marginnotedeferrable DEFER\par\rule{1pt}{.6\textheight}}\label{c-d1} \oneline\ more\marginpar{\label{n-b}PLAIN\par\rule{1pt}{.3\textheight}}\label{c-b} \filler\par}'
+check deferrable x 9 'notepriority=split' "exactwarn" "$DEFER"
+# In two columns foot works as break: silently with the default, with a
+# warning when a passage asks for foot (the option's case is in
+# test-noteoverflow-foot, twofoot).
+TWOC='\def\testclass{article}\def\testclassopt{a4paper,twocolumn}\def\testtall{.1}'
+check twodefault x 7 '' "nofootwarn" "$TWOC\def\testbody{FIRSTLINE\yieldnote{} \filler\par}"
+check twopassage x 7 '' "footwarn" "$TWOC\def\testbody{{\marginnoteoverflow{foot} FIRSTLINE\yieldnote{} \filler\par}}"
 # Nothing in the way: the note stays with its line.
 check runin runin 4 '' kept,lonewarn
 check theorem theorem 4 '' kept,lonewarn

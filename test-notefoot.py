@@ -73,7 +73,7 @@ def atfoot(n):
 
 
 feet = [n for n in notes if atfoot(n)]
-said = len(re.findall(r"[Mm]argin note called out at.{0,160}? on page \d+ is set on page|Margin note from .{0,160}? moved from page|"
+said = len(re.findall(r"[Mm]argin note called out at.{0,160}? on page \d+ is set on (?:page|a later page)|Margin note from .{0,160}? moved from page|"
                       r"A margin note from page", joined))
 fails = []
 if not notes or marks != notes:

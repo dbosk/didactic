@@ -10,6 +10,8 @@ check reads JOB.pdf, JOB.log and JOB.aux, the outcome only, whatever the
 mechanism (no log line of marginfix's counts; the job has settled when the runner
 calls this):
 - no LaTeX error, and no warning of hyperref's about a link target;
+- any: no check of the foot (in two columns the notes beside the first column
+  are within the text block, so the words can't tell);
 - foot: some notes are set at the foot: words that only notes have (the titles
   of the works, "footnote") are in the text column, on a page before the end of
   the text (ENDPART); nofoot: none are;
@@ -38,9 +40,9 @@ hbox reads the logs of test-noteoverflow-foot-hbox.tex built with foot (FOOT), w
 break (BREAK) and with carry (REF, where no copy for the foot is made and TeX speaks
 for the only one): the copy of a footnote that isn't printed says nothing,
 and the printed one says what TeX would, once, with its place.  Footnotes A (input
-line 22) and D (24) are in the margin of page 1 under foot: didactic says what TeX
+line 20) and D (22) are in the margin of page 1 under foot: didactic says what TeX
 says in REF, and TeX says nothing more; nothing comes from their foot copies.  Under
-break the margin copy is the only one, and TeX speaks for it as in REF.  B (30) and C (32) are at the foot of page 2 under foot (in the margin of
+break the margin copy is the only one, and TeX speaks for it as in REF.  B (28) and C (30) are at the foot of page 2 under foot (in the margin of
 page 3 under break): no line of TeX's names them, and didactic says once that B's
 foot copy has an overfull line and C's an underfull one, naming the file, the line
 and the page, and nothing of their margin copies.
@@ -105,8 +107,9 @@ def check(job, want, spill, away_ok, warn, nolabels):
                len(pages) - 1)
     feet = sorted({n + 1 for n, ws in enumerate(pages[:end + 1])
                    for w, _ in ws if NOTEWORDS.match(w)})
-    report(f"{job} {want}", bool(feet) if want == "foot" else not feet,
-           f"(notes in the text column on pages {feet})")
+    if want != "any":
+        report(f"{job} {want}", bool(feet) if want == "foot" else not feet,
+               f"(notes in the text column on pages {feet})")
     half = [n + 1 for n, ws in enumerate(pages[:-1])
             if ws and not any("ENDPART" in w for w, _ in ws)
             and max(y for _, y in ws) < geo["top"] + geo["height"] / 2]
@@ -124,7 +127,7 @@ def check(job, want, spill, away_ok, warn, nolabels):
            f"({len(notes)} notes, {len(away)} away from their marks)")
     if spill == "carried":
         report(f"{job} carried", nolabels or bool(away), f"({len(away)} away)")
-    said = len(re.findall(r"[Mm]argin note called out at.{0,160}? on page \d+ is set on page|Margin note from .{0,160}? moved from page|"
+    said = len(re.findall(r"[Mm]argin note called out at.{0,160}? on page \d+ is set on (?:page|a later page)|Margin note from .{0,160}? moved from page|"
                           r"A margin note from page", joined))
     report(f"{job} away named", nolabels or said >= len(away),
            f"({len(away)} away, {said} warnings)")
@@ -207,20 +210,20 @@ def hbox(foot, brk, ref):
                                  r"\([^)]*\)) in the footnote called out at "
                                  rf"{re.escape(src)}:{line}, {where} of page (\d+)", log))
     f, b, r = unwrapped(f"{foot}.log"), unwrapped(f"{brk}.log"), unwrapped(f"{ref}.log")
-    for line in (22, 24):
+    for line in (20, 22):
         want = [(w, "1") for w in tex(r, line)]
         got = ours(f, line, "in the margin")
         report(f"{foot} margin note at line {line}: TeX's words, once, from the printed copy",
                bool(want) and got == want and not tex(f, line),
                f"({len(got)} said, {len(want)} by TeX, {len(tex(f, line))} still TeX's)")
-    n = sum(len(ours(f, line, "at the foot")) for line in (22, 24))
+    n = sum(len(ours(f, line, "at the foot")) for line in (20, 22))
     report(f"{foot} nothing from the foot copies of notes in the margin", n == 0, f"({n})")
-    for line in (22, 24, 30, 32):
+    for line in (20, 22, 28, 30):
         n = len(ours(b, line, "in the margin")) + len(ours(b, line, "at the foot"))
         report(f"{brk} note at line {line}: TeX speaks for the only copy, as without the wrapper",
                bool(tex(r, line)) and tex(b, line) == tex(r, line) and n == 0,
                f"({len(tex(b, line))} against {len(tex(r, line))}, {n} of didactic's)")
-    for line, kind in ((30, "Over"), (32, "Under")):
+    for line, kind in ((28, "Over"), (30, "Under")):
         report(f"{foot} note at the foot at line {line}: no line of TeX's", not tex(f, line),
                " ".join(tex(f, line))[:120])
         got = ours(f, line, "at the foot")
