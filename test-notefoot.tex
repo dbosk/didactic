@@ -29,7 +29,10 @@
 %   tall      long footnotes, some on one line (test-notefoot-tall.tex);
 %   gen       generated: long notes, tall lines, floats, headings
 %             (test-notefoot-dense.tex, labels only);
-%   ownout    a document with an output routine of its own.
+%   ownout    a document with an output routine of its own;
+%   twotall   two margin notes, each taller than the room left beside its line,
+%             and a footnote after them (they never settled under XeLaTeX in the
+%             fork, review B-1): settled, each placed or warned about.
 % See test-notefoot.sh, which runs the cases and checks them.
 \ifdefined\testclass\else\def\testclass{memoir}\fi
 \ifdefined\testclassopt\else\def\testclassopt{}\fi
@@ -94,7 +97,10 @@
 \def\testdrift{drift}\def\testlastline{lastline}\def\testbotfloat{botfloat}
 \def\testtopfloat{topfloat}\def\testclear{clear}\def\testdeferr{deferr}
 \def\testorder{order}\def\testfnrule{fnrule}\def\testfnedge{fnedge}
-\def\testtall{tall}\def\testgen{gen}
+\def\testtall{tall}\def\testgen{gen}\def\testtwotall{twotall}
+% A margin note with labels, as \fn's, for the cases that check plain notes too.
+\newcommand\testmp[1]{\stepcounter{mk}\edef\mkv{\arabic{mk}}%
+  \label{m-\mkv}\zsavepos{m-\mkv}\marginpar{\label{n-\mkv}\zsavepos{n-\mkv}#1}}
 \begin{document}
 \ifx\testcase\testdrift
   \widowpenalty=10000
@@ -158,6 +164,9 @@
   \input{test-notefoot-tall}
 \else\ifx\testcase\testgen
   \input{test-notefoot-dense}
+\else\ifx\testcase\testtwotall
+  \lipsum[1-2] x\testmp{P1 \rule{1pt}{.6\textheight}}%
+  \testmp{P2 \rule{1pt}{.6\textheight}} \lipsum[2-3]\fn[1-3]{A} \lipsum[4-9]
 \else\ifx\testcase\testfnrule
   \lipsum[1][1-6]\footnote{ORDINARY \lipsum[2-3]}
   \lipsum[2-3] \marginpar{\rule{1pt}{.95\textheight}}\lipsum[4]
@@ -173,5 +182,5 @@
   \lipsum[1-2]\par
   \dense\dense\dense
   \lipsum[6-8]
-\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi
+\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi
 \end{document}

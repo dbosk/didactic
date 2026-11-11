@@ -13,9 +13,8 @@
 # Dropped from footcheck, as they test a mechanism, not an outcome: firstrun (the
 # fork's message that the notes haven't settled), local (\marginnoteoverflow in a
 # group, marginfix's), lastlimit, footrec, stale and limit (yield records and
-# \marginnoteyieldlimit; the limit is notemaxgap now, in test-noteplace), and
-# twotall (two tall marginpars and a footnote, whose check was the fork's foot
-# count only).
+# \marginnoteyieldlimit; the limit is notemaxgap now: test-noteplace's lastlimit
+# and lastroom are the limit honoured for a note on the last lines of a page).
 src=test-notefoot
 status=0
 ENGINE=${ENGINE:-pdflatex}
@@ -83,4 +82,8 @@ job fnedge 4 "$C{fnedge}" rules beside
 job tall 8 "$C{tall}" foot beside nofalse
 job gen 4 "$C{gen}" beside
 job ownout 8 "$C{ownout}"
+# Two notes taller than the room left, and a footnote: settled within the floor
+# and one run, each placed or warned about; under XeLaTeX too (review B-1).
+job twotall 8 "$C{twotall}"
+ENGINE=xelatex job twotall-xe 8 "$C{twotall}"
 exit $status
