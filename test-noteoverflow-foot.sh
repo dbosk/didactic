@@ -55,8 +55,10 @@ settle() { # <job> <engine> <definitions>
   rm -f "$1.aux" "$1.bbl"
   for i in 1 2 3 4 5 6 7 8 9 10 11 12; do
     [ -f "$1.aux" ] && cp "$1.aux" "$1.aux.old"
-    "$2" -shell-escape -interaction=nonstopmode -jobname="$1" \
+    timeout "${TEXTIMEOUT:-120}" "$2" -shell-escape -interaction=nonstopmode -jobname="$1" \
       "${PRE}$3\\input{$src}" > /dev/null
+    # a run that never ends (more than $TEXTIMEOUT s, 120) fails
+    [ $? = 124 ] && { echo "didactic noteoverflow foot test: $1 FAIL: a run never ends"; return 1; }
     [ "$i" = 1 ] && { biber "$1" > /dev/null || return 1; continue; }
     if cmp -s "$1.aux" "$1.aux.old" \
        && ! grep -q 'Rerun to get\|may have changed' "$1.log"

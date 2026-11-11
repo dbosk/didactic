@@ -6,7 +6,8 @@
 # each is kept, the checks are the PDF, the labels and the warnings.
 #
 # Each job runs until its .aux file stops changing (at most $MAXRUNS runs, 8);
-# a job that doesn't settle, or has an error, fails.  Runs to settle are a
+# a job that doesn't settle, or has an error, fails, as does a run that takes
+# more than $TEXTIMEOUT seconds (120): a layout that never ends.  Runs to settle are a
 # requirement: each job is built again with noteoverflow=carry (\testfloor, job
 # <job>-floor), which moves no note for a page that ends early, and may take at
 # most one run more than that floor.  $ENGINE (pdflatex), $CASES
@@ -30,10 +31,14 @@ job=test-noteplace
 status=0
 ENGINE=${ENGINE:-pdflatex}
 MAXRUNS=${MAXRUNS:-8}
+TEXTIMEOUT=${TEXTIMEOUT:-120}
 run() { # <job> <case> <room> <options> <definitions>
-  $ENGINE -shell-escape -interaction=nonstopmode -jobname="$1" \
+  timeout "$TEXTIMEOUT" $ENGINE -shell-escape -interaction=nonstopmode -jobname="$1" \
     "${PRE}$5\\def\\testcase{$2}\\def\\testroom{$3}\\def\\testoptions{$4}\\input{$job}" \
     > /dev/null 2>&1
+  # a run that never ends fails as an error
+  [ $? = 124 ] && printf "\n! the run took more than %s s\n" "$TEXTIMEOUT" >> "$1.log"
+  return 0
 }
 settle() { # as run; sets $settled and $runs
   settled=no

@@ -18,12 +18,15 @@
 src=test-notefoot
 status=0
 ENGINE=${ENGINE:-pdflatex}
+TEXTIMEOUT=${TEXTIMEOUT:-120}  # seconds: a run that takes longer never ends
 settle() { # <job> <maxruns> <definitions>; sets $settled and $runs
   rm -f "$1.aux"; settled=no
   for runs in $(seq 1 "$2"); do
     [ -f "$1.aux" ] && cp "$1.aux" "$1.aux.old"
-    $ENGINE -shell-escape -interaction=nonstopmode -jobname="$1" \
+    timeout "$TEXTIMEOUT" $ENGINE -shell-escape -interaction=nonstopmode -jobname="$1" \
       "${PRE}$3\\input{$src}" > /dev/null 2>&1
+    # a run that never ends fails as an error
+    [ $? = 124 ] && printf "\n! the run took more than %s s\n" "$TEXTIMEOUT" >> "$1.log"
     if [ -f "$1.aux.old" ] && cmp -s "$1.aux" "$1.aux.old" \
        && ! grep -q 'Rerun to get\|may have changed' "$1.log"; then
       settled=yes; return
