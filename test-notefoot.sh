@@ -1,0 +1,86 @@
+#!/bin/bash
+# Run the cases of test-notefoot.tex and check each by its outcome with
+# test-notefoot.py.  These are the cases of marginfix's footcheck (margin-foot
+# branch), which checked marginfix's log lines; here the footnotes are didactic's
+# and the checks are the labels, saved positions, PDF and warnings.  Each job runs
+# until its .aux file stops changing and LaTeX asks for no other run, within the
+# runs a case allows; and runs to settle are a requirement: each job is built
+# again with noteoverflow=carry (\testfloor, job <job>-floor), which moves no note
+# for a page that ends early, and may take at most one run more than that floor.
+# $ENGINE (pdflatex), $CASES (job names) and $PRE (TeX code put first, to load
+# another implementation, say) can be set; RECHECK=1 checks the jobs there are.
+#
+# Dropped from footcheck, as they test a mechanism, not an outcome: firstrun (the
+# fork's message that the notes haven't settled), local (\marginnoteoverflow in a
+# group, marginfix's), lastlimit, footrec, stale and limit (yield records and
+# \marginnoteyieldlimit; the limit is notemaxgap now, in test-noteplace), and
+# twotall (two tall marginpars and a footnote, whose check was the fork's foot
+# count only).
+src=test-notefoot
+status=0
+ENGINE=${ENGINE:-pdflatex}
+settle() { # <job> <maxruns> <definitions>; sets $settled and $runs
+  rm -f "$1.aux"; settled=no
+  for runs in $(seq 1 "$2"); do
+    [ -f "$1.aux" ] && cp "$1.aux" "$1.aux.old"
+    $ENGINE -shell-escape -interaction=nonstopmode -jobname="$1" \
+      "${PRE}$3\\input{$src}" > /dev/null 2>&1
+    if [ -f "$1.aux.old" ] && cmp -s "$1.aux" "$1.aux.old" \
+       && ! grep -q 'Rerun to get\|may have changed' "$1.log"; then
+      settled=yes; return
+    fi
+  done
+}
+job() { # <name> <maxruns> <definitions> <checks...>
+  name=$1 max=$2 defs=$3; shift 3
+  [ -z "$CASES" ] || case " $CASES " in *" $name "*) ;; *) return;; esac
+  j=$src-$name settled=yes runs=- floor=-
+  if [ -z "$RECHECK" ]; then
+    settle "$j-floor" "$max" "\\def\\testfloor{}$defs"; floor=$runs
+    settle "$j" "$max" "$defs"
+  fi
+  errors=$(grep -c '^!' "$j.log")
+  if [ "$settled$errors" != yes0 ]; then
+    echo "didactic notefoot test: $name FAIL (settled within $max runs: $settled, errors: $errors)"
+    status=1; return
+  fi
+  if [ "$floor" != - ] && [ "$runs" -gt $((floor + 1)) ]; then
+    echo "didactic notefoot test: $name FAIL ($runs runs, floor $floor)"
+    status=1; return
+  fi
+  if res=$(python3 $src.py "$j" "$@"); then
+    echo "didactic notefoot test: $name PASS ($runs runs, floor $floor) $res"
+  else
+    echo "didactic notefoot test: $name FAIL ($runs runs) $res"; status=1
+  fi
+}
+C='\def\testcase'
+job dense 4 "$C{dense}" foot beside nofalse
+job break 4 "$C{dense}\\def\\testoptions{noteoverflow=break}" nofoot beside nofalse \
+  pagesge=$src-dense
+job article 4 "$C{dense}\\def\\testclass{article}" foot beside nofalse
+job twocol 8 "$C{dense}\\def\\testclassopt{twocolumn}" nofoot
+job twofoot 8 "$C{dense}\\def\\testclassopt{twocolumn}\\def\\testoptions{noteoverflow=foot}" \
+  nofoot 'works=noteoverflow=foot works as'
+# In multicols every footnote of didactic's is lost today, with multicol's
+# warning that marginpars aren't allowed there, also with TeX Live's multicol
+# first on TEXINPUTS (on one machine ~/texmf had a multicol of 1992 first).
+job multi 8 "$C{multi}" nofoot
+job hyper 4 "$C{hyper}" foot beside nodest nofalse
+job counter 4 "$C{counter}" foot beside counter nofalse
+job nofeet 4 "$C{nofeet}" nofoot beside nofalse
+job drift 4 "$C{drift}" beside nofalse
+job lastline 4 "$C{lastline}" beside nofalse
+for c in botfloat topfloat clear; do job $c 4 "$C{$c}" foot beside nofalse; done
+job deferr-defer 4 "$C{deferr}\\def\\testprio{defer}" nofoot beside
+job deferr-split 4 "$C{deferr}\\def\\testprio{split}" nofoot beside
+job deferr-warn 4 "$C{deferr}\\def\\testprio{warn}" beside
+job order 4 "$C{order}" foot beside order nofalse
+job minroom 4 "$C{minroom}" nofoot floatsonly
+job fnrule 4 "$C{fnrule}" foot rules beside
+job fnrule10 4 "$C{fnrule}\\def\\testfnrulelines{10}" foot rules beside
+job fnedge 4 "$C{fnedge}" rules beside
+job tall 8 "$C{tall}" foot beside nofalse
+job gen 4 "$C{gen}" beside
+job ownout 8 "$C{ownout}"
+exit $status
