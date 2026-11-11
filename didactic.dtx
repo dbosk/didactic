@@ -9135,10 +9135,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \if@didactic@keep@inbox\else\ifinner\else
       \ifnum\@didactic@keep@headstate=\@ne
         \global\@didactic@keep@headstate\z@
-        \gdef\@didactic@keep@pending{h}%
       \else
         \if@didactic@keep@endlist\else\if@didactic@keep@asked\else\if@didactic@keepleadin
-          \gdef\@didactic@keep@pending{l}%
           \@didactic@keep@tie
           \if@didactic@keep@movable
             \@didactic@keep@relstart
@@ -9578,19 +9576,6 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % A display in the first paragraph is lines enough, and what follows it in the
 % same paragraph would count its lines from the start: the penalties end there.
 %
-% For a page that ends early for a margin note (\cref{NotesThatDontFit}), the 
-% first paragraph after a heading also leaves a mark, |h|, of a class of its 
-% own (|\@didactic@keepmarks|), and the first paragraph of a list that a 
-% lead-in leads into leaves |l| (set by |\@didactic@keep@listtie| in 
-% |\@didactic@keep@pending|, which also takes the |h| of a list right under a 
-% heading).
-% A tie released for room means that the page may break there if it must, not 
-% that a page may choose to end there; the marks let the early end tell, 
-% whatever the penalties say.
-% The mark is given at the start of the paragraph, in horizontal mode, so 
-% \TeX\ moves it out after the paragraph's first line, where the line's 
-% penalty follows it: it adds no place to break, and changes no page.
-%
 % At the start of the first paragraph the heading is on the page, so we can 
 % measure, in vertical mode (|para/before|), again counting what the page can 
 % shrink.
@@ -9649,8 +9634,6 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % For the same reason the list of penalties is built by expansion.
 %    \begin{macrocode}
 \newcount\@didactic@keep@headstate
-\newmarks\@didactic@keepmarks
-\let\@didactic@keep@pending\@empty
 \newcount\@didactic@keep@owed
 \newcount\@didactic@keep@asked
 \newdimen\@didactic@keep@ptotal
@@ -9802,13 +9785,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \def\@didactic@keep@parabegin{%
   \if@didactic@keep@inbox\else
     \@didactic@keep@relend
-    \ifx\@didactic@keep@pending\@empty\else
-      \marks\@didactic@keepmarks{\@didactic@keep@pending}%
-      \global\let\@didactic@keep@pending\@empty
-    \fi
     \ifcase\@didactic@keep@headstate
     \or
-      \marks\@didactic@keepmarks{h}%
       \@didactic@keep@setclubs
       \global\@didactic@keep@headstate\tw@
     \or
