@@ -433,8 +433,10 @@ test-keep-stale.pdf: test-keep-stale.tex test-keep-stale.sh didactic.sty
 
 # noteoverflow.  break needs pdfTeX or LuaTeX, so these name the engine, except
 # test-noteoverflow-xe, which is about the engine that can't; test-noteoverflow-lua
-# is test-noteoverflow under LuaLaTeX.
-NOTEOVERFLOW_SRC=	test-noteoverflow-contents.tex didactic.sty
+# is test-noteoverflow under LuaLaTeX.  test-noteoverflow.py checks the outcome:
+# from labels at each footnote's mark and in its note, on which page each note is
+# set, and that every note away from its mark is named by a warning.
+NOTEOVERFLOW_SRC=	test-noteoverflow-contents.tex test-noteoverflow.py didactic.sty
 test-noteoverflow.pdf test-noteoverflow-carry.pdf test-noteoverflow-draft.pdf \
 		test-noteoverflow-draftbreak.pdf: PDFLATEX=pdflatex
 test-noteoverflow-lua.pdf: PDFLATEX=lualatex
@@ -444,24 +446,19 @@ for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do \
 	grep -q 'Rerun to get' $(basename $<).log || exit 0; \
 done; echo "$<: references did not settle"; exit 1
 endef
-count_spill=$$(grep -c 'marginfix-spill.*$(1)' $(basename $@).log)
 test-noteoverflow.pdf test-noteoverflow-lua.pdf test-noteoverflow-draftbreak.pdf: %.pdf: %.tex \
 		${NOTEOVERFLOW_SRC}
 	@${settle_many}
 	! grep '^!' $*.log
-	test "$$(grep -c 'marginfix-spill' $*.log)" -eq 0
-	test "$$(grep -c '^\\mfx@yield{' $*.aux)" -gt 0
+	python3 test-noteoverflow.py $* beside
 test-noteoverflow-carry.pdf test-noteoverflow-draft.pdf: %.pdf: %.tex ${NOTEOVERFLOW_SRC}
 	@${settle_many}
 	! grep '^!' $*.log
-	test "${call count_spill,intended}" -gt 0
-	test "${call count_spill,unresolved}" -eq 0
-	test "$$(grep -c '^\\mfx@yield{' $*.aux)" -eq 0
+	python3 test-noteoverflow.py $* carried
 test-noteoverflow-xe.pdf: %.pdf: %.tex ${NOTEOVERFLOW_SRC}
 	@${settle_many}
 	! grep '^!' $*.log
-	test "${call count_spill,unresolved}" -gt 0
-	test "${call count_warn,A margin note from page}" -eq "${call count_spill,unresolved}"
+	python3 test-noteoverflow.py $* warned
 test-noteoverflow-old.pdf: test-noteoverflow-old.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	! grep '^!' test-noteoverflow-old.log
