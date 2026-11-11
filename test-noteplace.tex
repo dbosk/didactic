@@ -1,0 +1,155 @@
+% Test of where a margin note that doesn't fit on the page of its callout goes, and
+% what that does to a heading and to a paragraph's first and last lines.  A note
+% fills the margin of the first page, so the note NOTEY doesn't fit there, and a
+% rule leaves \testroom lines of the page for the text of the case.  See
+% test-noteplace.sh, which runs each case and checks the outcome from the PDF, the
+% labels and the warnings only (test-noteplace.py), whatever the mechanism.  The
+% cases are those of test-yieldkeep (fix-68), which checked marginfix's log lines.
+% NOTEY and its callout carry the labels note-y and callout-y.
+\ifdefined\testclass\else\def\testclass{memoir}\fi
+\ifdefined\testclassopt\else\def\testclassopt{a4paper}\fi
+\documentclass[\testclassopt]{\testclass}
+\ifdefined\testoptions\else\def\testoptions{}\fi
+\ifdefined\testcase\else\def\testcase{}\fi
+\ifdefined\testtall\else\def\testtall{.97}\fi
+\expandafter\PassOptionsToPackage\expandafter{\testoptions}{didactic}
+\usepackage{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\ifdefined\testpre\testpre\fi
+\newcommand\yieldnote[1][]{\label{callout-y}\marginpar{\label{note-y}NOTEY#1}}
+% Where the text column is, for test-noteplace.py (in bp, as pdftotext gives):
+% from the left edge of odd and of even pages, and its width.
+\makeatletter
+\AtBeginDocument{\typeout{noteplace geometry:
+  odd=\strip@pt\dimexpr(1in+\hoffset+\oddsidemargin)*7200/7227\relax\space
+  even=\strip@pt\dimexpr(1in+\hoffset+\evensidemargin)*7200/7227\relax\space
+  width=\strip@pt\dimexpr\textwidth*7200/7227\relax\space
+  top=\strip@pt\dimexpr(1in+\voffset+\topmargin+\headheight+\headsep)*7200/7227\relax\space
+  height=\strip@pt\dimexpr\textheight*7200/7227\relax}}
+\makeatother
+\newcommand\filler{Some words to fill up the rest of this line of the text and
+  also quite a few of the next one, as the words of a paragraph do when it goes
+  on for a while, and there is more to say about the matter at hand here.}
+% Fills up the line after FIRSTLINE, so that what follows is on the second line.
+\newcommand\oneline{Some words to fill up the rest of this line of the text and
+  also quite a few}
+\def\heading{heading}\def\stacked{stacked}\def\second{second}\def\vertical{vertical}
+\def\runin{runin}\def\runintwo{runintwo}\def\club{club}\def\widow{widow}
+\def\middle{middle}
+\def\theoremcase{theorem}\def\headlist{headlist}\def\withother{withother}
+\def\tallheading{tallheading}\def\tallclub{tallclub}\def\tallwidow{tallwidow}
+\def\tallmiddle{tallmiddle}\def\split{split}\def\headthm{headthm}
+% As club and widow, with a document that forbids the lone line.
+\def\clubforbid{clubforbid}\def\widowforbid{widowforbid}
+\ifx\testcase\clubforbid
+  \let\testcase\club
+  \AtBeginDocument{\clubpenalty=10000 \csname @clubpenalty\endcsname=10000 }
+\fi
+\ifx\testcase\widowforbid
+  \let\testcase\widow
+  \AtBeginDocument{\widowpenalty=10000 }
+\fi
+\newcommand\tall{\rule{0pt}{4\baselineskip}}
+\newtheorem{thmx}{THMX}
+\begin{document}
+\ifx\testcase\split
+  % The rest of a split note has a box with no key of a callout: it must not
+  % stop us.  A long instructor's note is in the way of the note after it.
+  \noindent x\ltnote{SPLITNOTE \filler\ \filler\ \filler\ \filler\ \filler\ \filler
+    \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler
+    \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler
+    \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler}
+  text
+  \par\noindent\rule{1cm}{.7\textheight}\par
+  \noindent x\marginpar{ORDINARY} text
+  \par\noindent\rule{1cm}{.1\textheight}\par
+\else\ifdefined\testfirst
+  \testfirst
+\else
+\noindent x\marginpar{TALL\par\rule{1pt}{\testtall\textheight}} text
+\ifdefined\testfootnotefirst\footnote{FOOTA}\fi
+\par\noindent\rule{1cm}{\dimexpr\textheight-\testroom\baselineskip-1\baselineskip}\par
+\fi\fi
+\ifx\testcase\heading
+  \section{HEADINGX}
+  FIRSTLINE\yieldnote{} \filler\ \filler
+\fi
+\ifx\testcase\stacked
+  \section{HEADINGX}
+  \subsection{SUBX}
+  FIRSTLINE\yieldnote{} \filler\ \filler
+\fi
+\ifx\testcase\second
+  \section{HEADINGX}
+  FIRSTLINE.
+
+  SECONDPARA\yieldnote{} \filler\ \filler
+\fi
+\ifx\testcase\vertical
+  \section{HEADINGX}
+  \yieldnote{}
+  FIRSTLINE \filler\ \filler
+\fi
+\ifdefined\testbody\testbody\fi
+\ifx\testcase\withother
+  \section{HEADINGX}
+  FIRSTLINE\yieldnote{} \oneline\ more words\marginpar{NOTEZ} \filler
+\fi
+% A tall line must not change the count of lines around the break.
+\ifx\testcase\tallheading
+  \section{HEADINGX}
+  \tall FIRSTLINE\yieldnote{} \filler\ \filler
+\fi
+\ifx\testcase\tallclub
+  FIRSTLINE \oneline\ more words\yieldnote{} \filler\tall\ \filler
+\fi
+\ifx\testcase\tallwidow
+  FIRSTLINE \filler\ Now the last line of the paragraph, with its
+  note\yieldnote{}\rule{0pt}{3\baselineskip}.
+\fi
+\ifx\testcase\tallmiddle
+  FIRSTLINE \filler\ \filler\yieldnote{} \filler\tall\ \filler\tall\ \filler
+\fi
+\ifx\testcase\headthm
+  \section{HEADINGX}
+  \begin{thmx}
+  FIRSTLINE\yieldnote{} \filler\ \filler
+  \end{thmx}
+\fi
+\ifx\testcase\headlist
+  \section{HEADINGX}
+  \begin{itemize}
+  \item FIRSTLINE\yieldnote{} \filler\ \filler
+  \end{itemize}
+\fi
+\ifx\testcase\theoremcase
+  \begin{thmx}
+  FIRSTLINE\yieldnote{} \filler\ \filler
+  \end{thmx}
+\fi
+\ifx\testcase\runin
+  \paragraph{HEADINGX}
+  FIRSTLINE\yieldnote{} \filler\ \filler
+\fi
+\ifx\testcase\runintwo
+  \paragraph{HEADINGX}
+  FIRSTLINE \oneline\ more words\yieldnote{} \filler
+\fi
+\ifx\testcase\club
+  FIRSTLINE \oneline\ more words\yieldnote{} \filler\ \filler
+\fi
+\ifx\testcase\widow
+  FIRSTLINE \filler\ Now the last line of the paragraph, with its
+  note\yieldnote{}.
+\fi
+\ifx\testcase\middle
+  FIRSTLINE \filler\ \filler\yieldnote{} \filler\ \filler
+\fi
+
+\filler\ \filler\ \filler
+
+\filler\ \filler\ \filler
+
+\newpage
+LASTPAGE
+\end{document}

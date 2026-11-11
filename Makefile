@@ -468,6 +468,14 @@ test-noteoverflow-old.pdf: test-noteoverflow-old.tex didactic.sty
 	test "${call count_warn,option noteoverflow needs marginfix}" -eq 1
 	test "${call count_warn,marginnoteoverflow needs marginfix}" -eq 1
 
+# where a margin note goes that doesn't fit beside its line, and what that does
+# to headings, ties and lone lines; checked by the outcome (test-noteplace.py).
+# Not in all yet: the rows are red until noteoverflow is placed in one pass.
+.PHONY: test-noteplace
+test-noteplace: test-noteplace.tex test-noteplace-slides.tex test-noteplace.sh \
+		test-noteplace.py didactic.sty
+	./test-noteplace.sh
+
 # the place of the margin column in the log against where a note is printed.
 test-margin-log.pdf test-margin-log-article.pdf: %.pdf: %.tex test-margin-log.tex \
 		test-margin-log.sh didactic.sty
@@ -614,6 +622,10 @@ clean:
 		${RM} $$f.pdf $$f.aux $$f.log $$f.unq $$f.pytxcode $$f.out $$f.toc; \
 	done
 	${RM} test-keep-heading-?.txt test-keep-heading3-?.txt test-keep-stale-room.tex test-keep-stale-opt.tex
+	for f in $(basename $(wildcard test-noteplace-*.log)); do \
+		${RM} $$f.pdf $$f.aux $$f.aux.old $$f.log $$f.unq $$f.pytxcode \
+			$$f.nav $$f.snm $$f.toc $$f.out; \
+	done
 	${RM} ${TEST_KEEPCHECK:=.pdf} ${TEST_KEEPCHECK:=.aux} ${TEST_KEEPCHECK:=.log}
 	${RM} ${TEST_KEEPCHECK:=.unq} ${TEST_KEEPCHECK:=.out}
 	${RM} ${TEST_KEEPCHECK:=.pytxcode} ${TEST_KEEPCHECK:=-?.txt}
