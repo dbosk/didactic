@@ -110,7 +110,7 @@ off = facts["note"] != facts["callout"]
 # is: a log line, not a warning, so it counts here only to tell the installed
 # build's silence apart from a note that went unnoticed).
 joined = re.sub(r"\n\((?:marginfix|didactic)\) *", " ", log).replace("\n", "")
-warned = bool(re.search(r"[Mm]argin note called out at|Margin note from .*? moved|"
+warned = bool(re.search(r"[Mm]argin note called out at.{0,160}? on page \d+ is set on page|Margin note from .{0,160}? moved from page|"
                         r"A margin note from page", joined))
 logged = bool(re.search(r"^marginfix-spill: .*unresolved", log, re.M))
 for e in expect:
