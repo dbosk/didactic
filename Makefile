@@ -491,6 +491,18 @@ test-footreuse-spread: test-footreuse-spread.tex test-footreuse-spread.sh \
 		test-footreuse-spread.py test-footcite.bib didactic.sty
 	./test-footreuse-spread.sh
 
+# noteoverflow=foot: footnotes that don't fit in the margin at the foot of their
+# page, with citations, the copy that isn't printed quiet (test-noteoverflow-foot),
+# and in the situations of marginfix's footcheck (test-notefoot); checked by the
+# outcome.  Not in all yet: the rows are red until notes are placed in one pass.
+.PHONY: test-noteoverflow-foot test-notefoot
+test-noteoverflow-foot: test-noteoverflow-foot.tex test-noteoverflow-foot-hbox.tex \
+		test-noteoverflow-foot.sh test-noteoverflow-foot.py didactic.sty
+	./test-noteoverflow-foot.sh
+test-notefoot: test-notefoot.tex test-notefoot-dense.tex test-notefoot-tall.tex \
+		test-notefoot.sh test-notefoot.py didactic.sty
+	./test-notefoot.sh
+
 # the place of the margin column in the log against where a note is printed.
 test-margin-log.pdf test-margin-log-article.pdf: %.pdf: %.tex test-margin-log.tex \
 		test-margin-log.sh didactic.sty
@@ -638,7 +650,8 @@ clean:
 		${RM} $$f.pdf $$f.aux $$f.log $$f.unq $$f.pytxcode $$f.out $$f.toc; \
 	done
 	${RM} test-keep-heading-?.txt test-keep-heading3-?.txt test-keep-stale-room.tex test-keep-stale-opt.tex
-	for f in $(basename $(wildcard test-noteplace-*.log test-footreuse-spread-*.log)); do \
+	for f in $(basename $(wildcard test-noteplace-*.log test-footreuse-spread-*.log \
+			test-noteoverflow-foot-*.log test-notefoot-*.log)); do \
 		${RM} $$f.pdf $$f.aux $$f.aux.old $$f.log $$f.unq $$f.pytxcode \
 			$$f.nav $$f.snm $$f.toc $$f.out $$f.bbl $$f.bcf $$f.blg $$f.run.xml; \
 	done

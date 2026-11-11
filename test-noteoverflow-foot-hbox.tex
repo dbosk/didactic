@@ -1,0 +1,31 @@
+% Test of noteoverflow=foot (didactic): the copy of a footnote that isn't printed
+% says nothing in the log, and the one printed says what TeX would.  Each margin
+% footnote is set twice under foot, in the margin and for the foot, and either may
+% be printed.  On page 1 the margin is free: footnote A, with a token too wide for
+% the margin or the text, and footnote D, with a line ended by \break, which is
+% underfull only when justified at the foot's width, go in the margin.  On page 2 a
+% tall note fills the margin: footnotes B (too wide) and C (\break) go to the foot.
+% See test-noteoverflow-foot.sh, which builds it with foot (the default), with
+% noteoverflow=break and with carry, and test-noteoverflow-foot.py hbox.
+\documentclass[a4paper]{memoir}
+\ifdefined\testoptions\else\def\testoptions{}\fi
+\expandafter\PassOptionsToPackage\expandafter{\testoptions}{didactic}
+\usepackage{didactic}
+\newcommand\filler{Some words to fill up the rest of this line of the text and
+  also quite a few of the next one, as the words of a paragraph do.}
+\pagestyle{plain}
+\begin{document}
+\filler\footnote{Note A, with
+TOKENATOOWIDEFORTHEMARGINORTHETEXTXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+in it.} \filler\ \filler
+
+\filler\footnote{Note D, a short line\break and then the rest.} \filler\ \filler
+\clearpage
+\noindent x\marginpar{TALL\par\rule{1pt}{.97\textheight}} \filler\ \filler
+
+\filler\footnote{Note B, with
+TOKENBTOOWIDEFORTHEMARGINORTHETEXTXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+in it.} \filler\ \filler
+
+\filler\footnote{Note C, a short line\break and then the rest.} \filler\ \filler
+\end{document}
