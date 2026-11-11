@@ -151,6 +151,14 @@
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
 % }
+% \changes{v2.17}{2026/11/11}{%
+%   \texttt{noteoverflow} is decided by \textsf{didactic} itself, where the
+%   note is called out, in one run: \texttt{foot} (the default), \texttt{break}
+%   or \texttt{carry}; it no longer needs \textsf{marginfix} 1.6 or records in
+%   the \texttt{.aux} file.  Adds \texttt{notemaxgap}.  \textsf{didactic}
+%   checks the names of \textsf{marginfix} and the kernel it relies on and
+%   falls back to \texttt{carry}, with a warning, when one is missing.
+% }
 % \changes{v2.16.1}{2026/11/09}{%
 %   \texttt{biburlpenalty} is off unless given (\#89).
 %   With it, a URL breaks after a letter or a digit only in a piece wider than 
@@ -711,28 +719,28 @@
 % Even so, the notes of a page can be more than its margin holds, say in a 
 % paragraph dense with citations, whose footnotes are in the margin too.
 % Then a note moves to the next page, away from its mark.
-% With |noteoverflow=break|, the default, the text gives way instead: the 
-% page ends before the line that calls out the first note that doesn't fit, 
-% in the next run, so that line and its note start the next page.
-% That can move more text and more notes, so a page dense with notes can take 
-% several runs, up to about ten; \LaTeX\ asks for a rerun until they are done.
-% A page that ends that early is a little shorter, but its margin is full; 
-% if its text fills less than half of it, \textsf{marginfix} warns, naming 
-% the page.
-% With |noteoverflow=carry| the notes move to the next page as before, which 
-% is the default with the option |draft|.
-%
-% This needs \textsf{marginfix} 1.6 or later.
-% With an older one the option, and |\marginnoteoverflow| below, do nothing and 
-% say so in a warning.
-% It also needs pdf\LaTeX\ or Lua\LaTeX: with Xe\LaTeX\ the notes are carried, and 
-% a warning names the pages of each.
+% \textsf{didactic} decides what happens to such a note where it is called 
+% out, in the same run.
+% With |noteoverflow=foot|, the default, a footnote that doesn't fit in the 
+% margin goes to the foot of its page, if it fits there; any other note, or a 
+% footnote that doesn't fit at the foot either, makes the page end before the 
+% line that calls it out, so that the line and its note start the next page.
+% With |noteoverflow=break| no footnote goes to the foot: the page ends early 
+% for every note that doesn't fit.
+% A page ends early only where the page may end anyway (never between a 
+% heading and its lines, nor where the document forbids a lone line) and only 
+% if it leaves no more than |notemaxgap| lines empty; otherwise the note is 
+% carried to a later page, with a warning that names it and says why.
+% With |noteoverflow=carry|, the default with the option |draft|, every note 
+% that doesn't fit is carried, with a warning.
 % The mode is read where a note is called out, and obeys groups, so 
 % |{\marginnoteoverflow{carry}| ...|}| lets the notes of one passage move to 
-% the next page, while the rest of the document keeps |break|.
-% \textsf{marginfix} logs every note that is still carried to a later page, 
-% as |marginfix-spill: page=|\meta{p}| to=|\meta{q}| intended| for a note in 
-% the mode |carry| and |... unresolved| otherwise.
+% the next page, while the rest of the document keeps its mode.
+%
+% \DescribeOpt{notemaxgap}
+% |notemaxgap| is the most lines a page may be left short for a note.
+% Unset, it is |keepmaxgap|, so that one number bounds every short page, 
+% whatever moved; set it to |none| for no limit.
 %
 % Outside |beamer|, \textsf{didactic} writes where the margin column is to 
 % the log, once, as |didactic-margin: odd=431.65 even=431.65 width=156.7|: 
@@ -1991,21 +1999,32 @@
 % \end{option}
 %
 % \begin{option}{noteoverflow}
-% The |noteoverflow| option is passed on to \textsf{marginfix}'s 
-% |\marginnoteoverflow| (version 1.6 and later), see below.
-% We default to |break|, unlike \textsf{marginfix}: a footnote in the 
-% margin must stay with its mark, and when the margin of a page can't hold 
-% the notes of its text even after |notepriority| has moved the commentary, 
-% the text has to give way.
-% That takes several runs, each moving text that the next run may have to move 
-% again, so with |draft| the default is |carry|, as with the other 
-% options that take runs; see the option |draft|, below, for where that is 
-% decided.
+% \begin{option}{notemaxgap}
+% The |noteoverflow| option says what happens to a margin note that doesn't 
+% fit beside its line: |foot|, |break| or |carry|, see 
+% \cref{NotesThatDontFit}.
+% We default to |foot|: a footnote in the margin must stay on the page of its 
+% mark, and the foot of that page is the place readers know for it; a note 
+% that has no other place than the next page makes its line go there with it.
+% With |draft| the default is |carry|, as with the other options that move 
+% text to keep things together; see the option |draft|, below, for where that 
+% is decided.
+% |notemaxgap| bounds the lines a page may be left short for a note; empty, it 
+% follows |keepmaxgap|.
 %    \begin{macrocode}
 \newcommand\@didactic@noteoverflow{}
 \DeclareOptionX{noteoverflow}{%
   \renewcommand\@didactic@noteoverflow{#1}}
+\newcommand\@didactic@notemaxgap{}
+\DeclareOptionX{notemaxgap}{%
+  \renewcommand\@didactic@notemaxgap{#1}}
+\newcommand\@didactic@checkoverflow[1]{%
+  \IfStrEqCase{#1}{{foot}{}{break}{}{carry}{}}[%
+    \PackageError{didactic}{Unknown value `#1' for noteoverflow}%
+      {Use foot, break or carry.}%
+    \def#1{carry}]}
 %    \end{macrocode}
+% \end{option}
 % \end{option}
 %
 % \begin{option}{marginfloatorder}
@@ -2114,12 +2133,12 @@
   \ifdefstring{\@didactic@draft}{draft}
     {\renewcommand\@didactic@fnreusemode{off}}
     {\renewcommand\@didactic@fnreusemode{compact}}}{}
-\newif\if@didactic@noteoverflowgiven
 \ifdefempty{\@didactic@noteoverflow}{%
   \ifdefstring{\@didactic@draft}{draft}
     {\renewcommand\@didactic@noteoverflow{carry}}
-    {\renewcommand\@didactic@noteoverflow{break}}%
-}{\@didactic@noteoverflowgiventrue}
+    {\renewcommand\@didactic@noteoverflow{foot}}%
+}{}
+\@didactic@checkoverflow\@didactic@noteoverflow
 \newif\if@didactic@fnreuseoff
 \newcount\@didactic@fnthreshold
 \IfStrEqCase{\@didactic@fnreusemode}{%
@@ -4427,59 +4446,146 @@
     \expandafter\marginnotebesidefloats\expandafter
       {\@didactic@notebesidefloats}%
   \fi
-  \ifdefined\marginnoteoverflow
-    \expandafter\marginnoteoverflow\expandafter
-      {\@didactic@noteoverflow}%
-  \else
-    \if@didactic@noteoverflowgiven
-      \PackageWarningNoLine{didactic}{%
-        The option noteoverflow needs marginfix 1.6 or later;\MessageBreak
-        it has no effect with this one}%
-    \fi
-    \@ifclassloaded{beamer}
-      {\let\marginnoteoverflow\@gobble}
-      {\let\marginnoteoverflow\@didactic@oldmarginfix}%
-  \fi}
-\def\@didactic@oldmarginfix#1{%
-  \PackageWarning{didactic}{%
-    \string\marginnoteoverflow\space needs marginfix 1.6 or
-    later;\MessageBreak
-    it has no effect with this one}}
+  \@didactic@takeoverflow}
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\MFX@fit@spilled}
-% |noteoverflow=break| needs |\vadjust pre|, which Xe\TeX\ doesn't have.
-% There \textsf{marginfix} carries the notes that don't fit to a later page, and 
-% says so for a note that hits the limit, but otherwise only in the log.
-% We say it for every such note: where it was called out and where it ended up.
-% The hook is \textsf{marginfix}'s macro for a note that is carried, from 
-% version~1.6; a note in the mode |carry| was meant to be.
-% If it isn't there, we say once that the mode can't work.
+% \subsection{Notes that don't fit}\label{NotesThatDontFit}
+%
+% A margin note that doesn't fit beside its line is \textsf{didactic}'s to 
+% place, by the option |noteoverflow|: at the foot (a footnote), on the next 
+% page with its line (the page ends early), or carried to a later page with a 
+% warning.
+% The decision is taken where the note is called out, in the kernel's special 
+% output for the note, and once only: nothing about it is written to the 
+% |.aux| file, so the notes are in place in the run that sets them.
+% \textsf{marginfix} keeps the margin's own mechanics (the margin is built 
+% from its list of waiting notes, deferrable notes give way, a note taller 
+% than the margin is split); it gets nothing that only \textsf{didactic} 
+% uses.
+% So \textsf{didactic} reads a few of \textsf{marginfix}'s internals, and 
+% patches a few of the kernel's, and must notice when one of them has changed.
+%
+% \subsubsection{What \textsf{didactic} reads of \textsf{marginfix} and of 
+% the kernel}
+%
+% Each name below is checked when the document starts, after every package 
+% has made its own changes; if one is missing, or can't be patched, 
+% \textsf{didactic} says which in one warning and places no note itself: 
+% |noteoverflow| becomes |carry|, which is what \textsf{marginfix} does 
+% alone.
+% A name some versions of \textsf{marginfix} don't have is optional: without 
+% it \textsf{didactic} does a little less, as said for each.
+% \begin{description}
+% \item[\texttt{\textbackslash @specialoutput}] the kernel's output for floats 
+%   and margin notes: we patch the place where it puts the page so far back 
+%   and hands the note to |\@addmarginpar|, to decide there; and the place 
+%   where it adds a float, for the room the margin notes take.
+% \item[\texttt{\textbackslash @makecol}] where the page is built: we read 
+%   which callouts are on the page before the margin is set.
+% \item[\texttt{\textbackslash @xympar}] where the kernel makes a margin note: 
+%   we mark its callout.
+% \item[\texttt{\textbackslash MFX@combinefloats@before}] where 
+%   \textsf{marginfix} builds the margin of a page.
+% \item[\texttt{\textbackslash mfx@marginlist}] its list of waiting notes, 
+%   each |\mfx@build@note|\meta{box}\meta{box}|{|\meta{position}|}|,
+%   with |\mfx@build@skip{|\meta{dimen}|}| and |\mfx@build@clear| between
+%   them: we read how much room the notes so far take.
+% \item[\texttt{\textbackslash MFX@marginside}] (optional) in which margin a 
+%   page's notes go; without it (\textsf{marginfix} 1.2) we ask the kernel's 
+%   switches, as for the column of the margin in the log, below.
+% \item[\texttt{\textbackslash MFX@minus@inf}] the position of a note moved to 
+%   the top of a page.
+% \item[\texttt{\textbackslash mfx@placeid}] (optional) the number of the next 
+%   note \textsf{marginfix} places, which must advance when we take a note 
+%   away from it; \textsf{marginfix} 1.2 doesn't number its notes.
+% \item[\texttt{\textbackslash MFX@check@page@}] (optional) 
+%   \textsf{marginfix}'s warning for a note set on another page than its 
+%   callout, to which we add why; without it we warn ourselves.
+% \end{description}
+% The test |test-marginfix-interface| builds a document with the 
+% \textsf{marginfix} found, with \TeX~Live's \textsf{marginfix} 1.2, on the 
+% oldest kernel \textsf{didactic} asks for, and with the kernel's 
+% |\@specialoutput| changed, and fails if the outcome isn't the one above.
+%
+% \begin{macro}{\@didactic@needmacro,\@didactic@needpatch,\@didactic@wish}
+% A required name that is missing, or a patch that doesn't apply, is added 
+% to |\@didactic@missing|; an optional one to |\@didactic@lacking|.
+% A patch is checked with \textsf{etoolbox}'s |\ifpatchable|, which tests the 
+% very text we replace, so that a kernel that has moved it is caught here and 
+% not by a page set wrong.
 %    \begin{macrocode}
-\def\@didactic@spillwarning#1{%
-  \expandafter\ifx\csname mfx@bo@#1\endcsname\MFX@break
+\let\@didactic@missing\@empty
+\let\@didactic@lacking\@empty
+\newcommand\@didactic@needmacro[1]{%
+  \ifdefined#1\else\@didactic@miss\@didactic@missing#1\fi}
+\newcommand\@didactic@needpatch[2]{%
+  \ifpatchable{#1}{#2}{}{\@didactic@miss\@didactic@missing#1}}
+\newcommand\@didactic@wish[1]{%
+  \ifdefined#1\else\@didactic@miss\@didactic@lacking#1\fi}
+\newcommand\@didactic@miss[2]{%
+  \ifx#1\@empty\else\xdef#1{#1,}\fi
+  \xdef#1{#1\space\string#2}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@checkinterface}
+% The list itself.
+% It runs at the end of |\begin{document}|, after the |\AtBeginDocument| code 
+% of every package, since \textsf{marginfix} makes some of its changes there.
+% Under |beamer| there are no margin notes, and nothing to check.
+% The outcome goes to the log in one line, |didactic-interface: ok| or 
+% |didactic-interface: carry (|\meta{names}|)|, for the test.
+%    \begin{macrocode}
+\newif\if@didactic@noteplace
+\newcommand\@didactic@checkinterface{%
+  \@didactic@needpatch\@specialoutput
+    {\unvbox\@holdpg\@next\@currbox\@currlist}%
+  \@didactic@needpatch\@specialoutput{\@reinserts\@addtocurcol}%
+  \@didactic@needmacro\@makecol
+  \@didactic@needmacro\@xympar
+  \@didactic@needmacro\MFX@combinefloats@before
+  \@didactic@needmacro\mfx@marginlist
+  \@didactic@needmacro\MFX@minus@inf
+  \@didactic@wish\MFX@marginside
+  \@didactic@wish\mfx@placeid
+  \@didactic@wish\MFX@check@page@
+  \ifx\@didactic@missing\@empty
+    \global\@didactic@noteplacetrue
+    \typeout{didactic-interface: ok%
+      \ifx\@didactic@lacking\@empty\else
+        \space(without\@didactic@lacking)\fi}%
+  \else
+    \global\@didactic@noteplacefalse
+    \gdef\@didactic@noteoverflow{carry}%
     \PackageWarningNoLine{didactic}{%
-      A margin note from page \csname mfx@sp@#1\endcsname\space is
-      on page \the\c@page:\MessageBreak
-      noteoverflow=break needs pdfLaTeX or LuaLaTeX}%
-  \fi
-  \@didactic@MFX@fit@spilled{#1}}
-\AtBeginDocument{%
-  \ifdefined\MFX@break
-    \ifdefined\pdftexversion\else\ifdefined\directlua\else
-      \ifdefstring{\@didactic@noteoverflow}{break}{%
-        \ifdefined\MFX@fit@spilled
-          \let\@didactic@MFX@fit@spilled\MFX@fit@spilled
-          \let\MFX@fit@spilled\@didactic@spillwarning
-        \else
-          \PackageWarningNoLine{didactic}{%
-            noteoverflow=break needs pdfLaTeX or LuaLaTeX;\MessageBreak
-            with this engine margin notes may move to a later page}%
-        \fi
-      }{}%
-    \fi\fi
+      Can't place margin notes that don't fit:\MessageBreak
+      marginfix or the kernel has changed%
+      \@didactic@missing;\MessageBreak
+      noteoverflow is carry}%
+    \typeout{didactic-interface: carry (\@didactic@missing)}%
   \fi}
+\@ifclassloaded{beamer}{}{%
+  \AddToHook{begindocument/end}{\@didactic@checkinterface}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\marginnoteoverflow}
+% |\marginnoteoverflow{|\meta{mode}|}| sets the mode for what follows, in its 
+% group.
+% A \textsf{marginfix} with a |\marginnoteoverflow| of its own (the 
+% \texttt{margin-fit} layer of the fork, 1.6 and later) would decide too, 
+% from records in the |.aux| file; we set it to |carry|, which makes it place 
+% nothing itself, and replace the command with ours.
+% |\@didactic@takeoverflow| runs at the end of the package, when 
+% \textsf{marginfix} is loaded.
+%    \begin{macrocode}
+\newcommand\@didactic@takeoverflow{%
+  \@ifclassloaded{beamer}{\let\marginnoteoverflow\@gobble}{%
+    \ifdefined\marginnoteoverflow\marginnoteoverflow{carry}\fi
+    \def\marginnoteoverflow##1{%
+      \def\@didactic@noteoverflow{##1}%
+      \@didactic@checkoverflow\@didactic@noteoverflow}}}
 %    \end{macrocode}
 % \end{macro}
 %

@@ -35,7 +35,7 @@ TEST_KEEPCHECK=		test-keep-leadin test-keep-leadin-off test-keep-overfull \
 			test-keep-parted
 
 .PHONY: all
-all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
+all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-marginfix-interface test-footcite.pdf \
 	test-footcite-twoside.pdf test-footcite-memoir.pdf test-run.pdf \
 	test-note-heading.pdf test-pair.pdf test-pair-slides.pdf \
 	test-sidecap.pdf test-sidecap-off.pdf \
@@ -472,8 +472,15 @@ test-noteoverflow-xe.pdf: %.pdf: %.tex ${NOTEOVERFLOW_SRC}
 test-noteoverflow-old.pdf: test-noteoverflow-old.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	! grep '^!' test-noteoverflow-old.log
-	test "${call count_warn,option noteoverflow needs marginfix}" -eq 1
-	test "${call count_warn,marginnoteoverflow needs marginfix}" -eq 1
+	test "${call count_warn,needs marginfix}" -eq 0
+	grep -q '^didactic-interface: ok' test-noteoverflow-old.log
+
+# what didactic reads of marginfix and the kernel is there, with the shape it
+# expects, or didactic says which isn't and carries the notes (see the script).
+test-marginfix-interface: test-marginfix-interface.tex \
+		test-marginfix-interface.sh didactic.sty
+	./test-marginfix-interface.sh
+.PHONY: test-marginfix-interface
 
 # where a margin note goes that doesn't fit beside its line, and what that does
 # to headings, ties and lone lines; checked by the outcome (test-noteplace.py).
@@ -651,7 +658,8 @@ clean:
 	done
 	${RM} test-keep-heading-?.txt test-keep-heading3-?.txt test-keep-stale-room.tex test-keep-stale-opt.tex
 	for f in $(basename $(wildcard test-noteplace-*.log test-footreuse-spread-*.log \
-			test-noteoverflow-foot-*.log test-notefoot-*.log)); do \
+			test-noteoverflow-foot-*.log test-notefoot-*.log \
+			test-marginfix-interface-*.log)); do \
 		${RM} $$f.pdf $$f.aux $$f.aux.old $$f.log $$f.unq $$f.pytxcode \
 			$$f.nav $$f.snm $$f.toc $$f.out $$f.bbl $$f.bcf $$f.blg $$f.run.xml; \
 	done
