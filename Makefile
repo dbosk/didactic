@@ -435,15 +435,25 @@ test-keep-stale.pdf: test-keep-stale.tex test-keep-stale.sh didactic.sty
 # test-noteoverflow-xe, which is about the engine that can't; test-noteoverflow-lua
 # is test-noteoverflow under LuaLaTeX.  test-noteoverflow.py checks the outcome:
 # from labels at each footnote's mark and in its note, on which page each note is
-# set, and that every note away from its mark is named by a warning.
+# set, and that every note away from its mark is named by a warning.  Runs to
+# settle are a requirement: each document is built first with noteoverflow=carry
+# (\testfloor, job <name>-floor), which moves no note for a page that ends early,
+# and may then take at most one run more than that floor.
 NOTEOVERFLOW_SRC=	test-noteoverflow-contents.tex test-noteoverflow.py didactic.sty
 test-noteoverflow.pdf test-noteoverflow-carry.pdf test-noteoverflow-draft.pdf \
 		test-noteoverflow-draftbreak.pdf: PDFLATEX=pdflatex
 test-noteoverflow-lua.pdf: PDFLATEX=lualatex
 define settle_many
+floor=15; for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do \
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode \
+		-jobname=$(basename $<)-floor "\def\testfloor{}\input{$<}" || exit 1; \
+	grep -q 'Rerun to get' $(basename $<)-floor.log || { floor=$$i; break; }; \
+done; \
 for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do \
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $< || exit 1; \
-	grep -q 'Rerun to get' $(basename $<).log || exit 0; \
+	grep -q 'Rerun to get' $(basename $<).log && continue; \
+	test $$i -le $$((floor + 1)) && exit 0; \
+	echo "$<: $$i runs to settle, floor $$floor"; exit 1; \
 done; echo "$<: references did not settle"; exit 1
 endef
 test-noteoverflow.pdf test-noteoverflow-lua.pdf test-noteoverflow-draftbreak.pdf: %.pdf: %.tex \
@@ -623,7 +633,8 @@ clean:
 			${SWEEP_ALL:%=test-keep-sweep-%} ${TEST_KEEP_NOWEB} \
 			${TEST_KEEP_SMALL} \
 			test-keep-flush test-keep-stale \
-			test-block-nested ${TEST_KEEP_CHAPTER} ${TEST_NOTEOVERFLOW}; do \
+			test-block-nested ${TEST_KEEP_CHAPTER} ${TEST_NOTEOVERFLOW} \
+			${TEST_NOTEOVERFLOW:=-floor}; do \
 		${RM} $$f.pdf $$f.aux $$f.log $$f.unq $$f.pytxcode $$f.out $$f.toc; \
 	done
 	${RM} test-keep-heading-?.txt test-keep-heading3-?.txt test-keep-stale-room.tex test-keep-stale-opt.tex

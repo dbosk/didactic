@@ -18,6 +18,9 @@
 \documentclass[twoside]{\testclass}
 \usepackage[backend=biber,autocite=footnote,citestyle=verbose,style=verbose]{biblatex}
 \usepackage{csquotes}
+% \testfloor: the same document with noteoverflow=carry, for the runs LaTeX needs
+% without moving any note (the floor of the runs to settle).
+\ifdefined\testfloor\PassOptionsToPackage{noteoverflow=carry}{didactic}\fi
 \usepackage{didactic}
 \addbibresource{test-footcite.bib}
 \def\same{same}\def\cross{cross}\def\parted{parted}

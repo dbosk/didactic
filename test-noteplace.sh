@@ -6,7 +6,10 @@
 # each is kept, the checks are the PDF, the labels and the warnings.
 #
 # Each job runs until its .aux file stops changing (at most $MAXRUNS runs, 8);
-# a job that doesn't settle, or has an error, fails.  $ENGINE (pdflatex), $CASES
+# a job that doesn't settle, or has an error, fails.  Runs to settle are a
+# requirement: each job is built again with noteoverflow=carry (\testfloor, job
+# <job>-floor), which moves no note for a page that ends early, and may take at
+# most one run more than that floor.  $ENGINE (pdflatex), $CASES
 # (names to run; all by default) and $PRE (TeX code put before the document, say
 # to load another implementation) can be set; RECHECK=1 checks the jobs there are
 # again without building them.  Run from the repository after make didactic.sty.
@@ -48,7 +51,11 @@ settle() { # as run; sets $settled and $runs
 check() {
   name=$1; j=$job-$name
   [ -z "$CASES" ] || case " $CASES " in *" $name "*) ;; *) return;; esac
+  floor=-
   if [ -n "$RECHECK" ]; then settled=yes; runs=-; else
+    rm -f "$j-floor.aux"
+    settle "$j-floor" "$2" "$3" "$4" "\\def\\testfloor{}$6"
+    floor=$runs
     rm -f "$j.aux" "$j.pdf"
     settle "$j" "$2" "$3" "$4" "$6"
   fi
@@ -57,8 +64,12 @@ check() {
     echo "didactic noteplace test: $name FAIL (settled: $settled after $runs runs, errors: $errors)"
     status=1; return
   fi
+  if [ "$floor" != - ] && [ "$runs" -gt $((floor + 1)) ]; then
+    echo "didactic noteplace test: $name FAIL ($runs runs, floor $floor)"
+    status=1; return
+  fi
   if res=$(python3 test-noteplace.py "$j" "$5"); then
-    echo "didactic noteplace test: $name PASS ($runs runs) $res"
+    echo "didactic noteplace test: $name PASS ($runs runs, floor $floor) $res"
   else
     echo "didactic noteplace test: $name FAIL ($runs runs) $res"; status=1
   fi

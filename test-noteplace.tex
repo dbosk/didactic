@@ -13,6 +13,9 @@
 \ifdefined\testcase\else\def\testcase{}\fi
 \ifdefined\testtall\else\def\testtall{.97}\fi
 \expandafter\PassOptionsToPackage\expandafter{\testoptions}{didactic}
+% \testfloor: the same document with noteoverflow=carry, for the runs LaTeX needs
+% without moving any note (the floor of the runs to settle).
+\ifdefined\testfloor\PassOptionsToPackage{noteoverflow=carry}{didactic}\fi
 \usepackage{didactic}
 \usepackage[noamsthm,notheorems]{beamerarticle}
 \ifdefined\testpre\testpre\fi
