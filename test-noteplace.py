@@ -24,6 +24,8 @@ test-noteplace.tex writes to the log.  EXPECT is one of:
   limitwarn   if NOTEY is off its callout's page, a warning names the limit
               (notemaxgap).
   continued   the rest of a split note is marked as continued.
+  gap=N       page 1 leaves at most N lines empty under its last line of text
+              (the limit on empty space, notemaxgap, honoured).
 Prints one line, "PASS" or "FAIL" with what failed, and the facts.
 """
 import re
@@ -102,6 +104,9 @@ def widow():
 facts = {"callout": label("callout-y"), "note": label("note-y"), "pages": len(pages)}
 fails = []
 off = facts["note"] != facts["callout"]
+if facts["callout"] is None or facts["note"] is None:
+    if any(e in ("kept", "warned", "limitwarn") for e in expect):
+        fails.append("no labels callout-y and note-y")
 # The warnings that say a margin note is off its callout's page, read from the
 # log with the continuation prefixes taken out: marginfix's ("Margin note called
 # out at", "The margin note called out at", "Margin note from ... moved"),
@@ -133,6 +138,12 @@ for e in expect:
         fails.append("a line alone at a page break without a warning")
     elif e == "limitwarn" and off and "notemaxgap" not in joined:
         fails.append("note-y off its page without a warning naming notemaxgap")
+    elif e.startswith("gap=") and pages:
+        ys = [y for w, x, y, body in pages[0] if body]
+        line = 12 * 72 / 72.27
+        empty = (geo["top"] + geo["height"] - max(ys)) / line - 0.5 if ys else 99
+        if empty > int(e[4:]) + 0.5:
+            fails.append("page 1 leaves %.1f lines empty, more than %s" % (empty, e[4:]))
     elif e == "continued" and not re.search(r"continued|forts", " ".join(w[0] for ws in pages for w in ws)):
         fails.append("no continued note")
 facts["club"], facts["widow"], facts["warned"], facts["logged"] = club(), widow(), warned, logged

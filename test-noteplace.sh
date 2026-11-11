@@ -104,6 +104,14 @@ check widow widow 7 '' "kept,lonewarn"
 check clubforbid clubforbid 4 '' "$W,noclub"
 check widowforbid widowforbid 7 '' "$W,nowidow"
 check clubzero clubforbid 4 'notemaxgap=0' "$W,noclub,limitwarn"
+# The limit for a note on the last lines of a page (footcheck's lastlimit and
+# limit): ending the page before THIRD leaves two lines empty, more than
+# notemaxgap=1 allows, so the note goes on, with a warning naming the limit; at
+# notemaxgap=2 the page may end there.  The tall note leaves less than a line of
+# the margin free, so NOTEY fits beside no line of page 1.
+L4='\def\testtall{.985}\def\testbody{FIRSTLINE\newline SECOND\newline THIRD\yieldnote{}\newline FOURTH \filler}'
+check lastlimit x 4 'notemaxgap=1' "$W,limitwarn,gap=1" "$L4"
+check lastroom x 4 'notemaxgap=2' "kept,lonewarn,gap=2" "$L4"
 # Nothing in the way: the note stays with its line.
 check runin runin 4 '' kept,lonewarn
 check theorem theorem 4 '' kept,lonewarn
