@@ -155,7 +155,7 @@
 %   \texttt{noteoverflow} is decided by \textsf{didactic} itself, where the
 %   note is called out, in one run: \texttt{foot} (the default), \texttt{break}
 %   or \texttt{carry}; it no longer needs \textsf{marginfix} 1.6 or records in
-%   the \texttt{.aux} file.  Adds \texttt{notemaxgap}.  \textsf{didactic}
+%   the \texttt{.aux} file.  \textsf{didactic}
 %   checks the names of \textsf{marginfix} and the kernel it relies on and
 %   falls back to \texttt{carry}, with a warning, when one is missing.
 % }
@@ -729,18 +729,13 @@
 % for every note that doesn't fit.
 % A page ends early only where the page may end anyway (never between a 
 % heading and its lines, nor where the document forbids a lone line) and only 
-% if it leaves no more than |notemaxgap| lines empty; otherwise the note is 
+% if it leaves no more than |keepmaxgap| lines empty; otherwise the note is 
 % carried to a later page, with a warning that names it and says why.
 % With |noteoverflow=carry|, the default with the option |draft|, every note 
 % that doesn't fit is carried, with a warning.
 % The mode is read where a note is called out, and obeys groups, so 
 % |{\marginnoteoverflow{carry}| ...|}| lets the notes of one passage move to 
 % the next page, while the rest of the document keeps its mode.
-%
-% \DescribeOpt{notemaxgap}
-% |notemaxgap| is the most lines a page may be left short for a note.
-% Unset, it is |keepmaxgap|, so that one number bounds every short page, 
-% whatever moved; set it to |none| for no limit.
 %
 % Outside |beamer|, \textsf{didactic} writes where the margin column is to 
 % the log, once, as |didactic-margin: odd=431.65 even=431.65 width=156.7|: 
@@ -1999,7 +1994,6 @@
 % \end{option}
 %
 % \begin{option}{noteoverflow}
-% \begin{option}{notemaxgap}
 % The |noteoverflow| option says what happens to a margin note that doesn't 
 % fit beside its line: |foot|, |break| or |carry|, see 
 % \cref{NotesThatDontFit}.
@@ -2009,24 +2003,18 @@
 % With |draft| the default is |carry|, as with the other options that move 
 % text to keep things together; see the option |draft|, below, for where that 
 % is decided.
-% |notemaxgap| bounds the lines a page may be left short for a note; empty, it 
-% follows |keepmaxgap|.
 %    \begin{macrocode}
 \newcommand\@didactic@noteoverflow{}
 \newif\if@didactic@noteoverflowgiven
 \DeclareOptionX{noteoverflow}{%
   \renewcommand\@didactic@noteoverflow{#1}%
   \@didactic@noteoverflowgiventrue}
-\newcommand\@didactic@notemaxgap{}
-\DeclareOptionX{notemaxgap}{%
-  \renewcommand\@didactic@notemaxgap{#1}}
 \newcommand\@didactic@checkoverflow[1]{%
   \IfStrEqCase{#1}{{foot}{}{break}{}{carry}{}}[%
     \PackageError{didactic}{Unknown value `#1' for noteoverflow}%
       {Use foot, break or carry.}%
     \def#1{carry}]}
 %    \end{macrocode}
-% \end{option}
 % \end{option}
 %
 % \begin{option}{marginfloatorder}

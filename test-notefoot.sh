@@ -13,7 +13,7 @@
 # Dropped from footcheck, as they test a mechanism, not an outcome: firstrun (the
 # fork's message that the notes haven't settled), local (\marginnoteoverflow in a
 # group, marginfix's), lastlimit, footrec, stale and limit (yield records and
-# \marginnoteyieldlimit; the limit is notemaxgap now: test-noteplace's lastlimit
+# \marginnoteyieldlimit; the limit is keepmaxgap now: test-noteplace's lastlimit
 # and lastroom are the limit honoured for a note on the last lines of a page).
 src=test-notefoot
 status=0

@@ -26,7 +26,8 @@
 # heading.  clubzero expected a lone first line with a warning in a document
 # that forbids it; now it must not be left.  longtable checked that no warning
 # blamed a heading wrongly, in the fork's words; now only the outcome.  The
-# option noteyieldmaxgap is now notemaxgap.
+# option noteyieldmaxgap is gone: the rows set keepmaxgap, which bounds every
+# short page.
 job=test-noteplace
 status=0
 # $MARGINFIX: a directory with the marginfix.sty to test against, put first on
@@ -100,7 +101,7 @@ check second second 9 '' "$W,together"
 check vertical vertical 7 '' "$W,together"
 check runintwo runintwo 7 '' "$W,together"
 # The limit on how much of a page may be left short for a note.
-check headingzero heading 7 'notemaxgap=0' "$W,together,limitwarn"
+check headingzero heading 7 'keepmaxgap=0' "$W,together,limitwarn"
 # With keepafterheading=0 LaTeX's own \nobreak after a heading still holds.
 check headingoff heading 7 'keepafterheading=0' "$W,together"
 # A lone first or last line the document allows may be left for the note, with a
@@ -112,17 +113,17 @@ check club club 4 '' "kept,lonewarn"
 check widow widow 7 '' "kept,lonewarn"
 check clubforbid clubforbid 4 '' "$W,noclub"
 check widowforbid widowforbid 7 '' "$W,nowidow"
-check clubzero clubforbid 4 'notemaxgap=0' "$W,noclub,limitwarn"
+check clubzero clubforbid 4 'keepmaxgap=0' "$W,noclub,limitwarn"
 # The limit for a note on the last lines of a page (footcheck's lastlimit and
 # limit): ending the page before THIRD leaves two lines empty, more than
-# notemaxgap=1 allows, so the note goes on, with a warning naming the limit; at
-# notemaxgap=2 the page may end there.  The tall note leaves less than a line of
+# keepmaxgap=1 allows, so the note goes on, with a warning naming the limit; at
+# keepmaxgap=2 the page may end there.  The tall note leaves less than a line of
 # the margin free, so NOTEY fits beside no line of page 1.  \raggedbottom shows
 # the empty lines at the foot of the page, where gap=N reads them; with a flush
 # bottom they would be spread between the lines.
 L4='\def\testpre{\raggedbottom}\def\testtall{.985}\def\testbody{FIRSTLINE\newline SECOND\newline THIRD\yieldnote{}\newline FOURTH \filler}'
-check lastlimit x 4 'notemaxgap=1' "$W,limitwarn,gap=1" "$L4"
-check lastroom x 4 'notemaxgap=2' "kept,lonewarn,gap=2" "$L4"
+check lastlimit x 4 'keepmaxgap=1' "$W,limitwarn,gap=1" "$L4"
+check lastroom x 4 'keepmaxgap=2' "kept,lonewarn,gap=2" "$L4"
 # Notes already decided whose lines an early end takes back: A is set beside
 # LINEA, B (a footnote too tall for the margin left) at the foot, and then NOTEY,
 # on the page's last line, fits neither in the margin nor (not a footnote) at
@@ -242,12 +243,12 @@ check blankabove x 10 '' "$W,together" \
   "\\def\\testbody{\\section{HEADINGX}\\vspace{2\\baselineskip} FIRSTLINE$B}"
 check laterhead x 8.25 '' "$W,together" \
   "$ART\\def\\testbody{\\section{HEADINGX} FIRSTLINE\\yieldnote{}\\par\\subsection{HEADB} Words \\filler\\ \\filler}"
-check laterhead2 x 9 'notemaxgap=12' "$W,together" \
+check laterhead2 x 9 'keepmaxgap=12' "$W,together" \
   "\\def\\testbody{\\section{HEADINGX} FIRSTLINE\\yieldnote{}\\par\\section{HEADB} Words \\filler\\ \\filler}"
 M='\noindent x\marginpar{TALL\par\rule{1pt}{.97\textheight}}'
 check movedfloat x 7 '' "$W,together" \
   "\\def\\testfirst{$M\\marginpar{TALLB\\par\\rule{1pt}{.2\\textheight}} text\\par\\noindent\\rule{1cm}{\\dimexpr\\textheight-5\\baselineskip\\relax}\\par\\begin{figure}[t]\\rule{1cm}{.84\\textheight}\\end{figure}}\\def\\testbody{\\section{HEADINGX} FIRSTLINE$B}"
-check movedzero x 7 'notemaxgap=0' "$W,together" \
+check movedzero x 7 'keepmaxgap=0' "$W,together" \
   "\\def\\testfirst{$M\\marginpar{TALLB\\par\\rule{1pt}{.97\\textheight}} text\\par\\noindent\\rule{1cm}{\\dimexpr\\textheight-5\\baselineskip\\relax}\\par}\\def\\testbody{\\section{HEADINGX} FIRSTLINE$B}"
 check tallmark x 11 '' "$W,together" \
   "\\def\\testbody{\\section{HEADINGX} \\rule{0pt}{4\\baselineskip} FIRSTLINE\\markright{M}$B}"
@@ -283,7 +284,7 @@ warm() {
   fi
 }
 warm heading warmoff heading 7 'keepafterheading=0' headingoff
-warm heading warmzero heading 7 'notemaxgap=0' headingzero
+warm heading warmzero heading 7 'keepmaxgap=0' headingzero
 warm widowforbid warmdrop widow 7 '' widow
 warm headingoff warmback heading 7 '' heading
 warm heading warmmoved heading 12 '' moved
