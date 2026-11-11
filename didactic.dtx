@@ -9135,7 +9135,6 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \if@didactic@keep@inbox\else\ifinner\else
       \ifnum\@didactic@keep@headstate=\@ne
         \global\@didactic@keep@headstate\z@
-        \gdef\@didactic@keep@pending{h}%
       \else
         \if@didactic@keep@endlist\else\if@didactic@keep@asked\else\if@didactic@keepleadin
           \gdef\@didactic@keep@pending{l}%
@@ -9503,6 +9502,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
         \vskip-\@didactic@keep@after@skip
       \fi
       \@didactic@keep@headpage
+      \marks\@didactic@keepmarks{h}%
       \@didactic@keep@movecheck
       \ifdim\@didactic@keep@after@skip=\z@\else
         \nobreak
@@ -9579,17 +9579,23 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % same paragraph would count its lines from the start: the penalties end there.
 %
 % For a page that ends early for a margin note (\cref{NotesThatDontFit}), the 
-% first paragraph after a heading also leaves a mark, |h|, of a class of its 
-% own (|\@didactic@keepmarks|), and the first paragraph of a list that a 
-% lead-in leads into leaves |l| (set by |\@didactic@keep@listtie| in 
-% |\@didactic@keep@pending|, which also takes the |h| of a list right under a 
-% heading).
+% keep code leaves marks of a class of its own (|\@didactic@keepmarks|): |h| 
+% right after a heading on a line of its own, |r| after the line of a run-in 
+% heading, |l| after the first line of a list that a lead-in leads into (set 
+% by |\@didactic@keep@listtie| in |\@didactic@keep@pending|).
 % A tie released for room means that the page may break there if it must, not 
 % that a page may choose to end there; the marks let the early end tell, 
 % whatever the penalties say.
-% The mark is given at the start of the paragraph, in horizontal mode, so 
-% \TeX\ moves it out after the paragraph's first line, where the line's 
-% penalty follows it: it adds no place to break, and changes no page.
+% A mark must add no place to break: glue right after it would be one.
+% So |h| goes where the heading's page is written (|\@didactic@keep@headpage|, 
+% in |\@didactic@keep@afterheading|), after that |\write| and before the 
+% |\nobreak| that comes back with the heading's skip: what follows the mark is 
+% what followed the |\write| already.
+% |r| and |l| are given at the start of a paragraph, in horizontal mode, so 
+% that \TeX\ moves them out after its first line, before that line's 
+% penalty; those paragraphs are never empty (the title, the item's label), 
+% for in a paragraph that would be, as before a display, the mark would make 
+% \TeX\ set an empty line.
 %
 % At the start of the first paragraph the heading is on the page, so we can 
 % measure, in vertical mode (|para/before|), again counting what the page can 
@@ -9806,9 +9812,9 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \marks\@didactic@keepmarks{\@didactic@keep@pending}%
       \global\let\@didactic@keep@pending\@empty
     \fi
+    \ifnum\@didactic@keep@headstate=4 \marks\@didactic@keepmarks{r}\fi
     \ifcase\@didactic@keep@headstate
     \or
-      \marks\@didactic@keepmarks{h}%
       \@didactic@keep@setclubs
       \global\@didactic@keep@headstate\tw@
     \or
