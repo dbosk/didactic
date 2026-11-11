@@ -1,0 +1,50 @@
+% Test of footnote reuse across the pages of a spread (didactic, twoside): a
+% citation's footnote is set once per spread, and a later citation of the same
+% work on the same spread has only the mark, with the number of the note.  See
+% test-footreuse-spread.py, which checks the outcome from the PDF: every mark has
+% a note with its number on its spread, and no spread has a note twice.  Built
+% with \def\testcase{...} (and \def\testclass{memoir} for notes in the margin):
+%   same    page 2 (verso) cites A first, page 3 (recto) again: one note, on 2,
+%           and the mark on 3 has its number;
+%   cross   page 3 (recto) cites B first, page 4 (verso) again: a new spread, so a
+%           new number and a note on 4;
+%   parted  page 2 cites A; on page 3 a later citation of A shares a paragraph
+%           with a footnote too tall for the rest of the page, so its line goes to
+%           page 4, another spread: it ends with a new number and its own note
+%           there (a repeat of the old number exists only in the run that finds
+%           the parting).
+\ifdefined\testclass\else\def\testclass{article}\fi
+\ifdefined\testcase\else\def\testcase{same}\fi
+\documentclass[twoside]{\testclass}
+\usepackage[backend=biber,autocite=footnote,citestyle=verbose,style=verbose]{biblatex}
+\usepackage{csquotes}
+\usepackage{didactic}
+\addbibresource{test-footcite.bib}
+\def\same{same}\def\cross{cross}\def\parted{parted}
+\newcommand\filler{Some words to fill up the rest of this line of the text and
+  also quite a few of the next one, as the words of a paragraph do.}
+\begin{document}
+Page~1 (recto), intentionally left without citations.
+\newpage
+\ifx\testcase\cross
+  Page~2 (verso), without citations.
+\else
+  Page~2 (verso): the first citation of the spread\footcite{A}.
+\fi
+\newpage
+\ifx\testcase\same
+  Page~3 (recto): the same spread as page~2, so this\footcite{A} has the number
+  of the note on page~2.
+\fi
+\ifx\testcase\cross
+  Page~3 (recto): the first citation of B\footcite{B}.
+  \newpage
+  Page~4 (verso): a new spread, so this\footcite{B} has a new number.
+\fi
+\ifx\testcase\parted
+  \noindent\rule{1cm}{\dimexpr\textheight-4\baselineskip\relax}\par
+  Words with a tall footnote\footnote{TALLNOTE\rule{0pt}{8\baselineskip}}
+  \filler\ And then the later citation of A\footcite{A}, which goes to page~4
+  with its line.
+\fi
+\end{document}

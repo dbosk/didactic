@@ -476,6 +476,14 @@ test-noteplace: test-noteplace.tex test-noteplace-slides.tex test-noteplace.sh \
 		test-noteplace.py didactic.sty
 	./test-noteplace.sh
 
+# footnote reuse across the pages of a spread, at the foot and in the margin,
+# checked by the outcome (test-footreuse-spread.py).  Not in all yet: it guards
+# what master does while notes move to being placed in one pass.
+.PHONY: test-footreuse-spread
+test-footreuse-spread: test-footreuse-spread.tex test-footreuse-spread.sh \
+		test-footreuse-spread.py test-footcite.bib didactic.sty
+	./test-footreuse-spread.sh
+
 # the place of the margin column in the log against where a note is printed.
 test-margin-log.pdf test-margin-log-article.pdf: %.pdf: %.tex test-margin-log.tex \
 		test-margin-log.sh didactic.sty
@@ -622,9 +630,9 @@ clean:
 		${RM} $$f.pdf $$f.aux $$f.log $$f.unq $$f.pytxcode $$f.out $$f.toc; \
 	done
 	${RM} test-keep-heading-?.txt test-keep-heading3-?.txt test-keep-stale-room.tex test-keep-stale-opt.tex
-	for f in $(basename $(wildcard test-noteplace-*.log)); do \
+	for f in $(basename $(wildcard test-noteplace-*.log test-footreuse-spread-*.log)); do \
 		${RM} $$f.pdf $$f.aux $$f.aux.old $$f.log $$f.unq $$f.pytxcode \
-			$$f.nav $$f.snm $$f.toc $$f.out; \
+			$$f.nav $$f.snm $$f.toc $$f.out $$f.bbl $$f.bcf $$f.blg $$f.run.xml; \
 	done
 	${RM} ${TEST_KEEPCHECK:=.pdf} ${TEST_KEEPCHECK:=.aux} ${TEST_KEEPCHECK:=.log}
 	${RM} ${TEST_KEEPCHECK:=.unq} ${TEST_KEEPCHECK:=.out}
