@@ -26,7 +26,18 @@
 # heading.  clubzero expected a lone first line with a warning in a document
 # that forbids it; now it must not be left.  longtable checked that no warning
 # blamed a heading wrongly, in the fork's words; now only the outcome.  The
-# option noteyieldmaxgap is now notemaxgap.
+# option noteyieldmaxgap is gone: a page ends early for a note within
+# keepmaxgap, the rows set that.
+#
+# A page ends early for a note only if no heading and no list or listing that a
+# lead-in leads into has started on it (see the rows ref*): these expected the
+# note kept and now expect it carried with a warning (warned):
+#   runin       a run-in heading starts the paragraph of the callout;
+#   theorem     the head of a theorem is a heading to the keep rules;
+#   hboxlines   a heading on the page, above the lines in boxes;
+#   headfoot    a heading on the page, the note in its first paragraph;
+#   laterpara   a heading on the page, the note in its second paragraph.
+# headshipped stays kept: its heading is on the page before.
 job=test-noteplace
 status=0
 # $MARGINFIX: a directory with the marginfix.sty to test against, put first on
@@ -100,7 +111,7 @@ check second second 9 '' "$W,together"
 check vertical vertical 7 '' "$W,together"
 check runintwo runintwo 7 '' "$W,together"
 # The limit on how much of a page may be left short for a note.
-check headingzero heading 7 'notemaxgap=0' "$W,together,limitwarn"
+check headingzero heading 7 'keepmaxgap=0' "$W,together,limitwarn"
 # With keepafterheading=0 LaTeX's own \nobreak after a heading still holds.
 check headingoff heading 7 'keepafterheading=0' "$W,together"
 # A lone first or last line the document allows may be left for the note, with a
@@ -112,17 +123,17 @@ check club club 4 '' "kept,lonewarn"
 check widow widow 7 '' "kept,lonewarn"
 check clubforbid clubforbid 4 '' "$W,noclub"
 check widowforbid widowforbid 7 '' "$W,nowidow"
-check clubzero clubforbid 4 'notemaxgap=0' "$W,noclub,limitwarn"
+check clubzero clubforbid 4 'keepmaxgap=0' "$W,noclub,limitwarn"
 # The limit for a note on the last lines of a page (footcheck's lastlimit and
 # limit): ending the page before THIRD leaves two lines empty, more than
-# notemaxgap=1 allows, so the note goes on, with a warning naming the limit; at
-# notemaxgap=2 the page may end there.  The tall note leaves less than a line of
+# keepmaxgap=1 allows, so the note goes on, with a warning naming the limit; at
+# keepmaxgap=2 the page may end there.  The tall note leaves less than a line of
 # the margin free, so NOTEY fits beside no line of page 1.  \raggedbottom shows
 # the empty lines at the foot of the page, where gap=N reads them; with a flush
 # bottom they would be spread between the lines.
 L4='\def\testpre{\raggedbottom}\def\testtall{.985}\def\testbody{FIRSTLINE\newline SECOND\newline THIRD\yieldnote{}\newline FOURTH \filler}'
-check lastlimit x 4 'notemaxgap=1' "$W,limitwarn,gap=1" "$L4"
-check lastroom x 4 'notemaxgap=2' "kept,lonewarn,gap=2" "$L4"
+check lastlimit x 4 'keepmaxgap=1' "$W,limitwarn,gap=1" "$L4"
+check lastroom x 4 'keepmaxgap=2' "kept,lonewarn,gap=2" "$L4"
 # Notes already decided whose lines an early end takes back: A is set beside
 # LINEA, B (a footnote too tall for the margin left) at the foot, and then NOTEY,
 # on the page's last line, fits neither in the margin nor (not a footnote) at
@@ -180,8 +191,8 @@ TWOC='\def\testclass{article}\def\testclassopt{a4paper,twocolumn}\def\testtall{.
 check twodefault x 7 '' "nofootwarn" "$TWOC\def\testbody{FIRSTLINE\yieldnote{} \filler\par}"
 check twopassage x 7 '' "footwarn" "$TWOC\def\testbody{{\marginnoteoverflow{foot} FIRSTLINE\yieldnote{} \filler\par}}"
 # Nothing in the way: the note stays with its line.
-check runin runin 4 '' kept,lonewarn
-check theorem theorem 4 '' kept,lonewarn
+check runin runin 4 '' "$W"
+check theorem theorem 4 '' "$W"
 check middle middle 9 '' kept,lonewarn
 # The rest of a split note doesn't stop the note after it.
 check split split 4 '' "continued"
@@ -200,7 +211,7 @@ check noteearlier x 7 '' "$W" \
   "$T\\def\\testbody{FIRSTLINE\\marginpar{SHORT} \\filler\\ $L}"
 check footinpara x 5 '' kept,lonewarn \
   "$T\\def\\testbody{FIRSTLINE\\footnote{FOOTB} \\oneline\\ second \\oneline\\ more words$Y \\filler\\ \\filler}"
-check headfoot x 10 '' "kept,together,lonewarn" \
+check headfoot x 10 '' "$W,together" \
   "$T\\def\\testbody{\\section{HEADINGX} FIRSTLINE\\footnote{FOOTB} \\oneline\\ second \\oneline\\ more words$Y \\filler\\ \\filler}"
 check display x 10 '' "$W" \
   '\def\testbody{FIRSTLINE \oneline\ two. \[ x=y \] after DISPLAY \filler\ Now the LASTLINE of the paragraph, with its note\yieldnote{}.}'
@@ -208,7 +219,7 @@ check newline x 7 '' "$W" \
   '\def\testbody{FIRSTLINE \\[6pt] \filler\ Now the LASTLINE of the paragraph, with its note\yieldnote{}.}'
 check markright x 7 '' "$W" \
   '\def\testbody{FIRSTLINE\markright{M} \filler\ Now the last line of the paragraph, with its note\yieldnote{}.}'
-check hboxlines x 9 '' kept,lonewarn \
+check hboxlines x 9 '' "$W" \
   '\def\testbody{\section{HEADINGX} \hbox{Listing line one}\hbox{Listing line two}\hbox{Listing line three} \par FIRSTLINE\yieldnote{} \filler\ \filler}'
 # What is known of a heading ends with its page: a note at the same height on the
 # next page is free.
@@ -216,7 +227,7 @@ check headshipped x 7 '' kept,lonewarn \
   '\def\testbody{\section{HEADINGX} FIRSTLINE \oneline\par\newpage \noindent x\marginpar{TALLB\par\rule{1pt}{.97\textheight}} text\par\noindent\rule{1cm}{\dimexpr\textheight-52pt\relax}\par FIRSTLINE\yieldnote{} \filler\ \filler}'
 check crosspages x 4 '' "$W" \
   '\def\testbody{FIRSTLINE \oneline\ more words\yieldnote{} \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler}'
-check laterpara x 9 '' kept,lonewarn \
+check laterpara x 9 '' "$W" \
   '\def\testbody{\section{HEADINGX} \filler\par FIRSTLINE\yieldnote{} \filler}'
 check onelinepara x 4 '' kept,lonewarn \
   '\def\testbody{FIRSTLINE\yieldnote{}\par \filler}'
@@ -242,17 +253,58 @@ check blankabove x 10 '' "$W,together" \
   "\\def\\testbody{\\section{HEADINGX}\\vspace{2\\baselineskip} FIRSTLINE$B}"
 check laterhead x 8.25 '' "$W,together" \
   "$ART\\def\\testbody{\\section{HEADINGX} FIRSTLINE\\yieldnote{}\\par\\subsection{HEADB} Words \\filler\\ \\filler}"
-check laterhead2 x 9 'notemaxgap=12' "$W,together" \
+check laterhead2 x 9 'keepmaxgap=12' "$W,together" \
   "\\def\\testbody{\\section{HEADINGX} FIRSTLINE\\yieldnote{}\\par\\section{HEADB} Words \\filler\\ \\filler}"
 M='\noindent x\marginpar{TALL\par\rule{1pt}{.97\textheight}}'
 check movedfloat x 7 '' "$W,together" \
   "\\def\\testfirst{$M\\marginpar{TALLB\\par\\rule{1pt}{.2\\textheight}} text\\par\\noindent\\rule{1cm}{\\dimexpr\\textheight-5\\baselineskip\\relax}\\par\\begin{figure}[t]\\rule{1cm}{.84\\textheight}\\end{figure}}\\def\\testbody{\\section{HEADINGX} FIRSTLINE$B}"
-check movedzero x 7 'notemaxgap=0' "$W,together" \
+check movedzero x 7 'keepmaxgap=0' "$W,together" \
   "\\def\\testfirst{$M\\marginpar{TALLB\\par\\rule{1pt}{.97\\textheight}} text\\par\\noindent\\rule{1cm}{\\dimexpr\\textheight-5\\baselineskip\\relax}\\par}\\def\\testbody{\\section{HEADINGX} FIRSTLINE$B}"
 check tallmark x 11 '' "$W,together" \
   "\\def\\testbody{\\section{HEADINGX} \\rule{0pt}{4\\baselineskip} FIRSTLINE\\markright{M}$B}"
 check nopagebreak x 5 '' "$W,tied" \
   "\\def\\testbody{Lead LEADIN\\nopagebreak\\par\\nopagebreak FIRSTLINE$B}"
+# A page ends early before a note's line only if nothing the keep rules look
+# after has started on it: a note under any kind of heading or after a lead-in
+# on its page is carried, with the reason, though the page could end before its
+# line (noteoverflow=break and keepmaxgap=100 leave no other reason).  refnone,
+# the same text without a heading, ends its page early and keeps the note.
+RB='noteoverflow=break,keepmaxgap=100'
+K='SECONDPARA \oneline\ more words\yieldnote{} \filler\ \filler'
+P3='FIRSTLINE \filler\ \filler\par'
+check refnone x 12 "$RB" kept "\\def\\testbody{$P3 $K}"
+check refsection x 12 "$RB" carried,keepwhy "\\def\\testbody{\\section{HEADINGX} $P3 $K}"
+check refstarred x 12 "$RB" carried,keepwhy "\\def\\testbody{\\section*{HEADINGX} $P3 $K}"
+check refrunin x 12 "$RB" carried,keepwhy "\\def\\testbody{\\paragraph{HEADINGX} $P3 $K}"
+check refthm x 12 "$RB" carried,keepwhy "\\def\\testbody{\\begin{thmx}$P3\\end{thmx} $K}"
+check refframe x 12 "$RB" carried,keepwhy "\\def\\testbody{\\begin{frame}\\frametitle{HEADINGX} $P3 $K\\end{frame}}"
+check refblock x 12 "$RB" carried,keepwhy "\\def\\testbody{\\begin{frame}\\begin{block}{BLOCKT} $P3 $K\\end{block}\\end{frame}}"
+check reflist x 12 "$RB" carried,keepwhy "\\def\\testbody{FIRSTLINE \\filler\\ Lead-in:\\begin{itemize}\\item ITEMA \\filler\\item $K\\end{itemize}}"
+check reflisting listing 12 "$RB" carried,keepwhy "\\def\\testsecond{$K}"
+check refchapter x 12 "$RB" carried,keepwhy "\\def\\testfirst{\\chapter{HEADINGX}\\noindent x\\marginpar{TALL\\par\\rule{1pt}{.97\\textheight}} text\\par}\\def\\testbody{$P3 $K}"
+# Whether a heading or a lead-in is in a column is decided when the column is
+# made, though TeX has read past it by then: a heading whose first lines don't
+# fit goes to the next page, where a note under it is carried (headcarry, the
+# heading's place noted at its paragraph; headroom, the page ended before the
+# heading as it starts, its place not noted), and so
+# is a list whose lead-in's tie was let go (leadcarry); a heading that stays on
+# its page leaves the next page free, where the page ends early (headstays).
+TB='TALLB\par\rule{1pt}{.97\textheight}'
+check headcarry x 5 "$RB,keepafterheading=3" carried,keepwhy "\\def\\testbody{\\section{HEADINGX} FIRSTLINE\\marginpar{$TB} \\filler\\ \\filler\\ \\filler\\par $K}"
+check headroom x 3 "$RB,keepafterheading=3" carried,keepwhy "\\def\\testbody{\\section{HEADINGX} FIRSTLINE\\marginpar{$TB} \\filler\\ \\filler\\ \\filler\\par $K}"
+check leadcarry x 6 "$RB" carried,keepwhy "\\def\\testbody{FIRSTLINE \\filler\\ \\filler\\ Lead-in:\\begin{itemize}\\item ITEMA\\marginpar{$TB} \\filler\\ \\filler\\item $K\\end{itemize}}"
+check headstays x 10 "$RB" kept "\\def\\testbody{\\section{HEADINGX} FIRSTLINE \\filler\\ \\filler\\par \\filler\\ \\filler\\ \\filler\\ \\filler\\par X\\marginpar{$TB} \\filler\\par $K}"
+# In two columns lineno makes the columns (twocolend); a column made where we
+# don't see it counts as one with a heading (colbypass).  Both after a column has
+# been made: twocolend in the second column of page 2, where the margin is full.
+NP='\def\testfirst{\noindent x\par\clearpage\noindent x\marginpar{TALL\par\rule{1pt}{.97\textheight}} text\par\noindent\rule{1cm}{\dimexpr\textheight-\testroom\baselineskip-1\baselineskip\relax}\par}'
+NP2='\def\testfirst{\noindent x\par\clearpage\noindent y\par\newpage\noindent x\marginpar{TALL\par\rule{1pt}{.97\textheight}} text\par\noindent\rule{1cm}{\dimexpr\textheight-\testroom\baselineskip-1\baselineskip\relax}\par}'
+check twocolend x 12 "$RB" kept "$NP2\\def\\testclass{article}\\def\\testclassopt{a4paper,twocolumn}\\def\\testbody{$K}"
+check colbypass x 12 "$RB" carried,keepwhy "\\makeatletter\\AddToHook{begindocument/end}{\\def\\@didactic@colbuild{}}\\makeatother$NP\\def\\testbody{$P3 $K}"
+# The lines a page ends early leaves empty are counted above the notes at its
+# foot: a footnote went to the foot (the margin is full), and the page may end
+# two lines above the foot's notes to keep NOTEY beside its line (footgap).
+check footgap x 14 '' kept "\\def\\testbody{FIRSTLINE\\footnote{FOOTA \\filler\\ \\filler\\ \\filler} \\filler\\par $K}"
 # What leads into a list isn't tied by a penalty of 10000: the keep rules warn.
 check leadlist x 5 '' "$W,leadwarn" \
   "\\def\\testbody{Lead LEADIN:\\begin{itemize}\\item FIRSTLINE$B\\end{itemize}}"
@@ -283,7 +335,7 @@ warm() {
   fi
 }
 warm heading warmoff heading 7 'keepafterheading=0' headingoff
-warm heading warmzero heading 7 'notemaxgap=0' headingzero
+warm heading warmzero heading 7 'keepmaxgap=0' headingzero
 warm widowforbid warmdrop widow 7 '' widow
 warm headingoff warmback heading 7 '' heading
 warm heading warmmoved heading 12 '' moved

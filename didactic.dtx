@@ -155,7 +155,8 @@
 %   \texttt{noteoverflow} is decided by \textsf{didactic} itself, where the
 %   note is called out, in one run: \texttt{foot} (the default), \texttt{break}
 %   or \texttt{carry}; it no longer needs \textsf{marginfix} 1.6 or records in
-%   the \texttt{.aux} file.  Adds \texttt{notemaxgap}.  \textsf{didactic}
+%   the \texttt{.aux} file; a page that ends early for a note leaves no more
+%   than \texttt{keepmaxgap} lines empty.  \textsf{didactic}
 %   checks the names of \textsf{marginfix} and the kernel it relies on and
 %   falls back to \texttt{carry}, with a warning, when one is missing.
 % }
@@ -727,20 +728,21 @@
 % line that calls it out, so that the line and its note start the next page.
 % With |noteoverflow=break| no footnote goes to the foot: the page ends early 
 % for every note that doesn't fit.
-% A page ends early only where the page may end anyway (never between a 
-% heading and its lines, nor where the document forbids a lone line) and only 
-% if it leaves no more than |notemaxgap| lines empty; otherwise the note is 
-% carried to a later page, with a warning that names it and says why.
+% A page ends early only where the page may end anyway (where the document
+% allows a lone first or last line, with a warning that says so), only on a
+% page where no heading and no list or listing after a lead-in starts above
+% the line, and only if it leaves no more than |keepmaxgap| lines empty;
+% otherwise the note is carried to a later page, with a warning that names it
+% and says why.
 % With |noteoverflow=carry|, the default with the option |draft|, every note 
 % that doesn't fit is carried, with a warning.
 % The mode is read where a note is called out, and obeys groups, so 
 % |{\marginnoteoverflow{carry}| ...|}| lets the notes of one passage move to 
 % the next page, while the rest of the document keeps its mode.
 %
-% \DescribeOpt{notemaxgap}
-% |notemaxgap| is the most lines a page may be left short for a note.
-% Unset, it is |keepmaxgap|, so that one number bounds every short page, 
-% whatever moved; set it to |none| for no limit.
+% The lines a page may be left short for a note are those it may be left
+% short for anything else, |keepmaxgap|: how much empty space looks right at
+% the foot of a page doesn't depend on what caused it.
 %
 % Outside |beamer|, \textsf{didactic} writes where the margin column is to 
 % the log, once, as |didactic-margin: odd=431.65 even=431.65 width=156.7|: 
@@ -1999,7 +2001,6 @@
 % \end{option}
 %
 % \begin{option}{noteoverflow}
-% \begin{option}{notemaxgap}
 % The |noteoverflow| option says what happens to a margin note that doesn't 
 % fit beside its line: |foot|, |break| or |carry|, see 
 % \cref{NotesThatDontFit}.
@@ -2009,17 +2010,12 @@
 % With |draft| the default is |carry|, as with the other options that move 
 % text to keep things together; see the option |draft|, below, for where that 
 % is decided.
-% |notemaxgap| bounds the lines a page may be left short for a note; empty, it 
-% follows |keepmaxgap|.
 %    \begin{macrocode}
 \newcommand\@didactic@noteoverflow{}
 \newif\if@didactic@noteoverflowgiven
 \DeclareOptionX{noteoverflow}{%
   \renewcommand\@didactic@noteoverflow{#1}%
   \@didactic@noteoverflowgiventrue}
-\newcommand\@didactic@notemaxgap{}
-\DeclareOptionX{notemaxgap}{%
-  \renewcommand\@didactic@notemaxgap{#1}}
 \newcommand\@didactic@checkoverflow[1]{%
   \IfStrEqCase{#1}{{foot}{}{break}{}{carry}{}}[%
     \PackageError{didactic}{Unknown value `#1' for noteoverflow}%
@@ -4483,6 +4479,19 @@
 %   and margin notes: we patch the place where it puts the page so far back 
 %   and hands the note to |\@addmarginpar|, to decide there; and the place 
 %   where it adds a float, for the room the margin notes take.
+% \item[\texttt{\textbackslash @makecol}] where the kernel makes a column: at
+%   its start we note whether a heading or a lead-in we have seen ends up in
+%   the column or goes on to the next (|\@didactic@colbuild|), and take back
+%   the copies at the foot of notes whose lines went to the next page.
+%   We add that to the kernel's hook |build/column/before|, which
+%   \textsf{lineno} (which \textsf{fvextra} loads for \textsf{minted}) runs as
+%   well, since in two columns it makes the columns with a copy of
+%   |\@makecol| taken before we could change it; a kernel without that hook
+%   gets it put before |\@makecol| and \textsf{lineno}'s copy,
+%   |\@LN@orig@makecol| (optional).
+%   A column made in any other way counts as one where a heading may start, and
+%   no page ends early in it; the test |test-noteplace| has both cases
+%   (|twocolend|, |colbypass|).
 % \item[\texttt{\textbackslash @xympar}] where the kernel makes a margin note: 
 %   we mark its callout.
 % \item[\texttt{\textbackslash MFX@combinefloats@before}] where 
@@ -4511,6 +4520,19 @@
 %   callout, which we silence, since we give that warning ourselves, with the 
 %   reason.
 % \end{description}
+% And of \textsf{didactic}'s own rules for page breaks, which an early end
+% must not undo, it reads three records and changes nothing:
+% |\@didactic@keep@headkey|, which changes with each heading that the rules keep
+% lines after (from |\@startsection|, so numbered, starred and run-in
+% headings, |\@thm|, so the heads of theorems, and a chapter that doesn't start a
+% page); |\@didactic@keep@relno|, which counts the lead-ins whose tie to their
+% list or listing the rules may let go for room; and
+% |\@didactic@keep@headstate|, which isn't 0 while lines after a heading are
+% due.
+% A chapter that starts a page the rules leave alone, so we count
+% |\@makechapterhead| and |\@makeschapterhead| ourselves.
+% The test |test-noteplace| has a case for each kind (|refsection| and the
+% others starting with |ref|).
 % The test |test-marginfix-interface| builds a document with the 
 % \textsf{marginfix} found, with \TeX~Live's \textsf{marginfix} 1.2, on the 
 % oldest kernel \textsf{didactic} asks for, and with the kernel's 
@@ -4560,6 +4582,7 @@
     {\unvbox\@holdpg\@next\@currbox\@currlist}%
   \@didactic@needpatch\@specialoutput{\@reinserts\@addtocurcol}%
   \@didactic@needmacro\@xympar
+  \@didactic@needmacro\@makecol
   \@didactic@needshape\MFX@combinefloats@before{macro:->}%
   \@didactic@needmacro\mfx@marginlist
   \@didactic@needmacro\MFX@minus@inf
@@ -4693,16 +4716,17 @@
 \newcommand\@didactic@callout{%
   \let\@didactic@after\relax
   \let\@didactic@skip\relax
+  \@didactic@endedfalse
   \expandafter\@didactic@peek\@currlist\@elt\relax\@elt\relax\@nil
   \ifnum\@didactic@noteof\@didactic@head>\z@
     \@didactic@decide
   \fi
   \unvbox\@holdpg
   \@didactic@after
-  \ifnum\@didactic@noteof\@didactic@head>\z@
+  \if@didactic@ended\else\ifnum\@didactic@noteof\@didactic@head>\z@
     \@didactic@attach{%
       \marks\@didactic@notemarks{\the\@didactic@noteof\@didactic@head}}%
-  \fi
+  \fi\fi
   \@didactic@skip}
 \def\@didactic@peek\@elt#1\@elt#2#3\@nil{%
   \def\@didactic@head{#1}\def\@didactic@pair{#2}}
@@ -4888,9 +4912,12 @@
        \global\@didactic@used\@didactic@room}
       {\@didactic@iffootfits{\the\@didactic@noteof\@didactic@head}
         {\@didactic@tofoot}
-        {\@didactic@setwhy{it fits neither beside its line nor at the
-           foot}%
-         \global\@didactic@used\@didactic@room}}%
+        {\@didactic@ifcanend
+          {\@didactic@endpage}
+          {\edef\@tempa{it fits neither beside its line nor at the
+             foot, and \@didactic@endwhy}%
+           \expandafter\@didactic@setwhy\expandafter{\@tempa}%
+           \global\@didactic@used\@didactic@room}}}%
   \fi}
 % A deferrable note gives way to the notes after it, in \textsf{marginfix}'s 
 % modes |defer| and |warn| whole, in |split| down to what is worth splitting 
@@ -5230,7 +5257,8 @@
 %    \begin{macrocode}
 \newcommand\@didactic@iffootfits[1]{%
   \@tempswafalse
-  \ifcsname @didactic@fb@#1\endcsname
+  \ifdefstring{\@didactic@noteoverflow}{foot}{}{\let\@didactic@nofoot\relax}%
+  \ifdefined\@didactic@nofoot\else\ifcsname @didactic@fb@#1\endcsname
     \expandafter\let\expandafter\@didactic@fbx
       \csname @didactic@fb@#1\endcsname
     \dimen@\dimexpr\ht\@didactic@fbx+\dp\@didactic@fbx\relax
@@ -5245,7 +5273,7 @@
         \@tempswatrue
       \fi
     \fi
-  \fi
+  \fi\fi
   \if@tempswa\expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
 %    \end{macrocode}
 % \end{macro}
@@ -5268,11 +5296,411 @@
   \@cons\@freelist\@currbox
   \@cons\@freelist\@marbox
   \ifdefined\mfx@placeid\global\advance\mfx@placeid\@ne\fi
+  \wd\@didactic@fbx\dimexpr\columnwidth+\@didactic@noteof\@didactic@head sp\relax
   \def\@didactic@after{%
     \@didactic@attach{\insert\footins{\floatingpenalty\@MM
       \box\@didactic@fbx}}}%
   \let\@didactic@skip\@didactic@skipnext}
 \def\@didactic@skipnext\@next\@currbox\@currlist#1#2{}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{Ending the page early}
+%
+% A note that fits neither beside its line nor at the foot can still stand
+% beside its line: on the next page, if this page ends before the line.
+% We end it there ourselves, in the special output for the note, where the
+% page so far is in |\@holdpg| and the callout's line is its last line: we
+% split off the part above the line at the place where the page may end before
+% it, put both parts back with a forced break between them, and call the note
+% out again after its line, which now starts the next page.
+% The note is then decided again there, where it fits at the top of an empty
+% margin, or is carried; it may not end a page a second time
+% (|\@didactic@rf@|\meta{number}), so each note ends at most one page, and
+% every page so ended has text on it: the decision terminates.
+%
+% We take that one place to break or none, and only on a page where nothing
+% the keep rules look after has started: no heading and no list or listing
+% that a lead-in leads into.
+% The keep rules decide where they are, as the paragraphs come, by penalties,
+% and where they let a break through for room, the break is there for \TeX\
+% to take if it must; an early end doesn't have to, and from the page so far
+% we can't tell where those places are without marking them in the text,
+% which changes what the keep rules see.
+% So a note under a heading or a lead-in on its page that fits neither beside
+% its line nor at the foot is carried, with the reason, and so is a note whose
+% page can't end before its line or would be left with more than
+% |keepmaxgap| lines empty.
+% The early end is rare: with |foot|, the default, a note goes to the foot of
+% the page first.
+%
+% \begin{macro}{\@didactic@splitabove}
+% The place to break above the callout's line: |\vsplit| to just less than
+% the least height the page so far can be set to (its height less all it
+% can shrink, found by halving), so that the part with the line can't be
+% taken, and \TeX\ chooses among the places to break as it does for a page,
+% by their penalties.
+% The parts go to |\@didactic@top| and |\@didactic@rest|, and what the split
+% discards at the break, e-\TeX's |\splitdiscards|, to |\@didactic@disc|:
+% the penalty there says whether a line is left alone.
+% A page so far that can shrink without limit can't be split (\TeX\ stops
+% with an error), so then nothing is split.
+%    \begin{macrocode}
+\newbox\@didactic@top
+\newbox\@didactic@rest
+\newbox\@didactic@disc
+\newcommand\@didactic@splitabove[1]{%
+  \begingroup
+    \vbadness\@M \vfuzz\maxdimen
+    \splittopskip\z@skip \splitmaxdepth\maxdimen
+    \savingvdiscards\@ne
+    \global\setbox\@didactic@top\box\voidb@x
+    \global\setbox\@didactic@rest\box\voidb@x
+    \global\setbox\@didactic@disc\box\voidb@x
+    \setbox\z@\vbox to\z@{\unvcopy#1}%
+    \ifnum\badness<1000000 \else
+      \dimen@\z@ \dimen@ii\ht#1\relax
+      \loop\ifdim\dimexpr\dimen@ii-\dimen@\relax>.1\p@
+        \dimen4\dimexpr(\dimen@+\dimen@ii)/2\relax
+        \setbox\z@\vbox to\dimen4{\unvcopy#1}%
+        \ifnum\badness=1000000 \dimen@\dimen4 \else \dimen@ii\dimen4 \fi
+      \repeat
+      \setbox\tw@\copy#1%
+      \setbox\z@\vsplit\tw@ to\dimen@
+      \global\setbox\@didactic@disc\vbox{\splitdiscards}%
+      \global\setbox\@didactic@top\vbox{\unvbox\z@}%
+      \global\setbox\@didactic@rest\box\tw@
+    \fi
+  \endgroup}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@poll,\@didactic@colbuild}
+% Whether a heading or a lead-in has started on the page we learn from the
+% keep code's own records, which we only read: |\@didactic@keep@headkey|
+% changes with each heading it keeps lines after, |\@didactic@keep@relno| with
+% each list or listing whose tie to its lead-in it may let go for room.
+% A chapter that starts a page the keep code leaves alone, since nothing can
+% move it, so we count chapters ourselves (|\@didactic@chapno|).
+% \TeX\ breaks a page some time after the text that ends up on the next
+% page has been read: a heading whose first paragraph fills the page goes
+% to the next page with it, though we read the heading before the page was
+% made.
+% So we note where on the page so far a change was seen, |\pagetotal| at the
+% start of the next paragraph (in vertical mode, |para/before|, where \TeX\
+% has the text so far on the page), and when a column is made
+% (|\@didactic@colbuild|), a change that the column doesn't reach half a line
+% past, or one whose place we don't know, has gone on to the next column:
+% that column starts out with something the keep rules look after
+% (|\if@didactic@dirty|).
+% A change seen after the column was made is on the next one.
+% Under |beamer| there are neither margin notes nor keep rules, and nothing
+% to watch.
+%
+% Why the comparison holds.
+% The height we note is taken after the change, at the start of the first
+% paragraph that follows it, so the heading or the top of the list is above
+% it, or at it.
+% A column that ends above the heading ends at or above that height: the
+% change counts as gone on, rightly.
+% A column that holds the heading and ends past it reaches past the noted
+% height by the first line of that paragraph at least, with its |\parskip| and
+% its glue to the line before, which is more than half a line; or it ends at
+% something that is no paragraph, between the heading and that height (a
+% listing, a display or another heading), and then the change counts as gone
+% on too, which only refuses an early end on the next column that would have
+% been allowed: the safe side.
+% Equal heights are the break right before that paragraph, where the glue
+% above it isn't on the page yet when we note: gone on, again the safe side.
+% A change we haven't seen at a paragraph start when the column is made, or
+% first see at a note's callout in vertical mode, has no place, and counts as
+% gone on.
+% So a change counts as in the column only if the column holds a line of text
+% below it.
+% On an empty page \TeX's |\pagetotal| may still hold the last page's height:
+% noted that way, a change at the top of a column counts as gone on, or, if
+% that height was small, as in the column, where it is.
+% A column made without |\@didactic@colbuild| (by a package's own column
+% maker that doesn't run the kernel's hook |build/column/before|) counts as one
+% with something above: there is no early end in it.
+%    \begin{macrocode}
+\newcount\@didactic@chapno
+\newcount\@didactic@seenrel
+\newcount\@didactic@seenchap
+\let\@didactic@seenkey\@empty
+\newdimen\@didactic@evpos
+\newif\if@didactic@pending
+\newif\if@didactic@dirty
+\newif\if@didactic@colsnap
+\newcommand\@didactic@poll[1]{%
+  \@tempswafalse
+  \ifx\@didactic@seenkey\@didactic@keep@headkey\else\@tempswatrue\fi
+  \ifnum\@didactic@seenrel=\@didactic@keep@relno\else\@tempswatrue\fi
+  \ifnum\@didactic@seenchap=\@didactic@chapno\else\@tempswatrue\fi
+  \if@tempswa
+    \global\let\@didactic@seenkey\@didactic@keep@headkey
+    \global\@didactic@seenrel\@didactic@keep@relno
+    \global\@didactic@seenchap\@didactic@chapno
+    \global\@didactic@pendingtrue
+    \ifx\relax#1\relax
+      \global\@didactic@evpos\maxdimen
+    \else\ifdim#1>\@didactic@evpos
+      \global\@didactic@evpos#1\relax
+    \fi\fi
+  \fi}
+\@ifclassloaded{beamer}{}{%
+  \AddToHook{para/before}{\ifinner\else\@didactic@poll{\pagetotal}\fi}%
+  \AtBeginDocument{%
+    \global\let\@didactic@seenkey\@didactic@keep@headkey
+    \global\@didactic@seenrel\@didactic@keep@relno}}
+\newcommand\@didactic@colbuild{%
+  \@didactic@poll{}%
+  \global\@didactic@dirtyfalse
+  \if@didactic@pending
+    \setbox\z@\vbox{\unvcopy\@cclv}%
+    \ifdim\@didactic@evpos<\dimexpr\ht\z@-.5\@didactic@keep@L\relax\else
+      \global\@didactic@dirtytrue
+    \fi
+  \fi
+  \global\@didactic@pendingfalse
+  \global\@didactic@evpos-\maxdimen
+  \global\@didactic@colsnaptrue}
+\newcommand\@didactic@colcheck{%
+  \if@didactic@colsnap\else\global\@didactic@dirtytrue\fi
+  \global\@didactic@colsnapfalse}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@gaplimit,\@didactic@ifcanend}
+% Whether the page may end before the callout's line, here: the note hasn't
+% ended a page yet; it isn't in \textsf{multicol}'s columns (more columns
+% than the page has, |\col@number|, which the kernel sets to 2 in two
+% columns); nothing the keep
+% rules look after has started on the page (above), nor are lines still due
+% after a heading on the page before (|\@didactic@keep@headstate|); the page
+% may end before the line, as \TeX\ decides by the penalties; the part above
+% is at least a line, so that the page keeps text; and it leaves no more than
+% |keepmaxgap| lines of the column empty: the space between the last line,
+% its depth taken off, and the notes at the foot of the page, with the space
+% above them, has no room for one line more than that.
+% The notes at the foot are those in |\footins| less the copies of notes
+% called out on the lines that go to the next page, which go with them
+% (|\@didactic@pullfeet|, below); without that, a page with notes at its foot,
+% where a note that fits nowhere is most likely, would seem to leave their
+% height empty.
+% A note called out between paragraphs, in vertical mode, ends the page at
+% the end of the page so far, if the page may end there: the last item there
+% is a penalty below 10\,000, or glue after something that isn't discarded;
+% a penalty of 10\,000, a |\nobreak|, means it may not.
+%    \begin{macrocode}
+\newdimen\@didactic@gapmax
+\newcommand\@didactic@gaplimit{%
+  \@didactic@gapmax\numexpr\@didactic@keepmaxgap+1\relax\@didactic@keep@L}
+\newcommand\@didactic@ifcanend{%
+  \@tempswafalse
+  \let\@didactic@endwhy\@empty
+  \@didactic@poll{}%
+  \ifcsname @didactic@rf@\the\@didactic@noteof\@didactic@head\endcsname
+    \def\@didactic@endwhy{it ended a page early once already}%
+  \fi
+  \ifdefined\col@number\ifnum\col@number>\if@twocolumn\tw@\else\@ne\fi
+    \def\@didactic@endwhy{its page is in the columns of multicol}%
+  \fi\fi
+  \if@didactic@dirty\@didactic@keepwhy\fi
+  \if@didactic@pending\@didactic@keepwhy\fi
+  \ifnum\@didactic@keep@headstate=\z@\else\@didactic@keepwhy\fi
+  \ifx\@didactic@endwhy\@empty
+    \ifnum\outputpenalty=-\@Mii
+      \@didactic@splitabove\@holdpg
+      \ifvoid\@didactic@rest
+        \@didactic@nobreakwhy
+      \else\ifdim\ht\@didactic@top<\topskip
+        \@didactic@nobreakwhy
+      \else
+        \@tempswatrue
+      \fi\fi
+    \else
+      \global\setbox\@didactic@top\copy\@holdpg
+      \global\setbox\@didactic@rest\box\voidb@x
+      \global\setbox\@didactic@disc\box\voidb@x
+      \setbox\z@\vbox{\unvcopy\@holdpg\@didactic@vwalk}%
+      \if@tempswa\else\@didactic@nobreakwhy\fi
+    \fi
+    \if@tempswa\@didactic@ifgapok\fi
+  \fi
+  \if@tempswa\expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
+\newcommand\@didactic@keepwhy{%
+  \def\@didactic@endwhy{a heading or a list starts on its page above its
+    line}}
+\newcommand\@didactic@nobreakwhy{%
+  \def\@didactic@endwhy{its page can't end before its line}}
+\newcommand\@didactic@ifgapok{%
+  \@didactic@gaplimit
+  \@didactic@footheight
+  \ifdim\dimexpr\@colroom-\ht\@didactic@top-\dp\@didactic@top
+      -\@didactic@foot\relax<\@didactic@gapmax\else
+    \@tempswafalse
+    \edef\@didactic@endwhy{ending its page early would leave more than
+      \the\@didactic@keepmaxgap\space lines empty (keepmaxgap)}%
+  \fi}
+\newdimen\@didactic@foot
+\newcommand\@didactic@footheight{%
+  \@didactic@foot\z@
+  \ifvoid\footins\else
+    \begingroup
+      \let\@outputbox\@didactic@top
+      \count@\@didactic@pagelast
+      \@didactic@readlast
+      \global\@didactic@colast\@didactic@pagelast
+      \global\@didactic@pagelast\count@
+      \global\setbox\@didactic@pullbox\box\voidb@x
+      \setbox\z@\vbox{\unvcopy\footins\@didactic@pull}%
+      \global\@didactic@foot
+        \dimexpr\ht\footins+\dp\footins-\ht\@didactic@pullbox
+          -\dp\@didactic@pullbox\relax
+      \global\setbox\@didactic@pullbox\box\voidb@x
+    \endgroup
+    \ifdim\@didactic@foot>\z@
+      \advance\@didactic@foot\skip\footins
+    \fi
+  \fi}
+\newcommand\@didactic@vwalk{%
+  \let\@didactic@next\relax
+  \ifcase\numexpr\lastnodetype+1\relax
+  \or\or \global\@tempswatrue
+  \or \global\@tempswatrue
+  \else
+    \ifnum\lastnodetype=13
+      \ifnum\lastpenalty<\@M \global\@tempswatrue \fi
+    \else\ifnum\lastnodetype=12
+      \unkern \let\@didactic@next\@didactic@vwalk
+    \else\ifnum\lastnodetype=11
+      \unskip \let\@didactic@next\@didactic@vprev
+    \fi\fi\fi
+  \fi
+  \@didactic@next}
+\newcommand\@didactic@vprev{%
+  \let\@didactic@next\relax
+  \ifnum\lastnodetype<\z@\else
+    \ifnum\lastnodetype>10 \let\@didactic@next\@didactic@vwalk
+    \else \global\@tempswatrue \fi
+  \fi
+  \@didactic@next}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@lonecheck}
+% A page that ends early may leave the first line of a paragraph at its foot,
+% or the last at the top of the next, where the document's penalties allow
+% it.
+% \TeX\ puts the penalty for that between the lines, |\interlinepenalty| and
+% |\clubpenalty| after the first line, |\widowpenalty| before the last,
+% |\displaywidowpenalty| before the last line ahead of a display, and the split
+% discards it; so if what it discards holds a penalty above |\interlinepenalty|
+% by one of those, a line is alone, and we warn.
+% A penalty of 0 there leaves no trace: a document that sets those penalties
+% to 0 gets no warning.
+%    \begin{macrocode}
+\newcount\@didactic@bpen
+\newcommand\@didactic@lonecheck{%
+  \global\@didactic@bpen\z@
+  \ifvoid\@didactic@disc\else
+    \setbox\z@\vbox{\unvcopy\@didactic@disc\@didactic@discwalk}%
+  \fi
+  \@tempcnta\numexpr\@didactic@bpen-\interlinepenalty\relax
+  \@tempswafalse
+  \@didactic@iflone\clubpenalty
+  \@didactic@iflone\widowpenalty
+  \@didactic@iflone\displaywidowpenalty
+  \if@tempswa
+    \PackageWarningNoLine{didactic}{%
+      Page \the\c@page\space ends early before the line of the margin note
+      \MessageBreak called out at \csname @didactic@ln@\the\@didactic@noteof
+        \@didactic@head\endcsname, and leaves a line of a
+      \MessageBreak paragraph alone at the page break}%
+  \fi}
+\newcommand\@didactic@iflone[1]{%
+  \ifnum#1>\z@\ifnum\@tempcnta<#1 \else\@tempswatrue\fi\fi}
+\newcommand\@didactic@discwalk{%
+  \ifcase\numexpr\lastnodetype-11\relax
+    \unskip\expandafter\@didactic@discwalk
+  \or
+    \unkern\expandafter\@didactic@discwalk
+  \or
+    \global\@didactic@bpen\lastpenalty
+    \unpenalty\expandafter\@didactic@discwalk
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@endpage}
+% Ending the page: the two parts go back with a forced break between them, 
+% and after them the kernel's trigger for the note, so that its special output 
+% comes again on the next page with the note still first in |\@currlist|; the 
+% kernel's |\@next|, which would hand it to \textsf{marginfix} now, is skipped.
+% The notes already decided on lines of the rest go with their lines: those in 
+% the margin are held back by their marks (above), those at the foot are taken 
+% off the foot of this page when it is built (|\@didactic@pullfeet|, below).
+%    \begin{macrocode}
+\newif\if@didactic@ended
+\newcommand\@didactic@endpage{%
+  \expandafter\gdef\csname @didactic@rf@\the\@didactic@noteof
+    \@didactic@head\endcsname{}%
+  \@didactic@lonecheck
+  \global\setbox\@holdpg\box\voidb@x
+  \@didactic@endedtrue
+  \def\@didactic@after{%
+    \unvbox\@didactic@top
+    \penalty-\@M
+    \unvbox\@didactic@rest
+    \penalty-\@Miv \vbox{}\penalty\outputpenalty}%
+  \let\@didactic@skip\@didactic@skipnext}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@pullfeet}
+% A copy at the foot of a note whose line went to the next page goes there 
+% too: when a column is made, before its footnotes are attached, we take the 
+% boxes of the notes numbered higher than the last callout in the column off 
+% the end of |\footins| (each copy carries its number in its width, above the 
+% column's) and insert them again, for the next page.
+% Only in one column, the only place there are copies.
+%    \begin{macrocode}
+\newbox\@didactic@pullbox
+\newbox\@didactic@one
+\newcount\@didactic@colast
+\newcommand\@didactic@pullfeet{%
+  \ifvoid\footins\else
+    \begingroup
+      \let\@outputbox\@cclv
+      \count@\@didactic@pagelast
+      \@didactic@readlast
+      \global\@didactic@colast\@didactic@pagelast
+      \global\@didactic@pagelast\count@
+    \endgroup
+    \global\setbox\@didactic@pullbox\box\voidb@x
+    \global\setbox\footins\vbox{\unvbox\footins\@didactic@pull}%
+    \ifvoid\@didactic@pullbox\else
+      \ifdim\dimexpr\ht\footins+\dp\footins\relax=\z@
+        \global\setbox\footins\box\voidb@x
+      \fi
+      \insert\footins{\floatingpenalty\@MM\unvbox\@didactic@pullbox}%
+    \fi
+  \fi}
+\newcommand\@didactic@pull{%
+  \let\@didactic@next\relax
+  \ifnum\lastnodetype=\tw@
+    \setbox\@didactic@one\lastbox
+    \@tempcnta\numexpr\wd\@didactic@one-\columnwidth\relax
+    \ifnum\@tempcnta>\@didactic@colast
+      \global\setbox\@didactic@pullbox
+        \vbox{\box\@didactic@one\unvbox\@didactic@pullbox}%
+      \let\@didactic@next\@didactic@pull
+    \else
+      \box\@didactic@one
+    \fi
+  \fi
+  \@didactic@next}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -5328,10 +5756,24 @@
   \pretocmd\@xympar{\@didactic@tagnote}{}{}%
   \patchcmd\@specialoutput{\unvbox\@holdpg\@next\@currbox\@currlist}
     {\@didactic@callout\@next\@currbox\@currlist}{}{}%
+  \ifpatchable{\@makecol}{\UseHook{build/column/before}}%
+    {\AddToHook{build/column/before}%
+       {\@didactic@colbuild\if@twocolumn\else\@didactic@pullfeet\fi}}%
+    {\pretocmd\@makecol{\@didactic@colbuild\@didactic@pullfeet}{}{}%
+     \ifdefined\@LN@orig@makecol
+       \pretocmd\@LN@orig@makecol{\@didactic@colbuild}{}{}%
+     \fi}%
+  \ifdefined\@makechapterhead
+    \pretocmd\@makechapterhead{\global\advance\@didactic@chapno\@ne}{}{}%
+  \fi
+  \ifdefined\@makeschapterhead
+    \pretocmd\@makeschapterhead{\global\advance\@didactic@chapno\@ne}{}{}%
+  \fi
   \patchcmd\@specialoutput{\@reinserts\@addtocurcol}
     {\@didactic@floatroom\@reinserts\@addtocurcol}{}{}%
   \let\@didactic@MFX@combinefloats@before\MFX@combinefloats@before
   \def\MFX@combinefloats@before{%
+    \@didactic@colcheck
     \@didactic@readlast\@didactic@sift
     \@didactic@MFX@combinefloats@before
     \@didactic@carrywarn

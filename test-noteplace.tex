@@ -52,7 +52,7 @@
   also quite a few}
 \def\heading{heading}\def\stacked{stacked}\def\second{second}\def\vertical{vertical}
 \def\runin{runin}\def\runintwo{runintwo}\def\club{club}\def\widow{widow}
-\def\middle{middle}
+\def\middle{middle}\def\listingcase{listing}
 \def\theoremcase{theorem}\def\headlist{headlist}\def\withother{withother}
 \def\tallheading{tallheading}\def\tallclub{tallclub}\def\tallwidow{tallwidow}
 \def\tallmiddle{tallmiddle}\def\split{split}\def\headthm{headthm}
@@ -158,6 +158,14 @@
 \ifx\testcase\widow
   FIRSTLINE \filler\ Now the last line of the paragraph, with its
   note\yieldnote{}.
+\fi
+\ifx\testcase\listingcase
+  FIRSTLINE \filler\ Lead-in to the listing:
+\begin{Verbatim}
+listing line one
+listing line two
+\end{Verbatim}
+  \testsecond
 \fi
 \ifx\testcase\middle
   FIRSTLINE \filler\ \filler\yieldnote{} \filler\ \filler

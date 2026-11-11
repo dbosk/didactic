@@ -21,8 +21,11 @@ test-noteplace.tex writes to the log.  EXPECT is one of:
               line of the text on its page.
   lonewarn    if a first or last line is alone at a page break (club or widow), a
               warning says so ("alone").
+  carried     NOTEY is set on another page than its callout, with a warning.
+  keepwhy     a warning says that a heading or a list starts on the page above
+              the callout's line (why its page didn't end early).
   limitwarn   if NOTEY is off its callout's page, a warning names the limit
-              (notemaxgap).
+              (keepmaxgap).
   continued   the rest of a split note is marked as continued.
   footwarn    a warning says that noteoverflow=foot works as break here;
   nofootwarn  no such warning.
@@ -33,7 +36,7 @@ test-noteplace.tex writes to the log.  EXPECT is one of:
   pairs       every other note with labels c-X at its callout and n-X in it is
               on its callout's page, or a warning names a note off its page.
   gap=N       page 1 leaves at most N lines empty under its last line of text
-              (the limit on empty space, notemaxgap, honoured).
+              (the limit on empty space, keepmaxgap, honoured).
 Prints one line, "PASS" or "FAIL" with what failed, and the facts.
 """
 import re
@@ -93,12 +96,16 @@ def indented(n):
 
 
 def club():
-    """FIRSTLINE ends its page, and its paragraph goes on on the next."""
+    """FIRSTLINE ends its page, and its paragraph goes on on the next: the next
+    page starts with a line that isn't indented and isn't a heading (the cases'
+    headings have words that start with HEAD)."""
     n = page_of("FIRSTLINE")
     if n is None or n >= len(pages):
         return False
-    ls = lines(n)
-    return bool(ls) and any(w.startswith("FIRSTLINE") for w in ls[-1]) and not indented(n + 1)
+    ls, nx = lines(n), lines(n + 1)
+    heading = bool(nx) and any(w.startswith("HEAD") for w in nx[0])
+    return bool(ls) and any(w.startswith("FIRSTLINE") for w in ls[-1]) \
+        and not indented(n + 1) and not heading
 
 
 def widow():
@@ -144,8 +151,12 @@ for e in expect:
         fails.append("the paragraph's last line alone at the top of a page")
     elif e == "lonewarn" and (club() or widow()) and not re.search(r"alone|What starts at", joined):
         fails.append("a line alone at a page break without a warning")
-    elif e == "limitwarn" and off and "notemaxgap" not in joined:
-        fails.append("note-y off its page without a warning naming notemaxgap")
+    elif e == "carried" and not (off and warned):
+        fails.append("note-y not carried with a warning (%s, %s)" % (facts["note"], facts["callout"]))
+    elif e == "keepwhy" and not re.search(r"a heading or a list starts on its page above", joined):
+        fails.append("no warning that a heading or a list starts above the line")
+    elif e == "limitwarn" and off and "lines empty (keepmaxgap)" not in joined:
+        fails.append("note-y off its page without a warning naming keepmaxgap")
     elif e.startswith("gap=") and pages:
         ys = [y for w, x, y, body in pages[0] if body]
         line = 12 * 72 / 72.27
