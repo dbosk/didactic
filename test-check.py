@@ -416,6 +416,7 @@ def keep_noweb(c, overfull=True):
 
     With the limit of keepmaxgap, in -break, no page is overfull: the tie is released.
     """
+    tl_multicol(c)
     lines = keep_results(c, "noweb")
     c.ok(len(lines) == 16, f"16 cases, has {len(lines)}")
     apart, full = {}, {}
@@ -525,8 +526,16 @@ def keep_parted(c):
     c.ok(not others, f"no warning elsewhere: {others}")
 
 
+def tl_multicol(c):
+    """multicol.sty from TeX Live's tools, not an older copy in a texmf tree."""
+    other = [m for m in re.findall(r"\(([^ ()]*multicol\.sty)", c.log.replace("\n", ""))
+             if "texmf-dist/tex/latex/tools/" not in m]
+    c.ok(not other, "multicol.sty from TeX Live's tools" + (f", not {other[0]}" if other else ""))
+
+
 def keep_multicol(c):
     """test-keep-multicol.tex; see its header."""
+    tl_multicol(c)
     lines = keep_results(c, "multicol")
     c.ok(not re.search(r"Overfull \\vbox", c.log), "no Overfull \\vbox")
     w = [x for x in warnings(c) if "multicols" in x]

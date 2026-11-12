@@ -763,8 +763,11 @@
 % In two columns a note runs past the foot of its column's margin the same way,
 % but there is no foot beside a column for a footnote, so it is carried.
 % Inside \textsf{multicol}'s |multicols|, where no margin note can be set, a
-% footnote goes to the foot of the page under the columns; any other margin note
-% there is lost, as in \LaTeX, but with a warning.
+% footnote goes to the foot of the page under the columns, where
+% \textsf{multicol} sets it; when it sets one at the foot of another page than
+% its mark's, a warning says so, one run late (from records of the run before),
+% and a settled build has it.
+% Any other margin note there is lost, as in \LaTeX, but with a warning.
 % With \TeX~Live's \textsf{marginfix} 1.2 all of this works, but for deferrable
 % notes and the split of a note taller than the margin, which come with later
 % versions of \textsf{marginfix}.
@@ -5850,6 +5853,15 @@
 % So inside |multicols| a footnote goes to the foot of the page, under the
 % columns, as an ordinary footnote: \textsf{memoir}'s |\footnotesatfoot|, for
 % the environment only.
+% There \textsf{multicol} decides where it goes: it collects the columns'
+% material and breaks the page after, so a note can end up at the foot of the
+% page before its mark's.
+% We can't see that when it happens; so, in |multicols| only, a record of the
+% page at the mark and one at the start of the note, in the |.aux| file, and the
+% run after warns where they differ (|\@didactic@mc@mark|): a record for the
+% warning only, which a settled build has too.
+% The record at the mark is a |\write| right after the mark's box, where no
+% place to break is and the next word starts after the space as before.
 % A margin note other than a footnote has nowhere to go there, as in \LaTeX\
 % without \textsf{didactic}, where it is lost without a word; we warn
 % (|\@didactic@mcolwarn|, where a margin note is made), but not for what
@@ -5857,7 +5869,32 @@
 % \textsf{didactic}'s code side by side uses too), which is no note.
 %    \begin{macrocode}
 \newcommand\@didactic@mcolfoot{%
-  \ifdefined\footnotesatfoot\footnotesatfoot\fi}
+  \ifdefined\footnotesatfoot\footnotesatfoot\fi
+  \let\@didactic@mc@fnmark\@footnotemark
+  \def\@footnotemark{\@didactic@mc@fnmark\@didactic@mc@mark}%
+  \let\@didactic@mc@fntext\@footnotetext
+  \long\def\@footnotetext##1{\@didactic@mc@fntext{\@didactic@mc@note##1}}}
+\newcount\@didactic@mcn
+\newcommand\@didactic@mcpage[2]{\expandafter\gdef\csname @didactic@mcp@#1\endcsname{#2}}
+\AtBeginDocument{\if@filesw\immediate\write\@auxout{%
+  \string\providecommand\string\@didactic@mcpage[2]{}}\fi}
+\newcommand\@didactic@mc@record[1]{%
+  \protected@write\@auxout{\let\thepage\relax}{%
+    \string\@didactic@mcpage{#1\the\@didactic@mcn}{\thepage}}}
+\newcommand\@didactic@mc@mark{%
+  \global\advance\@didactic@mcn\@ne
+  \@didactic@mc@record m%
+  \ifcsname @didactic@mcp@m\the\@didactic@mcn\endcsname
+  \ifcsname @didactic@mcp@n\the\@didactic@mcn\endcsname
+    \edef\@tempa{\csname @didactic@mcp@m\the\@didactic@mcn\endcsname}%
+    \edef\@tempb{\csname @didactic@mcp@n\the\@didactic@mcn\endcsname}%
+    \ifx\@tempa\@tempb\else
+      \PackageWarning{didactic}{Footnote \@thefnmark\space in multicols is called
+        out on page \@tempa\MessageBreak and set at the foot of page \@tempb,
+        where multicol puts it\MessageBreak (seen in the run before)}%
+    \fi
+  \fi\fi}
+\newcommand\@didactic@mc@note{\@didactic@mc@record n}
 \newcommand\@didactic@mcolwarn{%
   \ifdefined\col@number
     \ifnum\col@number>\if@twocolumn\tw@\else\@ne\fi

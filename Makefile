@@ -311,8 +311,9 @@ test-keep-blank.pdf: test-keep-blank.tex didactic.sty
 	grep -q 'didactic blank test: all ran' test-keep-blank.log
 
 # multicol from the distribution: noweb's examples, in a texmf tree, have an old copy,
-# with no multicols*.
-test-keep-multicol.pdf: export TEXINPUTS:=$(shell kpsewhich -var-value=TEXMFDIST)/tex/latex/tools::
+# with no multicols*; test-check.py fails a test that loads another one.
+test-keep-multicol.pdf test-keep-noweb.pdf test-keep-noweb-break.pdf: \
+	export TEXINPUTS:=$(shell kpsewhich -var-value=TEXMFDIST)/tex/latex/tools::
 
 test-keep-huge.pdf: test-keep-huge.tex didactic.sty
 	@${latex_until_settled}

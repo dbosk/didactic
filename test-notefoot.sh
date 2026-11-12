@@ -74,10 +74,10 @@ job article 4 "$C{dense}\\def\\testclass{article}" foot beside nofalse
 job twocol 8 "$C{dense}\\def\\testclassopt{twocolumn}"
 job twofoot 8 "$C{dense}\\def\\testclassopt{twocolumn}\\def\\testoptions{noteoverflow=foot}" \
   'works=noteoverflow=foot works as'
-# In multicols every footnote of didactic's is lost today, with multicol's
-# warning that marginpars aren't allowed there, also with TeX Live's multicol
-# first on TEXINPUTS (on one machine ~/texmf had a multicol of 1992 first).
-job multi 8 "$C{multi}" nofoot
+# In multicols a footnote goes to the foot of the page, under the columns, as
+# multicol sets footnotes; it may put one at the foot of the page before its
+# mark's, and then didactic warns, from records of the run before (note 8 here).
+job multi 8 "$C{multi}" foot order
 job hyper 4 "$C{hyper}" foot beside nodest nofalse
 job counter 4 "$C{counter}" foot beside counter nofalse
 job nofeet 4 "$C{nofeet}" nofoot beside nofalse
