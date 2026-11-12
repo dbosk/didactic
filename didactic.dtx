@@ -3482,6 +3482,7 @@
     \fi}%
   \if@tempswa\expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
 \newcommand\@didactic@aftermarginfloat{}
+\newif\if@didactic@inmfloat
 \newcommand\@didactic@marginfloat[2]{%
   \@didactic@ifhiddenframe
     {\let\marginfloatmarginmacro\@gobble
@@ -3490,6 +3491,7 @@
     {\@didactic@marginfloatorder@check{#2}}%
   \@bsphack
   \let\FloatBlock\relax
+  \@didactic@inmfloattrue
   \begin{mem@margin@float}[#1]{#2}}
 \newcommand\@didactic@endmarginfloat{%
   \end{mem@margin@float}%
@@ -4642,6 +4644,9 @@
       \global\count\@marbox\numexpr-1-\@didactic@noteid\relax
       \expandafter\xdef\csname @didactic@ln@\the\@didactic@noteid\endcsname{%
         \@didactic@here}%
+      \if@didactic@inmfloat
+        \expandafter\gdef\csname @didactic@mf@\the\@didactic@noteid\endcsname{}%
+      \fi
       \@didactic@keepcopy}%
   \fi}
 \newcommand\@didactic@ifinjected[1]{%
@@ -4920,6 +4925,9 @@
 % foot as wide as text and margin would be in its way, see the documentation).
 % Only in |foot| mode, and only once in a column: after it the margin counts as
 % full and beyond, so that no other note runs over as well.
+% Only notes: a margin float (|marginfigure|, |margintable|, which |memoir| makes
+% a margin note of, |\@didactic@mf@|\meta{number}) below the text block is
+% another thing to look at, and \textsf{marginfix} moves it on as ever.
 % \textsf{marginfix} gives it the room when it builds the column, through its
 % |\marginheightadjustment| (|\@didactic@overapply|, below): by exactly as much
 % as the note misses, and a scaled point more since a note fits only if it is
@@ -4934,6 +4942,12 @@
 \let\@didactic@ovwhy\@empty
 \newcommand\@didactic@overmax{2\@didactic@keep@L}
 \newcommand\@didactic@ifover{%
+  \ifcsname @didactic@mf@\the\@didactic@noteof\@didactic@head\endcsname
+    \expandafter\@secondoftwo
+  \else
+    \expandafter\@didactic@ifover@
+  \fi}
+\newcommand\@didactic@ifover@{%
   \ifdefined\marginheightadjustment
     \ifdim\dimexpr\@didactic@used+\@didactic@noteht\relax
         <\dimexpr\@didactic@room+\@didactic@overmax\relax

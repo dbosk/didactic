@@ -278,6 +278,10 @@ check overguard x 4 '' "kept,noover-LOWZ" '\def\testtall{.9}\def\testbody{FIRSTL
 check overlater x 9 '' "over=2,noover-SMALL" '\def\testtall{.95}\def\testbody{FIRSTLINE \filler\ end\yieldnote[\par TWO\par THREE]\marginpar{SMALL} \filler\par}'
 # A float at the top of the page takes margin as well, and the warning says so.
 check overfloat x 9 '' over=2 '\def\testtall{.85}\def\testbody{\begin{figure}[t]\rule{1cm}{3\baselineskip}\end{figure}FIRSTLINE \filler\ end\yieldnote[\par TWO\par THREE] \filler\par}'
+# A margin float is no note: one that misses the foot of the margin by less than
+# two lines is moved on by marginfix as ever, not run over (the decision to run
+# over is for notes; a figure below the text block is another thing).
+check overmfloat x 9 '' "carried,noover" '\def\testtall{.95}\def\testbody{FIRSTLINE \filler\ end\label{callout-y}\begin{marginfigure}\rule{1cm}{1pt}\caption{FIGX\label{note-y}}\end{marginfigure} \filler\par}'
 # A note a little taller than the whole margin, alone at its top, is set whole and
 # runs over, not split (marginfix's split of tall notes reads the same height).
 check overtall x 9 '' "warned,nocontinued" '\def\testtall{1.01}\def\testbody{FIRSTLINE \filler\ end\yieldnote{} \filler\par}'
