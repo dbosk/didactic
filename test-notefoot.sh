@@ -120,4 +120,10 @@ job mcol3nm 4 "$C{mcol3n}${R}{34}\\def\\testmulticols{}" nofalse nooverfull noov
 job waitsec 4 "$C{waitsec}${R}{36}" beside nofalse nooverfull nooverlap
 job waitsh 4 "$C{waitsh}${R}{37}" beside nofalse nooverfull nooverlap
 job rest2 4 "$C{rest2}${R}{40}\\def\\testK{39}" nooverfull nooverlap 'works=reach the foot'
+# A passage's mode is the one where its notes are called out (review S3): a
+# footnote in {\marginnoteoverflow{carry}...} is carried, though the paragraph
+# ends after the group, where the mode is foot; and one in
+# {\marginnoteoverflow{foot}...} in a document with carry goes to the foot.
+job local 4 "$C{local}${R}{10}" nofoot nofalse nooverfull nooverlap 'works=noteoverflow is carry'
+job localfoot 4 "$C{local}${R}{10}\\def\\testlocalfoot{}\\def\\testoptions{noteoverflow=carry}" foot beside nofalse nooverfull nooverlap
 exit $status

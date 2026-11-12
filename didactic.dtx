@@ -4751,6 +4751,9 @@
 % The rest of a note \textsf{marginfix} splits gets the number of its note, 
 % less a million, so that it goes with the note's line but can be told from 
 % the note (|\@didactic@ifrest|): it continues a note set on its page.
+% A note called out where the mode is |carry| is marked so
+% (|\@didactic@cc@|\meta{note}), for |\@didactic@decide|: the mode is read
+% where a note is called out.
 %    \begin{macrocode}
 \newcount\@didactic@noteid
 \newcommand\@didactic@tagnote{%
@@ -4764,6 +4767,9 @@
       \if@didactic@inmfloat
         \expandafter\gdef\csname @didactic@mf@\the\@didactic@noteid\endcsname{}%
       \fi
+      \ifdefstring{\@didactic@noteoverflow}{carry}
+        {\expandafter\gdef\csname @didactic@cc@\the\@didactic@noteid\endcsname{}}
+        {}%
       \@didactic@markfn
       \@didactic@record}%
   \fi}
@@ -4787,6 +4793,12 @@
 \newcommand\@didactic@noteof[1]{%
   \ifnum\count#1<-1000000 \numexpr-1000001-\count#1\relax
   \else\numexpr-1-\count#1\relax\fi}
+\newcommand\@didactic@ifcarry{%
+  \ifcsname @didactic@cc@\the\@didactic@noteof\@didactic@head\endcsname
+    \expandafter\@firstoftwo
+  \else
+    \expandafter\@secondoftwo
+  \fi}
 \newcommand\@didactic@ifrest[1]{%
   \ifnum\count#1<-1000000
     \expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
@@ -5294,6 +5306,9 @@
 % page).
 % A note carried gets its reason, by the number of its boxes, for the 
 % warning that it is set on another page (|\@didactic@whyof|).
+% Its mode is the one where it was called out (|\@didactic@ifcarry|, kept by
+% |\@didactic@tagnote|), not the one where the output fires, at the end of the
+% paragraph, say, after the group of a |\marginnoteoverflow| has ended.
 %    \begin{macrocode}
 \newdimen\@didactic@used
 \newdimen\@didactic@noteht
@@ -5312,7 +5327,7 @@
     \global\advance\@didactic@used
       \dimexpr\@didactic@noteht+\marginparpush\relax
   \else
-    \ifdefstring{\@didactic@noteoverflow}{carry}
+    \@didactic@ifcarry
       {\@didactic@setwhy{noteoverflow is carry}%
        \global\@didactic@used\@didactic@room}
       {\@didactic@footplace\@ne

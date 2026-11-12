@@ -19,7 +19,13 @@
 %   waitsh    the same with a \vspace{0pt minus 2pt} instead of the heading;
 %   rest2     a footnote split at the foot, its rest heading the next page's
 %             foot, where a footnote of LaTeX's own and a later margin note
-%             whose line goes on (widow) follow, \testK lines down (review P1).
+%             whose line goes on (widow) follow, \testK lines down (review P1);
+%   local     a footnote in a passage with \marginnoteoverflow{carry}, ending
+%             before the paragraph does, where the margin is full: carried, as
+%             the passage asks, though the mode is foot where the paragraph ends
+%             (review S3); with \testlocalfoot, the other way round: the passage
+%             asks for foot in a document with carry, and the note goes to the
+%             foot.
 \makeatletter
 \newcommand\fnt[1]{%
   \stepcounter{mk}\edef\mkv{\arabic{mk}}%
@@ -33,6 +39,7 @@
 \def\testreins{reins}\def\testreinsmix{reinsmix}\def\testwait{wait}
 \def\testmcolx{mcol3x}\def\testmcol{mcol3}\def\testmcoln{mcol3n}
 \def\testwaitsec{waitsec}\def\testrestb{rest2}\def\testwaitsh{waitsh}
+\def\testlocal{local}
 \ifx\testcase\testmcolx\def\testfm#1{}\else\def\testfm#1{\fnt{#1}}\fi
 \ifx\testcase\testwaitsh\def\testwaitsec{waitsh}\fi
 \ifx\testcase\testwaitsec
@@ -54,6 +61,15 @@
   \loop\ifnum\testli<\testK \noindent pline \the\testli\par\advance\testli\@ne\repeat
   LINEONE\\ LINETWO\\ LINETHREE\testmp{NOTEB}\\ LINEFOUR\par
   After.
+\else\ifx\testcase\testlocal
+  \noindent x\marginpar{\rule{1pt}{\dimexpr\textheight-8pt}} text.\par
+  \testlines
+  \edef\testlocalmode{\ifdefined\testlocalfoot foot\else carry\fi}%
+  {\expandafter\marginnoteoverflow\expandafter{\testlocalmode}%
+  CALLL\fnt{FOOTL a footnote in a passage that asks for a mode of its own, with
+  three lines or more of text, so that it can't run past the foot of the margin
+  at all.}} more words.\par
+  \filler\par
 \else\ifx\testcase\testwait
   \noindent x\marginpar{\rule{1pt}{\dimexpr\textheight-8pt}} text.\par
   \testlines
@@ -89,5 +105,5 @@
   \ifx\testcase\testmcol\end{multicols}\fi
   \ifx\testcase\testmcolx\else\ifdefined\testmulticols\end{multicols}\fi\fi
   AFTER.
-\fi\fi\fi\fi
+\fi\fi\fi\fi\fi
 \makeatother
