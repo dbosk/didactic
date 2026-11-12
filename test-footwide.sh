@@ -2,11 +2,12 @@
 # Builds test-footwide.tex in each of its cases, under pdfLaTeX, XeLaTeX and
 # LuaLaTeX, and with hyperref under pdfLaTeX, and checks each with
 # test-footwide.py: a footnote at the foot is set in the width of the text, its
-# text runs once, and the footnotes found not plain are those the case declares.  $MARGINFIX: a directory with the marginfix.sty to test
-# against, put first on TEXINPUTS; unset, the one found.  $CASES: only these.
+# text runs once, and the footnotes found not plain are those the case
+# declares.  $MARGINFIX: a directory with the marginfix.sty to test against, put
+# first on TEXINPUTS; unset, the one found.  $CASES: only these.
 src=test-footwide
 status=0
-ALL='plain cite url prepost reuse twopar mixed color linewidth list display parbox vspace huge split wait'
+ALL='plain cite url prepost reuse twopar mixed color linewidth list display parbox vspace huge split wait bs fnmark'
 [ -n "$MARGINFIX" ] && export TEXINPUTS="$(cd "$MARGINFIX" && pwd)//:$TEXINPUTS"
 job() { # <engine> <case> [<definitions>]
   local eng=$1 c=$2 defs=$3 j=$src-$1-$2${3:+-h}

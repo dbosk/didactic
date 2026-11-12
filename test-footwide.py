@@ -16,7 +16,10 @@ that aren't plain, whose version at the foot is the second of three runs.
 split: ENDA is on the next page, at its foot; wait: NOTEB is there too, below
 ENDA, and the PDF says ONCE2.  linewidth: LWA and LWB are more than 60bp apart
 (the box of .01\\linewidth is measured where \\linewidth is half as wide as TeX
-allows: a limit, pinned).  huge: only that it isn't plain, for a line too wide.
+allows: a limit, pinned).  huge: only that it isn't plain, for a line too
+wide.  bs: the margin note's BSLINE (the line after \\) starts at the margin's
+edge, from the log's "didactic-margin:" line, within a point.  fnmark: the word
+before NOTEA in the margin is the note's own mark, 1.
 Prints one line, PASS or FAIL with what failed; exit status 1 on FAIL.
 """
 import html
@@ -37,6 +40,7 @@ CASES = {
     "vspace": ("space of its own between paragraphs|space of its own between lines",
                True, True),
     "huge": ("too wide", False, False),
+    "bs": (None, True, False), "fnmark": (None, True, False),
 }
 job, case = sys.argv[1], sys.argv[2]
 reason, hasonce, placed = CASES[case]
@@ -110,5 +114,24 @@ if case == "linewidth":
     a, b = find("LWA"), find("LWB")
     if not a or not b or b[-1][1][0] - a[-1][1][2] < 60:
         fails.append(f"LWA and LWB not far apart: {a[-1:]} {b[-1:]}")
+if case == "bs":
+    m = re.search(r"didactic-margin: odd=([\d.]+) even=([\d.]+)", log)
+    b = find("BSLINE")
+    if not m or not b:
+        fails.append("no margin line or no BSLINE")
+    else:
+        edge = float(m[1]) if b[-1][0] % 2 else float(m[2])
+        if abs(b[-1][1][0] - edge) > 1:
+            fails.append(f"BSLINE at x {b[-1][1][0]:.1f}, the margin's edge at {edge:.1f}")
+if case == "fnmark":
+    a = find("NOTEA")
+    if not a:
+        fails.append("no NOTEA")
+    else:
+        n, w = a[-1]
+        before = [v for v in pages[n - 1] if abs(v[1] - w[1]) < 4 and v[2] <= w[0] + 1]
+        mark = max(before, key=lambda v: v[2])[4] if before else None
+        if mark != "1":
+            fails.append(f"the note's mark is {mark}, not 1")
 print(("FAIL: " + "; ".join(fails)) if fails else "PASS")
 sys.exit(1 if fails else 0)

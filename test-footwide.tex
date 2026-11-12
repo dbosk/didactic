@@ -27,6 +27,11 @@
 %   split     a long sentence near the foot, \testN lines down, split over two
 %             pages;
 %   wait      the same and a second footnote in the same line, which waits;
+%   bs        a footnote with \\ that stays in the margin (no tall note): the
+%             line after \\ starts at the margin's edge, as in a margin note
+%             without didactic (review P4);
+%   fnmark    a footnote with a \footnotemark in it, in the margin: its own
+%             mark, 1, before NOTEA (review P5);
 % \testhyper loads hyperref.  test-footwide.py checks the outcome from the PDF and
 % the log.
 \documentclass[a4paper]{memoir}
@@ -63,8 +68,12 @@
 \def\testdisplay{display}\def\testsplit{split}\def\testwait{wait}
 \def\testmixed{mixed}\def\testcolor{color}\def\testlinewidth{linewidth}
 \def\testparbox{parbox}\def\testvspace{vspace}\def\testhuge{huge}
+\def\testbs{bs}\def\testfnmark{fnmark}
+\ifx\testcase\testbs\def\testnotall{}\fi
+\ifx\testcase\testfnmark\def\testnotall{}\fi
 \begin{document}
-\noindent x\marginpar{TALL\par\rule{1pt}{.97\textheight}} \filler\ \filler
+\noindent x\ifdefined\testnotall\else\marginpar{TALL\par\rule{1pt}{.97\textheight}}\fi
+  \filler\ \filler
 \ifx\testcase\testsplit\def\testlate{}\fi
 \ifx\testcase\testwait\def\testlate{}\fi
 \ifdefined\testlate
@@ -96,6 +105,10 @@
     \filler\ \once}\fi
   \ifx\testcase\testparbox\footnote{NOTEA \parbox{\linewidth}{\filler} \once}\fi
   \ifx\testcase\testvspace\footnote{NOTEA \filler\par\vspace{1ex}NOTEP \once}\fi
+  \ifx\testcase\testbs\footnote{NOTEA with a forced break here\\ BSLINE and
+    more words to wrap in the margin \once}\fi
+  \ifx\testcase\testfnmark\footnote{NOTEA with a mark\footnotemark{} inside
+    \once}\fi
   \ifx\testcase\testhuge\footnote{NOTEA \longnote\ \longnote\ \longnote\ \longnote\
     \longnote\ \longnote\ \longnote\ \longnote\ \longnote\ \longnote\ \longnote\
     \longnote\ \longnote\ \longnote\ \longnote\ \longnote\ \once}\fi

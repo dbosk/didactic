@@ -5433,7 +5433,8 @@
       \@didactic@fallback{#1}%
     \fi
     \@didactic@hboxmargin
-    \@didactic@keep}%
+    \@didactic@keep
+    \global\let\@thefnmark\@didactic@markafter}%
    {\@didactic@footmargin{\interlinepenalty\interfootnotelinepenalty#1}}%
   \global\@didactic@isfnfalse}
 \newcommand\@didactic@ifcopies{%
@@ -5489,6 +5490,16 @@
 % \TeX's arithmetic): such a box makes the note not plain (below), but a small
 % fraction of the width is wrong at both measures; the documentation says so.
 % The counters are kept as they were before and after, for the fallback.
+% So is the footnote's mark, |\@thefnmark|, which a |\footnotemark| in the text
+% sets for itself, globally: the note's own mark is set back after the
+% measure, for the margin note and the foot, and the inner one is left after
+% the note, as \LaTeX\ leaves it.
+% A |\\| in the text is \LaTeX's own forced line break here (the kernel's
+% |\@gnewline|, |\@didactic@gnewline|), as it is in a footnote at the foot:
+% in the margin's ragged setting (\textsf{ragged2e}'s) it ends a paragraph and
+% starts the next without an indent, by a hook for the next paragraph only,
+% which the measure would spend, and the margin note set from the lines would
+% indent that line.
 % A footnote or margin note made while the text is measured (a citation that
 % makes a footnote of its own, a |\marginpar| in the note) isn't made there,
 % since the measure is never printed and a margin note can't be made in a box;
@@ -5496,11 +5507,14 @@
 % \textsf{didactic}, with the counters as that leaves them.
 %    \begin{macrocode}
 \newif\if@didactic@inmeasure
+\def\@didactic@gnewline#1{\ifvmode\@nolnerr\else
+  \unskip\reserved@e{\reserved@f#1}\nobreak\hfil\break\fi}
 \long\def\@didactic@gobbleopt[#1]#2{}
 \newif\if@didactic@nested
 \newcommand\@didactic@measure[1]{%
   \global\@didactic@nestedfalse
   \global\@didactic@inmeasuretrue
+  \global\let\@didactic@markbefore\@thefnmark
   \@didactic@savecounters
   \global\let\@didactic@ctbefore\@didactic@counters
   \@didactic@boxget\@didactic@mbox
@@ -5508,6 +5522,7 @@
     \def\baselinestretch{\m@m@footnote@spacing}%
     \let\checkoddpage\relax
     \reset@font\foottextfont
+    \let\\\@normalcr \let\@gnewline\@didactic@gnewline
     \hsize\maxdimen \linewidth.5\maxdimen
     \leftskip\z@skip \rightskip\z@skip \parskip\z@skip
     \parindent\z@ \parfillskip\z@\@plus1fil
@@ -5524,6 +5539,8 @@
     \color@endgroup
     \xdef\@didactic@mbsk{\the\dimexpr\baselineskip\relax}}%
   \global\@didactic@inmeasurefalse
+  \global\let\@didactic@markafter\@thefnmark
+  \global\let\@thefnmark\@didactic@markbefore
   \@didactic@savecounters
   \global\let\@didactic@ctafter\@didactic@counters
   \if@didactic@nested
@@ -5703,7 +5720,7 @@
   \expandafter\xdef\csname @didactic@pcs@\the\@didactic@noteid\endcsname{%
     \if@didactic@plain
       \noexpand\@didactic@fromlines
-        {\unexpanded\expandafter{\@thefnmark}}%
+        {\unexpanded\expandafter{\@didactic@markbefore}}%
         {\unexpanded\expandafter{\@didactic@curpieces}}%
     \else
       \noexpand\@didactic@fromcopy{\@didactic@cbox}%
@@ -5720,6 +5737,7 @@
 % are as the measure left them after.
 %    \begin{macrocode}
 \newcommand\@didactic@fallback[1]{%
+  \global\let\@thefnmark\@didactic@markbefore
   \@didactic@ctbefore
   \@didactic@boxget\@didactic@cbox
   \begingroup
@@ -5740,6 +5758,7 @@
       \color@endgroup}%
   \endgroup
   \@didactic@hboxcheck\@didactic@cbox{at the foot}%
+  \global\let\@thefnmark\@didactic@markbefore
   \@didactic@ctbefore
   \@didactic@footmargin{\@didactic@blxfootnote\@didactic@quiet
     \interlinepenalty\interfootnotelinepenalty#1\@didactic@quiet}%
