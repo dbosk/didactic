@@ -5354,8 +5354,8 @@
 % A footnote's number may be reused by later citations (above); when the note
 % is carried or waits for the next page, its warning names them too, since the
 % reader of the log will look for every mark with that number.
-% |\@didactic@reuser|\marg{number} records the place of a reusing mark under
-% the number; |\@didactic@reusers|\marg{note} says them, for a note with a copy
+% |\@didactic@reuser{|\meta{number}|}| records the place of a reusing mark under
+% the number; |\@didactic@reusers{|\meta{note}|}| says them, for a note with a copy
 % for the foot (with |foot|; under |carry| only the note's own place is named).
 %    \begin{macrocode}
 \newcommand\@didactic@reuser[1]{%
