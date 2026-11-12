@@ -62,6 +62,8 @@ errors = re.findall(r"^! .*", log, re.M)
 if errors:
     fails.append(f"errors: {errors[:2]}")
 said = re.findall(r"isn't plain: it has (.*?);", joined)
+if "found from the last run" in joined:
+    fails.append("a note found from the last run, not warned in it")
 if reason is None and said:
     fails.append(f"found not plain: {said}")
 elif reason is not None and (len(said) != 1 or not re.search(reason, said[0])):

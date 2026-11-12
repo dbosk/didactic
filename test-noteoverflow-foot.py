@@ -100,6 +100,8 @@ def check(job, want, spill, away_ok, warn, nolabels):
     report(f"{job} errors", not errors, " ".join(errors[:2]))
     notplain = len(re.findall(r"isn't plain", re.sub(r"\n\(didactic\) *", " ", log)))
     report(f"{job} every footnote plain", notplain == 0, f"({notplain} not plain)")
+    foundlast = len(re.findall(r"found from the last\s+run", re.sub(r"\n\(didactic\) *", " ", log)))
+    report(f"{job} nothing found from the last run", foundlast == 0, f"({foundlast})")
     dest = re.findall(r"warning \(dest\)|same identifier|has been referenced but"
                       r" does not exist", log)
     report(f"{job} link targets", not dest, f"({len(dest)})")

@@ -93,6 +93,13 @@ if "reusenamed" in sys.argv[2:]:
     log = re.sub(r"\n\(didactic\) *", " ", open(f"{job}.log", errors="replace").read())
     if "its number is reused at" not in log.replace("\n", ""):
         fails.append("no warning names a mark that reuses the note's number")
+# notes the last run placed on another page than their callout without a
+# warning, found from its records ("found from the last run"): as many as
+# the test declares, foundlast=N, else none; each is a silent case
+FOUNDLAST = len(re.findall(r"found from the last\s+run", re.sub(r"\n\(didactic\) *", " ", open(f"{job}.log", errors="replace").read())))
+WANTLAST = int(next((a[10:] for a in sys.argv[2:] if a.startswith("foundlast=")), 0))
+if FOUNDLAST != WANTLAST:
+    fails.append(f"{FOUNDLAST} notes found from the last run, {WANTLAST} declared")
 # notes found not plain (didactic's info): as many as the test declares,
 # notplain=N, else none; a note found not plain by mistake runs its text
 # three times without a warning

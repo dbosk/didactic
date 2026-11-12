@@ -154,6 +154,13 @@ for c in checks:
         fails.append("a page overfull in the output routine")
     elif c == "nooverlap" and overlaps(job):
         fails.append(f"words on top of each other on pages {overlaps(job)}")
+# notes the last run placed on another page than their callout without a
+# warning, found from its records ("found from the last run"): as many as
+# the test declares, foundlast=N, else none; each is a silent case
+FOUNDLAST = len(re.findall(r"found from the last\s+run", re.sub(r"\n\(didactic\) *", " ", log)))
+WANTLAST = int(next((a[10:] for a in checks if a.startswith("foundlast=")), 0))
+if FOUNDLAST != WANTLAST:
+    fails.append(f"{FOUNDLAST} notes found from the last run, {WANTLAST} declared")
 # notes found not plain (didactic's info): as many as the test declares,
 # notplain=N, else none; a note found not plain by mistake runs its text
 # three times without a warning

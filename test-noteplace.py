@@ -63,6 +63,12 @@ test-noteplace.tex writes to the log.  Always: no footnote found not plain
   footwarnpast  a warning says that a footnote runs past the foot of the page.
   label=N:P   the label N is on page P.
   incol=W     W is in the text column (at the foot, not in a margin).
+  lostwarn=F  a warning says that a margin note called out in file F (with its
+              line and page) wasn't printed (TeX Live's 1.2, which loses a note
+              taller than the margin).
+  error=TEXT  (read by test-noteplace.sh) the one LaTeX error the row expects.
+  recordless=N  N notes have a record of their callout in the .aux and none of
+              where they were printed (a note marginfix splits loses it).
   mcolwarn    a warning says that a margin note in multicols is lost;
               nomcolwarn, no such warning.
   overwarn    a warning says that a margin note runs past the foot of the margin
@@ -265,6 +271,17 @@ for e in expect:
         fails.append("no warning that a footnote runs past the foot of the page")
     elif e.startswith("has=") and e[4:] not in out:
         fails.append("%s is not in the text" % e[4:])
+    elif e.startswith("lostwarn=") and not re.search(
+            r"Margin note called out at " + re.escape(e[9:]) + r":\d+ on page \d+ wasn't printed",
+            joined):
+        fails.append(f"no warning that a margin note called out in {e[9:]} wasn't printed")
+    elif e.startswith("recordless="):
+        aux = open(job + ".aux", errors="replace").read()
+        rc = set(re.findall(r"\\@didactic@rc\{(\d+)\}", aux))
+        rn = set(re.findall(r"\\@didactic@rn\{(\d+)\}", aux))
+        if len(rc - rn) != int(e[11:]):
+            fails.append(f"{len(rc - rn)} notes with a callout's record and none of their own, "
+                         f"not {e[11:]}")
     elif e.startswith("incol="):
         n = page_of(e[6:])
         left = geo["odd"] if (n or 1) % 2 else geo["even"]
@@ -324,6 +341,13 @@ for e in expect:
         fails.append("a warning that foot works as carry, not asked for")
     elif e == "continued" and not re.search(r"continued|forts", " ".join(w[0] for ws in pages for w in ws)):
         fails.append("no continued note")
+# notes the last run placed on another page than their callout without a
+# warning, found from its records ("found from the last run"): as many as
+# the test declares, foundlast=N, else none; each is a silent case
+FOUNDLAST = len(re.findall(r"found from the last\s+run", re.sub(r"\n\(didactic\) *", " ", log)))
+WANTLAST = int(next((a[10:] for a in expect if a.startswith("foundlast=")), 0))
+if FOUNDLAST != WANTLAST:
+    fails.append(f"{FOUNDLAST} notes found from the last run, {WANTLAST} declared")
 # notes found not plain (didactic's info): as many as the test declares,
 # notplain=N, else none; a note found not plain by mistake runs its text
 # three times without a warning

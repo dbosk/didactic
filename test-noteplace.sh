@@ -66,7 +66,8 @@ settle() { # as run; sets $settled and $runs
   done
 }
 # check <name> <case> <room> <options> <expect> [<definitions>]: expect is a
-# comma-separated list for test-noteplace.py.
+# comma-separated list for test-noteplace.py, where error=TEXT declares the one
+# LaTeX error the row expects (its text), and no other is allowed.
 check() {
   name=$1; j=$job-$name
   [ -z "$CASES" ] || case " $CASES " in *" $name "*) ;; *) return;; esac
@@ -83,6 +84,15 @@ check() {
     settle "$j" "$2" "$3" "$4" "$6"
   fi
   errors=$(grep -c '^!' "$j.log")
+  # error=TEXT in the expectation: that error must be in the log, and no other
+  experr=$(printf '%s' "$5" | tr ',' '\n' | sed -n 's/^error=//p')
+  if [ -n "$experr" ]; then
+    if ! grep -q "^! .*$experr" "$j.log"; then
+      echo "didactic noteplace test: $name FAIL (no error '$experr')"
+      status=1; return
+    fi
+    errors=$((errors - $(grep -c "^! .*$experr" "$j.log")))
+  fi
   if [ "$settled$errors" != yes0 ]; then
     echo "didactic noteplace test: $name FAIL (settled: $settled after $runs runs, errors: $errors)"
     status=1; return
@@ -310,6 +320,13 @@ check overmfloat x 9 '' "carried,noover" '\def\testtall{.95}\def\testbody{FIRSTL
 # A note a little taller than the whole margin, alone at its top, is set whole and
 # runs over, not split (marginfix's split of tall notes reads the same height).
 check overtall x 9 '' "warned,nocontinued" '\def\testtall{1.01}\def\testbody{FIRSTLINE \filler\ end\yieldnote{} \filler\par}'
+# A plain note taller than the margin, which marginfix splits: the split keeps the
+# note's paragraph and drops the record at the top of its box, so the record net
+# can't see it (a documented limit): no record of where it was printed, no "found
+# from the last run" warning, and its first part on its callout's page.  (TeX Live's
+# 1.2 doesn't split: it loses such a note, its label with it, and stops with
+# "lost some margin notes", which names no note: the record net names it.)
+check tallsplit x 3 '' "${NOT12:+kept,continued,recordless=1}${M12:+error=lost some margin notes,lostwarn=test-noteplace.tex,foundlast=1,recordless=1}" '\def\testtall{.1}\def\testbody{FIRSTLINE\yieldnote[\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler] \filler\ \filler\par}'
 # In two columns a note runs past the foot of its column's margin the same way.
 check overtwocol x 9 '' kept,overwarn '\def\testclass{article}\def\testclassopt{a4paper,twocolumn}\def\testtall{.95}\def\testbody{FIRSTLINE end\yieldnote[\par TWO\par THREE] \filler\par}'
 # A footnote that fits neither beside its line nor past the foot of the margin

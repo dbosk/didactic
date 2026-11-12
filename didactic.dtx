@@ -789,6 +789,13 @@
 % line and a warning says so.
 % Any other note is carried to a later page, with a warning that names it and
 % says why.
+% Each run also records in the |.aux| file the page each margin note's callout
+% and the note itself are printed on; a note printed on another page than its
+% callout that no warning of that run named is warned about in the next run,
+% ``found from the last run'': a case the placement didn't foresee, which we'd
+% like to hear about.  So none goes unsaid, though such a one is said a run late
+% (a settled build has it).  Deferrable notes (|\ltnote| and the like) are
+% left out: \textsf{marginfix} moves them on by design, as its mode says.
 % |noteoverflow=break| is gone: no page ends early for a note.
 % In two columns a note runs past the foot of its column's margin the same way,
 % but there is no foot beside a column for a footnote, so it is carried.
@@ -4752,7 +4759,8 @@
       \if@didactic@inmfloat
         \expandafter\gdef\csname @didactic@mf@\the\@didactic@noteid\endcsname{}%
       \fi
-      \@didactic@markfn}%
+      \@didactic@markfn
+      \@didactic@record}%
   \fi}
 \newcommand\@didactic@ifinjected[1]{%
   \ifdefined\Mfx@inject@insert
@@ -4781,6 +4789,122 @@
   \@tempswafalse
   \ifdefined\MFX@islow\MFX@islow#1\fi
   \if@tempswa\expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@record,\@didactic@rnwrite,\@didactic@warned,
+%   \@didactic@recheck}
+% Whatever places a note, where its callout and the note itself end up is
+% recorded where they are printed, and the next run compares the two: a note
+% printed on another page than its callout's, that no warning of that run
+% named, is warned about then, ``found from the last run''.
+% So no placement of a note on another page is silent, whatever caused it,
+% though a case the placement didn't foresee is said a run late (a settled
+% build has it).
+% The callout's record is a |\write| in the callout's line, put where the
+% kernel puts its own mark of the note, before its penalty: it is shipped with
+% the line, and it adds no place to break and changes no hyphenation, since the
+% kernel's material is there already.
+% The note's record is a |\write| at the top of its box, and of its version for
+% the foot when it is made (|\@didactic@footset|, the fallback's copy): it is
+% shipped with the version printed, and a split's first part has it.
+% A box \textsf{memoir} sets as a |\vtop| (without colour) is put in a |\vbox|,
+% as colour does, so that the |\write| doesn't change its height.
+% A warning that names a note on another page in the run records that too
+% (|\@didactic@warned|), and the next run says nothing more for it.
+% Nor for a deferrable note (|\ltnote| and the like, |\@didactic@rd|):
+% \textsf{marginfix} moves those on by design, to give way to the others, and
+% says so where its mode asks it to (|\marginnotepriority|); a record would
+% only repeat what the document chose.
+% A note that \textsf{marginfix} splits (one taller than the margin) keeps only
+% its paragraph's box, and loses the record at the top of the outer one: the
+% check can't see such a note, whose first part is on its callout's page by
+% the split's own making.
+% A \textsf{marginfix} that doesn't split (\TeX~Live's 1.2, without
+% |\MFX@split|) loses such a note without a word, its labels and index entries
+% with it: there a callout's record with no note's record says that the note
+% wasn't printed (|\@didactic@lost|).
+% The comparison is made when the |.aux| file has been read, at the start.
+%    \begin{macrocode}
+\newcommand\@didactic@record{%
+  \if@filesw
+    \@didactic@writepage{\string\@didactic@rc
+      {\the\@didactic@noteid}{\thepage}{\@didactic@here}}%
+    \@didactic@rnbox\@marbox
+    \@didactic@rnbox\@currbox
+    \@didactic@ifdeferrable\@marbox
+      {\immediate\write\@auxout{\string\@didactic@rd{\the\@didactic@noteid}}}{}%
+  \fi}
+\newcommand\@didactic@rnwrite[1]{%
+  \if@filesw
+    \@didactic@writepage{\string\@didactic@rn{#1}{\thepage}}%
+  \fi}
+% |\@didactic@writepage|: \LaTeX's |\protected@write| to the |.aux| file, with
+% |\thepage| as it is when the page is shipped, but without its |\nobreak|
+% after a heading, which would add a penalty where there was none.
+\newcommand\@didactic@writepage[1]{%
+  \begingroup
+    \let\thepage\relax
+    \let\protect\@unexpandable@protect
+    \edef\reserved@a{\write\@auxout{#1}}%
+    \reserved@a
+  \endgroup}
+\newcommand\@didactic@rnbox[1]{%
+  \ifvoid#1\else
+    \ifx\color@vbox\relax
+      \global\setbox#1\vbox{\@didactic@rnwrite{\the\@didactic@noteid}\box#1}%
+    \else
+      \global\setbox#1\vbox{\@didactic@rnwrite{\the\@didactic@noteid}\unvbox#1}%
+    \fi
+  \fi}
+\newcommand\@didactic@warned[1]{%
+  \if@filesw\immediate\write\@auxout{\string\@didactic@rw{#1}}\fi}
+\newcount\@didactic@rcmax
+\newcommand\@didactic@rc[3]{%
+  \expandafter\gdef\csname @didactic@rc@#1\endcsname{{#2}{#3}}%
+  \ifnum#1>\@didactic@rcmax\global\@didactic@rcmax#1\relax\fi}
+\newcommand\@didactic@rn[2]{%
+  \expandafter\gdef\csname @didactic@rn@#1\endcsname{#2}}
+\newcommand\@didactic@rw[1]{%
+  \expandafter\gdef\csname @didactic@rw@#1\endcsname{}}
+\let\@didactic@rd\@didactic@rw
+\AtBeginDocument{\if@filesw\immediate\write\@auxout{%
+  \string\providecommand\string\@didactic@rc[3]{}%
+  \string\providecommand\string\@didactic@rn[2]{}%
+  \string\providecommand\string\@didactic@rw[1]{}%
+  \string\providecommand\string\@didactic@rd[1]{}}\fi}
+\newcommand\@didactic@recheck{%
+  \@tempcnta\@ne
+  \loop\ifnum\@tempcnta>\@didactic@rcmax\else
+    \ifcsname @didactic@rw@\the\@tempcnta\endcsname\else
+      \ifcsname @didactic@rn@\the\@tempcnta\endcsname
+        \expandafter\expandafter\expandafter\@didactic@recheck@
+          \csname @didactic@rc@\the\@tempcnta\endcsname
+      \else\ifdefined\MFX@split\else
+        \ifcsname @didactic@rc@\the\@tempcnta\endcsname
+          \expandafter\expandafter\expandafter\@didactic@lost
+            \csname @didactic@rc@\the\@tempcnta\endcsname
+        \fi
+      \fi\fi
+    \fi
+    \advance\@tempcnta\@ne
+  \repeat
+  \global\@didactic@rcmax\z@}
+\newcommand\@didactic@recheck@[2]{%
+  \edef\@tempa{#1}%
+  \edef\@tempb{\csname @didactic@rn@\the\@tempcnta\endcsname}%
+  \ifx\@tempa\@tempb\else
+    \PackageWarningNoLine{didactic}{Margin note called out at #2\MessageBreak
+      on page #1 is set on page \@tempb\space (found from the last
+      run):\MessageBreak nothing said so in that run; a case the placement
+      of notes\MessageBreak didn't foresee}%
+  \fi}
+\newcommand\@didactic@lost[2]{%
+  \PackageWarningNoLine{didactic}{Margin note called out at #2\MessageBreak
+    on page #1 wasn't printed (found from the last run):\MessageBreak
+    this marginfix loses a note taller than the margin;\MessageBreak
+    its version 1.5 and later split it}}
+\AddToHook{begindocument/end}{\@didactic@recheck}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -4933,16 +5057,22 @@
 % unknown, and the foot isn't taken as all ours.
 % The rests and waiting notes that head a column's foot are ours too, but
 % unpacked, so that \TeX\ may split them line by line (|\@didactic@colfeet|):
-% they end with an empty box of no height, the |\@didactic@sentinel|, a
-% million sp wider than the column, where the scan stops, since all above it
-% is ours.
+% they begin and end with an empty box of no height, a |\@didactic@sentinel|,
+% a million sp wider than the column at their end, where the scan stops, since
+% all above it is ours, and a sp less at their start, which the scan passes;
+% seeing either says they are at this foot, or their first part if \TeX\
+% split them (|\@didactic@restcheck|).
 %    \begin{macrocode}
 \newif\if@didactic@allours
 \newif\if@didactic@scanfull
 \let\@didactic@stamps\@empty
-\newcommand\@didactic@sentinel{%
-  \vbox{\hrule\@width\dimexpr\columnwidth+1000000sp\relax\@height\z@\@depth\z@}}
+\newcommand\@didactic@sentinel[1]{%
+  \vbox{\hrule\@width\dimexpr\columnwidth+#1sp\relax\@height\z@\@depth\z@}}
+\newif\if@didactic@sawrests
+\let\@didactic@expect\@empty
+\let\@didactic@expectnext\@empty
 \newcommand\@didactic@scan[1]{%
+  \global\@didactic@sawrestsfalse
   \global\@didactic@alloursfalse
   \global\@didactic@scanfulltrue
   \gdef\@didactic@stamps{,}%
@@ -4960,7 +5090,11 @@
     \setbox\z@\lastbox
     \@tempcnta\numexpr\wd\z@-\columnwidth\relax
     \ifnum\@tempcnta=1000000
+      \global\@didactic@sawreststrue
       \let\@didactic@next\relax
+    \else\ifnum\@tempcnta=999999
+      \global\@didactic@sawreststrue
+      \let\@didactic@next\@didactic@scanloop
     \else
       \ifnum\@tempcnta>\z@
         \xdef\@didactic@stamps{\@didactic@stamps\the\@tempcnta,}%
@@ -4968,7 +5102,7 @@
         \global\let\@didactic@scanlatex\@empty
       \fi
       \let\@didactic@next\@didactic@scanloop
-    \fi
+    \fi\fi
   \else\ifnum\lastnodetype=\@ne
     \setbox\z@\lastbox
     \global\let\@didactic@scanlatex\@empty
@@ -5358,6 +5492,7 @@
     \xdef\@didactic@still{\unexpanded\expandafter{\@didactic@still}%
       \noexpand\@didactic@set{#1}}}{%
     \ifnum\csname @didactic@cp@#1\endcsname=\c@page\else
+      \@didactic@warned{#1}%
       \PackageWarningNoLine{didactic}{Margin note called out at
         \csname @didactic@ln@#1\endcsname\MessageBreak
         on page \csname @didactic@cp@#1\endcsname\space is set on page
@@ -5728,6 +5863,10 @@
     \if@didactic@plain\else\@didactic@boxput\@didactic@cbox\fi
   \fi}
 \newcommand\@didactic@keep@{%
+  \if@didactic@plain\else
+    \global\setbox\@didactic@cbox\vbox{%
+      \@didactic@rnwrite{\the\@didactic@noteid}\unvbox\@didactic@cbox}%
+  \fi
   \expandafter\xdef\csname @didactic@pcs@\the\@didactic@noteid\endcsname{%
     \if@didactic@plain
       \noexpand\@didactic@fromlines
@@ -5820,8 +5959,9 @@
 % is printed on: so the printed one says it, once, on its page, with the file
 % and the line of the footnote.
 % In the margin note the |\write| goes first in the outer |\vbox| of the
-% note, or last when the note is a |\vtop| (without colour), so that neither
-% changes the box's height or depth.
+% note, which is a |\vbox| also without colour since it carries its record
+% (|\@didactic@record|), so that it changes neither the box's height nor its
+% depth.
 %    \begin{macrocode}
 \newcommand\@didactic@hboxwhere{%
   \edef\@didactic@hfz{\the\hfuzz}%
@@ -5896,11 +6036,7 @@
   \fi}
 \newcommand\@didactic@hboxmark[1]{%
   \ifvoid#1\else
-    \ifx\color@vbox\relax
-      \global\setbox#1\vtop{\unvbox#1\@didactic@hboxwrite}%
-    \else
-      \global\setbox#1\vbox{\@didactic@hboxwrite\unvbox#1}%
-    \fi
+    \global\setbox#1\vbox{\@didactic@hboxwrite\unvbox#1}%
   \fi}
 %    \end{macrocode}
 % \end{macro}
@@ -5936,6 +6072,7 @@
   \if@didactic@footok
     \expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
 \newcommand\@didactic@footset[1]{%
+  \def\@didactic@rnid{#1}%
   \edef\@didactic@hboxat{\csname @didactic@ln@#1\endcsname}%
   \edef\@didactic@hfz{\the\hfuzz}%
   \edef\@didactic@hbd{\the\hbadness}%
@@ -5945,6 +6082,7 @@
 \newbox\@didactic@footbox
 \long\def\@didactic@footlines#1#2#3{%
   \global\setbox\@didactic@footbox\vbox{%
+    \@didactic@rnwrite\@didactic@rnid
     \hsize\columnwidth
     \def\baselinestretch{\m@m@footnote@spacing}%
     \let\checkoddpage\relax
@@ -6242,6 +6380,7 @@
   \@didactic@footid
   \expandafter\gdef\csname @didactic@fw@\the\@didactic@noteof\@didactic@head
     \endcsname{}%
+  \@didactic@warned{\the\@didactic@noteof\@didactic@head}%
   \PackageWarningNoLine{didactic}{Footnote called out at
     \csname @didactic@ln@\the\@didactic@noteof\@didactic@head\endcsname
     \MessageBreak on page \thepage\space waits for the foot of the next
@@ -6345,6 +6484,7 @@
     \global\@didactic@colast\@didactic@pagelast
     \global\@didactic@pagelast\count@
   \endgroup
+  \@didactic@restcheck
   \global\setbox\@didactic@pullbox\box\voidb@x
   \global\setbox\@didactic@nowbox\box\voidb@x
   \global\setbox\@didactic@laterbox\box\voidb@x
@@ -6363,9 +6503,12 @@
     \unvbox\@didactic@nowbox\unvbox\@didactic@pullbox
     \unvbox\@didactic@laterbox}%
   \ifdim\dimexpr\ht\z@+\dp\z@\relax>\z@
-    \insert\footins{\floatingpenalty\@MM\unvbox\z@
-      \nointerlineskip\@didactic@sentinel}%
+    \global\let\@didactic@expect\@didactic@expectnext
+    \insert\footins{\floatingpenalty\@MM
+      \@didactic@sentinel{999999}\nointerlineskip\unvbox\z@
+      \nointerlineskip\@didactic@sentinel{1000000}}%
   \fi
+  \global\let\@didactic@expectnext\@empty
   \global\@didactic@restid\z@
   \global\let\@didactic@footids\@empty
   \global\@didactic@footfullfalse}
@@ -6375,6 +6518,7 @@
     \setbox\@didactic@one\lastbox
     \@tempcnta\numexpr\wd\@didactic@one-\columnwidth\relax
     \ifnum\@tempcnta>\@didactic@colast
+      \xdef\@didactic@expectnext{\@didactic@expectnext\the\@tempcnta/\thepage,}%
       \global\setbox\@didactic@pullbox
         \vbox{\unvbox\@didactic@one\unvbox\@didactic@pullbox}%
       \let\@didactic@next\@didactic@pull
@@ -6388,6 +6532,7 @@
   \ifnum\lastnodetype=\tw@
     \setbox\@didactic@one\lastbox
     \@tempcnta\numexpr\wd\@didactic@one-\columnwidth\relax
+    \xdef\@didactic@expectnext{\@didactic@expectnext\the\@tempcnta/\thepage,}%
     \ifnum\@tempcnta>\@didactic@colast
       \global\setbox\@didactic@laterbox
         \vbox{\unvbox\@didactic@one\unvbox\@didactic@laterbox}%
@@ -6409,6 +6554,7 @@
   \fi
   \def\@didactic@welt##1,{\ifx\relax##1\relax\else
     \ifnum##1>\@didactic@colast
+    \@didactic@warned{##1}%
     \PackageWarningNoLine{didactic}{TeX ended page \thepage\space before the
       line of the footnote\MessageBreak called out at
       \csname @didactic@ln@##1\endcsname, which had gone to its foot:\MessageBreak
@@ -6453,6 +6599,7 @@
                 \csname @didactic@sp@##1\endcsname}%
             \fi
           \else\if@didactic@scanfull
+            \@didactic@warned{##1}%
             \PackageWarningNoLine{didactic}{Margin note called out at
               \csname @didactic@ln@##1\endcsname\MessageBreak
               on page \thepage\space is set on a later page:\MessageBreak
@@ -6460,6 +6607,7 @@
               with a footnote of LaTeX's own at the foot,\MessageBreak
               and went with that line to the next page}%
           \else
+            \@didactic@warned{##1}%
             \PackageWarningNoLine{didactic}{Footnote called out at
               \csname @didactic@ln@##1\endcsname\MessageBreak
               on page \thepage\space may be set on a later page:\MessageBreak
@@ -6470,6 +6618,40 @@
       \fi
       \expandafter\@didactic@nelt\fi}%
     \expandafter\@didactic@nelt\@didactic@footids\relax,%
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@restcheck}
+% The rests and waiting notes a column's build sent on to the next column's
+% foot must be at it when that column is made: they head its foot.
+% If they aren't (a later special output put them back after another line,
+% with a footnote of \LaTeX's own at the foot, and they went with that line),
+% we warn for each, in the words of a note set on another page.
+% A page of floats between the two columns makes no column, and they wait for
+% the next one with text.
+% Where \textsf{multicol} makes the page (|\col@number| above one), it has
+% taken the foot into boxes of its own, where the check can't look, and says
+% nothing.
+%    \begin{macrocode}
+\newcommand\@didactic@restcheck{%
+  \ifx\@didactic@expect\@empty\else
+    \@didactic@scan\footins
+    \ifdefined\col@number\ifnum\col@number>\@ne
+      \global\@didactic@sawreststrue
+    \fi\fi
+    \if@didactic@sawrests\else
+      \def\@didactic@relt##1/##2,{\ifx\relax##1\relax\else
+        \@didactic@warned{##1}%
+        \PackageWarningNoLine{didactic}{Margin note called out at
+          \csname @didactic@ln@##1\endcsname\MessageBreak
+          on page ##2 is set on a later page:\MessageBreak its rest, or the
+          footnote waiting, didn't reach the foot\MessageBreak of page
+          \thepage}%
+        \expandafter\@didactic@relt\fi}%
+      \expandafter\@didactic@relt\@didactic@expect\relax/,%
+    \fi
+    \global\let\@didactic@expect\@empty
   \fi}
 %    \end{macrocode}
 % \end{macro}
