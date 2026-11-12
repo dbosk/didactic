@@ -33,6 +33,8 @@
 %   twotall   two margin notes, each taller than the room left beside its line,
 %             and a footnote after them (they never settled under XeLaTeX in the
 %             fork, review B-1): settled, each placed or warned about.
+% With \testN set, the cases of test-notefoot-reins.tex instead (reins, reinsmix,
+% wait, mcol3x, mcol3, mcol3n), on letter paper.
 % See test-notefoot.sh, which runs the cases and checks them.
 \ifdefined\testclass\else\def\testclass{memoir}\fi
 \ifdefined\testclassopt\else\def\testclassopt{}\fi
@@ -45,6 +47,7 @@
 \makeatother
 \def\testhyper{hyper}\def\testmulti{multi}
 \ifx\testcase\testmulti\usepackage{multicol}\fi
+\ifdefined\testN\usepackage{multicol}\fi
 \expandafter\PassOptionsToPackage\expandafter{\testoptions}{didactic}
 % \testfloor: the same document with noteoverflow=carry, for the runs LaTeX needs
 % without moving any note (the floor of the runs to settle).
@@ -102,6 +105,7 @@
 \newcommand\testmp[1]{\stepcounter{mk}\edef\mkv{\arabic{mk}}%
   \label{m-\mkv}\zsavepos{m-\mkv}\marginpar{\label{n-\mkv}\zsavepos{n-\mkv}#1}}
 \begin{document}
+\ifdefined\testN\input{test-notefoot-reins}\else
 \ifx\testcase\testdrift
   \widowpenalty=10000
   \lipsum[1-3]\par
@@ -183,4 +187,5 @@
   \dense\dense\dense
   \lipsum[6-8]
 \fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi
+\fi
 \end{document}

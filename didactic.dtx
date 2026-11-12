@@ -4531,8 +4531,9 @@
 % \begin{description}
 % \item[\texttt{\textbackslash @specialoutput}] the kernel's output for floats 
 %   and margin notes: we patch the place where it puts the page so far back 
-%   and hands the note to |\@addmarginpar|, to decide there; and the place 
-%   where it adds a float, for the room the margin notes take.
+%   and hands the note to |\@addmarginpar|, to decide there; the place
+%   where it adds a float, for the room the margin notes take; and the two
+%   places where it puts the footnotes back (|\@reinserts|), for ours.
 % \item[\texttt{\textbackslash @makecol}] where the kernel makes a column: at
 %   its start (the kernel's hook |build/column/before|, or before
 %   |\@makecol| on a kernel without it) the notes at the foot whose
@@ -4620,6 +4621,7 @@
   \@didactic@needpatch\@specialoutput
     {\unvbox\@holdpg\@next\@currbox\@currlist}%
   \@didactic@needpatch\@specialoutput{\@reinserts\@addtocurcol}%
+  \@didactic@needpatch\@specialoutput{\@reinserts\@addmarginpar}%
   \@didactic@needmacro\@xympar
   \@didactic@needmacro\@makecol
   \@didactic@needshape\MFX@combinefloats@before{macro:->}%
@@ -4755,8 +4757,42 @@
 % Penalties at the end of the page so far are legal breaks, after the line: 
 % we take them off and put them back after the mark, which must stay with 
 % the line.
-% This is the first of the two patches of |\@specialoutput| checked above; the 
+% This is the first of the patches of |\@specialoutput| checked above; the
 % decision for a note that doesn't fit goes here too, below.
+%
+% The footnotes at the foot so far come back too.
+% The kernel puts them back as one insertion after the page so far
+% (|\@reinserts|), that is after the latest callout's line, and behind a
+% place to break (the |\interlinepenalty| it adds after the special output,
+% \textsf{marginfix}'s own): a footnote we sent to the foot after its line
+% would then go to the next page with that later line, its own line staying
+% (the row |reins| of |test-noteplace|).
+% When every box at the foot is one of ours (|\@didactic@footback|, below), we
+% put them back before the page so far, at the head of the page, where they
+% stay on it whatever line \TeX\ breaks before; those whose lines \TeX\ then
+% takes to the next column are taken back when the column is made
+% (|\@didactic@colfeet|), as they are by their numbers.
+% With a footnote of \LaTeX's own among them the kernel's way stays, since
+% we can't take back a footnote whose line goes on: a footnote of ours may then
+% be put after a later line and go to the next page, which the column's check
+% warns about (|\@didactic@footnet|).
+% Where the kernel's part for the note is skipped (a note sent to the foot or
+% waiting), its |\@reinserts| is ours to do: without it no insertion of
+% footnotes would be on the page and \TeX\ wouldn't count the foot (the rows
+% |mcol3x| and |mcol3|); we do it before the place to break after the line.
+%
+% A second note called out in the same line as an earlier one comes after the
+% place to break that the kernel put after the earlier one's special output
+% (its |\addpenalty\interlinepenalty|, which must be there, since the
+% penalty \TeX\ broke at is gone): its mark, and its footnote if it goes to
+% the foot, would go to the next page if \TeX\ broke there, its line staying
+% (the row |wait|).
+% So for one of our notes, if nothing but marks lies after the last place to
+% break in the page so far, that place is taken out (|\@didactic@sameline|)
+% and put back after our mark, as the kernel made it, |\interlinepenalty|
+% (the kernel adds its own after the special output only where its part for
+% the note isn't skipped and \textsf{marginfix} leaves |\outputpenalty| below
+% zero, so it can't be left to it).
 %    \begin{macrocode}
 \newmarks\@didactic@notemarks
 \newcommand\@didactic@callout{%
@@ -4766,12 +4802,20 @@
   \ifnum\@didactic@noteof\@didactic@head>\z@
     \@didactic@decide
   \fi
+  \@didactic@footback
+  \ifnum\@didactic@noteof\@didactic@head>\z@
+    \@didactic@sameline
+  \fi
   \unvbox\@holdpg
+  \ifx\@didactic@skip\@didactic@skipnext
+    \@didactic@attach{\@didactic@reinserts}%
+  \fi
   \@didactic@after
   \ifnum\@didactic@noteof\@didactic@head>\z@
     \@didactic@attach{%
       \marks\@didactic@notemarks{\the\@didactic@noteof\@didactic@head}}%
   \fi
+  \if@didactic@samelined\penalty\interlinepenalty\fi
   \@didactic@skip}
 \def\@didactic@peek\@elt#1\@elt#2#3\@nil{%
   \def\@didactic@head{#1}\def\@didactic@pair{#2}}
@@ -4785,6 +4829,111 @@
     \unpenalty
     \expandafter\@didactic@unpenalty
   \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@footback,\@didactic@reinserts}
+% The footnotes go back before the page so far if every box at the foot is
+% ours; the box itself is kept until the kernel's |\@reinserts|, since the
+% kernel counts its height first where it tries a float on the page, and
+% emptied there (|\@didactic@reinserts|, which takes the kernel's place in
+% the special output, the third and fourth patches), so that they aren't put
+% back twice.
+%    \begin{macrocode}
+\newif\if@didactic@backed
+\newcommand\@didactic@footback{%
+  \global\@didactic@backedfalse
+  \ifvoid\footins\else
+    \@didactic@scan\footins
+    \if@didactic@allours
+      \insert\footins{\floatingpenalty\@MM\unvcopy\footins}%
+      \global\@didactic@backedtrue
+    \fi
+  \fi}
+\newcommand\@didactic@reinserts{%
+  \if@didactic@backed
+    \global\setbox\footins\box\voidb@x
+    \global\@didactic@backedfalse
+  \fi
+  \@reinserts}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@sameline}
+% The page so far is split at its last place to break, on a copy with a kern
+% of 1sp at its end, to its own height without it: the end doesn't fit, a break
+% after the last line does; if what is left has no height, it holds no line,
+% only what \TeX\ leaves of it when it splits: marks and the like, with the
+% penalties and kerns before them dropped (that 1sp too).
+% Then the page so far is the two parts, without the place to break between
+% them.
+% The kernel has already read the height of the page so far, which this
+% doesn't change; only its depth may move into it.
+%    \begin{macrocode}
+\newif\if@didactic@samelined
+\newcommand\@didactic@sameline{%
+  \global\@didactic@samelinedfalse
+  \begingroup
+    \vbadness\@M \vfuzz\maxdimen
+    \splitmaxdepth\maxdimen \splittopskip\z@skip
+    \setbox\z@\vbox{\unvcopy\@holdpg\kern1sp}%
+    \setbox\tw@\vsplit\z@ to\dimexpr\ht\z@-1sp\relax
+    \ifvoid\z@\else
+      \ifdim\dimexpr\ht\z@+\dp\z@\relax=\z@
+        \global\setbox\@holdpg\vbox{\unvbox\tw@\unvbox\z@}%
+        \global\@didactic@samelinedtrue
+      \fi
+    \fi
+  \endgroup}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@scan}
+% |\@didactic@scan|\meta{box} reads the boxes at a foot from the end: ours are
+% boxes of a column's width and more, the note's number in sp above it
+% (|\@didactic@tofoot|), listed in |\@didactic@stamps|; anything else is
+% \LaTeX's (the lines of a footnote of its own), and the foot isn't all ours.
+% Glue, kerns and penalties are passed; any other item ends the scan (\TeX\
+% can't take it off a list), and the scan isn't complete: what is above it is
+% unknown, and the foot isn't taken as all ours.
+%    \begin{macrocode}
+\newif\if@didactic@allours
+\newif\if@didactic@scanfull
+\let\@didactic@stamps\@empty
+\newcommand\@didactic@scan[1]{%
+  \global\@didactic@alloursfalse
+  \global\@didactic@scanfulltrue
+  \gdef\@didactic@stamps{,}%
+  \ifvoid#1\else
+    \global\@didactic@alloursfalse
+    \global\let\@didactic@scanlatex\relax
+    \setbox\@tempboxa\vbox{\unvcopy#1\@didactic@scanloop}%
+    \ifx\@didactic@scanlatex\relax
+      \if@didactic@scanfull\global\@didactic@allourstrue\fi
+    \fi
+  \fi}
+\newcommand\@didactic@scanloop{%
+  \let\@didactic@next\relax
+  \ifnum\lastnodetype=\tw@
+    \setbox\z@\lastbox
+    \@tempcnta\numexpr\wd\z@-\columnwidth\relax
+    \ifnum\@tempcnta>\z@
+      \xdef\@didactic@stamps{\@didactic@stamps\the\@tempcnta,}%
+    \else
+      \global\let\@didactic@scanlatex\@empty
+    \fi
+    \let\@didactic@next\@didactic@scanloop
+  \else\ifnum\lastnodetype=\@ne
+    \setbox\z@\lastbox
+    \global\let\@didactic@scanlatex\@empty
+    \let\@didactic@next\@didactic@scanloop
+  \else\ifnum\lastnodetype>10
+    \unskip\unkern\unpenalty
+    \let\@didactic@next\@didactic@scanloop
+  \else\ifnum\lastnodetype>\m@ne
+    \global\@didactic@scanfullfalse
+  \fi\fi\fi\fi
+  \@didactic@next}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -5459,10 +5608,9 @@
   \global\wd\@didactic@restbox
     \dimexpr\columnwidth+\@didactic@restid sp\relax
   \global\@didactic@footfulltrue
-  \PackageInfo{didactic}{Footnote called out at
-    \csname @didactic@ln@\the\@didactic@restid\endcsname\MessageBreak
-    on page \thepage\space is split: \the\@didactic@la\space lines at its
-    foot, \the\@didactic@lb\space at the foot of the next page}%
+  \expandafter\xdef\csname @didactic@sp@\the\@didactic@restid\endcsname{%
+    \the\@didactic@la\space lines at its foot, \the\@didactic@lb\space at the
+    foot of the next page}%
   \ifdim#1>\z@
     \@didactic@overwarn{\the\@didactic@restid}\@didactic@first
     \@didactic@countroom\@didactic@first
@@ -5518,6 +5666,8 @@
   \global\wd\@didactic@fbx
     \dimexpr\columnwidth+\@didactic@noteof\@didactic@head sp\relax
   \@didactic@footid
+  \expandafter\gdef\csname @didactic@fw@\the\@didactic@noteof\@didactic@head
+    \endcsname{}%
   \PackageWarningNoLine{didactic}{Footnote called out at
     \csname @didactic@ln@\the\@didactic@noteof\@didactic@head\endcsname
     \MessageBreak on page \thepage\space waits for the foot of the next
@@ -5634,6 +5784,7 @@
     \setbox\z@\vbox{\unvbox\@didactic@restins\@didactic@restsort}%
   \fi
   \@didactic@movedwarn
+  \@didactic@footnet
   \setbox\z@\vbox{%
     \unvbox\@didactic@nowbox\unvbox\@didactic@pullbox
     \unvbox\@didactic@laterbox}%
@@ -5694,6 +5845,51 @@
     \fi
     \expandafter\@didactic@welt\fi}%
   \expandafter\@didactic@welt\@didactic@footids\relax,}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@footnet}
+% Each note sent to the foot whose line is in the column must be at its foot
+% when the column is made: its box, by its number (|\@didactic@scan|).
+% If it isn't, a later special output put it back after another line, with the
+% kernel's |\@reinserts| (a footnote of \LaTeX's own at the same foot), and it
+% went with that line to the next page: we warn, in the words of a note set
+% on another page than its callout.
+% If it is, and it was split, we say so here, where it is certain: the first
+% part is at this foot.
+% A note that waits is in its own class, which goes with its line, and isn't
+% looked for.
+% If the scan can't read the whole foot (an item \TeX\ can't take off a list,
+% in a footnote of \LaTeX's own), a note not found isn't warned about: it may be
+% above that item.
+%    \begin{macrocode}
+\newcommand\@didactic@footnet{%
+  \ifx\@didactic@footids\@empty\else
+    \@didactic@scan\footins
+    \def\@didactic@nelt##1,{\ifx\relax##1\relax\else
+      \ifnum##1>\@didactic@colast\else
+        \ifcsname @didactic@fw@##1\endcsname\else
+          \edef\@tempa{\noexpand\in@{,##1,}{\@didactic@stamps}}\@tempa
+          \ifin@
+            \ifcsname @didactic@sp@##1\endcsname
+              \PackageInfo{didactic}{Footnote called out at
+                \csname @didactic@ln@##1\endcsname\MessageBreak
+                on page \thepage\space is split:
+                \csname @didactic@sp@##1\endcsname}%
+            \fi
+          \else\if@didactic@scanfull
+            \PackageWarningNoLine{didactic}{Margin note called out at
+              \csname @didactic@ln@##1\endcsname\MessageBreak
+              on page \thepage\space is set on a later page:\MessageBreak
+              its footnote was put back after a later line,\MessageBreak
+              with a footnote of LaTeX's own at the foot,\MessageBreak
+              and went with that line to the next page}%
+          \fi\fi
+        \fi
+      \fi
+      \expandafter\@didactic@nelt\fi}%
+    \expandafter\@didactic@nelt\@didactic@footids\relax,%
+  \fi}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -5810,7 +6006,9 @@
   \patchcmd\@specialoutput{\unvbox\@holdpg\@next\@currbox\@currlist}
     {\@didactic@callout\@next\@currbox\@currlist}{}{}%
   \patchcmd\@specialoutput{\@reinserts\@addtocurcol}
-    {\@didactic@floatroom\@reinserts\@addtocurcol}{}{}%
+    {\@didactic@floatroom\@didactic@reinserts\@addtocurcol}{}{}%
+  \patchcmd\@specialoutput{\@reinserts\@addmarginpar}
+    {\@didactic@reinserts\@addmarginpar}{}{}%
   \ifpatchable{\@makecol}{\UseHook{build/column/before}}%
     {\AddToHook{build/column/before}{\if@twocolumn\else\@didactic@colfeet\fi}}%
     {\pretocmd\@makecol{\if@twocolumn\else\@didactic@colfeet\fi}{}{}}%

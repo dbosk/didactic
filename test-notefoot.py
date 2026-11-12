@@ -28,7 +28,10 @@ CHECKs:
   works=W     a warning of didactic's has W (that foot works as carry);
   pagesge=J   at least as many pages as job J;
   nofalse     no more warnings than notes away (when every margin note is one
-              with labels).
+              with labels);
+  nooverfull  no page too full for its output (an overfull \\vbox while
+              \\output is active: material below the text block);
+  nooverlap   no two words of a page on top of each other (pdftotext -bbox).
 Prints a line per job, PASS or FAIL with what failed; exit status 1 on FAIL.
 """
 import re
@@ -43,6 +46,20 @@ log = open(f"{job}.log", errors="replace").read()
 OLDMC = [m for m in re.findall(r"\(([^ ()]*multicol\.sty)", log.replace("\n", ""))
          if "texmf-dist/tex/latex/tools/" not in m]
 joined = re.sub(r"\n\((?:didactic|marginfix|hyperref)\) *", " ", log).replace("\n", "")
+
+
+def overlaps(j):
+    """Pages of JOB.pdf where two words overlap by more than a point both ways."""
+    out = subprocess.run(["pdftotext", "-bbox", f"{j}.pdf", "-"], capture_output=True,
+                         text=True).stdout
+    bad = []
+    for n, page in enumerate(re.findall(r"<page[^>]*>(.*?)</page>", out, re.S), 1):
+        ws = [tuple(map(float, w)) for w in re.findall(
+            r'<word xMin="([\d.]+)" yMin="([\d.]+)" xMax="([\d.]+)" yMax="([\d.]+)"', page)]
+        if any(min(a[2], b[2]) - max(a[0], b[0]) > 1 and min(a[3], b[3]) - max(a[1], b[1]) > 1
+               for i, a in enumerate(ws) for b in ws[i + 1:]):
+            bad.append(n)
+    return bad
 
 
 def pages_of(j):
@@ -131,6 +148,10 @@ for c in checks:
         fails.append(f"{pages_of(job)} pages, fewer than {c[8:]}'s {pages_of(c[8:])}")
     elif c == "nofalse" and said > len(away):
         fails.append(f"{said} warnings for {len(away)} notes away")
+    elif c == "nooverfull" and re.search(r"Overfull \\vbox[^\n]*while \\output is active", log):
+        fails.append("a page overfull in the output routine")
+    elif c == "nooverlap" and overlaps(job):
+        fails.append(f"words on top of each other on pages {overlaps(job)}")
 facts = f"{len(notes)} notes, {len(feet)} at the foot, {len(away)} away, {said} warnings"
 print(("FAIL: " + "; ".join(fails) if fails else "PASS") + f" ({facts})")
 sys.exit(1 if fails else 0)

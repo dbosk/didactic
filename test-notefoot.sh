@@ -99,4 +99,17 @@ job ownout 8 "$C{ownout}"
 # and one run, each placed or warned about; under XeLaTeX too (review B-1).
 job twotall 8 "$C{twotall}"
 ENGINE=xelatex job twotall-xe 8 "$C{twotall}"
+# A footnote at the foot meets the kernel's special output (review B1, B3, the
+# reviewer's reproducers, test-notefoot-reins.tex): it stays at the foot of its
+# line's page or is warned about, the foot is counted (no page overfull in the
+# output, no words on top of each other), on letter paper, with the number of
+# lines before the place that made it go wrong on 8993750 under pdfLaTeX.
+R='\def\testclassopt{letterpaper}\def\testN'
+job reins 4 "$C{reins}${R}{40}" beside nofalse nooverfull nooverlap
+job reinsmix 4 "$C{reinsmix}${R}{39}" nofalse nooverfull nooverlap
+job wait 4 "$C{wait}${R}{40}" nofalse nooverfull nooverlap
+job mcol3x 4 "$C{mcol3x}${R}{34}" nofalse nooverfull nooverlap
+job mcol3 4 "$C{mcol3}${R}{34}" nofalse nooverfull nooverlap
+job mcol3n 4 "$C{mcol3n}${R}{34}" nofalse nooverfull nooverlap
+job mcol3nm 4 "$C{mcol3n}${R}{34}\\def\\testmulticols{}" nofalse nooverfull nooverlap
 exit $status
