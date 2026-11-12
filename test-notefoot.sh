@@ -83,7 +83,14 @@ job counter 4 "$C{counter}" foot beside counter nofalse
 job nofeet 4 "$C{nofeet}" nofoot nofalse
 job drift 4 "$C{drift}" beside nofalse
 job lastline 4 "$C{lastline}" beside nofalse
-for c in botfloat topfloat clear; do job $c 4 "$C{$c}" foot beside nofalse; done
+for c in topfloat clear; do job $c 4 "$C{$c}" foot beside nofalse; done
+# A float at the bottom gives way to the notes already on its page (botfloat:
+# it waits for the next page, said in the log); not with notebesidefloats=use,
+# beside which marginfix sets notes, nor in two columns.
+job botfloat 4 "$C{botfloat}" foot beside nofalse held=1
+job botfloat-use 4 "$C{botfloat}\\def\\testoptions{notebesidefloats=use}" \
+  foot beside nofalse held=0
+job botfloat-two 8 "$C{botfloat}\\def\\testclassopt{twocolumn}" nofalse reasons held=0
 job deferr-defer 4 "$C{deferr}\\def\\testprio{defer}" nofoot beside
 job deferr-split 4 "$C{deferr}\\def\\testprio{split}" nofoot beside
 job deferr-warn 4 "$C{deferr}\\def\\testprio{warn}" beside
@@ -93,7 +100,9 @@ job fnrule 4 "$C{fnrule}" foot rules beside
 job fnrule10 4 "$C{fnrule}\\def\\testfnrulelines{10}" foot rules beside
 job fnedge 4 "$C{fnedge}" rules beside
 job tall 8 "$C{tall}" foot beside nofalse
-job gen 4 "$C{gen}" beside nofalse
+# gen: three notes off their pages, each said with its reason (with the floats'
+# rule; before it, three more that a float took the room of, without one).
+job gen 4 "$C{gen}" away=3 reasons nofalse
 job ownout 8 "$C{ownout}"
 # Two notes taller than the room left, and a footnote: settled within the floor
 # and one run, each placed or warned about; under XeLaTeX too (review B-1).
@@ -134,4 +143,9 @@ job localfoot 4 "$C{local}${R}{10}\\def\\testlocalfoot{}\\def\\testoptions{noteo
 job defercarry 4 "$C{defercarry}${R}{30}\\def\\testprio{defer}" nofoot beside nooverlap nooverfull
 job defercarry-warn 4 "$C{defercarry}${R}{30}\\def\\testprio{warn}" foot beside nooverlap nooverfull
 job warnclaim 4 "$C{warnclaim}${R}{5}\\def\\testprio{warn}" foot beside nooverlap nooverfull
+# A float held for the notes keeps the floats after it behind it, as LaTeX does:
+# the first is said in the log; with many, they come at the end, on pages of
+# floats (LaTeX allocates boxes for them; no "Too many unprocessed floats").
+job queue 4 "$C{queue}${R}{5}\\def\\testQ{4}" held=1 nofalse
+job queue-many 4 "$C{queue}${R}{5}\\def\\testQ{20}" held=1 nofalse
 exit $status

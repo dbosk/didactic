@@ -36,7 +36,11 @@
 %             note that doesn't fit with it, then a short footnote, on one page:
 %             the deferrable note stays, so the footnote goes to the foot (it
 %             was counted at nothing there, and the footnote went on with the
-%             tall note).
+%             tall note);
+%   queue     a tall margin note at the top of page 1, then \testQ floats for
+%             the bottom: the first waits for the notes (said in the log), the
+%             others wait behind it, as \LaTeX\ keeps floats in order; with
+%             many, at the end on pages of floats.
 \makeatletter
 \newcommand\fnt[1]{%
   \stepcounter{mk}\edef\mkv{\arabic{mk}}%
@@ -51,6 +55,7 @@
 \def\testmcolx{mcol3x}\def\testmcol{mcol3}\def\testmcoln{mcol3n}
 \def\testwaitsec{waitsec}\def\testrestb{rest2}\def\testwaitsh{waitsh}
 \def\testlocal{local}\def\testdefercarry{defercarry}\def\testwarnclaim{warnclaim}
+\def\testqueue{queue}
 \ifx\testcase\testmcolx\def\testfm#1{}\else\def\testfm#1{\fnt{#1}}\fi
 \ifx\testcase\testwaitsh\def\testwaitsec{waitsh}\fi
 \ifx\testcase\testwaitsec
@@ -99,6 +104,15 @@
   \testlines
   \noindent FNCALL\fnt{FOOTX a short footnote.} text.\par
   \filler\par
+\else\ifx\testcase\testqueue
+  \noindent x\testmp{\rule{1pt}{.9\textheight}} text.\par
+  \testlines
+  \testli=0
+  \loop\ifnum\testli<\testQ \advance\testli\@ne
+    Words \the\testli.
+    \begin{figure}[b]\centering\rule{4cm}{3\baselineskip}\caption{QF}\end{figure}%
+  \repeat
+  \par\filler\ \filler\ \filler\par
 \else\ifx\testcase\testwait
   \noindent x\marginpar{\rule{1pt}{\dimexpr\textheight-8pt}} text.\par
   \testlines
@@ -134,5 +148,5 @@
   \ifx\testcase\testmcol\end{multicols}\fi
   \ifx\testcase\testmcolx\else\ifdefined\testmulticols\end{multicols}\fi\fi
   AFTER.
-\fi\fi\fi\fi\fi\fi\fi
+\fi\fi\fi\fi\fi\fi\fi\fi
 \makeatother

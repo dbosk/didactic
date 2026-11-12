@@ -563,6 +563,12 @@ test-noteoverflow-foot: test-noteoverflow-foot.tex test-noteoverflow-foot-hbox.t
 test-notefoot: test-notefoot.tex test-notefoot-dense.tex test-notefoot-tall.tex \
 		test-notefoot.sh test-notefoot.py didactic.sty
 	./test-notefoot.sh
+# the floats' rows with TeX Live's marginfix 1.2 too (gen and the deferrable
+# rows need 1.5 or later)
+.PHONY: test-notefoot-tl12
+test-notefoot-tl12: test-notefoot.tex test-notefoot.sh test-notefoot.py didactic.sty
+	MARGINFIX=$(TL12) CASES="botfloat botfloat-two topfloat clear dense" \
+	  ./test-notefoot.sh
 
 # the place of the margin column in the log against where a note is printed.
 test-margin-log.pdf test-margin-log-article.pdf: %.pdf: %.tex test-margin-log.tex \

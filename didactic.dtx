@@ -1723,6 +1723,29 @@
 %   Under Xe\TeX\ it carries, as \texttt{break} needs \texttt{\textbackslash vadjust pre}
 %   (\cref{app:pb-measure}).} \\
 % \midrule
+% A float gives way to the margin notes already on its page & Yes &
+%   A float that fits in the text block goes on the page. \\*
+% \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} the margin beside a float at
+%   the top or the bottom of a page, or beside a wide one in the text, is taken from
+%   the notes, and the notes already decided for the page were promised that room:
+%   their lines are on the page.
+%   Leaving them there and moving the float on keeps the one pass (what is decided
+%   stays), where the float landing first would move notes off their lines, footnotes
+%   out of the order of their numbers (\texttt{test-notefoot}'s \texttt{botfloat}).
+%   That a note off its line costs the reader more than a float one page later is the
+%   maintainer's judgement, not a measured one.
+%   \emph{Strength:} no outside support; the maintainer's choice.
+%   \emph{Reopens:} a reader study on either, or real documents where held floats
+%   cost a page or move a float more than one page; the log says each float held
+%   (\enquote{The float ending at \ldots\ waits}).
+%   \emph{Measured:} on the eight real documents and two more under Xe\TeX, 1058
+%   pages from clean, the same text and the same \texttt{.aux} with and without it:
+%   no float held.
+%   In a generated document with notes too many for its margins and a float on every
+%   page, at one density one float is held, four floats land a page later, one note
+%   fewer is carried and the document is a page shorter; at another, nothing
+%   changes.} \\
+% \midrule
 % What can't be kept warns & Where it can see it &
 %   Mostly silent. \\*
 % \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} ours; a layout is correct or
@@ -4587,6 +4610,15 @@
 %   note and the notes that wait are inserted for the next column
 %   (|\@didactic@colfeet|).
 %   In one column only, the only place notes go to the foot.
+% \item[\texttt{\textbackslash @flcheckspace}] the kernel's test whether a
+%   float fits at the top or the bottom of a column, |#1| the room for such
+%   floats, |#2| their list, with the room the float needs in
+%   \texttt{\textbackslash saved@reqcolroom} (from 2025) or
+%   \texttt{\textbackslash @reqcolroom} (before, which it adds to): we wrap it,
+%   so that a float gives way to the notes already decided
+%   (|\@didactic@flcheck|).
+% \item[\texttt{\textbackslash end@float}] where a float ends: we keep its
+%   place in the input, for the log.
 % \item[\texttt{\textbackslash @xympar}] where the kernel makes a margin note: 
 %   we mark its callout.
 % \item[\texttt{\textbackslash MFX@combinefloats@before}] where 
@@ -4670,6 +4702,8 @@
   \@didactic@needpatch\@specialoutput{\@reinserts\@addmarginpar}%
   \@didactic@needmacro\@xympar
   \@didactic@needmacro\@makecol
+  \@didactic@needmacro\@flcheckspace
+  \@didactic@needmacro\end@float
   \@didactic@needshape\MFX@combinefloats@before{macro:->}%
   \@didactic@needmacro\mfx@marginlist
   \@didactic@needmacro\MFX@minus@inf
@@ -5311,6 +5345,7 @@
 % paragraph, say, after the group of a |\marginnoteoverflow| has ended.
 %    \begin{macrocode}
 \newdimen\@didactic@used
+\newdimen\@didactic@stay
 \newdimen\@didactic@noteht
 \newcommand\@didactic@decide{%
   \@didactic@noteht\dimexpr\ht\@didactic@head+\dp\@didactic@head\relax
@@ -5320,11 +5355,15 @@
   \@didactic@setwhy{}%
   \@didactic@ifdeferrable\@didactic@head
     {\global\advance\@didactic@used
+       \dimexpr\@didactic@deferclaim+\marginparpush\relax
+     \global\advance\@didactic@stay
        \dimexpr\@didactic@deferclaim+\marginparpush\relax}
     {\@didactic@decide@}}
 \newcommand\@didactic@decide@{%
   \ifdim\dimexpr\@didactic@used+\@didactic@noteht\relax<\@didactic@room
     \global\advance\@didactic@used
+      \dimexpr\@didactic@noteht+\marginparpush\relax
+    \global\advance\@didactic@stay
       \dimexpr\@didactic@noteht+\marginparpush\relax
   \else
     \@didactic@ifcarry
@@ -5421,6 +5460,8 @@
     \ifdim\@colroom<\textheight\space(floats on the page take
       \the\dimexpr\textheight-\@colroom\relax)\fi}%
   \@didactic@setwhy{}%
+  \global\advance\@didactic@stay
+    \dimexpr\@didactic@noteht+\marginparpush\relax
   \global\@didactic@used
     \dimexpr\@didactic@room+\@didactic@overmax+1sp\relax}
 %    \end{macrocode}
@@ -5500,7 +5541,8 @@
     \def\mfx@build@skip##1{\global\advance\@didactic@used##1\relax}%
     \let\mfx@build@clear\relax
     \mfx@marginlist
-  \endgroup}
+  \endgroup
+  \global\@didactic@stay\@didactic@used}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -6741,8 +6783,100 @@
 %    \begin{macrocode}
 \newcommand\@didactic@floatroom{%
   \expandafter\ifx\csname mfx@wide@\number\@currbox\endcsname\relax\else
-    \ifdim\@pageht<\@didactic@used \@pageht\@didactic@used \fi
+    \ifdim\@pageht<\@didactic@stay \@pageht\@didactic@stay \fi
   \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@flcheck,\@didactic@floatat,\@didactic@floatheld}
+% A float at the top or the bottom of a column takes the margin beside it as
+% well: \textsf{marginfix} sets notes only beside the text, |\@colroom|, the
+% room the kernel leaves when it adds such a float.
+% The notes already decided for the page were decided in the room before it;
+% with less, \textsf{marginfix} moves what no longer fits to the next page,
+% after notes called out later that went to the foot of this one, so that
+% footnotes leave the order of their numbers.
+% So the float gives way, as a wide one in the text does (above): the kernel's
+% test whether a float fits at the top or the bottom (|\@flcheckspace|, with
+% the room it needs in |\saved@reqcolroom|, or in kernels before 2025
+% |\@reqcolroom|, which the test adds to) asks also that the notes so far fit in
+% the room it leaves, the float's height more than they take.
+% The notes so far are those that stay on the page (|\@didactic@stay|): the
+% ones decided to fit, a note that runs past the foot of the margin at its
+% height, and those carried to the page, which come first in its margin; not a
+% note carried on from the page, which |\@didactic@used| counts as filling the
+% margin, so that the notes after it keep their order.
+% And only while they can stay, in the room and what a note may run past it:
+% where the notes carried to a page are more than its margin holds, some go on
+% whatever the float does, and holding it back would only send it further.
+% A wide float in the text counts the same notes.
+% A float that doesn't fit waits, as any float that doesn't fit in \LaTeX:
+% for the next column, at the top or the bottom as its placement allows, or a
+% page of floats.
+% So the one pass holds: what is decided stays, and what comes after it gives
+% way.
+% That leaves \LaTeX's own rule, by which a float that fits in the text block
+% goes on the page; the decisions say why (\cref{tab:pb-decisions}).
+%
+% A float held back so is said in the log, with where it ends in the input,
+% as \LaTeX\ says nothing when it moves a float on
+% (|\@didactic@floatheld|; |\@didactic@floatat| keeps the place by the box).
+% The rule doesn't apply in two columns, where |\@didactic@used| counts the
+% page and not the column, nor to a bottom float with
+% |\marginnotebesidefloats{use}|, beside which \textsf{marginfix} sets notes,
+% unless it reaches into the margin.
+% (In neither could a float be made to take a note's room in the tests: in
+% two columns \textsf{marginfix} still set the note, and with |use| the
+% margin beside the float is the notes'.)
+%    \begin{macrocode}
+\newif\if@didactic@floatclaim
+\newdimen\@didactic@reqroom
+\def\@didactic@besideuse{use}
+\newcommand\@didactic@flcheck[2]{%
+  \@didactic@reqroom
+    \ifdefined\saved@reqcolroom\saved@reqcolroom\else\@reqcolroom\fi
+  \@didactic@flcheckspace#1#2%
+  \@didactic@floatclaimfalse
+  \if@twocolumn\else\ifdim\@didactic@stay>\z@
+  \ifdim\@didactic@stay>\dimexpr\@didactic@room+\@didactic@overmax\relax\else
+    \@didactic@floatclaimtrue
+    \ifx#1\@botroom\ifdefined\mfx@besidefloats
+      \ifx\mfx@besidefloats\@didactic@besideuse
+        \expandafter\ifx\csname mfx@wide@\number\@currbox\endcsname\relax
+          \@didactic@floatclaimfalse
+        \fi
+      \fi
+    \fi\fi
+  \fi\fi\fi
+  \if@tempswa
+    \if@didactic@floatclaim
+      \ifdim\@didactic@reqroom<\dimexpr\@didactic@stay+\ht\@currbox
+          \ifdefined\marginheightadjustment-\marginheightadjustment\fi\relax
+        \@didactic@reqroom\dimexpr\@didactic@stay+\ht\@currbox
+          \ifdefined\marginheightadjustment-\marginheightadjustment\fi\relax
+        \ifdefined\saved@reqcolroom
+          \saved@reqcolroom\@didactic@reqroom
+        \else
+          \@reqcolroom\@didactic@reqroom
+        \fi
+        \@tempswafalse
+        \@didactic@flcheckspace#1#2%
+        \if@tempswa\else\@didactic@floatheld\fi
+      \fi
+    \fi
+  \fi}
+\newcommand\@didactic@floatat{%
+  \ifnum\count\@currbox>\z@
+    \expandafter\xdef\csname @didactic@fl@\number\@currbox\endcsname{%
+      \@didactic@here}%
+  \fi}
+\newcommand\@didactic@floatheld{%
+  \PackageInfo{didactic}{The float ending at
+    \ifcsname @didactic@fl@\number\@currbox\endcsname
+      \csname @didactic@fl@\number\@currbox\endcsname
+    \else ?\fi\space waits:\MessageBreak
+    the margin notes already on page \thepage\space need\MessageBreak
+    the room it would take\@gobble}}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -6835,6 +6969,9 @@
     {\@didactic@callout\@next\@currbox\@currlist}{}{}%
   \patchcmd\@specialoutput{\@reinserts\@addtocurcol}
     {\@didactic@floatroom\@didactic@reinserts\@addtocurcol}{}{}%
+  \let\@didactic@flcheckspace\@flcheckspace
+  \let\@flcheckspace\@didactic@flcheck
+  \pretocmd\end@float{\@didactic@floatat}{}{}%
   \patchcmd\@specialoutput{\@reinserts\@addmarginpar}
     {\@didactic@reinserts\@addmarginpar}{}{}%
   \ifpatchable{\@makecol}{\UseHook{build/column/before}}%

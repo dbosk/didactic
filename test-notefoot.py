@@ -33,7 +33,11 @@ CHECKs:
               \\output is active: material below the text block);
   nooverlap   no two words of a page on top of each other (pdftotext -bbox);
   notplain=N  N footnotes found not plain (didactic's information); none if not
-              given.
+              given;
+  held=N      N floats held back for the margin notes on their page (didactic's
+              information, "The float ending at ... waits");
+  away=N      exactly N notes away from their marks' pages;
+  reasons     every warning that a note is set on a later page gives a reason.
 Prints a line per job, PASS or FAIL with what failed; exit status 1 on FAIL.
 """
 import re
@@ -155,6 +159,14 @@ for c in checks:
         fails.append(f"{said} warnings for {len(away)} notes away")
     elif c == "nooverfull" and re.search(r"Overfull \\vbox[^\n]*while \\output is active", log):
         fails.append("a page overfull in the output routine")
+    elif c.startswith("held=") and len(re.findall(
+            r"Package didactic Info: The float ending at", log)) != int(c[5:]):
+        fails.append(f"{len(re.findall(r'Package didactic Info: The float ending at', log))}"
+                     f" floats held, not {c[5:]}")
+    elif c.startswith("away=") and len(away) != int(c[5:]):
+        fails.append(f"{len(away)} notes away, not {c[5:]}: {away[:8]}")
+    elif c == "reasons" and re.search(r"is set on page \d+\.", joined):
+        fails.append("a note set on a later page without a reason")
     elif c == "nooverlap" and overlaps(job):
         fails.append(f"words on top of each other on pages {overlaps(job)}")
 # notes the last run placed on another page than their callout without a
