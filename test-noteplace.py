@@ -61,6 +61,13 @@ test-noteplace.tex writes to the log.  EXPECT is one of:
   has=W       W is in the text.
   footwarnpast  a warning says that a footnote runs past the foot of the page.
   label=N:P   the label N is on page P.
+  incol=W     W is in the text column (at the foot, not in a margin).
+  mcolwarn    a warning says that a margin note in multicols is lost.
+  overwarn    a warning says that a margin note runs past the foot of the margin
+              (where over=N can't measure it: in two columns).
+  apart=A:B   on every page, the words starting with A and those starting with B
+              share no height (a note doesn't overlap a side caption or text
+              that reaches into the margin).
 Prints one line, "PASS" or "FAIL" with what failed, and the facts.
 """
 import re
@@ -250,6 +257,23 @@ for e in expect:
         fails.append("no warning that a footnote runs past the foot of the page")
     elif e.startswith("has=") and e[4:] not in out:
         fails.append("%s is not in the text" % e[4:])
+    elif e.startswith("incol="):
+        n = page_of(e[6:])
+        left = geo["odd"] if (n or 1) % 2 else geo["even"]
+        xs = [x for w, x, y, b in pages[n - 1] if w.startswith(e[6:])] if n else []
+        if not xs or not all(left - 2 <= x <= left + geo["width"] for x in xs):
+            fails.append("%s isn't in the text column" % e[6:])
+    elif e.startswith("apart="):
+        a, b = e[6:].split(":")
+        for n in range(1, len(pages) + 1):
+            ya = [y for w, x, y, bd in pages[n - 1] if w.startswith(a)]
+            yb = [y for w, x, y, bd in pages[n - 1] if w.startswith(b)]
+            if ya and yb and not (max(yb) < min(ya) - 3 or min(yb) > max(ya) + 3):
+                fails.append("page %d: %s and %s share a height" % (n, a, b))
+    elif e == "overwarn" and not re.search(r"runs .{0,60}?past the foot of the margin", joined):
+        fails.append("no warning that a note runs past the foot of the margin")
+    elif e == "mcolwarn" and "margin note in multicols is lost" not in joined:
+        fails.append("no warning that a margin note in multicols is lost")
     elif e.startswith("label="):
         n, p = e[6:].split(":")
         if label(n) != p:

@@ -760,6 +760,14 @@
 % Any other note is carried to a later page, with a warning that names it and
 % says why.
 % |noteoverflow=break| is gone: no page ends early for a note.
+% In two columns a note runs past the foot of its column's margin the same way,
+% but there is no foot beside a column for a footnote, so it is carried.
+% Inside \textsf{multicol}'s |multicols|, where no margin note can be set, a
+% footnote goes to the foot of the page under the columns; any other margin note
+% there is lost, as in \LaTeX, but with a warning.
+% With \TeX~Live's \textsf{marginfix} 1.2 all of this works, but for deferrable
+% notes and the split of a note taller than the margin, which come with later
+% versions of \textsf{marginfix}.
 % With |noteoverflow=carry|, the default with the option |draft|, every note 
 % that doesn't fit is carried, with a warning.
 % The mode is read where a note is called out, and obeys groups, so 
@@ -4693,6 +4701,7 @@
 %    \begin{macrocode}
 \newcount\@didactic@noteid
 \newcommand\@didactic@tagnote{%
+  \@didactic@mcolwarn
   \ifnum\@floatpenalty<\z@
     \@didactic@ifinjected\@marbox{}{%
       \global\advance\@didactic@noteid\@ne
@@ -5830,6 +5839,30 @@
   \expandafter\ifx\csname mfx@wide@\number\@currbox\endcsname\relax\else
     \ifdim\@pageht<\@didactic@used \@pageht\@didactic@used \fi
   \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@mcolfoot,\@didactic@mcolwarn}
+% In \textsf{multicol}'s columns no margin note can be set: the margin isn't
+% beside a column there, and \textsf{multicol} drops the note, with its text.
+% So inside |multicols| a footnote goes to the foot of the page, under the
+% columns, as an ordinary footnote: \textsf{memoir}'s |\footnotesatfoot|, for
+% the environment only.
+% A margin note other than a footnote has nowhere to go there, as in \LaTeX\
+% without \textsf{didactic}, where it is lost without a word; we warn
+% (|\@didactic@mcolwarn|, where a margin note is made).
+%    \begin{macrocode}
+\newcommand\@didactic@mcolfoot{%
+  \ifdefined\footnotesatfoot\footnotesatfoot\fi}
+\newcommand\@didactic@mcolwarn{%
+  \ifdefined\col@number
+    \ifnum\col@number>\if@twocolumn\tw@\else\@ne\fi
+      \PackageWarning{didactic}{A margin note in multicols is lost:\MessageBreak
+        multicol can't set it}%
+    \fi
+  \fi}
+\AddToHook{env/multicols/begin}{\@didactic@mcolfoot}
+\AddToHook{env/multicols*/begin}{\@didactic@mcolfoot}
 %    \end{macrocode}
 % \end{macro}
 %

@@ -500,6 +500,14 @@ test-noteplace: test-noteplace.tex test-noteplace-slides.tex test-noteplace.sh \
 		test-noteplace.py didactic.sty
 	./test-noteplace.sh
 
+# the same rows with TeX Live's marginfix 1.2, which didactic supports with less
+# (no deferrable notes, no split of a tall note: those rows are skipped there)
+TL12=$(shell kpsewhich -var-value TEXMFDIST)/tex/latex/marginfix
+.PHONY: test-noteplace-tl12
+test-noteplace-tl12: test-noteplace.tex test-noteplace-slides.tex test-noteplace.sh \
+		test-noteplace.py didactic.sty
+	MARGINFIX=$(TL12) ./test-noteplace.sh
+
 # footnote reuse across the pages of a spread, at the foot and in the margin,
 # checked by the outcome (test-footreuse-spread.py).  Not in all yet: it guards
 # what master does while notes move to being placed in one pass.

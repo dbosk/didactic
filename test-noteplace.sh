@@ -38,6 +38,7 @@ status=0
 # line with a margin note end a page (see overguard): M12 is set there.
 M12=; case "$MARGINFIX" in *texmf-dist/tex/latex/marginfix*) M12=yes;; esac
 NOT12=yes; [ -n "$M12" ] && NOT12=
+NEEDS15='tallcut deferrable split'
 ENGINE=${ENGINE:-pdflatex}
 MAXRUNS=${MAXRUNS:-8}
 TEXTIMEOUT=${TEXTIMEOUT:-120}
@@ -65,6 +66,10 @@ settle() { # as run; sets $settled and $runs
 check() {
   name=$1; j=$job-$name
   [ -z "$CASES" ] || case " $CASES " in *" $name "*) ;; *) return;; esac
+  # rows about what marginfix 1.5 and later add (deferrable notes, the split of
+  # a tall note): with TeX Live's 1.2 they don't apply
+  if [ -n "$M12" ]; then case " $NEEDS15 " in *" $name "*)
+    echo "didactic noteplace test: $name SKIP (needs marginfix 1.5 or later)"; return;; esac; fi
   floor=-
   if [ -n "$RECHECK" ]; then settled=yes; runs=-; else
     rm -f "$j-floor.aux"
@@ -293,6 +298,8 @@ check overmfloat x 9 '' "carried,noover" '\def\testtall{.95}\def\testbody{FIRSTL
 # A note a little taller than the whole margin, alone at its top, is set whole and
 # runs over, not split (marginfix's split of tall notes reads the same height).
 check overtall x 9 '' "warned,nocontinued" '\def\testtall{1.01}\def\testbody{FIRSTLINE \filler\ end\yieldnote{} \filler\par}'
+# In two columns a note runs past the foot of its column's margin the same way.
+check overtwocol x 9 '' kept,overwarn '\def\testclass{article}\def\testclassopt{a4paper,twocolumn}\def\testtall{.95}\def\testbody{FIRSTLINE end\yieldnote[\par TWO\par THREE] \filler\par}'
 # A footnote that fits neither beside its line nor past the foot of the margin
 # (the tall note runs over and fills it) goes to the foot of the page: whole;
 # split, two lines at least on each side; whole and one line past the foot; split
@@ -344,6 +351,21 @@ check fsfloat x 6 '' "kept,at=LINEA:1/FLOATPAGE:2/LINEC:3" "\\def\\testpre{\\ren
 check fstall x 6 '' "kept,at=LINEA:1,has=LASTLINE" "$(fsbody "\\footnote{\\label{note-y}LINEA \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ LASTLINE}")"
 # A label in the rest is on the next page.
 check fslabel x 6 '' "kept,label=n-rest:2" "$(fsbody '\footnote{\label{note-y}LINEA\hfil\break LINEB\hfil\break LINEC\label{n-rest}\hfil\break LINED}')"
+# In multicol's columns a margin footnote can't be set (the margin isn't beside
+# a column there): it becomes an ordinary footnote, at the foot of the page,
+# under the columns (mcolfoot).
+MC='\def\testpre{\usepackage{multicol}}\def\testtall{.1}'
+check mcolfoot x 20 '' "kept,at=MCOLNOTE:1,incol=MCOLNOTE" "$MC"'\def\testbody{\begin{multicols}{2}FIRSTLINE\label{callout-y}\footnote{\label{note-y}MCOLNOTE} \filler\ \filler\end{multicols}}'
+# Any other margin note in multicols is lost, as in LaTeX, but with a warning.
+check mcolnote x 20 '' "mcolwarn" "$MC"'\def\testbody{\begin{multicols}{2}FIRSTLINE\marginpar{MCOLMARGIN} \filler\ \filler\end{multicols}}'
+# Room in the margin that is reserved, not taken by notes: a float in the text
+# with a side caption (rsvsidecap), and a passage whose text reaches into the
+# margin between \blockmargin and \unblockmargin (rsvblock).  A note called out
+# after them goes where marginfix finds room, or later with a warning, and never
+# over what reserved the room.
+NOTEL='NOTEY notea noteb notec noted notee notef noteg noteh notei notej notek notel notem noten noteo notep noteq noter notes'
+check rsvsidecap x 30 '' "warned,apart=cap:note" "\\def\\testtall{.1}\\def\\testbody{\\begin{figure}[h]\\begin{sidecaption}{capa capb capc capd cape capf capg caph capi capj capk capl capm capn capo capp capq}\\rule{6cm}{5cm}\\end{sidecaption}\\end{figure}After the figure.\\label{callout-y}\\marginpar{\\label{note-y}$NOTEL} \\filler\\par}"
+check rsvblock x 30 '' "warned,apart=WIDE:note" "\\def\\testtall{.1}\\def\\testbody{\\blockmargin\\begin{adjustwidth}{0pt}{-4cm}WIDEA \\filler\\ WIDEB \\filler\\ WIDEC \\filler\\end{adjustwidth}\\unblockmargin Then the note.\\label{callout-y}\\marginpar{\\label{note-y}$NOTEL} \\filler\\par}"
 # What leads into a list isn't tied by a penalty of 10000: the keep rules warn.
 check leadlist x 5 '' "$W,leadwarn" \
   "\\def\\testbody{Lead LEADIN:\\begin{itemize}\\item FIRSTLINE$B\\end{itemize}}"
