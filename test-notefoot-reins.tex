@@ -25,7 +25,18 @@
 %             the passage asks, though the mode is foot where the paragraph ends
 %             (review S3); with \testlocalfoot, the other way round: the passage
 %             asks for foot in a document with carry, and the note goes to the
-%             foot.
+%             foot;
+%   defercarry  with \marginnotepriority{defer}: a deferrable note carried from
+%             page 1 (its margin is full) gives way again on page 2 to a tall
+%             note there, and a short footnote after it has room in the margin
+%             of page 2 (review S5: counted at full height, the deferrable note
+%             sent the footnote to the foot); with warn, the deferrable note
+%             stays (as with off) and the footnote goes to the foot of page 2;
+%   warnclaim with \marginnotepriority{warn}: a deferrable note, then a tall
+%             note that doesn't fit with it, then a short footnote, on one page:
+%             the deferrable note stays, so the footnote goes to the foot (it
+%             was counted at nothing there, and the footnote went on with the
+%             tall note).
 \makeatletter
 \newcommand\fnt[1]{%
   \stepcounter{mk}\edef\mkv{\arabic{mk}}%
@@ -39,7 +50,7 @@
 \def\testreins{reins}\def\testreinsmix{reinsmix}\def\testwait{wait}
 \def\testmcolx{mcol3x}\def\testmcol{mcol3}\def\testmcoln{mcol3n}
 \def\testwaitsec{waitsec}\def\testrestb{rest2}\def\testwaitsh{waitsh}
-\def\testlocal{local}
+\def\testlocal{local}\def\testdefercarry{defercarry}\def\testwarnclaim{warnclaim}
 \ifx\testcase\testmcolx\def\testfm#1{}\else\def\testfm#1{\fnt{#1}}\fi
 \ifx\testcase\testwaitsh\def\testwaitsec{waitsh}\fi
 \ifx\testcase\testwaitsec
@@ -69,6 +80,24 @@
   CALLL\fnt{FOOTL a footnote in a passage that asks for a mode of its own, with
   three lines or more of text, so that it can't run past the foot of the margin
   at all.}} more words.\par
+  \filler\par
+\else\ifx\testcase\testdefercarry
+  \noindent FIRST\marginpar{\rule{1pt}{.5\textheight}} text.\par
+  \testlines
+  \noindent LTCALL\marginpar{\marginnotedeferrable LTNOTE\par
+    \rule{1pt}{.6\textheight}} text.\par
+  \testli=0
+  \loop\ifnum\testli<18 \noindent more \the\testli\par\advance\testli\@ne\repeat
+  \noindent PLAINCALL\marginpar{PNOTE\par\rule{1pt}{.6\textheight}} text.\par
+  \noindent FNCALL\fnt{FOOTX a short footnote.} text.\par
+  \filler\par
+\else\ifx\testcase\testwarnclaim
+  \noindent LTCALL\marginpar{\marginnotedeferrable LTNOTE\par
+    \rule{1pt}{.6\textheight}} text.\par
+  \testlines
+  \noindent PLAINCALL\marginpar{PNOTE\par\rule{1pt}{.6\textheight}} text.\par
+  \testlines
+  \noindent FNCALL\fnt{FOOTX a short footnote.} text.\par
   \filler\par
 \else\ifx\testcase\testwait
   \noindent x\marginpar{\rule{1pt}{\dimexpr\textheight-8pt}} text.\par
@@ -105,5 +134,5 @@
   \ifx\testcase\testmcol\end{multicols}\fi
   \ifx\testcase\testmcolx\else\ifdefined\testmulticols\end{multicols}\fi\fi
   AFTER.
-\fi\fi\fi\fi\fi
+\fi\fi\fi\fi\fi\fi\fi
 \makeatother

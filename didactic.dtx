@@ -5342,12 +5342,17 @@
        \fi}%
   \fi}
 % A deferrable note gives way to the notes after it, in \textsf{marginfix}'s 
-% modes |defer| and |warn| whole, in |split| down to what is worth splitting 
-% (|\Mfx@splitmin|); in |off| not at all.
+% mode |defer| whole, in |split| down to what is worth splitting 
+% (|\Mfx@splitmin|); in |warn| and |off| not at all: there notes are set as
+% if none were deferrable, |warn| only saying which deferrable notes an
+% ordinary one that moved had ahead of it.  (Counted at nothing in |warn|, it
+% let the notes after it be found to fit, and \textsf{marginfix} then moved
+% them to the next page, a footnote too, where the foot had room.)
 % It never makes us decide for itself: \textsf{marginfix} places it, splits 
 % it or moves it at the page build.
 % For the notes after it it takes what it will keep: nothing, the split 
 % minimum or all.
+\def\@didactic@prdefer{defer}
 \newcommand\@didactic@deferclaim{%
   \ifdefined\mfx@priority
     \ifx\mfx@priority\MFX@priority@split
@@ -5355,8 +5360,8 @@
         \ifdim\@didactic@noteht<\Mfx@splitmin\@didactic@noteht
         \else\Mfx@splitmin\fi
       \else\z@\fi
-    \else\ifx\mfx@priority\MFX@priority@off\@didactic@noteht
-    \else\z@\fi\fi
+    \else\ifx\mfx@priority\@didactic@prdefer\z@
+    \else\@didactic@noteht\fi\fi
   \else\@didactic@noteht\fi}
 \newcommand\@didactic@room{%
   \dimexpr\@colroom
@@ -5479,12 +5484,19 @@
 % What the notes carried to the next page take of its margin, counted when 
 % \textsf{marginfix} has built the column: the notes and skips left in its 
 % list, ours held for their lines among them.
+% A deferrable note left there counts at what it keeps, as at its callout
+% (|\@didactic@deferclaim|): on the next page it gives way to the notes after
+% it as it did on its own, and counted whole it would send them to the foot or
+% on where \textsf{marginfix} makes room.
 %    \begin{macrocode}
 \newcommand\@didactic@newpage{%
   \global\@didactic@used\z@
   \begingroup
     \def\mfx@build@note##1##2##3{%
-      \global\advance\@didactic@used\dimexpr\ht##1+\dp##1\relax}%
+      \@didactic@noteht\dimexpr\ht##1+\dp##1\relax
+      \@didactic@ifdeferrable##1
+        {\global\advance\@didactic@used\@didactic@deferclaim}
+        {\global\advance\@didactic@used\@didactic@noteht}}%
     \def\mfx@build@skip##1{\global\advance\@didactic@used##1\relax}%
     \let\mfx@build@clear\relax
     \mfx@marginlist

@@ -126,4 +126,12 @@ job rest2 4 "$C{rest2}${R}{40}\\def\\testK{39}" nooverfull nooverlap 'works=reac
 # {\marginnoteoverflow{foot}...} in a document with carry goes to the foot.
 job local 4 "$C{local}${R}{10}" nofoot nofalse nooverfull nooverlap 'works=noteoverflow is carry'
 job localfoot 4 "$C{local}${R}{10}\\def\\testlocalfoot{}\\def\\testoptions{noteoverflow=carry}" foot beside nofalse nooverfull nooverlap
+# A deferrable note counts at what marginfix keeps of it, at its callout and
+# carried to the next page (review S5): with defer it gives way again there,
+# and a footnote after a tall note has room in the margin; with warn it stays,
+# as with off, and the footnote goes to the foot of its page, there and on the
+# callout's page.
+job defercarry 4 "$C{defercarry}${R}{30}\\def\\testprio{defer}" nofoot beside nooverlap nooverfull
+job defercarry-warn 4 "$C{defercarry}${R}{30}\\def\\testprio{warn}" foot beside nooverlap nooverfull
+job warnclaim 4 "$C{warnclaim}${R}{5}\\def\\testprio{warn}" foot beside nooverlap nooverfull
 exit $status
