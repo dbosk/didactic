@@ -11,6 +11,7 @@
 # $PRE (TeX code put first, to load another implementation, say) can be set.
 src=test-footreuse-spread
 status=0
+declare -A floors
 # $MARGINFIX: a directory with the marginfix.sty to test against, put first on
 # TEXINPUTS; unset, the one found.
 [ -n "$MARGINFIX" ] && export TEXINPUTS="$(cd "$MARGINFIX" && pwd)//:$TEXINPUTS"
@@ -31,7 +32,7 @@ settle() { # <job> <definitions>; sets $settled and $i, the runs
 job() { # <name> <definitions> [<arguments of test-footreuse-spread.py>]
   [ -z "$CASES" ] || case " $CASES " in *" $1 "*) ;; *) return;; esac
   j=$src-$1
-  settle "$j-floor" "\\def\\testfloor{}$2"; floor=$i
+  settle "$j-floor" "\\def\\testfloor{}$2"; floor=$i; floors[$1]=$i
   settle "$j" "$2"
   errors=$(grep -c '^!' "$j.log")
   if [ "$settled$errors" != yes0 ]; then
@@ -64,4 +65,34 @@ job overreuse '\def\testcase{overreuse}\def\testclass{memoir}'
 # second citation on its mark's page: both marks before the note, in order.
 job waitreuse '\def\testcase{waitreuse}\def\testclass{memoir}' 'next shared warned reusenamed'
 job carryreuse '\def\testcase{carryreuse}\def\testclass{memoir}' 'next shared warned reusenamed'
+# Warm: each job built again from the .aux (and .bbl) of another case, as after
+# an edit, must settle on the same PDF as from clean, in at most two runs more
+# than its floor (#93: a settled result that depends on an old .aux).
+warm() { # warm <from> <name> <definitions>
+  [ -z "$CASES" ] || case " $CASES " in *" warm-$2 "*) ;; *) return;; esac
+  j=$src-warm-$2
+  cp "$src-$1.aux" "$j.aux"; cp "$src-$1.bbl" "$j.bbl" 2>/dev/null
+  settled=no
+  for i in $(seq 1 "$MAXRUNS"); do
+    cp "$j.aux" "$j.aux.old"
+    $ENGINE -shell-escape -interaction=nonstopmode -jobname="$j" \
+      "${PRE}$3\\input{$src}" > /dev/null 2>&1
+    [ "$i" = 1 ] && { biber "$j" > /dev/null 2>&1; continue; }
+    if cmp -s "$j.aux" "$j.aux.old" && ! grep -q 'Rerun to get\|may have changed' "$j.log"
+    then settled=yes; break; fi
+  done
+  if [ "$settled" = yes ] && [ "$i" -le $(( ${floors[$2]:-$MAXRUNS} + 2 )) ] \
+     && diff <(pdftotext -layout "$j.pdf" -) <(pdftotext -layout "$src-$2.pdf" -) >/dev/null
+  then
+    echo "didactic footreuse spread test: warm-$2 PASS (from $1, $i runs, floor ${floors[$2]})"
+  else
+    echo "didactic footreuse spread test: warm-$2 FAIL (from $1, settled: $settled, $i runs, floor ${floors[$2]})"
+    status=1
+  fi
+}
+warm parted same '\def\testcase{same}'
+warm same parted '\def\testcase{parted}'
+warm splitrest splitreuse '\def\testcase{splitreuse}\def\testclass{memoir}'
+warm splitreuse splitrest '\def\testcase{splitrest}\def\testclass{memoir}'
+warm carryreuse waitreuse '\def\testcase{waitreuse}\def\testclass{memoir}'
 exit $status
