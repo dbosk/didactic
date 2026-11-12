@@ -80,7 +80,7 @@ job twofoot 8 "$C{dense}\\def\\testclassopt{twocolumn}\\def\\testoptions{noteove
 job multi 8 "$C{multi}" foot order
 job hyper 4 "$C{hyper}" foot beside nodest nofalse
 job counter 4 "$C{counter}" foot beside counter nofalse
-job nofeet 4 "$C{nofeet}" nofoot beside nofalse
+job nofeet 4 "$C{nofeet}" nofoot nofalse
 job drift 4 "$C{drift}" beside nofalse
 job lastline 4 "$C{lastline}" beside nofalse
 for c in botfloat topfloat clear; do job $c 4 "$C{$c}" foot beside nofalse; done

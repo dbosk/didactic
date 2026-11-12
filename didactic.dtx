@@ -6234,6 +6234,8 @@
 % Two lines past the foot would reach the folio: the two cases that would need
 % it (no room and a note of two lines or more; one line of room and a note of
 % three) carry.
+% The reason counts the lines left at the foot, or says less than a line: the
+% count rounds, and under half a line it came out as $-1$.
 % On a page where a footnote was split or runs past the foot, the foot is
 % full: a later footnote that fits nowhere else waits for the foot of the next
 % page, after the rest, with a warning, as \TeX\ does with its own insertions,
@@ -6276,8 +6278,10 @@
               {\dimexpr\@didactic@footroom+\@didactic@fl\relax}\@didactic@fl
             \if@tempswa\else
               \edef\@didactic@footwhy{it fits neither beside its line nor at
-                the foot (\@didactic@flines\@didactic@footroom\space lines left
-                there; it would run more than one line past it)}%
+                the foot (\ifnum\@didactic@flines\@didactic@footroom<\@ne
+                  less than a line\else
+                  \@didactic@flines\@didactic@footroom\space lines\fi\space
+                left there; it would run more than one line past it)}%
             \fi
           \else
             \@didactic@footover

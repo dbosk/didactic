@@ -111,6 +111,9 @@ if twice:
     fails.append(f"labels written twice: {twice[:6]}")
 if said < len(away):
     fails.append(f"{len(away)} notes away, {said} warnings")
+# a reason that counts lines left at the foot counts none or more, never less
+if re.search(r"\(-\d+ lines left there", joined):
+    fails.append("a warning counts fewer than no lines left at the foot")
 for c in checks:
     if c == "foot" and not feet:
         fails.append("no note at the foot")

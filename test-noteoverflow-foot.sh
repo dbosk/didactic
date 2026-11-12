@@ -24,12 +24,10 @@
 #                           (biblatex's records in the .aux, counted by work, as
 #                           carry's; the pages themselves move with the layout)
 #   xenowhere xelatex, with a footnote that fits neither in the margin nor at the
-#            foot: it goes with its line to the next page, or is carried with a
-#            warning where the page can't end early (it had to be carried when
-#            XeTeX could have no early end), and the job settles
+#            foot: carried to the next page, away from its mark, with a warning
+#            that says why (no page ends early for a note), and the job settles
 #   xenowherecarry  the same under noteoverflow=carry
-#   nowhere  the same under pdflatex: the page ends early instead (yield), and
-#            the note goes to the next page with its line
+#   nowhere  the same as xenowhere under pdflatex
 #   hbox     test-noteoverflow-foot-hbox.tex, with foot and with carry (ref): the
 #            version of a footnote that isn't printed says nothing, and the
 #            printed one says what TeX would, with its place
@@ -103,7 +101,7 @@ job backrefcarry pdflatex \
 job xenowhere xelatex '\def\testnowhere{}' 'foot away'
 job xenowherecarry xelatex '\def\testnowhere{}\def\testoptions{noteoverflow=carry}' \
   'nofoot away'
-job nowhere pdflatex '\def\testnowhere{}' foot
+job nowhere pdflatex '\def\testnowhere{}' 'foot away'
 job twocol pdflatex '\def\testclassopt{twocolumn}' 'any spill away'
 job twofoot pdflatex '\def\testclassopt{twocolumn}\def\testoptions{noteoverflow=foot}' \
   'any spill away warn'
