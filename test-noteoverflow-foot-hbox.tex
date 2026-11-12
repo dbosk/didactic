@@ -1,12 +1,12 @@
-% Test of noteoverflow=foot (didactic): the copy of a footnote that isn't printed
-% says nothing in the log, and the one printed says what TeX would.  Each margin
-% footnote is set twice under foot, in the margin and for the foot, and either may
-% be printed.  On page 1 the margin is free: footnote A, with a token too wide for
-% the margin or the text, and footnote D, with a line ended by \break, which is
-% underfull only when justified at the foot's width, go in the margin.  On page 2 a
-% tall note fills the margin: footnotes B (too wide) and C (\break) go to the foot.
-% See test-noteoverflow-foot.sh, which builds it with foot (the default), with
-% noteoverflow=break and with carry, and test-noteoverflow-foot.py hbox.
+% Test of noteoverflow=foot (didactic): a margin footnote is set once, in the
+% margin's measure, wherever it ends up, so TeX says of its lines what it says
+% without the foot, once.  On page 1 the margin is free: footnote A, with a token
+% too wide for the margin or the text, and footnote D, with lines ended by \break,
+% go in the margin.  On page 2 a tall note fills the margin: footnotes B (too wide)
+% and C (\break), of four lines each, too many to run past the foot of the margin,
+% go to the foot.  See test-noteoverflow-foot.sh, which builds it with foot (the
+% default) and with carry, and test-noteoverflow-foot.py hbox, which knows the
+% notes by their input lines: keep them where they are.
 \documentclass[a4paper]{memoir}
 \ifdefined\testoptions\else\def\testoptions{}\fi
 \expandafter\PassOptionsToPackage\expandafter{\testoptions}{didactic}
@@ -23,9 +23,9 @@ in it.} \filler\ \filler
 \clearpage
 \noindent x\marginpar{TALL\par\rule{1pt}{.97\textheight}} \filler\ \filler
 
-\filler\footnote{Note B, with
+\filler\footnote{Note B, with\break two\break more lines,
 TOKENBTOOWIDEFORTHEMARGINORTHETEXTXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 in it.} \filler\ \filler
 
-\filler\footnote{Note C, a short line\break and then the rest.} \filler\ \filler
+\filler\footnote{Note C, a short line\break and then\break the rest\break of it.} \filler\ \filler
 \end{document}

@@ -30,11 +30,9 @@
 #   xenowherecarry  the same under noteoverflow=carry
 #   nowhere  the same under pdflatex: the page ends early instead (yield), and
 #            the note goes to the next page with its line
-#   hbox     test-noteoverflow-foot-hbox.tex, with foot and with carry (ref,
-#            where no copy for the foot is made and TeX speaks for the only one,
-#            whatever the mechanism; it stands for break too, which is gone): the copy of a
-#            footnote that isn't printed says nothing about overfull or underfull
-#            lines, and the printed one says what TeX would, with its place
+#   hbox     test-noteoverflow-foot-hbox.tex, with foot and with carry (ref): a
+#            note is set once, so TeX says of its lines what it says under carry,
+#            wherever the note ends up, and didactic adds nothing
 #   twocol   pdflatex, two columns, where foot can't work: the default is carry,
 #            without a word
 #   twofoot  the same, asking for foot: carry, and a warning that says why
@@ -122,7 +120,7 @@ hbox() { # test-noteoverflow-foot-hbox, with foot and with carry (no bibliograph
          && ! grep -q 'Rerun to get\|may have changed' "$j.log"; then break; fi
     done
   done
-  python3 $src.py hbox $src-hbox-foot $src-hbox-ref $src-hbox-ref || status=1
+  python3 $src.py hbox $src-hbox-foot $src-hbox-ref || status=1
 }
 hbox
 if [ -z "$CASES" ]; then

@@ -4,7 +4,7 @@
     test-noteoverflow-foot.py check JOB [foot|nofoot] [spill|carried] [away] [warn] [nolabels]
     test-noteoverflow-foot.py same JOB OTHER
     test-noteoverflow-foot.py records JOB OTHER
-    test-noteoverflow-foot.py hbox FOOT BREAK REF
+    test-noteoverflow-foot.py hbox FOOT REF
 
 check reads JOB.pdf, JOB.log and JOB.aux, the outcome only, whatever the
 mechanism (no log line of marginfix's counts; the job has settled when the runner
@@ -21,7 +21,8 @@ calls this):
   footnotereuse=off writes no labels); carried: at least one isn't (the case of
   a note that fits nowhere);
 - every note away from its mark is named by a warning (that a margin note is set
-  on another page than its callout), at least as many warnings as notes away,
+  on another page than its callout, or that a footnote waits for the foot of the
+  next page), at least as many warnings as notes away,
   and no more (each margin note here is a footnote with labels, except the tall
   one of testnowhere, which fits beside its line);
 - no page is less than half full, except the last and one whose text ends with
@@ -36,16 +37,14 @@ differs).
 records compares what biblatex writes to JOB.aux and OTHER.aux about each work
 (\abx@aux@... lines: citations, backrefs, citecounter), counted by kind and work:
 a copy of a note that isn't printed must add none, wherever its page.
-hbox reads the logs of test-noteoverflow-foot-hbox.tex built with foot (FOOT), with
-break (BREAK) and with carry (REF, where no copy for the foot is made and TeX speaks
-for the only one): the copy of a footnote that isn't printed says nothing,
-and the printed one says what TeX would, once, with its place.  Footnotes A (input
-line 20) and D (22) are in the margin of page 1 under foot: didactic says what TeX
-says in REF, and TeX says nothing more; nothing comes from their foot copies.  Under
-break the margin copy is the only one, and TeX speaks for it as in REF.  B (28) and C (30) are at the foot of page 2 under foot (in the margin of
-page 3 under break): no line of TeX's names them, and didactic says once that B's
-foot copy has an overfull line and C's an underfull one, naming the file, the line
-and the page, and nothing of their margin copies.
+hbox reads test-noteoverflow-foot-hbox.tex built with foot (FOOT) and with carry
+(REF): a margin footnote is set once, in the margin's measure, wherever it ends up,
+so TeX says of its lines what it says under carry, once, and didactic says nothing
+of them.  Footnotes A (input line 20) and D (22) are in the margin of page 1, B (28)
+and C (30) at the foot of page 2 under foot (in the text column there, from the
+PDF): for each, TeX's overfull and underfull lines in FOOT are those in REF, and
+there is one at least; no warning of didactic's names an overfull or underfull line.
+TeX's lines name no page, here as without didactic.
 A line per check, PASS or FAIL; the exit status is 1 on any FAIL.
 """
 import collections
@@ -128,6 +127,7 @@ def check(job, want, spill, away_ok, warn, nolabels):
     if spill == "carried":
         report(f"{job} carried", nolabels or bool(away), f"({len(away)} away)")
     said = len(re.findall(r"[Mm]argin note called out at.{0,160}? on page \d+ is set on (?:page|a later page)|Margin note from .{0,160}? moved from page|"
+                          r"Footnote called out at.{0,160}? on page \d+ waits for the foot of the next page|"
                           r"A margin note from page", joined))
     report(f"{job} away named", nolabels or said >= len(away),
            f"({len(away)} away, {said} warnings)")
@@ -200,38 +200,31 @@ def unwrapped(path):
     return re.sub(r"\n\((?:didactic|marginfix)\) *", " ", "\n".join(out))
 
 
-def hbox(foot, brk, ref):
-    src = "test-noteoverflow-foot-hbox.tex"
+def hbox(foot, ref):
+    src = "test-noteoverflow-foot-hbox"
     def tex(log, line):
         return sorted(re.findall(r"((?:Over|Under)full \\hbox \([^)]*\)) in paragraph at "
                                  rf"lines {line}--{line}", log))
-    def ours(log, line, where):
-        return sorted(re.findall(r"Package didactic Warning: ((?:Over|Under)full \\hbox "
-                                 r"\([^)]*\)) in the footnote called out at "
-                                 rf"{re.escape(src)}:{line}, {where} of page (\d+)", log))
-    f, b, r = unwrapped(f"{foot}.log"), unwrapped(f"{brk}.log"), unwrapped(f"{ref}.log")
-    for line in (20, 22):
-        want = [(w, "1") for w in tex(r, line)]
-        got = ours(f, line, "in the margin")
-        report(f"{foot} margin note at line {line}: TeX's words, once, from the printed copy",
-               bool(want) and got == want and not tex(f, line),
-               f"({len(got)} said, {len(want)} by TeX, {len(tex(f, line))} still TeX's)")
-    n = sum(len(ours(f, line, "at the foot")) for line in (20, 22))
-    report(f"{foot} nothing from the foot copies of notes in the margin", n == 0, f"({n})")
+    f, r = unwrapped(f"{foot}.log"), unwrapped(f"{ref}.log")
     for line in (20, 22, 28, 30):
-        n = len(ours(b, line, "in the margin")) + len(ours(b, line, "at the foot"))
-        report(f"{brk} note at line {line}: TeX speaks for the only copy, as without the wrapper",
-               bool(tex(r, line)) and tex(b, line) == tex(r, line) and n == 0,
-               f"({len(tex(b, line))} against {len(tex(r, line))}, {n} of didactic's)")
-    for line, kind in ((28, "Over"), (30, "Under")):
-        report(f"{foot} note at the foot at line {line}: no line of TeX's", not tex(f, line),
-               " ".join(tex(f, line))[:120])
-        got = ours(f, line, "at the foot")
-        report(f"{foot} note at the foot at line {line}: one {kind.lower()}full warning, page 2",
-               len(got) == 1 and got[0][0].startswith(kind) and got[0][1] == "2", f"({got})")
-        n = len(ours(f, line, "in the margin"))
-        report(f"{foot} note at the foot at line {line}: nothing from its margin copy", n == 0,
-               f"({n})")
+        report(f"{foot} note at line {line}: TeX's words, once, as under carry",
+               bool(tex(r, line)) and tex(f, line) == tex(r, line),
+               f"({len(tex(f, line))} against {len(tex(r, line))})")
+    ours = re.findall(r"Package didactic Warning: (?:Over|Under)full \\hbox", f)
+    report(f"{foot} no word of didactic's about the notes' lines", not ours, f"({len(ours)})")
+    out = subprocess.run(["pdftotext", "-bbox", "-f", "2", "-l", "2", f"{foot}.pdf", "-"],
+                         capture_output=True, text=True, check=True).stdout
+    ws = [(float(x0), float(x1), html.unescape(w)) for x0, x1, w in
+          re.findall(r'<word xMin="([\d.]+)" yMin="[\d.]+" xMax="([\d.]+)" '
+                     r'yMax="[\d.]+">(.*?)</word>', out)]
+    first = next((n for n, (_, _, w) in enumerate(ws) if w == "x"), None)
+    left = ws[first][0] if first is not None else 0
+    right = max((x1 for _, x1, w in ws if w == "of"), default=0)
+    for name in ("B,", "C,"):
+        xs = [ws[n - 1][0] for n, (_, _, w) in enumerate(ws) if w == name and n
+              and ws[n - 1][2].endswith("Note")]
+        report(f"{foot} note {name[0]} at the foot of page 2",
+               bool(xs) and left - 2 <= xs[0] < right, f"(x {xs}, text {left}..{right})")
 
 
 if __name__ == "__main__":
@@ -241,7 +234,7 @@ if __name__ == "__main__":
               "away" in sys.argv[4:],
               "warn" in sys.argv[4:], "nolabels" in sys.argv[4:])
     elif sys.argv[1] == "hbox":
-        hbox(sys.argv[2], sys.argv[3], sys.argv[4])
+        hbox(sys.argv[2], sys.argv[3])
     elif sys.argv[1] == "records":
         records(sys.argv[2], sys.argv[3])
     else:

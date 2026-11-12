@@ -21,7 +21,8 @@ TEST_KEEP_SMALL=	test-keep-style test-keep-columns test-keep-guard \
 			test-keep-addvspace test-keep-club test-keep-club-article
 TEST_NOTEOVERFLOW=	test-noteoverflow test-noteoverflow-lua test-noteoverflow-carry \
 			test-noteoverflow-draft test-noteoverflow-draftfoot \
-			test-noteoverflow-xe test-noteoverflow-old test-noteoverflow-break
+			test-noteoverflow-xe test-noteoverflow-old test-noteoverflow-break \
+			test-footonce
 # The order of float numbers, from the pages the floats end up on.
 TEST_FLOATORDER=	test-marginfloat-samepar test-marginfloat-moved \
 			test-marginfloat-chapters test-marginfloat-kinds \
@@ -470,6 +471,28 @@ test-noteoverflow-xe.pdf: %.pdf: %.tex ${NOTEOVERFLOW_SRC}
 	@${settle_many}
 	! grep '^!' $*.log
 	python3 test-noteoverflow.py $* warned
+# a margin footnote is set once: its text runs once, and no box is kept for it.
+FOOTONCE=${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode
+test-footonce.pdf: PDFLATEX=pdflatex
+test-footonce.pdf: test-footonce.tex didactic.sty
+	${FOOTONCE} -jobname=test-footonce "\def\testcase{gls}\input{test-footonce}"
+	${FOOTONCE} -jobname=test-footonce "\def\testcase{gls}\input{test-footonce}"
+	pdftotext test-footonce.pdf - | tr '\n' ' ' | grep -q 'First use: three-letter acronym (TLA). BUMP1'
+	pdftotext test-footonce.pdf - | tr '\n' ' ' | grep -q 'Second use: TLA. BUMP2'
+	${FOOTONCE} -jobname=test-footonce-many "\def\testcase{many}\input{test-footonce}"
+	${FOOTONCE} -jobname=test-footonce-carry "\def\testcase{many}\def\testcarry{}\input{test-footonce}"
+	! grep '^!' test-footonce-many.log
+	! grep '^!' test-footonce-carry.log
+	test "$$(grep -c '@didactic@fb@' test-footonce-many.log)" -eq 0
+	test $$(grep -o '[0-9]* words of memory' test-footonce-many.log | cut -d' ' -f1) \
+		-le $$(( $$(grep -o '[0-9]* words of memory' test-footonce-carry.log | cut -d' ' -f1) * 105 / 100 ))
+	${FOOTONCE} -jobname=test-footonce-feet "\def\testcase{feet}\input{test-footonce}"
+	! grep '^!' test-footonce-feet.log
+	test "$$(grep -c '@didactic@fb@' test-footonce-feet.log)" -eq 0
+	test $$(pdftotext -bbox test-footonce-feet.pdf - | grep '>FOOTWORD<' \
+		| awk -F'"' '$$2 < 300' | wc -l) -ge 200
+	grep -o '[0-9]* words of memory' test-footonce-feet.log
+
 # noteoverflow=break is gone, with no alias: an error.
 test-noteoverflow-break.pdf: test-noteoverflow-break.tex didactic.sty
 	-${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
@@ -518,7 +541,7 @@ test-footreuse-spread: test-footreuse-spread.tex test-footreuse-spread.sh \
 	./test-footreuse-spread.sh
 
 # noteoverflow=foot: footnotes that don't fit in the margin at the foot of their
-# page, with citations, the copy that isn't printed quiet (test-noteoverflow-foot),
+# page, with citations, a note set once whatever its place (test-noteoverflow-foot),
 # and in the situations of marginfix's footcheck (test-notefoot); checked by the
 # outcome.  Not in all yet: the rows are red until notes are placed in one pass.
 .PHONY: test-noteoverflow-foot test-notefoot

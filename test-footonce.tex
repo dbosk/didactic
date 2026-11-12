@@ -1,0 +1,51 @@
+% Test that a margin footnote is set once (didactic, noteoverflow=foot): its text
+% runs once, as without didactic, whether it stays in the margin or goes to the
+% foot, and no box is kept for it.  Built with \def\testcase{...}:
+%   gls   glossaries' first use and a counter of TeX's stepped with \global in
+%         two footnotes, nothing overflowing: the first note says "three-letter
+%         acronym (TLA). BUMP1", the second "TLA. BUMP2";
+%   many  3000 margin footnotes of one line, each beside a paragraph of three
+%         lines, so that every note stays in the margin: the memory used is
+%         close to the same document's with noteoverflow=carry (\testcarry),
+%         and the log names no box allocated per note;
+%   feet  1200 footnotes of seven lines or so in the margin, each beside a
+%         paragraph of four lines: more than the margin holds, so that a few
+%         hundred go to the foot (each says FOOTWORD, counted at the foot from
+%         the PDF); the log names no box allocated per note and the run has no
+%         error, and the memory used is in the log for the record.
+% Build and checks: see the Makefile.
+\ifdefined\testcase\else\def\testcase{gls}\fi
+\documentclass{memoir}
+\ifdefined\testcarry\PassOptionsToPackage{noteoverflow=carry}{didactic}\fi
+\usepackage{didactic}
+\def\glscase{gls}
+\ifx\testcase\glscase
+  \usepackage[acronym]{glossaries}
+  \newacronym{tla}{TLA}{three-letter acronym}
+\fi
+\newcount\mycount
+\newcount\notes
+\def\feetcase{feet}
+\newcommand\bump{\global\advance\mycount1 BUMP\the\mycount}
+\begin{document}
+\ifx\testcase\glscase
+Text\footnote{First use: \gls{tla}. \bump} more text.
+
+Text\footnote{Second use: \gls{tla}. \bump} more text.
+\else\ifx\testcase\feetcase
+\loop\ifnum\notes<1200
+Some words of text\footnote{FOOTWORD A long note, of the length of a reference
+in full, with authors, a title, the journal, its volume and pages and the year,
+which takes several lines in the margin.} and more words of the paragraph to
+fill it up, so that it takes four lines of the text, with the note beside it
+taking more lines than that, so that the margin fills up and some of the notes
+go to the foot of the page instead, as they do in a text that cites a lot.\par
+\global\advance\notes 1 \repeat
+\else
+\loop\ifnum\notes<3000
+Some words of text\footnote{A short note.} and more words of the paragraph to
+fill it up, so that it takes three lines of the text, and the note beside it,
+one line, has all the room it needs in the margin, as most notes do.\par
+\global\advance\notes 1 \repeat
+\fi\fi
+\end{document}
