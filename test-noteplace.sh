@@ -33,6 +33,10 @@ status=0
 # $MARGINFIX: a directory with the marginfix.sty to test against, put first on
 # TEXINPUTS (say TeX Live's, $(kpsewhich -var-value TEXMFDIST)/tex/latex/marginfix,
 # or a build of another branch); unset, the one found.
+# TeX Live's tools (multicol) before anything else but that marginfix: a texmf
+# tree may have an older multicol (one machine had noweb's of 1992 first).
+TOOLS=$(kpsewhich -var-value=TEXMFDIST)/tex/latex/tools
+export TEXINPUTS="$TOOLS:$TEXINPUTS"
 [ -n "$MARGINFIX" ] && export TEXINPUTS="$(cd "$MARGINFIX" && pwd)//:$TEXINPUTS"
 # Some rows expect another outcome with TeX Live's marginfix 1.2, which lets every
 # line with a margin note end a page (see overguard): M12 is set there.

@@ -19,6 +19,10 @@ src=test-notefoot
 status=0
 # $MARGINFIX: a directory with the marginfix.sty to test against, put first on
 # TEXINPUTS; unset, the one found.
+# TeX Live's tools (multicol) before anything else but that marginfix: a texmf
+# tree may have an older multicol (one machine had noweb's of 1992 first).
+TOOLS=$(kpsewhich -var-value=TEXMFDIST)/tex/latex/tools
+export TEXINPUTS="$TOOLS:$TEXINPUTS"
 [ -n "$MARGINFIX" ] && export TEXINPUTS="$(cd "$MARGINFIX" && pwd)//:$TEXINPUTS"
 ENGINE=${ENGINE:-pdflatex}
 TEXTIMEOUT=${TEXTIMEOUT:-120}  # seconds: a run that takes longer never ends

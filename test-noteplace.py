@@ -77,6 +77,10 @@ import sys
 
 job, expect = sys.argv[1], [e for e in sys.argv[2].split(",") if e]
 log = open(job + ".log", errors="replace").read()
+# a multicol from outside TeX Live's tools (an old copy in a texmf tree) tests
+# nothing of what users have
+OLDMC = [m for m in re.findall(r"\(([^ ()]*multicol\.sty)", log.replace("\n", ""))
+         if "texmf-dist/tex/latex/tools/" not in m]
 aux = open(job + ".aux", errors="replace").read()
 
 
@@ -153,6 +157,8 @@ def widow():
 
 facts = {"callout": label("callout-y"), "note": label("note-y"), "pages": len(pages)}
 fails = []
+if OLDMC:
+    fails.append("multicol.sty from outside TeX Live's tools: %s" % OLDMC[0])
 off = facts["note"] != facts["callout"]
 if facts["callout"] is None or facts["note"] is None:
     if any(e in ("kept", "warned", "limitwarn") for e in expect):

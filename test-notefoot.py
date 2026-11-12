@@ -36,6 +36,10 @@ import sys
 job, checks = sys.argv[1], sys.argv[2:]
 aux = open(f"{job}.aux", errors="replace").read()
 log = open(f"{job}.log", errors="replace").read()
+# a multicol from outside TeX Live's tools (an old copy in a texmf tree) tests
+# nothing of what users have
+OLDMC = [m for m in re.findall(r"\(([^ ()]*multicol\.sty)", log.replace("\n", ""))
+         if "texmf-dist/tex/latex/tools/" not in m]
 joined = re.sub(r"\n\((?:didactic|marginfix|hyperref)\) *", " ", log).replace("\n", "")
 
 
@@ -76,6 +80,8 @@ feet = [n for n in notes if atfoot(n)]
 said = len(re.findall(r"[Mm]argin note called out at.{0,160}? on page \d+ is set on (?:page|a later page)|Margin note from .{0,160}? moved from page|"
                       r"A margin note from page", joined))
 fails = []
+if OLDMC:
+    fails.append("multicol.sty from outside TeX Live's tools: %s" % OLDMC[0])
 if not notes or marks != notes:
     fails.append(f"{len(marks)} marks, {len(notes)} notes with labels")
 twice = sorted(k for k, c in count.items() if c > 1)
