@@ -2881,7 +2881,11 @@
      \@didactic@fnpb=\@didactic@fnabspage{\@didactic@fnhere}\relax
      \@didactic@fngb=\@didactic@fnpb \@didactic@fntogroup\@didactic@fngb
      % reuse only when both pages are resolved (>0) and the citation shares a
-     % group with the earlier footnote or with its resolved mark
+     % group with the earlier footnote or with its resolved mark: the mark's
+     % page counts as well, so that a second citation beside the mark of a
+     % note carried or waiting for the next page shares its number, both marks
+     % before the note and in order, instead of setting the note again there
+     % under a number of its own
      \@didactic@fnreusefalse
      \@didactic@fnga=\@didactic@fnpa \@didactic@fntogroup\@didactic@fnga
      \ifnum\@didactic@fnga=\@didactic@fngb \@didactic@fnreusetrue\fi
@@ -2893,6 +2897,7 @@
      \ifnum\@didactic@fnpb<\@ne \@didactic@fnreusefalse\fi
      \@didactic@fnhold
      \if@didactic@fnreuse
+       \@didactic@reuser{\csname @didactic@fncite@\@didactic@fnkey\endcsname}%
        % no space before the mark, as \mkbibfootnote does
        \unspace
        \ifdefequal{\@didactic@fnmode}{\@didactic@fnone}
@@ -5122,7 +5127,7 @@
       \PackageWarningNoLine{didactic}{Margin note called out at
         \csname @didactic@ln@#1\endcsname\MessageBreak
         on page \csname @didactic@cp@#1\endcsname\space is set on page
-        \thepage\csname @didactic@cw@#1\endcsname}%
+        \thepage\csname @didactic@cw@#1\endcsname\@didactic@reusers{#1}}%
     \fi}}
 %    \end{macrocode}
 % \end{macro}
@@ -5182,6 +5187,7 @@
     \endgroup
     \@didactic@hboxcheck\@didactic@footcopy{at the foot}%
     \global\@didactic@hascopytrue
+    \xdef\@didactic@copyfn{\the\c@footnote}%
     \@didactic@footmargin{\@didactic@quiet#1\@didactic@quiet}%
     \@didactic@hboxmargin
   }{\@didactic@footmargin{#1}}}
@@ -5338,6 +5344,33 @@
     \global\expandafter\setbox
       \csname @didactic@fb@\the\@didactic@noteid\endcsname
       \box\@didactic@footcopy
+    \expandafter\xdef\csname @didactic@fn@\the\@didactic@noteid\endcsname{%
+      \@didactic@copyfn}%
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@reuser,\@didactic@reusers}
+% A footnote's number may be reused by later citations (above); when the note
+% is carried or waits for the next page, its warning names them too, since the
+% reader of the log will look for every mark with that number.
+% |\@didactic@reuser|\marg{number} records the place of a reusing mark under
+% the number; |\@didactic@reusers|\marg{note} says them, for a note with a copy
+% for the foot (with |foot|; under |carry| only the note's own place is named).
+%    \begin{macrocode}
+\newcommand\@didactic@reuser[1]{%
+  \ifcsname @didactic@ru@#1\endcsname
+    \expandafter\xdef\csname @didactic@ru@#1\endcsname{%
+      \csname @didactic@ru@#1\endcsname, \@didactic@here}%
+  \else
+    \expandafter\xdef\csname @didactic@ru@#1\endcsname{\@didactic@here}%
+  \fi}
+\newcommand\@didactic@reusers[1]{%
+  \ifcsname @didactic@fn@#1\endcsname
+    \ifcsname @didactic@ru@\csname @didactic@fn@#1\endcsname\endcsname
+      \MessageBreak (its number is reused at
+      \csname @didactic@ru@\csname @didactic@fn@#1\endcsname\endcsname)%
+    \fi
   \fi}
 %    \end{macrocode}
 % \end{macro}
@@ -5582,7 +5615,8 @@
     page:\MessageBreak the margin is full and the foot of this page is taken
     \ifnum\@didactic@restid>\z@ \MessageBreak by the footnote called out at
       \csname @didactic@ln@\the\@didactic@restid\endcsname, split over the
-      pages\fi}%
+      pages\fi
+    \@didactic@reusers{\the\@didactic@noteof\@didactic@head}}%
   \@didactic@offmargin
   \def\@didactic@after{%
     \@didactic@attach{\insert\@didactic@restins{\floatingpenalty\z@

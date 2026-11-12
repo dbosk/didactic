@@ -60,4 +60,8 @@ job splitreuse '\def\testcase{splitreuse}\def\testclass{memoir}'
 job splitrest '\def\testcase{splitrest}\def\testclass{memoir}' last=4
 # A note that runs past the foot of the margin is on its page: reused there.
 job overreuse '\def\testcase{overreuse}\def\testclass{memoir}'
+# A note that waits for the next page or is carried there is reused by a
+# second citation on its mark's page: both marks before the note, in order.
+job waitreuse '\def\testcase{waitreuse}\def\testclass{memoir}' 'next shared warned reusenamed'
+job carryreuse '\def\testcase{carryreuse}\def\testclass{memoir}' 'next shared warned reusenamed'
 exit $status

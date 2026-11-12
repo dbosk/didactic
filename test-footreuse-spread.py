@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Check a build of test-footreuse-spread.tex by its outcome, from the PDF.
 
-Usage: test-footreuse-spread.py JOB [oneside] [reused] [last=N]
+Usage: test-footreuse-spread.py JOB [oneside] [reused] [last=N] [next] [shared]
+                                [warned] [reusenamed]
 
 A mark is a number set right after a word, with no space ("spread1"); a note's
 number is one set right before a word, with none after another (the folio and
@@ -14,7 +15,12 @@ Checks:
 - there is at least one mark (the test has run at all);
 - reused: some mark has its note on the other page of its spread only (the
   footnote was reused, not set again);
-- last=N: the last mark is on page N (the case parts what it means to part).
+- last=N: the last mark is on page N (the case parts what it means to part);
+- next: a mark's note may also be on the next spread (a note carried or waiting
+  for the next page, its marks before it, in order), instead of on its own;
+- shared: some number has two marks (the second reuses the note);
+- warned: the log has a warning that a note is set on a later page or waits;
+- reusenamed: such a warning names a mark that reuses the note's number.
 Prints one line, PASS or FAIL with what failed; exit status 1 on FAIL.
 """
 import re
@@ -55,8 +61,10 @@ def spread(p):
 
 
 fails = []
+nxt = "next" in sys.argv[2:]
 for p, k in marks:
-    if not any(q in spread(p) and j == k for q, j in notes):
+    if not any((q in spread(p) or (nxt and q in spread(max(spread(p)) + 1))) and j == k
+               for q, j in notes):
         fails.append(f"mark {k} on page {p} has no note {k} on its spread")
 seen = {}
 for q, j in notes:
@@ -72,6 +80,17 @@ for a in sys.argv[2:]:
 if "reused" in sys.argv[2:] and not any(
         not any(q == p and j == k for q, j in notes) for p, k in marks):
     fails.append("no mark reuses a note from the other page of its spread")
+if "shared" in sys.argv[2:] and not any(sum(1 for p, k in marks if k == j) > 1
+                                         for j in set(k for p, k in marks)):
+    fails.append("no number has two marks")
+if "warned" in sys.argv[2:]:
+    log = re.sub(r"\n\(didactic\) *", " ", open(f"{job}.log", errors="replace").read())
+    if not re.search(r"is set on page \d+|waits for the foot", log.replace("\n", "")):
+        fails.append("no warning that a note is set on a later page or waits")
+if "reusenamed" in sys.argv[2:]:
+    log = re.sub(r"\n\(didactic\) *", " ", open(f"{job}.log", errors="replace").read())
+    if "its number is reused at" not in log.replace("\n", ""):
+        fails.append("no warning names a mark that reuses the note's number")
 facts = f"marks {marks}, notes {notes}"
 print(("FAIL: " + "; ".join(fails) if fails else "PASS") + " (" + facts + ")")
 sys.exit(1 if fails else 0)

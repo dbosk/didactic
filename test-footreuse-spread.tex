@@ -21,7 +21,14 @@
 %   splitrest   page 3 cites A, its note split over pages 3 and 4; page 4 cites A
 %           again, beside the rest: a new spread, so a new number and a note;
 %   overreuse   page 3 cites B, whose note runs past the foot of the margin, and
-%           again lower on the page: the second mark reuses it.
+%           again lower on the page: the second mark reuses it;
+%   waitreuse   on page 3 a long footnote is split at the foot, and B is cited
+%           twice on its line: B's note waits for the foot of page 4, and the
+%           second mark reuses it (both marks on page 3, the note on 4, in order);
+%   carryreuse  page 3 cites B twice on its last line, where the foot has no
+%           room: the note is carried to page 4, and the second mark reuses it.
+% (In these two the margin's tall note runs past its foot itself, so that B's
+% note can't: it goes to the foot.)
 \ifdefined\testclass\else\def\testclass{article}\fi
 \ifdefined\testcase\else\def\testcase{same}\fi
 \documentclass[twoside]{\testclass}
@@ -34,6 +41,7 @@
 \addbibresource{test-footcite.bib}
 \def\same{same}\def\cross{cross}\def\parted{parted}
 \def\splitreuse{splitreuse}\def\splitrest{splitrest}\def\overreuse{overreuse}
+\def\waitreuse{waitreuse}\def\carryreuse{carryreuse}
 \newcommand\longpost{with a long postnote that makes the note run over several
   lines of the foot, as a note with a quotation in it may well do, and then some
   more words, so that it can't fit the room left at the foot of its page, nor
@@ -77,6 +85,17 @@ Page~1 (recto), intentionally left without citations.
   \par\noindent\rule{1cm}{\dimexpr\textheight-12\baselineskip\relax}\par
   Page~3, near its foot: B\footcite{B}, and then again B\footcite{B} on the
   same page.
+\fi
+\ifx\testcase\waitreuse
+  \noindent x\marginpar{\rule{1pt}{1.01\textheight}}%
+  \par\noindent\rule{1cm}{\dimexpr\textheight-6\baselineskip\relax}\par
+  Page~3, near its foot: a long note\footnote{LONGNOTE \longpost}, then
+  B\footcite{B} and B again\footcite{B}, all on this line.
+\fi
+\ifx\testcase\carryreuse
+  \noindent x\marginpar{\rule{1pt}{1.01\textheight}}%
+  \par\noindent\rule{1cm}{\dimexpr\textheight-2\baselineskip\relax}\par
+  Page~3, its last line: B\footcite{B} and B again\footcite{B}.
 \fi
 \ifx\testcase\parted
   \noindent\rule{1cm}{\dimexpr\textheight-4\baselineskip\relax}\par
