@@ -29,6 +29,11 @@
 %           room: the note is carried to page 4, and the second mark reuses it.
 % (In these two the margin's tall note runs past its foot itself, so that B's
 % note can't: it goes to the foot.)
+%   chapreuse  memoir restarts footnote numbers in each chapter: chapter One
+%           cites B twice on a page, the second mark reusing note 1; in chapter
+%           Two, note 1 (a plain footnote, no citation) is on its page's last
+%           line, where the foot has no room, and is carried: its warning names
+%           no mark, since nothing reuses chapter Two's note 1.
 \ifdefined\testclass\else\def\testclass{article}\fi
 \ifdefined\testcase\else\def\testcase{same}\fi
 \documentclass[twoside]{\testclass}
@@ -41,7 +46,7 @@
 \addbibresource{test-footcite.bib}
 \def\same{same}\def\cross{cross}\def\parted{parted}
 \def\splitreuse{splitreuse}\def\splitrest{splitrest}\def\overreuse{overreuse}
-\def\waitreuse{waitreuse}\def\carryreuse{carryreuse}
+\def\waitreuse{waitreuse}\def\carryreuse{carryreuse}\def\chapreuse{chapreuse}
 \newcommand\longpost{with a long postnote that makes the note run over several
   lines of the foot, as a note with a quotation in it may well do, and then some
   more words, so that it can't fit the room left at the foot of its page, nor
@@ -54,7 +59,9 @@
 \ifx\testcase\splitrest\def\testsplit{}\fi
 Page~1 (recto), intentionally left without citations.
 \newpage
-\ifx\testcase\cross
+\ifx\testcase\cross\def\testnotwo{}\fi
+\ifx\testcase\chapreuse\def\testnotwo{}\fi
+\ifdefined\testnotwo
   Page~2 (verso), without citations.
 \else
   Page~2 (verso): the first citation of the spread\footcite{A}.
@@ -96,6 +103,17 @@ Page~1 (recto), intentionally left without citations.
   \noindent x\marginpar{\rule{1pt}{1.01\textheight}}%
   \par\noindent\rule{1cm}{\dimexpr\textheight-2\baselineskip\relax}\par
   Page~3, its last line: B\footcite{B} and B again\footcite{B}.
+\fi
+\ifx\testcase\chapreuse
+  \chapter{One}
+  The first citation of B\footcite{B}, and B again\footcite{B} on the same
+  page.
+  \chapter{Two}
+  A page of its own.
+  \newpage
+  \noindent x\marginpar{\rule{1pt}{1.01\textheight}}%
+  \par\noindent\rule{1cm}{\dimexpr\textheight-2\baselineskip\relax}\par
+  Its last line: a note\footnote{CHAPNOTE, carried to the next page.}.
 \fi
 \ifx\testcase\parted
   \noindent\rule{1cm}{\dimexpr\textheight-4\baselineskip\relax}\par

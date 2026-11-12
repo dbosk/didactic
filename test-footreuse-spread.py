@@ -2,7 +2,8 @@
 """Check a build of test-footreuse-spread.tex by its outcome, from the PDF.
 
 Usage: test-footreuse-spread.py JOB [oneside] [reused] [last=N] [next] [shared]
-                                [warned] [reusenamed] [notplain=N]
+                                [warned] [reusenamed] [noreusenamed]
+                                [notplain=N]
 
 Always: no footnote found not plain (didactic's information) but N declared.
 
@@ -22,7 +23,9 @@ Checks:
   for the next page, its marks before it, in order), instead of on its own;
 - shared: some number has two marks (the second reuses the note);
 - warned: the log has a warning that a note is set on a later page or waits;
-- reusenamed: such a warning names a mark that reuses the note's number.
+- reusenamed: such a warning names a mark that reuses the note's number;
+- noreusenamed: no warning names one (nothing reuses the note: numbers that
+  restart in each chapter are other notes').
 Prints one line, PASS or FAIL with what failed; exit status 1 on FAIL.
 """
 import re
@@ -93,6 +96,10 @@ if "reusenamed" in sys.argv[2:]:
     log = re.sub(r"\n\(didactic\) *", " ", open(f"{job}.log", errors="replace").read())
     if "its number is reused at" not in log.replace("\n", ""):
         fails.append("no warning names a mark that reuses the note's number")
+if "noreusenamed" in sys.argv[2:]:
+    log = re.sub(r"\n\(didactic\) *", " ", open(f"{job}.log", errors="replace").read())
+    if "its number is reused at" in log.replace("\n", ""):
+        fails.append("a warning names a mark that reuses another note's number")
 # notes the last run placed on another page than their callout without a
 # warning, found from its records ("found from the last run"): as many as
 # the test declares, foundlast=N, else none; each is a silent case

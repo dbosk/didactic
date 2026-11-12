@@ -65,6 +65,9 @@ job overreuse '\def\testcase{overreuse}\def\testclass{memoir}'
 # second citation on its mark's page: both marks before the note, in order.
 job waitreuse '\def\testcase{waitreuse}\def\testclass{memoir}' 'next shared warned reusenamed'
 job carryreuse '\def\testcase{carryreuse}\def\testclass{memoir}' 'next shared warned reusenamed'
+# Numbers restart in each chapter: a carried note names no mark of another
+# chapter's note with its number (review S2).
+job chapreuse '\def\testcase{chapreuse}\def\testclass{memoir}' 'next warned noreusenamed'
 # Warm: each job built again from the .aux (and .bbl) of another case, as after
 # an edit, must settle on the same PDF as from clean, in at most two runs more
 # than its floor (#93: a settled result that depends on an old .aux).
