@@ -19,7 +19,9 @@ ENDA, and the PDF says ONCE2.  linewidth: LWA and LWB are more than 60bp apart
 allows: a limit, pinned).  huge: only that it isn't plain, for a line too
 wide.  bs: the margin note's BSLINE (the line after \\) starts at the margin's
 edge, from the log's "didactic-margin:" line, within a point.  fnmark: the word
-before NOTEA in the margin is the note's own mark, 1.
+before NOTEA in the margin is the note's own mark, 1.  lang: the words of the note at the foot
+that end with a hyphen are those of JOB-ref (the same note set at the foot by
+LaTeX, \testlangref).
 Prints one line, PASS or FAIL with what failed; exit status 1 on FAIL.
 """
 import html
@@ -40,7 +42,7 @@ CASES = {
     "vspace": ("space of its own between paragraphs|space of its own between lines",
                True, True),
     "huge": ("too wide", False, False),
-    "bs": (None, True, False), "fnmark": (None, True, False),
+    "bs": (None, True, False), "fnmark": (None, True, False), "lang": (None, True, True),
 }
 job, case = sys.argv[1], sys.argv[2]
 reason, hasonce, placed = CASES[case]
@@ -133,5 +135,13 @@ if case == "fnmark":
         mark = max(before, key=lambda v: v[2])[4] if before else None
         if mark != "1":
             fails.append(f"the note's mark is {mark}, not 1")
+if case == "lang":
+    def hyphenated(j):
+        o = subprocess.run(["pdftotext", f"{j}.pdf", "-"], capture_output=True,
+                           text=True).stdout
+        return [w for w in o.split() if w.endswith("-") and len(w) > 3]
+    mine, ref = hyphenated(job), hyphenated(job + "-ref")
+    if mine != ref:
+        fails.append(f"broken {mine}, LaTeX's footnote {ref}")
 print(("FAIL: " + "; ".join(fails)) if fails else "PASS")
 sys.exit(1 if fails else 0)

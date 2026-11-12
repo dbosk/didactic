@@ -32,6 +32,10 @@
 %             without didactic (review P4);
 %   fnmark    a footnote with a \footnotemark in it, in the margin: its own
 %             mark, 1, before NOTEA (review P5);
+%   lang      a footnote of long German compounds called out in
+%             \foreignlanguage{ngerman} in English text, at the foot: broken as
+%             the same footnote set at the foot by LaTeX (\testlangref) is
+%             (review P3);
 % \testhyper loads hyperref.  test-footwide.py checks the outcome from the PDF and
 % the log.
 \documentclass[a4paper]{memoir}
@@ -52,8 +56,11 @@
   \addbibresource{test-footcite.bib}
   \addbibresource{test-footwide.bib}
 \fi
+\def\testlang{lang}
+\ifx\testcase\testlang\usepackage[ngerman,english]{babel}\fi
 \usepackage{xcolor}
 \usepackage{didactic}
+\ifdefined\testlangref\footnotesatfoot\fi
 \ifdefined\testhyper\usepackage{hyperref}\else
   \ifx\testcase\testurl\usepackage[colorlinks]{hyperref}\fi\fi
 \newcounter{once}
@@ -109,6 +116,14 @@
     more words to wrap in the margin \once}\fi
   \ifx\testcase\testfnmark\footnote{NOTEA with a mark\footnotemark{} inside
     \once}\fi
+  \ifx\testcase\testlang\foreignlanguage{ngerman}{Ein Satz\footnote{NOTEA
+    Donaudampfschifffahrtsgesellschaftskapitän
+    Rindfleischetikettierungsüberwachungsaufgabenübertragungsgesetz
+    Grundstücksverkehrsgenehmigungszuständigkeitsübertragungsverordnung
+    Kraftfahrzeughaftpflichtversicherung Unabhängigkeitserklärungen
+    Geschwindigkeitsbegrenzungen Wahrscheinlichkeitsrechnung
+    Verantwortungsbewusstsein Rechtsschutzversicherungsgesellschaften
+    Arbeiterunfallversicherungsgesetz Bundesverfassungsgericht \once}}\fi
   \ifx\testcase\testhuge\footnote{NOTEA \longnote\ \longnote\ \longnote\ \longnote\
     \longnote\ \longnote\ \longnote\ \longnote\ \longnote\ \longnote\ \longnote\
     \longnote\ \longnote\ \longnote\ \longnote\ \longnote\ \once}\fi

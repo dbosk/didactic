@@ -5515,6 +5515,10 @@
   \global\@didactic@nestedfalse
   \global\@didactic@inmeasuretrue
   \global\let\@didactic@markbefore\@thefnmark
+  \xdef\@didactic@lang{\language\the\language\relax
+    \lefthyphenmin\the\lefthyphenmin\relax
+    \righthyphenmin\the\righthyphenmin\relax
+    \uchyph\the\uchyph\relax}%
   \@didactic@savecounters
   \global\let\@didactic@ctbefore\@didactic@counters
   \@didactic@boxget\@didactic@mbox
@@ -5698,7 +5702,10 @@
 % A note's list is kept by its number when \textsf{memoir}'s margin note has
 % been made and numbered (if none was, it is given back), with the note's
 % mark, for the foot: either the
-% lines, |\@didactic@fromlines{|\meta{mark}|}{|\meta{pieces}|}|, or the
+% lines, |\@didactic@fromlines{|\meta{mark}|}{|\meta{pieces}|}{|\meta{language}|}|,
+% the language being the |\language| and the hyphenation's settings where the
+% note was called out, which the foot's version is broken with (in the output
+% routine they may be another language's), or the
 % fallback's copy, |\@didactic@fromcopy{|\meta{box}|}|.
 %    \begin{macrocode}
 \newcommand\@didactic@pc[2]{%
@@ -5722,6 +5729,7 @@
       \noexpand\@didactic@fromlines
         {\unexpanded\expandafter{\@didactic@markbefore}}%
         {\unexpanded\expandafter{\@didactic@curpieces}}%
+        {\unexpanded\expandafter{\@didactic@lang}}%
     \else
       \noexpand\@didactic@fromcopy{\@didactic@cbox}%
     \fi}}
@@ -5931,12 +5939,13 @@
   \let\@didactic@fromcopy\@didactic@footcopy
   \csname @didactic@pcs@#1\endcsname}
 \newbox\@didactic@footbox
-\long\def\@didactic@footlines#1#2{%
+\long\def\@didactic@footlines#1#2#3{%
   \global\setbox\@didactic@footbox\vbox{%
     \hsize\columnwidth
     \def\baselinestretch{\m@m@footnote@spacing}%
     \let\checkoddpage\relax
     \reset@font\foottextfont\@preamfntext
+    #3%
     \def\@thefnmark{#1}%
     \color@begingroup
       \@makefntext{%
@@ -5949,7 +5958,7 @@
 \newcommand\@didactic@freenote[1]{%
   \ifcsname @didactic@pcs@#1\endcsname
     \begingroup
-      \def\@didactic@fromlines##1##2{\@didactic@freepieces{##2}}%
+      \def\@didactic@fromlines##1##2##3{\@didactic@freepieces{##2}}%
       \def\@didactic@fromcopy##1{\@didactic@boxput{##1}}%
       \csname @didactic@pcs@#1\endcsname
     \endgroup
