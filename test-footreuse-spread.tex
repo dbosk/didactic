@@ -19,7 +19,9 @@
 %           over pages 3 and 4 (spreads 2--3 and 4--5): the second mark reuses
 %           it, since it starts on page 3;
 %   splitrest   page 3 cites A, its note split over pages 3 and 4; page 4 cites A
-%           again, beside the rest: a new spread, so a new number and a note.
+%           again, beside the rest: a new spread, so a new number and a note;
+%   overreuse   page 3 cites B, whose note runs past the foot of the margin, and
+%           again lower on the page: the second mark reuses it.
 \ifdefined\testclass\else\def\testclass{article}\fi
 \ifdefined\testcase\else\def\testcase{same}\fi
 \documentclass[twoside]{\testclass}
@@ -31,7 +33,7 @@
 \usepackage{didactic}
 \addbibresource{test-footcite.bib}
 \def\same{same}\def\cross{cross}\def\parted{parted}
-\def\splitreuse{splitreuse}\def\splitrest{splitrest}
+\def\splitreuse{splitreuse}\def\splitrest{splitrest}\def\overreuse{overreuse}
 \newcommand\longpost{with a long postnote that makes the note run over several
   lines of the foot, as a note with a quotation in it may well do, and then some
   more words, so that it can't fit the room left at the foot of its page, nor
@@ -69,6 +71,12 @@ Page~1 (recto), intentionally left without citations.
     \newpage
     Page~4: A again\footcite[\longpost]{A}, beside the rest of its note.
   \fi
+\fi
+\ifx\testcase\overreuse
+  \noindent x\marginpar{\rule{1pt}{.98\textheight}}%
+  \par\noindent\rule{1cm}{\dimexpr\textheight-12\baselineskip\relax}\par
+  Page~3, near its foot: B\footcite{B}, and then again B\footcite{B} on the
+  same page.
 \fi
 \ifx\testcase\parted
   \noindent\rule{1cm}{\dimexpr\textheight-4\baselineskip\relax}\par
