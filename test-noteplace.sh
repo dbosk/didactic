@@ -319,6 +319,11 @@ check fsk2n3 x 6 '' "kept,at=LINEA:1/LINEC:1,below=LINEC" "$(fsbody "$(fn 3)")"
 check fsk1n2 x 5 '' "kept,at=LINEA:1/LINEB:1,below=LINEB" "$(fsbody "$(fn 2)")"
 check fsk1n3 x 5 '' "carried,nobelow" "$(fsbody "$(fn 3)")"
 check fsk1n4 x 5 '' "kept,at=LINEA:1/LINEB:1/LINEC:2/LINED:2,below=LINEB" "$(fsbody "$(fn 4)")"
+# A first part of two lines that fits the room plus one line by its height but
+# not with its last line's depth (the grid's cell 2-1-9-15): split there all
+# the same, by both, and runs past the foot by what is missing, with the
+# warning (footwarnpast).
+check fsk1n5 x 5.6 '' "kept,at=LINEA:1/LINEB:1/LINEC:2/LINEE:2,footwarnpast" "$(fsbody '\footnote{\label{note-y}LINEA gy\hfil\break LINEB gy\hfil\break LINEC gy\hfil\break LINED gy\hfil\break LINEE gy}')"
 check fsk0n1 x 4.5 '' "kept,at=LINEA:1,below=LINEA" "$(fsbody "$(fn 1)")"
 check fsk0n2 x 4.5 '' "carried,nobelow" "$(fsbody "$(fn 2)")"
 # A later footnote on the page of a split one waits for the next page's foot,

@@ -5439,6 +5439,10 @@
 % paragraph of one line.
 % If the rest would have one line, the split is tried again one line lower:
 % one line less here rather than one alone on the next page.
+% The room holds the part's last line with its depth, as the page builder counts
+% an insertion, so |\splitmaxdepth| is zero: \TeX\ then counts the depth as
+% height when it chooses where to split, and doesn't choose a part that fits the
+% room only without its last line's depth.
 % The first part goes after the line, counted no taller than the room when
 % \meta{short} is a line (one line past the foot), and the rest after it, as an
 % insertion of its own class (|\@didactic@restins|, below) that the next column's
@@ -5455,7 +5459,7 @@
 \newcommand\@didactic@trysplit[2]{%
   \begingroup
     \vbadness\@M \vfuzz\maxdimen
-    \splittopskip\footnotesep \splitmaxdepth\maxdimen
+    \splittopskip\footnotesep \splitmaxdepth\z@
     \global\@didactic@splitokfalse
     \dimen4=#1\relax
     \@didactic@splitat
@@ -5516,7 +5520,7 @@
     on page \thepage\space is split: \the\@didactic@la\space lines at its
     foot, \the\@didactic@lb\space at the foot of the next page}%
   \ifdim#1>\z@
-    \@didactic@overwarn{\the\@didactic@restid}%
+    \@didactic@overwarn{\the\@didactic@restid}\@didactic@first
     \@didactic@countroom\@didactic@first
   \fi
   \global\let\@didactic@fbx\@didactic@first
@@ -5535,11 +5539,11 @@
 % does the first part of a split that needs that line.
 % A page with no room at the foot at all, not even for the space above the
 % footnotes, takes none.
-% The warning says how much and why: what the margin's notes took, and how many
-% lines the foot had.
+% The warning says how much, up to a line, and why: what the margin's notes
+% took, and how many lines the foot had.
 %    \begin{macrocode}
 \newcommand\@didactic@footover{%
-  \@didactic@overwarn{\the\@didactic@noteof\@didactic@head}%
+  \@didactic@overwarn{\the\@didactic@noteof\@didactic@head}\@didactic@fbx
   \@didactic@countroom\@didactic@fbx
   \global\@didactic@footfulltrue
   \@didactic@tofoot\@didactic@fbx
@@ -5548,10 +5552,12 @@
   \ifdim\dimexpr\ht#1+\dp#1\relax>\@didactic@footroom
     \global\ht#1\dimexpr\@didactic@footroom-\dp#1\relax
   \fi}
-\newcommand\@didactic@overwarn[1]{%
+\newcommand\@didactic@overwarn[2]{%
   \PackageWarningNoLine{didactic}{Footnote called out at
     \csname @didactic@ln@#1\endcsname\MessageBreak
-    on page \thepage\space runs one line past the foot of the page:\MessageBreak
+    on page \thepage\space runs
+    \the\dimexpr\ht#2+\dp#2-\@didactic@footroom\relax\space past the foot of
+    the page:\MessageBreak
     the margin is full (the notes above it take \the\@didactic@used\space
     of \the\@didactic@room) and the foot has \@didactic@flines
     \@didactic@footroom\space lines left}}

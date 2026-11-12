@@ -59,6 +59,7 @@ test-noteplace.tex writes to the log.  EXPECT is one of:
               next (the note goes with its line, split as it was), and
               movedwarn.
   has=W       W is in the text.
+  footwarnpast  a warning says that a footnote runs past the foot of the page.
   label=N:P   the label N is on page P.
 Prints one line, "PASS" or "FAIL" with what failed, and the facts.
 """
@@ -245,6 +246,8 @@ for e in expect:
                          % " ".join(bad or ["LINEA"]))
         if not re.search(r"TeX ended page \d+ before the line of the footnote", joined):
             fails.append("no warning that TeX ended a page before a footnote's line")
+    elif e == "footwarnpast" and not re.search(r"Footnote called out at .{0,80}?runs [\d.]+pt past the foot of the page", joined):
+        fails.append("no warning that a footnote runs past the foot of the page")
     elif e.startswith("has=") and e[4:] not in out:
         fails.append("%s is not in the text" % e[4:])
     elif e.startswith("label="):
