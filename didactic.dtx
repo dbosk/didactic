@@ -735,16 +735,20 @@
 % Then a note moves to the next page, away from its mark.
 % \textsf{didactic} decides what happens to such a note where it is called 
 % out, in the same run.
-% With |noteoverflow=foot|, the default, a note that misses the foot of the
-% margin by no more than two lines of the text stays beside its line and runs
-% past the foot of the margin, with a warning that says by how much and what
-% took the margin (the notes above it, the floats on the page).
+% With |noteoverflow=foot|, the default, a footnote that doesn't fit in the
+% margin goes to the foot of its page if it fits there whole, without a word.
+% A note that misses the foot of the margin by no more than two lines of the
+% text, and doesn't go to the foot whole, stays beside its line and runs past the
+% foot of the margin, with a warning that says by how much and what took the
+% margin (the notes above it, the floats on the page); a margin note that isn't a
+% footnote has no place at the foot, so for it that comes first (deferrable notes
+% are \textsf{marginfix}'s to place, as ever).
 % Nothing is under the margin at the foot of a page as \LaTeX\ and
 % \textsf{memoir} set it, since the folio is under the text; a running foot as
 % wide as the text and the margin (\textsf{memoir}'s |\headwidth| widened into
 % the margin, as in its |companion| style) would be in its way.
-% A footnote that misses by more goes to the foot of its page: whole if it fits
-% there; split over that page and the next if each part has two lines at least
+% A footnote that misses by more goes to the foot of its page after all: split
+% over that page and the next if each part has two lines at least
 % (the rest heads the next page's foot, after a page of floats if one comes
 % between, and says nothing more: the rule marks it, as Chicago does); whole
 % and one line past the foot if only a line is missing; or two lines there and
@@ -5142,13 +5146,16 @@
     \ifdefstring{\@didactic@noteoverflow}{carry}
       {\@didactic@setwhy{noteoverflow is carry}%
        \global\@didactic@used\@didactic@room}
-      {\@didactic@ifover
-        {\@didactic@over}
-        {\@didactic@footplace
-         \if@tempswa\else
-           \expandafter\@didactic@setwhy\expandafter{\@didactic@footwhy}%
-           \global\@didactic@used\@didactic@room
-         \fi}}%
+      {\@didactic@footplace\@ne
+       \if@tempswa\else
+         \@didactic@ifover
+           {\@didactic@over}
+           {\@didactic@footplace\z@
+            \if@tempswa\else
+              \expandafter\@didactic@setwhy\expandafter{\@didactic@footwhy}%
+              \global\@didactic@used\@didactic@room
+            \fi}%
+       \fi}%
   \fi}
 % A deferrable note gives way to the notes after it, in \textsf{marginfix}'s 
 % modes |defer| and |warn| whole, in |split| down to what is worth splitting 
@@ -5176,7 +5183,9 @@
 % \begin{macro}{\@didactic@ifover,\@didactic@over}
 % A note that misses the foot of the margin by no more than two lines of the
 % text stays beside its line and runs past the foot of the margin, with a
-% warning: there it is still where the reader looks for it, and nothing is under
+% warning, unless it is a footnote the foot holds whole, which goes there first
+% (|\@didactic@footplace|\,|1|, in |\@didactic@decide@|): there it is still
+% where the reader looks for it, and nothing is under
 % the margin at the foot of the page (the folio is under the text; a running
 % foot as wide as text and margin would be in its way, see the documentation).
 % Only in |foot| mode, and only once in a column: after it the margin counts as
@@ -5981,8 +5990,11 @@
 % \end{macro}
 %
 % \begin{macro}{\@didactic@footplace}
-% A footnote that fits neither beside its line nor past the foot of the
-% margin goes to the foot of its page: whole, if it fits; split over this page
+% |\@didactic@footplace|\meta{1 or 0}: a footnote that doesn't fit beside its
+% line goes to the foot of its page if it fits there whole (|1|, tried first,
+% where its version for the foot is made); if not, it may run past the foot of
+% the margin (above), and if it can't do that either it goes to the foot
+% (|0|): split over this page
 % and the next, if a split leaves at least two lines on each side; whole and
 % one line past the foot of the page, if only one line is missing; split with
 % one line past the foot, if that makes the split possible (one line of room
@@ -6000,14 +6012,25 @@
 %    \begin{macrocode}
 \newif\if@didactic@footfull
 \let\@didactic@footwhy\@empty
-\newcommand\@didactic@footplace{%
+\newcommand\@didactic@footplace[1]{%
   \@tempswafalse
   \let\@didactic@footwhy\@empty
   \@didactic@iffootnote{\the\@didactic@noteof\@didactic@head}{%
-    \@didactic@footset{\the\@didactic@noteof\@didactic@head}%
+    \ifnum#1=\@ne
+      \@didactic@footset{\the\@didactic@noteof\@didactic@head}%
+    \fi
     \let\@didactic@fbx\@didactic@footbox
     \if@didactic@footfull
-      \@didactic@footwait
+      \ifnum#1=\z@ \@didactic@footwait \fi
+    \else\ifnum#1=\@ne
+      \@didactic@footcompute
+      \ifdim\@didactic@footroom<\z@\else
+        \ifdim\dimexpr\ht\@didactic@fbx+\dp\@didactic@fbx\relax>\@didactic@footroom
+        \else
+          \@didactic@tofoot\@didactic@fbx
+          \@tempswatrue
+        \fi
+      \fi
     \else
       \@didactic@footcompute
       \dimen@\dimexpr\ht\@didactic@fbx+\dp\@didactic@fbx\relax
@@ -6033,7 +6056,7 @@
         \@didactic@tofoot\@didactic@fbx
         \@tempswatrue
       \fi\fi
-    \fi}%
+    \fi\fi}%
    {\def\@didactic@footwhy{it fits neither beside its line nor at the foot}}}
 \newcommand\@didactic@lines[1]{%
   \number\numexpr(#1+\@didactic@fl/2)/\@didactic@fl\relax}

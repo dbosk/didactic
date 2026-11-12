@@ -279,6 +279,14 @@ OV='\def\testtall{.95}\def\testbody{FIRSTLINE \filler\ end\yieldnote[\par TWO\pa
 OV1='\def\testtall{.975}\def\testbody{FIRSTLINE \filler\ end\yieldnote{} \filler\par}'
 check overone x 9 '' over=1 "$OV1"
 check overtwo x 9 '' over=2 "$OV"
+# A footnote that misses the foot of the margin by a line or two goes to the foot when
+# that holds it whole, without a warning (foot before overhang); a plain margin note
+# has no version for the foot and runs over as above.
+check footfirst1 x 9 '' "kept,noover,incol=NOTEY" '\def\testyieldfoot{}\def\testtall{.975}\def\testbody{FIRSTLINE \filler\ end\yieldnote{} \filler\par}'
+check footfirst2 x 9 '' "kept,noover,incol=NOTEY" '\def\testyieldfoot{}\def\testtall{.95}\def\testbody{FIRSTLINE \filler\ end\yieldnote[\par TWO\par THREE] \filler\par}'
+# Where the foot can't hold it whole (half a line of room there), it runs over the
+# margin's foot as a plain note does.
+check footfirstover x 4.5 '' "kept,over=1" '\def\testyieldfoot{}\def\testtall{.975}\def\testbody{FIRSTLINE \filler\ end\yieldnote{} \filler\ \filler\par}'
 check overthree x 9 '' "carried,noover" '\def\testtall{.95}\def\testbody{FIRSTLINE \filler\ end\yieldnote[\par TWO\par THREE\par FOUR\par FIVE] \filler\par}'
 # In carry mode (and draft) nothing runs over: the note is carried.
 check overcarry x 9 'noteoverflow=carry' "carried,noover" "$OV"
