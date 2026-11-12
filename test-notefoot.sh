@@ -93,7 +93,7 @@ job fnrule 4 "$C{fnrule}" foot rules beside
 job fnrule10 4 "$C{fnrule}\\def\\testfnrulelines{10}" foot rules beside
 job fnedge 4 "$C{fnedge}" rules beside
 job tall 8 "$C{tall}" foot beside nofalse
-job gen 4 "$C{gen}" beside
+job gen 4 "$C{gen}" beside nofalse
 job ownout 8 "$C{ownout}"
 # Two notes taller than the room left, and a footnote: settled within the floor
 # and one run, each placed or warned about; under XeLaTeX too (review B-1).
