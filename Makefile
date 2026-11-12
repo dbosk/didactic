@@ -462,7 +462,12 @@ test-noteoverflow.pdf test-noteoverflow-lua.pdf test-noteoverflow-draftfoot.pdf:
 		${NOTEOVERFLOW_SRC}
 	@${settle_many}
 	! grep '^!' $*.log
-	python3 test-noteoverflow.py $* beside
+	python3 test-noteoverflow.py $* beside ${NOTEOVERFLOW_AWAY}
+# The foot goes to the first footnote that fits it whole (before a margin note
+# runs past the margin's foot): on page 1, dense with notes, that leaves no foot
+# for note 30 (contents line 25), which is carried, warned; a declared note.
+test-noteoverflow.pdf test-noteoverflow-lua.pdf test-noteoverflow-draftfoot.pdf: \
+	NOTEOVERFLOW_AWAY=away=30 awayat=test-noteoverflow-contents.tex:25
 test-noteoverflow-carry.pdf test-noteoverflow-draft.pdf: %.pdf: %.tex ${NOTEOVERFLOW_SRC}
 	@${settle_many}
 	! grep '^!' $*.log

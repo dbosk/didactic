@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check a settled build of a test-noteoverflow* document by its outcome.
 
-Usage: test-noteoverflow.py JOB beside|carried|warned
+Usage: test-noteoverflow.py JOB beside|carried|warned [away=N,...] [awayat=FILE:LINE,...]
 
 From the labels each footnote has at its mark (fm-N) and in its note (fn-N), see
 test-noteoverflow-contents.tex, and from the warnings of the log; no log line of
@@ -12,7 +12,10 @@ footnote waits for the foot of the next page: at least as many warnings as notes
 away), and no more warnings than notes away (the documents have no margin notes
 but the footnotes, so a warning more names a note that is on its page, or one
 twice), and no footnote found not plain (didactic's information).  Then:
-  beside   no note is set on another page than its mark;
+  beside   no note is set on another page than its mark but those declared:
+           away=N,... (by number), exactly those, each named by a warning of
+           its callout's place in awayat=FILE:LINE,... (a note the order of
+           placement carries on purpose, warned);
   carried  some notes are (noteoverflow=carry moves them on, with warnings);
   warned   either.
 Prints one line, PASS or FAIL with what failed; exit status 1 on FAIL.
@@ -41,8 +44,13 @@ if said < len(away):
     fails.append(f"{len(away)} notes away from their marks, {said} warnings")
 if said > len(away):
     fails.append(f"{said} warnings for {len(away)} notes away")
-if mode == "beside" and away:
-    fails.append(f"notes away from their marks: {away[:10]}")
+declared = [int(n) for a in sys.argv[3:] if a.startswith("away=") for n in a[5:].split(",")]
+if mode == "beside" and away != sorted(declared):
+    fails.append(f"notes away from their marks: {away[:10]}, declared {declared}")
+for place in (p for a in sys.argv[3:] if a.startswith("awayat=") for p in a[7:].split(",")):
+    if not re.search(r"[Mm]argin note called out at " + re.escape(place) + r" on page \d+ is set on",
+                     joined):
+        fails.append(f"no warning that the note called out at {place} is set on another page")
 if mode == "carried" and not away:
     fails.append("no note carried")
 # notes found not plain (didactic's info): as many as the test declares,
