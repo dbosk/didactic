@@ -5,8 +5,8 @@
 # twelve runs).  CASES, if set, names the jobs to run.
 #
 #   default  pdflatex, no options: the default is foot
-#   break    pdflatex, noteoverflow=break: nothing at the foot, notes capped away
-#            from their marks, and the same words
+#   carry    pdflatex, noteoverflow=carry: nothing at the foot, notes carried
+#            away from their marks, and the same words
 #   hyper    pdflatex, with hyperref: no warning about a link target
 #   fast     pdflatex, footnotereuse=fast, whose ghost notes need a foot too
 #   off      pdflatex, footnotereuse=off
@@ -15,30 +15,29 @@
 #   lua      lualatex
 #   xe       xelatex: notes go to the foot; what fits nowhere is carried, away
 #            from its mark, with a warning that says why
-#   trad, tradbreak         style=verbose-trad2 (ibid., op. cit., idem), foot and
-#                           break, with the same words
-#   counter, counterbreak   citecounter=true, each citation saying whether it is
+#   trad, tradcarry         style=verbose-trad2 (ibid., op. cit., idem), foot and
+#                           carry, with the same words
+#   counter, countercarry   citecounter=true, each citation saying whether it is
 #                           cited more than once, the same words
-#   backref, backrefbreak   backref=true and a bibliography, which lists where a
+#   backref, backrefcarry   backref=true and a bibliography, which lists where a
 #                           work is cited: a copy that isn't printed adds no page
 #                           (biblatex's records in the .aux, counted by work, as
-#                           break's; the pages themselves move with the layout)
+#                           carry's; the pages themselves move with the layout)
 #   xenowhere xelatex, with a footnote that fits neither in the margin nor at the
 #            foot: it goes with its line to the next page, or is carried with a
 #            warning where the page can't end early (it had to be carried when
 #            XeTeX could have no early end), and the job settles
-#   xenowherebreak  the same under noteoverflow=break
+#   xenowherecarry  the same under noteoverflow=carry
 #   nowhere  the same under pdflatex: the page ends early instead (yield), and
 #            the note goes to the next page with its line
-#   hbox     test-noteoverflow-foot-hbox.tex, with foot, break, and carry (ref,
+#   hbox     test-noteoverflow-foot-hbox.tex, with foot and with carry (ref,
 #            where no copy for the foot is made and TeX speaks for the only one,
-#            whatever the mechanism; it was break without the fork's wrapper of
-#            footnotes, \marginnotefoot undefined): the copy of a
+#            whatever the mechanism; it stands for break too, which is gone): the copy of a
 #            footnote that isn't printed says nothing about overfull or underfull
 #            lines, and the printed one says what TeX would, with its place
-#   twocol   pdflatex, two columns, where foot can't work: the default is break,
+#   twocol   pdflatex, two columns, where foot can't work: the default is carry,
 #            without a word
-#   twofoot  the same, asking for foot: break, and a warning that says why
+#   twofoot  the same, asking for foot: carry, and a warning that says why
 #
 # test-noteoverflow-foot.py checks the outcome (PDF, labels, biblatex's records,
 # warnings), not any log line of marginfix's.  PRE, if set, is TeX code put first
@@ -85,7 +84,7 @@ job() { # <name> <engine> <definitions> <check arguments>
   python3 $src.py check "$j" $4 || status=1
 }
 job default pdflatex '' foot
-job break pdflatex '\def\testoptions{noteoverflow=break}' 'nofoot spill away'
+job carry pdflatex '\def\testoptions{noteoverflow=carry}' 'nofoot spill away'
 job hyper pdflatex '\def\testhyper{}' foot
 job fast pdflatex '\def\testoptions{footnotereuse=fast}' foot
 job off pdflatex '\def\testoptions{footnotereuse=off}' 'foot nolabels'
@@ -93,26 +92,26 @@ job draft pdflatex '\def\testoptions{draft}' 'nofoot spill away nolabels'
 job lua lualatex '' foot
 job xe xelatex '' 'foot spill away'
 job trad pdflatex '\def\teststyle{verbose-trad2}' foot
-job tradbreak pdflatex '\def\teststyle{verbose-trad2}\def\testoptions{noteoverflow=break}' \
+job tradcarry pdflatex '\def\teststyle{verbose-trad2}\def\testoptions{noteoverflow=carry}' \
   'nofoot spill away'
 job counter pdflatex '\def\testbib{citecounter=true}\def\testcounter{}' foot
-job counterbreak pdflatex \
-  '\def\testbib{citecounter=true}\def\testcounter{}\def\testoptions{noteoverflow=break}' \
+job countercarry pdflatex \
+  '\def\testbib{citecounter=true}\def\testcounter{}\def\testoptions{noteoverflow=carry}' \
   'nofoot spill away'
 job backref pdflatex '\def\testbib{backref=true}\def\testbibliography{}' foot
-job backrefbreak pdflatex \
-  '\def\testbib{backref=true}\def\testbibliography{}\def\testoptions{noteoverflow=break}' \
+job backrefcarry pdflatex \
+  '\def\testbib{backref=true}\def\testbibliography{}\def\testoptions{noteoverflow=carry}' \
   'nofoot spill away'
 job xenowhere xelatex '\def\testnowhere{}' 'foot away'
-job xenowherebreak xelatex '\def\testnowhere{}\def\testoptions{noteoverflow=break}' \
+job xenowherecarry xelatex '\def\testnowhere{}\def\testoptions{noteoverflow=carry}' \
   'nofoot away'
 job nowhere pdflatex '\def\testnowhere{}' foot
 job twocol pdflatex '\def\testclassopt{twocolumn}' 'any spill away'
 job twofoot pdflatex '\def\testclassopt{twocolumn}\def\testoptions{noteoverflow=foot}' \
   'any spill away warn'
-hbox() { # test-noteoverflow-foot-hbox, with foot and with break (no bibliography)
+hbox() { # test-noteoverflow-foot-hbox, with foot and with carry (no bibliography)
   [ -z "$CASES" ] || case " $CASES " in *" hbox "*) ;; *) return;; esac
-  for m in foot break ref; do
+  for m in foot ref; do
     j=$src-hbox-$m; rm -f "$j.aux"
     o=noteoverflow=$m; [ $m = ref ] && o=noteoverflow=carry
     for i in 1 2 3 4 5 6 7 8; do
@@ -123,16 +122,16 @@ hbox() { # test-noteoverflow-foot-hbox, with foot and with break (no bibliograph
          && ! grep -q 'Rerun to get\|may have changed' "$j.log"; then break; fi
     done
   done
-  python3 $src.py hbox $src-hbox-foot $src-hbox-break $src-hbox-ref || status=1
+  python3 $src.py hbox $src-hbox-foot $src-hbox-ref $src-hbox-ref || status=1
 }
 hbox
 if [ -z "$CASES" ]; then
-  python3 $src.py same $src-default $src-break || status=1
+  python3 $src.py same $src-default $src-carry || status=1
   python3 $src.py same $src-default $src-hyper || status=1
-  python3 $src.py same $src-trad $src-tradbreak || status=1
-  python3 $src.py same $src-counter $src-counterbreak || status=1
+  python3 $src.py same $src-trad $src-tradcarry || status=1
+  python3 $src.py same $src-counter $src-countercarry || status=1
   for v in trad counter backref; do
-    python3 $src.py records $src-$v $src-${v}break || status=1
+    python3 $src.py records $src-$v $src-${v}carry || status=1
   done
 fi
 exit $status

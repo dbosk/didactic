@@ -1,10 +1,10 @@
-% Test of noteoverflow (didactic): draft, but with the option break, which wins.
+% Test of noteoverflow (didactic): draft, but with the option foot, which wins.
 % Build and checks: see the Makefile.  The contents are many short paragraphs with
 % many margin notes, more than a page's margin holds.
 \documentclass[a4paper,draft]{memoir}
 \usepackage[british]{babel}
 \usepackage{amsmath,amssymb,amsthm}
-\PassOptionsToPackage{noteoverflow=break}{didactic}
+\PassOptionsToPackage{noteoverflow=foot}{didactic}
 % \testfloor: the same document with noteoverflow=carry, for the runs LaTeX needs
 % without moving any note (the floor of the runs to settle).
 \ifdefined\testfloor\PassOptionsToPackage{noteoverflow=carry}{didactic}\fi

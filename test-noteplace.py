@@ -24,7 +24,7 @@ test-noteplace.tex writes to the log.  EXPECT is one of:
   limitwarn   if NOTEY is off its callout's page, a warning names the limit
               (keepmaxgap).
   continued   the rest of a split note is marked as continued.
-  footwarn    a warning says that noteoverflow=foot works as break here;
+  footwarn    a warning says that noteoverflow=foot works as carry here;
   nofootwarn  no such warning.
   callwarn    a warning says that the callouts of a page can't be read.
   exactwarn   as many of didactic's warnings that a note is set on another page
@@ -220,9 +220,9 @@ for e in expect:
             fails.append("%d notes off their callout's page (deferrable ones apart), %d warnings"
                          % (off_n, said))
     elif e == "footwarn" and "noteoverflow=foot works as" not in joined:
-        fails.append("no warning that foot works as break")
+        fails.append("no warning that foot works as carry")
     elif e == "nofootwarn" and "noteoverflow=foot works as" in joined:
-        fails.append("a warning that foot works as break, not asked for")
+        fails.append("a warning that foot works as carry, not asked for")
     elif e == "continued" and not re.search(r"continued|forts", " ".join(w[0] for ws in pages for w in ws)):
         fails.append("no continued note")
 facts["club"], facts["widow"], facts["warned"], facts["logged"] = club(), widow(), warned, logged

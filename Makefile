@@ -20,8 +20,8 @@ TEST_KEEP_SMALL=	test-keep-style test-keep-columns test-keep-guard \
 			test-keep-pagereset test-keep-nofiles test-keep-nofiles0 test-keep-box \
 			test-keep-addvspace test-keep-club test-keep-club-article
 TEST_NOTEOVERFLOW=	test-noteoverflow test-noteoverflow-lua test-noteoverflow-carry \
-			test-noteoverflow-draft test-noteoverflow-draftbreak \
-			test-noteoverflow-xe test-noteoverflow-old
+			test-noteoverflow-draft test-noteoverflow-draftfoot \
+			test-noteoverflow-xe test-noteoverflow-old test-noteoverflow-break
 # The order of float numbers, from the pages the floats end up on.
 TEST_FLOATORDER=	test-marginfloat-samepar test-marginfloat-moved \
 			test-marginfloat-chapters test-marginfloat-kinds \
@@ -431,8 +431,8 @@ ${TEST_KEEP_CHAPTER:=.pdf}: %.pdf: %.tex didactic.sty
 test-keep-stale.pdf: test-keep-stale.tex test-keep-stale.sh didactic.sty
 	sh test-keep-stale.sh "${PDFLATEX} ${LATEXFLAGS}"
 
-# noteoverflow.  break needs pdfTeX or LuaTeX, so these name the engine, except
-# test-noteoverflow-xe, which is about the engine that can't; test-noteoverflow-lua
+# noteoverflow.  These name the engine, as test-noteoverflow-xe and -lua are about
+# the other engines; test-noteoverflow-lua
 # is test-noteoverflow under LuaLaTeX.  test-noteoverflow.py checks the outcome:
 # from labels at each footnote's mark and in its note, on which page each note is
 # set, and that every note away from its mark is named by a warning.  Runs to
@@ -441,7 +441,7 @@ test-keep-stale.pdf: test-keep-stale.tex test-keep-stale.sh didactic.sty
 # and may then take at most one run more than that floor.
 NOTEOVERFLOW_SRC=	test-noteoverflow-contents.tex test-noteoverflow.py didactic.sty
 test-noteoverflow.pdf test-noteoverflow-carry.pdf test-noteoverflow-draft.pdf \
-		test-noteoverflow-draftbreak.pdf: PDFLATEX=pdflatex
+		test-noteoverflow-draftfoot.pdf: PDFLATEX=pdflatex
 test-noteoverflow-lua.pdf: PDFLATEX=lualatex
 define settle_many
 floor=15; for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do \
@@ -456,7 +456,7 @@ for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do \
 	echo "$<: $$i runs to settle, floor $$floor"; exit 1; \
 done; echo "$<: references did not settle"; exit 1
 endef
-test-noteoverflow.pdf test-noteoverflow-lua.pdf test-noteoverflow-draftbreak.pdf: %.pdf: %.tex \
+test-noteoverflow.pdf test-noteoverflow-lua.pdf test-noteoverflow-draftfoot.pdf: %.pdf: %.tex \
 		${NOTEOVERFLOW_SRC}
 	@${settle_many}
 	! grep '^!' $*.log
@@ -469,6 +469,10 @@ test-noteoverflow-xe.pdf: %.pdf: %.tex ${NOTEOVERFLOW_SRC}
 	@${settle_many}
 	! grep '^!' $*.log
 	python3 test-noteoverflow.py $* warned
+# noteoverflow=break is gone, with no alias: an error.
+test-noteoverflow-break.pdf: test-noteoverflow-break.tex didactic.sty
+	-${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	grep -q "Unknown value .break. for noteoverflow" test-noteoverflow-break.log
 test-noteoverflow-old.pdf: test-noteoverflow-old.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	! grep '^!' test-noteoverflow-old.log

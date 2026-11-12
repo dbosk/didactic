@@ -174,7 +174,7 @@ TALLCUT='\def\testtall{.1}\def\testbody{FIRSTLINE\marginpar{\label{n-a}TALLCUT\p
 check tallcut x 9 '' "pairs,exactwarn" "$TALLCUT"
 DEFER='\def\testtall{.1}\def\testbody{FIRSTLINE\marginpar{\label{n-d1}\marginnotedeferrable DEFER\par\rule{1pt}{.6\textheight}}\label{c-d1} \oneline\ more\marginpar{\label{n-b}PLAIN\par\rule{1pt}{.3\textheight}}\label{c-b} \filler\par}'
 check deferrable x 9 'notepriority=split' "exactwarn" "$DEFER"
-# In two columns foot works as break: silently with the default, with a
+# In two columns foot works as carry: silently with the default, with a
 # warning when a passage asks for foot (the option's case is in
 # test-noteoverflow-foot, twofoot).
 TWOC='\def\testclass{article}\def\testclassopt{a4paper,twocolumn}\def\testtall{.1}'

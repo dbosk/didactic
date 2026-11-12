@@ -153,8 +153,9 @@
 % }
 % \changes{v2.17}{2026/11/11}{%
 %   \texttt{noteoverflow} is decided by \textsf{didactic} itself, where the
-%   note is called out, in one run: \texttt{foot} (the default), \texttt{break}
-%   or \texttt{carry}; it no longer needs \textsf{marginfix} 1.6 or records in
+%   note is called out, in one run: \texttt{foot} (the default) or
+%   \texttt{carry}; \texttt{break} is gone, since no page ends early for a note
+%   any more; it no longer needs \textsf{marginfix} 1.6 or records in
 %   the \texttt{.aux} file.  \textsf{didactic}
 %   checks the names of \textsf{marginfix} and the kernel it relies on and
 %   falls back to \texttt{carry}, with a warning, when one is missing.
@@ -732,7 +733,7 @@
 % A footnote that misses by more goes to the foot of its page, if it fits there.
 % Any other note is carried to a later page, with a warning that names it and
 % says why.
-% For now |noteoverflow=break| does the same as |foot|.
+% |noteoverflow=break| is gone: no page ends early for a note.
 % With |noteoverflow=carry|, the default with the option |draft|, every note 
 % that doesn't fit is carried, with a warning.
 % The mode is read where a note is called out, and obeys groups, so 
@@ -1625,7 +1626,7 @@
 %   \emph{Reopens:} one reader's report that where a block or a frame begins or ends is
 %   missed.} \\
 % \midrule
-% A margin note beside its mark, \texttt{noteoverflow} & \texttt{break} &
+% A margin note beside its mark, \texttt{noteoverflow} & \texttt{foot} &
 %   \textsf{marginfix} 1.2, in \TeX\ Live: a note that doesn't fit moves to the next
 %   page. \\*
 % \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} correct or warn: a note stays
@@ -1634,7 +1635,9 @@
 %   \emph{Strength:} no outside support; the maintainer's choice.
 %   \emph{Reopens:} if on the eight documents it costs a page or more, or twice its pages
 %   with three lines or more empty: now no page, and 2 such pages more, so 4.
-%   \emph{Measured:} against \texttt{carry}, 813 pages either way; pages with three lines
+%   \emph{Measured} (for v2.15's \texttt{break}, which ended a page before the line
+%   of a note that didn't fit, and is gone: no page ends early for a note now):
+%   against \texttt{carry}, 813 pages either way; pages with three lines
 %   or more empty 114 against 112, with more than five 64 against 63, of 674 text pages.
 %   Only two documents differ, where a margin overflows: \texttt{carry} moves two notes
 %   in each to the next page, and \texttt{break} ends those pages early instead, with
@@ -1997,11 +2000,11 @@
 %
 % \begin{option}{noteoverflow}
 % The |noteoverflow| option says what happens to a margin note that doesn't 
-% fit beside its line: |foot|, |break| or |carry|, see 
-% \cref{NotesThatDontFit}.
+% fit beside its line: |foot| or |carry|, see \cref{NotesThatDontFit}.
 % We default to |foot|: a footnote in the margin must stay on the page of its 
-% mark, and the foot of that page is the place readers know for it; a note 
-% that has no other place than the next page makes its line go there with it.
+% mark, and the foot of that page is the place readers know for it.
+% There is no |break|: a page doesn't end early for a note (the maintainer's
+% decision of November 2026); anything else would be an error.
 % With |draft| the default is |carry|, as with the other options that move 
 % text to keep things together; see the option |draft|, below, for where that 
 % is decided.
@@ -2012,9 +2015,9 @@
   \renewcommand\@didactic@noteoverflow{#1}%
   \@didactic@noteoverflowgiventrue}
 \newcommand\@didactic@checkoverflow[1]{%
-  \IfStrEqCase{#1}{{foot}{}{break}{}{carry}{}}[%
+  \IfStrEqCase{#1}{{foot}{}{carry}{}}[%
     \PackageError{didactic}{Unknown value `#1' for noteoverflow}%
-      {Use foot, break or carry.}%
+      {Use foot or carry.}%
     \def#1{carry}]}
 %    \end{macrocode}
 % \end{option}
@@ -4447,9 +4450,11 @@
 % \subsection{Notes that don't fit}\label{NotesThatDontFit}
 %
 % A margin note that doesn't fit beside its line is \textsf{didactic}'s to 
-% place, by the option |noteoverflow|: at the foot (a footnote), on the next 
-% page with its line (the page ends early), or carried to a later page with a 
-% warning.
+% place, by the option |noteoverflow|: beside its line, running past the foot
+% of the margin by up to two lines; at the foot of its page if it is a footnote,
+% whole, split over two pages, or one line past the foot; or carried to a later
+% page, with a warning.
+% No page ends early for a note.
 % The decision is taken where the note is called out, in the kernel's special 
 % output for the note, and once only: nothing about it is written to the 
 % |.aux| file, so the notes are in place in the run that sets them.
@@ -5392,7 +5397,7 @@
 %
 % \begin{macro}{\@didactic@footwarn}
 % In two columns there is no foot to go to beside a column's margin (the foot 
-% spans the page), so |foot| works as |break| there.
+% spans the page), so |foot| works as |carry| there.
 % With the default that is silent: the author asked for nothing.
 % Asked for, by the option or by |\marginnoteoverflow{foot}| for a passage, 
 % we say so, once.
@@ -5403,7 +5408,7 @@
     \ifdefstring{\@didactic@noteoverflow}{foot}{%
       \global\@didactic@footwarnedtrue
       \PackageWarning{didactic}{noteoverflow=foot works as
-        noteoverflow=break here:\MessageBreak it works in one column only}}{}%
+        noteoverflow=carry here:\MessageBreak it works in one column only}}{}%
   \fi\fi\fi}
 %    \end{macrocode}
 % \end{macro}

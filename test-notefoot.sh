@@ -61,11 +61,11 @@ job() { # <name> <maxruns> <definitions> <checks...>
 }
 C='\def\testcase'
 job dense 4 "$C{dense}" foot beside nofalse
-job break 4 "$C{dense}\\def\\testoptions{noteoverflow=break}" nofoot beside nofalse \
+job carry 4 "$C{dense}\\def\\testoptions{noteoverflow=carry}" nofoot nofalse \
   pagesge=$src-dense
 job article 4 "$C{dense}\\def\\testclass{article}" foot beside nofalse
 # In two columns the notes beside the first column are within the text block,
-# so where a note is can't tell foot from margin; foot works as break there,
+# so where a note is can't tell foot from margin; foot works as carry there,
 # with a warning only when asked for.
 job twocol 8 "$C{dense}\\def\\testclassopt{twocolumn}"
 job twofoot 8 "$C{dense}\\def\\testclassopt{twocolumn}\\def\\testoptions{noteoverflow=foot}" \

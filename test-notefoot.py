@@ -23,7 +23,7 @@ CHECKs:
               (INSIDE= equals MK=), and no label is multiply defined;
   nodest      no warning of hyperref's about a link target;
   floatsonly  no page "contains only floats";
-  works=W     a warning of didactic's has W (that foot works as break);
+  works=W     a warning of didactic's has W (that foot works as carry);
   pagesge=J   at least as many pages as job J;
   nofalse     no more warnings than notes away (when every margin note is one
               with labels).

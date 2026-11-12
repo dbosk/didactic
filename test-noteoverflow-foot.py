@@ -26,7 +26,7 @@ calls this):
   one of testnowhere, which fits beside its line);
 - no page is less than half full, except the last and one whose text ends with
   ENDPART (before \\clearpage): no page ends early to leave half of it empty;
-- warn: didactic warns that noteoverflow=foot works as break; otherwise it
+- warn: didactic warns that noteoverflow=foot works as carry; otherwise it
   doesn't.
 same compares the words of JOB.pdf and OTHER.pdf (pdftotext): the same words,
 as many times each, so the citations are the same, full or short, whichever way
