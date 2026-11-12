@@ -479,6 +479,8 @@ test-footonce.pdf: test-footonce.tex didactic.sty
 	${FOOTONCE} -jobname=test-footonce "\def\testcase{gls}\input{test-footonce}"
 	pdftotext test-footonce.pdf - | tr '\n' ' ' | grep -q 'First use: three-letter acronym (TLA). BUMP1'
 	pdftotext test-footonce.pdf - | tr '\n' ' ' | grep -q 'Second use: TLA. BUMP2'
+	pdftotext test-footonce.pdf - | tr '\n' ' ' | grep -q 'TLB. LBUMP1 BUMP5'
+	test "$$(grep -c "isn't plain" test-footonce.log)" -eq 1
 	${FOOTONCE} -jobname=test-footonce-many "\def\testcase{many}\input{test-footonce}"
 	${FOOTONCE} -jobname=test-footonce-carry "\def\testcase{many}\def\testcarry{}\input{test-footonce}"
 	! grep '^!' test-footonce-many.log
@@ -544,7 +546,12 @@ test-footreuse-spread: test-footreuse-spread.tex test-footreuse-spread.sh \
 # page, with citations, a note set once whatever its place (test-noteoverflow-foot),
 # and in the situations of marginfix's footcheck (test-notefoot); checked by the
 # outcome.  Not in all yet: the rows are red until notes are placed in one pass.
-.PHONY: test-noteoverflow-foot test-notefoot
+.PHONY: test-noteoverflow-foot test-notefoot test-footwide
+# A footnote at the foot is set in the width of the text, its text run once
+# (test-footwide), under the three engines and with hyperref.
+test-footwide: test-footwide.tex test-footwide.sh test-footwide.py \
+		test-footcite.bib didactic.sty
+	./test-footwide.sh
 test-noteoverflow-foot: test-noteoverflow-foot.tex test-noteoverflow-foot-hbox.tex \
 		test-noteoverflow-foot.sh test-noteoverflow-foot.py didactic.sty
 	./test-noteoverflow-foot.sh
@@ -699,8 +706,9 @@ clean:
 		${RM} $$f.pdf $$f.aux $$f.log $$f.unq $$f.pytxcode $$f.out $$f.toc; \
 	done
 	${RM} test-keep-heading-?.txt test-keep-heading3-?.txt test-keep-stale-room.tex test-keep-stale-opt.tex
+	${RM} test-footwide.bib
 	for f in $(basename $(wildcard test-noteplace-*.log test-footreuse-spread-*.log \
-			test-noteoverflow-foot-*.log test-notefoot-*.log \
+			test-noteoverflow-foot-*.log test-notefoot-*.log test-footwide-*.log \
 			test-marginfix-interface-*.log)); do \
 		${RM} $$f.pdf $$f.aux $$f.aux.old $$f.log $$f.unq $$f.pytxcode \
 			$$f.nav $$f.snm $$f.toc $$f.out $$f.bbl $$f.bcf $$f.blg $$f.run.xml; \

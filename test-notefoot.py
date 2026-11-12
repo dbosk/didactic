@@ -31,7 +31,9 @@ CHECKs:
               with labels);
   nooverfull  no page too full for its output (an overfull \\vbox while
               \\output is active: material below the text block);
-  nooverlap   no two words of a page on top of each other (pdftotext -bbox).
+  nooverlap   no two words of a page on top of each other (pdftotext -bbox);
+  notplain=N  N footnotes found not plain (didactic's information); none if not
+              given.
 Prints a line per job, PASS or FAIL with what failed; exit status 1 on FAIL.
 """
 import re
@@ -152,6 +154,13 @@ for c in checks:
         fails.append("a page overfull in the output routine")
     elif c == "nooverlap" and overlaps(job):
         fails.append(f"words on top of each other on pages {overlaps(job)}")
+# notes found not plain (didactic's info): as many as the test declares,
+# notplain=N, else none; a note found not plain by mistake runs its text
+# three times without a warning
+NOTPLAIN = len(re.findall(r"isn't plain", re.sub(r"\n\(didactic\) *", " ", log)))
+WANTPLAIN = int(next((a[9:] for a in checks if a.startswith("notplain=")), 0))
+if NOTPLAIN != WANTPLAIN:
+    fails.append(f"{NOTPLAIN} notes not plain, {WANTPLAIN} declared")
 facts = f"{len(notes)} notes, {len(feet)} at the foot, {len(away)} away, {said} warnings"
 print(("FAIL: " + "; ".join(fails) if fails else "PASS") + f" ({facts})")
 sys.exit(1 if fails else 0)

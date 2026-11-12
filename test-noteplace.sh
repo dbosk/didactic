@@ -352,7 +352,8 @@ check fspull x 5 '' "pullok${NOT12:+,label=callout-y:2}" '\def\testtall{.99}\def
 # The rest goes to the next page with text, after a page of floats.
 check fsfloat x 6 '' "kept,at=LINEA:1/FLOATPAGE:2/LINEC:3" "\\def\\testpre{\\renewcommand\\floatpagefraction{.1}}$(fsbody "\\begin{figure}[p]\\rule{1cm}{.8\\textheight}\\caption{FLOATPAGE}\\end{figure}$(fn 4)")"
 # A rest taller than the next page's foot: TeX splits it there, nothing is lost.
-check fstall x 6 '' "kept,at=LINEA:1,has=LASTLINE" "$(fsbody "\\footnote{\\label{note-y}LINEA \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ LASTLINE}")"
+# The note's paragraph is too long for one line of the measure: not plain.
+check fstall x 6 '' "kept,at=LINEA:1,has=LASTLINE,notplain=1" "$(fsbody "\\footnote{\\label{note-y}LINEA \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ LASTLINE}")"
 # A label in the rest is on the next page.
 check fslabel x 6 '' "kept,label=n-rest:2" "$(fsbody '\footnote{\label{note-y}LINEA\hfil\break LINEB\hfil\break LINEC\label{n-rest}\hfil\break LINED}')"
 # In multicol's columns a margin footnote can't be set (the margin isn't beside

@@ -9,9 +9,9 @@ marginfix's counts.  Always: every note has both labels, none is multiply
 defined, and every note set on another page than its mark is named by a warning
 (that a margin note is set on another page than its callout, or that a
 footnote waits for the foot of the next page: at least as many warnings as notes
-away), and no more warnings than notes away (the documents
-have no margin notes but the footnotes, so a warning more names a note that is
-on its page, or one twice).  Then:
+away), and no more warnings than notes away (the documents have no margin notes
+but the footnotes, so a warning more names a note that is on its page, or one
+twice), and no footnote found not plain (didactic's information).  Then:
   beside   no note is set on another page than its mark;
   carried  some notes are (noteoverflow=carry moves them on, with warnings);
   warned   either.
@@ -45,6 +45,13 @@ if mode == "beside" and away:
     fails.append(f"notes away from their marks: {away[:10]}")
 if mode == "carried" and not away:
     fails.append("no note carried")
+# notes found not plain (didactic's info): as many as the test declares,
+# notplain=N, else none; a note found not plain by mistake runs its text
+# three times without a warning
+NOTPLAIN = len(re.findall(r"isn't plain", re.sub(r"\n\(didactic\) *", " ", log)))
+WANTPLAIN = int(next((a[9:] for a in sys.argv[3:] if a.startswith("notplain=")), 0))
+if NOTPLAIN != WANTPLAIN:
+    fails.append(f"{NOTPLAIN} notes not plain, {WANTPLAIN} declared")
 print(("FAIL: " + "; ".join(fails) if fails else "PASS")
       + f" ({len(notes)} notes, {len(away)} away, {said} warnings)")
 sys.exit(1 if fails else 0)

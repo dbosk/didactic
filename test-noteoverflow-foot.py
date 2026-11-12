@@ -10,6 +10,8 @@ check reads JOB.pdf, JOB.log and JOB.aux, the outcome only, whatever the
 mechanism (no log line of marginfix's counts; the job has settled when the runner
 calls this):
 - no LaTeX error, and no warning of hyperref's about a link target;
+- no footnote found not plain (didactic's information): they are citations and
+  sentences;
 - any: no check of the foot (in two columns the notes beside the first column
   are within the text block, so the words can't tell);
 - foot: some notes are set at the foot: words that only notes have (the titles
@@ -38,13 +40,14 @@ records compares what biblatex writes to JOB.aux and OTHER.aux about each work
 (\abx@aux@... lines: citations, backrefs, citecounter), counted by kind and work:
 a copy of a note that isn't printed must add none, wherever its page.
 hbox reads test-noteoverflow-foot-hbox.tex built with foot (FOOT) and with carry
-(REF): a margin footnote is set once, in the margin's measure, wherever it ends up,
-so TeX says of its lines what it says under carry, once, and didactic says nothing
-of them.  Footnotes A (input line 20) and D (22) are in the margin of page 1, B (28)
-and C (30) at the foot of page 2 under foot (in the text column there, from the
-PDF): for each, TeX's overfull and underfull lines in FOOT are those in REF, and
-there is one at least; no warning of didactic's names an overfull or underfull line.
-TeX's lines name no page, here as without didactic.
+(REF): a margin footnote has a version for the margin and, at the foot, one for
+the foot, set quietly; the printed one says what TeX would of its lines, once,
+with the file, the line and its page.  Footnotes A (input line 20) and D (22) are
+in the margin of page 1 under foot: didactic says what TeX says in REF, and TeX
+nothing; nothing comes from a version for the foot.  B (28) and C (30) are at the
+foot of page 2 (in the text column there, from the PDF): no line of TeX's names
+them, didactic says that B has an overfull line and C an underfull one, on page 2,
+and nothing of their margin versions.
 A line per check, PASS or FAIL; the exit status is 1 on any FAIL.
 """
 import collections
@@ -95,6 +98,8 @@ def check(job, want, spill, away_ok, warn, nolabels):
     joined = re.sub(r"\n\((?:didactic|marginfix)\) *", " ", log).replace("\n", "")
     errors = re.findall(r"^! .*", log, re.M)
     report(f"{job} errors", not errors, " ".join(errors[:2]))
+    notplain = len(re.findall(r"isn't plain", re.sub(r"\n\(didactic\) *", " ", log)))
+    report(f"{job} every footnote plain", notplain == 0, f"({notplain} not plain)")
     dest = re.findall(r"warning \(dest\)|same identifier|has been referenced but"
                       r" does not exist", log)
     report(f"{job} link targets", not dest, f"({len(dest)})")
@@ -201,17 +206,36 @@ def unwrapped(path):
 
 
 def hbox(foot, ref):
-    src = "test-noteoverflow-foot-hbox"
+    src = "test-noteoverflow-foot-hbox.tex"
     def tex(log, line):
         return sorted(re.findall(r"((?:Over|Under)full \\hbox \([^)]*\)) in paragraph at "
                                  rf"lines {line}--{line}", log))
+    def ours(log, line, where):
+        return sorted(re.findall(r"Package didactic Warning: ((?:Over|Under)full \\hbox "
+                                 r"\([^)]*\)) in the footnote called out at "
+                                 rf"{re.escape(src)}:{line}, {where} of page (\d+)", log))
     f, r = unwrapped(f"{foot}.log"), unwrapped(f"{ref}.log")
-    for line in (20, 22, 28, 30):
-        report(f"{foot} note at line {line}: TeX's words, once, as under carry",
-               bool(tex(r, line)) and tex(f, line) == tex(r, line),
-               f"({len(tex(f, line))} against {len(tex(r, line))})")
-    ours = re.findall(r"Package didactic Warning: (?:Over|Under)full \\hbox", f)
-    report(f"{foot} no word of didactic's about the notes' lines", not ours, f"({len(ours)})")
+    notplain = len(re.findall(r"isn't plain", f))
+    report(f"{foot} every footnote plain", notplain == 0, f"({notplain} not plain)")
+    for line in (20, 22):
+        want = [(w, "1") for w in tex(r, line)]
+        got = ours(f, line, "in the margin")
+        report(f"{foot} margin note at line {line}: TeX's words, once, from the printed version",
+               bool(want) and got == want and not tex(f, line),
+               f"({len(got)} said, {len(want)} by TeX, {len(tex(f, line))} still TeX's)")
+        n = len(ours(f, line, "at the foot"))
+        report(f"{foot} margin note at line {line}: nothing from a version for the foot",
+               n == 0, f"({n})")
+    for line, kind in ((28, "Over"), (30, "Under")):
+        report(f"{foot} note at the foot at line {line}: no line of TeX's", not tex(f, line),
+               " ".join(tex(f, line))[:120])
+        got = ours(f, line, "at the foot")
+        report(f"{foot} note at the foot at line {line}: {kind.lower()}full lines said, page 2",
+               bool(got) and any(w.startswith(kind) for w, _ in got)
+               and all(p == "2" for _, p in got), f"({got})")
+        n = len(ours(f, line, "in the margin"))
+        report(f"{foot} note at the foot at line {line}: nothing from its margin version",
+               n == 0, f"({n})")
     out = subprocess.run(["pdftotext", "-bbox", "-f", "2", "-l", "2", f"{foot}.pdf", "-"],
                          capture_output=True, text=True, check=True).stdout
     ws = [(float(x0), float(x1), html.unescape(w)) for x0, x1, w in

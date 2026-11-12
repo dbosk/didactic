@@ -30,9 +30,9 @@
 #   xenowherecarry  the same under noteoverflow=carry
 #   nowhere  the same under pdflatex: the page ends early instead (yield), and
 #            the note goes to the next page with its line
-#   hbox     test-noteoverflow-foot-hbox.tex, with foot and with carry (ref): a
-#            note is set once, so TeX says of its lines what it says under carry,
-#            wherever the note ends up, and didactic adds nothing
+#   hbox     test-noteoverflow-foot-hbox.tex, with foot and with carry (ref): the
+#            version of a footnote that isn't printed says nothing, and the
+#            printed one says what TeX would, with its place
 #   twocol   pdflatex, two columns, where foot can't work: the default is carry,
 #            without a word
 #   twofoot  the same, asking for foot: carry, and a warning that says why

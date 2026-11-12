@@ -39,6 +39,8 @@
 #   biburl   test-biburl, which builds test-biburl-overfull and test-biburl-breaks (in
 #            five modes, under xelatex, pdflatex and lualatex) (1 to 2 minutes; 1.5);
 #            with the Makefile's engines, as the target chooses them
+#   footcite test-noteoverflow-foot, its job default only (CASES=default), against the
+#            marginfix found or $MARGINFIX (about 1 minute)
 # All with pdflatex, for speed, where make all uses xelatex, but title with xelatex: its
 # check reads a letter inside a picture, whose box depends on the engine.
 #
@@ -1625,3 +1627,18 @@ u_nolook didactic.dtx
 u_probeopen didactic.dtx
 -         \ifnum\@didactic@url@open>\@ne
 +         \ifnum\z@>\@ne
+
+# ===== A footnote at the foot, set once =====
+
+# The measure runs a footnote's text outside memoir's \@footnotetext, so it marks it as
+# a footnote's for biblatex itself; without that, a \textcite in a plain footnote makes
+# footnotes of its own inside the measure (an arithmetic overflow and lost notes before
+# the guard).  The guard against notes made in a measure catches it: no error, no note
+# lost or unwarned, the two footnotes with a \textcite are found not plain, and the job
+# fails by that count (test-noteoverflow-foot-default, every footnote plain).
+#: footcite
+#= killed test-noteoverflow-foot
+Mblxmeasure didactic.dtx
+-       \ifcsdef{etb@tgl@blx@footnote}{\toggletrue{blx@footnote}}{}%
+-       \noindent\ignorespaces#1\par
++       \noindent\ignorespaces#1\par

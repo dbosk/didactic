@@ -6,7 +6,8 @@ Usage: test-noteplace.py JOB EXPECT[,EXPECT...]
 The checks read the PDF (pdftotext -bbox), the labels of the .aux file and the
 warnings of the log, never a mechanism's own log lines, so that they hold for any
 implementation.  The text column comes from the line "noteplace geometry:" that
-test-noteplace.tex writes to the log.  EXPECT is one of:
+test-noteplace.tex writes to the log.  Always: no footnote found not plain
+(didactic's information) unless notplain=N declares N.  EXPECT is one of:
 
   kept        NOTEY is set on the page of its callout.
   warned      NOTEY is on the page of its callout, or a warning names a margin
@@ -323,6 +324,13 @@ for e in expect:
         fails.append("a warning that foot works as carry, not asked for")
     elif e == "continued" and not re.search(r"continued|forts", " ".join(w[0] for ws in pages for w in ws)):
         fails.append("no continued note")
+# notes found not plain (didactic's info): as many as the test declares,
+# notplain=N, else none; a note found not plain by mistake runs its text
+# three times without a warning
+NOTPLAIN = len(re.findall(r"isn't plain", re.sub(r"\n\(didactic\) *", " ", log)))
+WANTPLAIN = int(next((a[9:] for a in expect if a.startswith("notplain=")), 0))
+if NOTPLAIN != WANTPLAIN:
+    fails.append(f"{NOTPLAIN} notes not plain, {WANTPLAIN} declared")
 facts["club"], facts["widow"], facts["warned"], facts["logged"] = club(), widow(), warned, logged
 print(("FAIL: " + "; ".join(fails) if fails else "PASS") + " " + str(facts))
 sys.exit(1 if fails else 0)

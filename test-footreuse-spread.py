@@ -2,7 +2,9 @@
 """Check a build of test-footreuse-spread.tex by its outcome, from the PDF.
 
 Usage: test-footreuse-spread.py JOB [oneside] [reused] [last=N] [next] [shared]
-                                [warned] [reusenamed]
+                                [warned] [reusenamed] [notplain=N]
+
+Always: no footnote found not plain (didactic's information) but N declared.
 
 A mark is a number set right after a word, with no space ("spread1"); a note's
 number is one set right before a word, with none after another (the folio and
@@ -91,6 +93,13 @@ if "reusenamed" in sys.argv[2:]:
     log = re.sub(r"\n\(didactic\) *", " ", open(f"{job}.log", errors="replace").read())
     if "its number is reused at" not in log.replace("\n", ""):
         fails.append("no warning names a mark that reuses the note's number")
+# notes found not plain (didactic's info): as many as the test declares,
+# notplain=N, else none; a note found not plain by mistake runs its text
+# three times without a warning
+NOTPLAIN = len(re.findall(r"isn't plain", re.sub(r"\n\(didactic\) *", " ", open(f"{job}.log", errors="replace").read())))
+WANTPLAIN = int(next((a[9:] for a in sys.argv[2:] if a.startswith("notplain=")), 0))
+if NOTPLAIN != WANTPLAIN:
+    fails.append(f"{NOTPLAIN} notes not plain, {WANTPLAIN} declared")
 facts = f"marks {marks}, notes {notes}"
 print(("FAIL: " + "; ".join(fails) if fails else "PASS") + " (" + facts + ")")
 sys.exit(1 if fails else 0)
