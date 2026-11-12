@@ -730,7 +730,22 @@
 % \textsf{memoir} set it, since the folio is under the text; a running foot as
 % wide as the text and the margin (\textsf{memoir}'s |\headwidth| widened into
 % the margin, as in its |companion| style) would be in its way.
-% A footnote that misses by more goes to the foot of its page, if it fits there.
+% A footnote that misses by more goes to the foot of its page: whole if it fits
+% there; split over that page and the next if each part has two lines at least
+% (the rest heads the next page's foot, after a page of floats if one comes
+% between, and says nothing more: the rule marks it, as Chicago does); whole
+% and one line past the foot if only a line is missing; or two lines there and
+% one past the foot when that is what makes the split possible; each time it
+% runs past, with a warning.
+% A footnote that would need two lines past the foot (the folio is there) is
+% carried.
+% One called out on the same page after a footnote that was split or runs past
+% the foot, and that fits nowhere else, waits for the next page's foot, after
+% the rest, with a warning.
+% The room at the foot is counted at the natural size of the page, so that
+% \TeX's own page break agrees; where it still takes a footnote's line to the
+% next page (lines that must stay together with it), the note goes with the
+% line and a warning says so.
 % Any other note is carried to a later page, with a warning that names it and
 % says why.
 % |noteoverflow=break| is gone: no page ends early for a note.
@@ -4480,6 +4495,13 @@
 %   and margin notes: we patch the place where it puts the page so far back 
 %   and hands the note to |\@addmarginpar|, to decide there; and the place 
 %   where it adds a float, for the room the margin notes take.
+% \item[\texttt{\textbackslash @makecol}] where the kernel makes a column: at
+%   its start (the kernel's hook |build/column/before|, or before
+%   |\@makecol| on a kernel without it) the copies at the foot of notes whose
+%   lines went to the next column are taken back, and the rest of a split
+%   note and the notes that wait are inserted for the next column
+%   (|\@didactic@colfeet|).
+%   In one column only, the only place there are copies.
 % \item[\texttt{\textbackslash @xympar}] where the kernel makes a margin note: 
 %   we mark its callout.
 % \item[\texttt{\textbackslash MFX@combinefloats@before}] where 
@@ -4561,6 +4583,7 @@
     {\unvbox\@holdpg\@next\@currbox\@currlist}%
   \@didactic@needpatch\@specialoutput{\@reinserts\@addtocurcol}%
   \@didactic@needmacro\@xympar
+  \@didactic@needmacro\@makecol
   \@didactic@needshape\MFX@combinefloats@before{macro:->}%
   \@didactic@needmacro\mfx@marginlist
   \@didactic@needmacro\MFX@minus@inf
@@ -4893,11 +4916,11 @@
        \global\@didactic@used\@didactic@room}
       {\@didactic@ifover
         {\@didactic@over}
-        {\@didactic@iffootfits{\the\@didactic@noteof\@didactic@head}
-          {\@didactic@tofoot}
-          {\@didactic@setwhy{it fits neither beside its line nor at the
-             foot}%
-           \global\@didactic@used\@didactic@room}}}%
+        {\@didactic@footplace
+         \if@tempswa\else
+           \expandafter\@didactic@setwhy\expandafter{\@didactic@footwhy}%
+           \global\@didactic@used\@didactic@room
+         \fi}}%
   \fi}
 % A deferrable note gives way to the notes after it, in \textsf{marginfix}'s 
 % modes |defer| and |warn| whole, in |split| down to what is worth splitting 
@@ -5142,6 +5165,8 @@
         \hsize\columnwidth
         \def\baselinestretch{\m@m@footnote@spacing}%
         \reset@font\foottextfont\@preamfntext
+        \global\@didactic@fl\baselineskip
+        \clubpenalty\@M \widowpenalty\@M \displaywidowpenalty\@M
         \def\@currentcounter{footnote}%
         \protected@edef\@currentlabel{%
           \csname p@footnote\endcsname\@thefnmark}%
@@ -5315,58 +5340,409 @@
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\@didactic@iffootfits}
-% A footnote with a copy for the foot goes there if the page so far, the 
-% footnotes already at its foot (or |\skip\footins| above the first) and the 
-% copy fit in the column, \TeX's limit for footnotes on a page 
-% (|\dimen\footins|) allows the copy, and the page can still shrink to make 
-% room as \TeX's page builder lets it (|\pageshrink|).
+% \begin{macro}{\@didactic@footroom,\@didactic@footcompute}
+% The room at the foot is what the page builder will find there, at the
+% natural size of everything: the column less the page so far (with the
+% callout's line), less the footnotes already at the foot and the
+% |\skip\footins| above them, and no more than \TeX's limit for footnotes on a
+% page (|\dimen\footins|).
+% No credit for what the page can shrink: a page that holds its foot only when
+% shrunk to the full lets \TeX\ find a break above the callout's line cheaper,
+% and the line then goes to the next page without its note having been decided
+% there.
+% A copy fits whole if it is no taller than that room.
 %    \begin{macrocode}
-\newcommand\@didactic@iffootfits[1]{%
-  \@tempswafalse
-  \ifcsname @didactic@fb@#1\endcsname
-    \expandafter\let\expandafter\@didactic@fbx
-      \csname @didactic@fb@#1\endcsname
-    \dimen@\dimexpr\ht\@didactic@fbx+\dp\@didactic@fbx\relax
-    \ifvoid\footins
-      \dimen@ii\dimexpr\dimen@+\skip\footins\relax
-    \else
-      \dimen@ii\dimexpr\dimen@+\ht\footins+\dp\footins\relax
-    \fi
-    \ifdim\dimexpr\dimen@ii-\skip\footins\relax>\dimen\footins\else
-      \ifdim\dimexpr\@pageht+\@pagedp+\dimen@ii\relax
-          >\dimexpr\@colroom+\pageshrink\relax\else
-        \@tempswatrue
-      \fi
-    \fi
+\newdimen\@didactic@footroom
+\newdimen\@didactic@fl
+\newcommand\@didactic@footcompute{%
+  \@didactic@footroom
+    \dimexpr\@colroom-\@pageht-\@pagedp-\skip\footins\relax
+  \dimen@\dimen\footins
+  \ifvoid\footins\else
+    \advance\@didactic@footroom-\dimexpr\ht\footins+\dp\footins\relax
+    \advance\dimen@-\dimexpr\ht\footins+\dp\footins\relax
   \fi
-  \if@tempswa\expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
+  \ifdim\dimen@<\@didactic@footroom \@didactic@footroom\dimen@ \fi}
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\@didactic@tofoot}
-% A note that goes to the foot leaves \textsf{marginfix} out: its two boxes 
-% come off the head of |\@currlist|, back to the free list, so that it takes no 
-% room in the margin, and the copy is inserted after its line, where it 
-% travels with the line.
-% \textsf{marginfix} 1.5 and later number the notes it is handed 
-% (|\mfx@placeid|) in the order of their callouts, which it reads from marks of 
-% its own; a note it never sees must still advance the number, or every later 
+% \begin{macro}{\@didactic@footplace}
+% A footnote that fits neither beside its line nor past the foot of the
+% margin goes to the foot of its page: whole, if it fits; split over this page
+% and the next, if a split leaves at least two lines on each side; whole and
+% one line past the foot of the page, if only one line is missing; split with
+% one line past the foot, if that makes the split possible (one line of room
+% and a note of four lines or more: two lines here, the rest on the next
+% page); and otherwise it is carried, with the reason.
+% Two lines past the foot would reach the folio: the two cases that would need
+% it (no room and a note of two lines or more; one line of room and a note of
+% three) carry.
+% On a page where a footnote was split or runs past the foot, the foot is
+% full: a later footnote that fits nowhere else waits for the foot of the next
+% page, after the rest, with a warning, as \TeX\ does with its own insertions,
+% so that the footnotes keep their order.
+% The lines are those of the copy, |\@didactic@fl|, its |\baselineskip|.
+%    \begin{macrocode}
+\newif\if@didactic@footfull
+\let\@didactic@footwhy\@empty
+\newcommand\@didactic@footplace{%
+  \@tempswafalse
+  \let\@didactic@footwhy\@empty
+  \ifcsname @didactic@fb@\the\@didactic@noteof\@didactic@head\endcsname
+    \expandafter\let\expandafter\@didactic@fbx
+      \csname @didactic@fb@\the\@didactic@noteof\@didactic@head\endcsname
+    \if@didactic@footfull
+      \@didactic@footwait
+    \else
+      \@didactic@footcompute
+      \dimen@\dimexpr\ht\@didactic@fbx+\dp\@didactic@fbx\relax
+      \ifdim\@didactic@footroom<\z@
+        \def\@didactic@footwhy{it fits neither beside its line nor at the
+          foot (the page has no room for a footnote)}%
+      \else\ifdim\dimen@>\@didactic@footroom
+        \@didactic@trysplit\@didactic@footroom\z@
+        \if@tempswa\else
+          \ifdim\dimen@>\dimexpr\@didactic@footroom+\@didactic@fl+\p@\relax
+            \@didactic@trysplit
+              {\dimexpr\@didactic@footroom+\@didactic@fl\relax}\@didactic@fl
+            \if@tempswa\else
+              \edef\@didactic@footwhy{it fits neither beside its line nor at
+                the foot (\@didactic@flines\@didactic@footroom\space lines left
+                there; it would run more than one line past it)}%
+            \fi
+          \else
+            \@didactic@footover
+          \fi
+        \fi
+      \else
+        \@didactic@tofoot\@didactic@fbx
+        \@tempswatrue
+      \fi\fi
+    \fi
+  \else
+    \def\@didactic@footwhy{it fits neither beside its line nor at the foot}%
+  \fi}
+\newcommand\@didactic@lines[1]{%
+  \number\numexpr(#1+\@didactic@fl/2)/\@didactic@fl\relax}
+\newcommand\@didactic@flines[1]{%
+  \number\numexpr(2*(#1)-\@didactic@fl)/(2*\@didactic@fl)\relax}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@trysplit}
+% |\@didactic@trysplit|\marg{room}\marg{short}: split the copy to the room,
+% where \TeX\ breaks a page, by the penalties of the copy's lines, which forbid
+% one line alone on either side within a paragraph (we set the copy with
+% |\clubpenalty| and |\widowpenalty| at 10\,000); a split is taken if the
+% first part is no taller than the room and each part has two lines at least,
+% counted, since a note of several paragraphs can still break after a
+% paragraph of one line.
+% If the rest would have one line, the split is tried again one line lower:
+% one line less here rather than one alone on the next page.
+% The first part goes after the line, counted no taller than the room when
+% \meta{short} is a line (one line past the foot), and the rest after it, as an
+% insertion of its own class (|\@didactic@restins|, below) that the next column's
+% foot starts with.
+% The rest starts as a footnote does, |\footnotesep| from its top; Chicago
+% marks a continuation by the rule alone, so it says nothing more.
+%    \begin{macrocode}
+\newbox\@didactic@first
+\newbox\@didactic@restbox
+\newcount\@didactic@restid
+\newif\if@didactic@splitok
+\newcount\@didactic@la
+\newcount\@didactic@lb
+\newcommand\@didactic@trysplit[2]{%
+  \begingroup
+    \vbadness\@M \vfuzz\maxdimen
+    \splittopskip\footnotesep \splitmaxdepth\maxdimen
+    \global\@didactic@splitokfalse
+    \dimen4=#1\relax
+    \@didactic@splitat
+    \ifnum\@didactic@lb<\tw@\ifnum\@didactic@la>\tw@
+      \dimen4\dimexpr\ht\z@+\dp\z@-\@didactic@fl\relax
+      \@didactic@splitat
+    \fi\fi
+    \ifvoid\tw@\else
+      \ifnum\@didactic@la<\tw@\else\ifnum\@didactic@lb<\tw@\else
+        \ifdim\dimexpr\ht\z@+\dp\z@\relax>#1\else
+          \global\@didactic@splitoktrue
+          \global\setbox\@didactic@first\box\z@
+          \global\setbox\@didactic@restbox\vbox{\unvbox\tw@}%
+        \fi
+      \fi\fi
+    \fi
+  \endgroup
+  \if@didactic@splitok
+    \@tempswatrue
+    \@didactic@splitdone{#2}%
+  \fi}
+\newcommand\@didactic@splitat{%
+  \setbox\tw@\copy\@didactic@fbx
+  \setbox\z@\vsplit\tw@ to\dimen4
+  \setbox\z@\vbox{\unvbox\z@}%
+  \@didactic@countlines\z@\@didactic@la
+  \@didactic@countlines\tw@\@didactic@lb}
+% |\@didactic@countlines|\meta{box}\meta{count}: the lines of a part, its
+% boxes, counted from its end, past glue, kerns and penalties.
+\newcommand\@didactic@countlines[2]{%
+  \global#2\z@
+  \ifvoid#1\else
+    \setbox4\vbox{\unvcopy#1\def\@didactic@cnt{#2}\@didactic@countline}%
+  \fi}
+\newcommand\@didactic@countline{%
+  \let\@didactic@next\relax
+  \ifcase\numexpr\lastnodetype-10\relax
+  \or\unskip\let\@didactic@next\@didactic@countline
+  \or\unkern\let\@didactic@next\@didactic@countline
+  \or\unpenalty\let\@didactic@next\@didactic@countline
+  \else
+    \ifnum\lastnodetype=\@ne
+      \setbox6\lastbox\global\advance\@didactic@cnt\@ne
+      \let\@didactic@next\@didactic@countline
+    \else\ifnum\lastnodetype=\tw@
+      \setbox6\lastbox\global\advance\@didactic@cnt\@ne
+      \let\@didactic@next\@didactic@countline
+    \fi\fi
+  \fi
+  \@didactic@next}
+\newcommand\@didactic@splitdone[1]{%
+  \global\@didactic@restid\@didactic@noteof\@didactic@head
+  \global\wd\@didactic@restbox
+    \dimexpr\columnwidth+\@didactic@restid sp\relax
+  \global\@didactic@footfulltrue
+  \PackageInfo{didactic}{Footnote called out at
+    \csname @didactic@ln@\the\@didactic@restid\endcsname\MessageBreak
+    on page \thepage\space is split: \the\@didactic@la\space lines at its
+    foot, \the\@didactic@lb\space at the foot of the next page}%
+  \ifdim#1>\z@
+    \@didactic@overwarn{\the\@didactic@restid}%
+    \@didactic@countroom\@didactic@first
+  \fi
+  \global\let\@didactic@fbx\@didactic@first
+  \@didactic@tofoot\@didactic@fbx
+  \def\@didactic@after{%
+    \@didactic@attach{%
+      \insert\footins{\floatingpenalty\@MM\box\@didactic@fbx}%
+      \insert\@didactic@restins{\floatingpenalty\z@\box\@didactic@restbox}}}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@footover,\@didactic@overwarn}
+% A copy at most one line too tall for the room (a point more, for its
+% depth) goes whole, counted exactly as tall as the room, so that \TeX's page
+% builder finds it fits and its last line stands below the foot of the page; so
+% does the first part of a split that needs that line.
+% A page with no room at the foot at all, not even for the space above the
+% footnotes, takes none.
+% The warning says how much and why: what the margin's notes took, and how many
+% lines the foot had.
+%    \begin{macrocode}
+\newcommand\@didactic@footover{%
+  \@didactic@overwarn{\the\@didactic@noteof\@didactic@head}%
+  \@didactic@countroom\@didactic@fbx
+  \global\@didactic@footfulltrue
+  \@didactic@tofoot\@didactic@fbx
+  \@tempswatrue}
+\newcommand\@didactic@countroom[1]{%
+  \ifdim\dimexpr\ht#1+\dp#1\relax>\@didactic@footroom
+    \global\ht#1\dimexpr\@didactic@footroom-\dp#1\relax
+  \fi}
+\newcommand\@didactic@overwarn[1]{%
+  \PackageWarningNoLine{didactic}{Footnote called out at
+    \csname @didactic@ln@#1\endcsname\MessageBreak
+    on page \thepage\space runs one line past the foot of the page:\MessageBreak
+    the margin is full (the notes above it take \the\@didactic@used\space
+    of \the\@didactic@room) and the foot has \@didactic@flines
+    \@didactic@footroom\space lines left}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@footwait}
+% A footnote that waits for the next page's foot leaves the margin as one that
+% goes to the foot does, and its copy goes after its line as an insertion of
+% the rests' class, so that it comes after the rest at the head of the next
+% column's foot.
+%    \begin{macrocode}
+\newcommand\@didactic@footwait{%
+  \global\wd\@didactic@fbx
+    \dimexpr\columnwidth+\@didactic@noteof\@didactic@head sp\relax
+  \@didactic@footid
+  \PackageWarningNoLine{didactic}{Footnote called out at
+    \csname @didactic@ln@\the\@didactic@noteof\@didactic@head\endcsname
+    \MessageBreak on page \thepage\space waits for the foot of the next
+    page:\MessageBreak the margin is full and the foot of this page is taken
+    \ifnum\@didactic@restid>\z@ \MessageBreak by the footnote called out at
+      \csname @didactic@ln@\the\@didactic@restid\endcsname, split over the
+      pages\fi}%
+  \@didactic@offmargin
+  \def\@didactic@after{%
+    \@didactic@attach{\insert\@didactic@restins{\floatingpenalty\z@
+      \box\@didactic@fbx}}}%
+  \@tempswatrue}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@tofoot,\@didactic@offmargin}
+% A note that goes to the foot leaves \textsf{marginfix} out: its two boxes
+% come off the head of |\@currlist|, back to the free list, so that it takes no
+% room in the margin, and the copy, or its first part, is inserted after its
+% line, where it travels with the line; it carries the note's number in its
+% width, above the column's, for |\@didactic@colfeet| (below).
+% \textsf{marginfix} 1.5 and later number the notes it is handed
+% (|\mfx@placeid|) in the order of their callouts, which it reads from marks of
+% its own; a note it never sees must still advance the number, or every later
 % note would take the place of the one before.
-% The kernel's |\@next| for the note, which follows our part of the special 
+% The kernel's |\@next| for the note, which follows our part of the special
 % output, is then skipped (|\@didactic@skipnext|).
 %    \begin{macrocode}
-\newcommand\@didactic@tofoot{%
+\newcommand\@didactic@offmargin{%
   \@next\@currbox\@currlist{}\@latexbug
   \@next\@marbox\@currlist{}\@latexbug
   \@cons\@freelist\@currbox
   \@cons\@freelist\@marbox
   \ifdefined\mfx@placeid\global\advance\mfx@placeid\@ne\fi
+  \let\@didactic@skip\@didactic@skipnext}
+\newcommand\@didactic@tofoot[1]{%
+  \global\wd#1\dimexpr\columnwidth+\@didactic@noteof\@didactic@head sp\relax
+  \@didactic@footid
+  \global\let\@didactic@fbx#1%
+  \@didactic@offmargin
   \def\@didactic@after{%
     \@didactic@attach{\insert\footins{\floatingpenalty\@MM
-      \box\@didactic@fbx}}}%
-  \let\@didactic@skip\@didactic@skipnext}
+      \box\@didactic@fbx}}}}
 \def\@didactic@skipnext\@next\@currbox\@currlist#1#2{}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@restins,\@didactic@footid}
+% The rest of a split note, and a note that waits, are insertions of a class
+% of their own, |\@didactic@restins|, that takes no room on the page, inserted
+% after the line as the first part is: so they travel with the line as the
+% first part does, whatever \TeX's page builder later does with it, and come
+% out where the line's column is made.
+% The notes sent to the foot in a column are listed by number
+% (|\@didactic@footids|), for the warning when \TeX\ takes a line to the next
+% column after all.
+%    \begin{macrocode}
+\newinsert\@didactic@restins
+\count\@didactic@restins\z@
+\dimen\@didactic@restins\maxdimen
+\skip\@didactic@restins\z@skip
+\let\@didactic@footids\@empty
+\newcommand\@didactic@footid{%
+  \xdef\@didactic@footids{\@didactic@footids
+    \the\@didactic@noteof\@didactic@head,}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@colfeet,\@didactic@pull,\@didactic@restsort,
+%   \@didactic@movedwarn}
+% When a column is made, before its footnotes are attached, the foot of the
+% next column is made up, in the order of the notes: the rests and waiting
+% notes of lines in this column; then the copies at this foot of notes whose
+% lines went to the next column after all (a later special output on the page
+% put them into |\footins| while their lines were still on it), each copy
+% carrying its number in its width, numbered higher than the last callout in
+% the column; and the rests and waiting notes of those lines.
+% Insertions left in the output routine's list go back to the head of the
+% page, so these head the next column's foot (after any page of floats that is
+% made in between), and \TeX\ may split them there, line by line, if they are
+% taller than that foot.
+% A note sent to the foot whose line went on to the next column is warned
+% about: \TeX\ ended the page before that line, which couldn't hold the lines
+% that stay with it, and the page is that much short.
+% The column's last callout is read from a copy of the column, in a group, so
+% that whatever reads |\@outputbox| there, ourselves or a wrapper of
+% |\@didactic@readlast|, can't change or empty the column itself (the row
+% |readfallback| of |test-noteplace| wraps it to change what it reads).
+%    \begin{macrocode}
+\newbox\@didactic@pullbox
+\newbox\@didactic@nowbox
+\newbox\@didactic@laterbox
+\newbox\@didactic@one
+\newcount\@didactic@colast
+\newcommand\@didactic@colfeet{%
+  \begingroup
+    \setbox\@outputbox\copy\@cclv
+    \count@\@didactic@pagelast
+    \@didactic@readlast
+    \global\@didactic@colast\@didactic@pagelast
+    \global\@didactic@pagelast\count@
+  \endgroup
+  \global\setbox\@didactic@pullbox\box\voidb@x
+  \global\setbox\@didactic@nowbox\box\voidb@x
+  \global\setbox\@didactic@laterbox\box\voidb@x
+  \ifvoid\footins\else
+    \global\setbox\footins\vbox{\unvbox\footins\@didactic@pull}%
+    \ifdim\dimexpr\ht\footins+\dp\footins\relax=\z@
+      \global\setbox\footins\box\voidb@x
+    \fi
+  \fi
+  \ifvoid\@didactic@restins\else
+    \setbox\z@\vbox{\unvbox\@didactic@restins\@didactic@restsort}%
+  \fi
+  \@didactic@movedwarn
+  \setbox\z@\vbox{%
+    \unvbox\@didactic@nowbox\unvbox\@didactic@pullbox
+    \unvbox\@didactic@laterbox}%
+  \ifdim\dimexpr\ht\z@+\dp\z@\relax>\z@
+    \insert\footins{\floatingpenalty\@MM\unvbox\z@}%
+  \fi
+  \global\@didactic@restid\z@
+  \global\let\@didactic@footids\@empty
+  \global\@didactic@footfullfalse}
+\newcommand\@didactic@pull{%
+  \let\@didactic@next\relax
+  \ifnum\lastnodetype=\tw@
+    \setbox\@didactic@one\lastbox
+    \@tempcnta\numexpr\wd\@didactic@one-\columnwidth\relax
+    \ifnum\@tempcnta>\@didactic@colast
+      \global\setbox\@didactic@pullbox
+        \vbox{\unvbox\@didactic@one\unvbox\@didactic@pullbox}%
+      \let\@didactic@next\@didactic@pull
+    \else
+      \box\@didactic@one
+    \fi
+  \fi
+  \@didactic@next}
+\newcommand\@didactic@restsort{%
+  \let\@didactic@next\relax
+  \ifnum\lastnodetype=\tw@
+    \setbox\@didactic@one\lastbox
+    \@tempcnta\numexpr\wd\@didactic@one-\columnwidth\relax
+    \ifnum\@tempcnta>\@didactic@colast
+      \global\setbox\@didactic@laterbox
+        \vbox{\unvbox\@didactic@one\unvbox\@didactic@laterbox}%
+    \else
+      \global\setbox\@didactic@nowbox
+        \vbox{\unvbox\@didactic@one\unvbox\@didactic@nowbox}%
+    \fi
+    \let\@didactic@next\@didactic@restsort
+  \else\ifnum\lastnodetype>10
+    \unskip\unpenalty\unkern
+    \let\@didactic@next\@didactic@restsort
+  \fi\fi
+  \@didactic@next}
+\newcommand\@didactic@movedwarn{%
+  \setbox\z@\vbox{\unvcopy\@cclv}%
+  \dimen@\dimexpr\@colroom-\ht\z@-\dp\z@\relax
+  \ifvoid\footins\else
+    \advance\dimen@-\dimexpr\ht\footins+\dp\footins+\skip\footins\relax
+  \fi
+  \def\@didactic@welt##1,{\ifx\relax##1\relax\else
+    \ifnum##1>\@didactic@colast
+    \PackageWarningNoLine{didactic}{TeX ended page \thepage\space before the
+      line of the footnote\MessageBreak called out at
+      \csname @didactic@ln@##1\endcsname, which had gone to its foot:\MessageBreak
+      the page couldn't hold the lines that stay with that line;\MessageBreak
+      the note goes with its line to the next page,\MessageBreak
+      and page \thepage\space is
+      \number\numexpr(\dimen@+\@didactic@keep@L/2)/\@didactic@keep@L\relax
+      \space lines short}%
+    \fi
+    \expandafter\@didactic@welt\fi}%
+  \expandafter\@didactic@welt\@didactic@footids\relax,}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -5424,6 +5800,9 @@
     {\@didactic@callout\@next\@currbox\@currlist}{}{}%
   \patchcmd\@specialoutput{\@reinserts\@addtocurcol}
     {\@didactic@floatroom\@reinserts\@addtocurcol}{}{}%
+  \ifpatchable{\@makecol}{\UseHook{build/column/before}}%
+    {\AddToHook{build/column/before}{\if@twocolumn\else\@didactic@colfeet\fi}}%
+    {\pretocmd\@makecol{\if@twocolumn\else\@didactic@colfeet\fi}{}{}}%
   \let\@didactic@MFX@combinefloats@before\MFX@combinefloats@before
   \def\MFX@combinefloats@before{%
     \@didactic@readlast\@didactic@sift

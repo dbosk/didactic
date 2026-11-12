@@ -34,6 +34,10 @@ status=0
 # TEXINPUTS (say TeX Live's, $(kpsewhich -var-value TEXMFDIST)/tex/latex/marginfix,
 # or a build of another branch); unset, the one found.
 [ -n "$MARGINFIX" ] && export TEXINPUTS="$(cd "$MARGINFIX" && pwd)//:$TEXINPUTS"
+# Some rows expect another outcome with TeX Live's marginfix 1.2, which lets every
+# line with a margin note end a page (see overguard): M12 is set there.
+M12=; case "$MARGINFIX" in *texmf-dist/tex/latex/marginfix*) M12=yes;; esac
+NOT12=yes; [ -n "$M12" ] && NOT12=
 ENGINE=${ENGINE:-pdflatex}
 MAXRUNS=${MAXRUNS:-8}
 TEXTIMEOUT=${TEXTIMEOUT:-120}
@@ -89,6 +93,10 @@ check() {
 # warning (lonewarn): in these documents no line is left alone but by what is done
 # for the note, since without it the case's text fits on the first page.
 W=warned,lonewarn
+# Cases that the early end of a page kept, before no page ended early: NOTEY is a
+# footnote there now ($YF), with the margin full (the tall note runs over), so
+# that it goes to the foot of the page, whole, split or one line past it.
+YF='\def\testyieldfoot{}\def\testtall{.99}'
 # A heading must not be parted from its first line; the note goes on with a
 # warning if it can't stay.
 check heading heading 7 '' "$W,together"
@@ -106,11 +114,11 @@ check headingzero heading 7 'keepmaxgap=0' "$W,together,limitwarn"
 check headingoff heading 7 'keepafterheading=0' "$W,together"
 # A lone first or last line the document allows may be left for the note, with a
 # warning; one it forbids may not.
-check tallclub tallclub 4 '' "kept,lonewarn"
-check tallwidow tallwidow 8 '' "kept,lonewarn"
-check tallmiddle tallmiddle 9 '' "kept,lonewarn"
-check club club 4 '' "kept,lonewarn"
-check widow widow 7 '' "kept,lonewarn"
+check tallclub tallclub 4 '' "kept,lonewarn" "$YF"
+check tallwidow tallwidow 8 '' "kept,lonewarn" "$YF"
+check tallmiddle tallmiddle 9 '' "kept,lonewarn" "$YF"
+check club club 4 '' "kept,lonewarn" "$YF"
+check widow widow 7 '' "kept,lonewarn" "$YF"
 check clubforbid clubforbid 4 '' "$W,noclub"
 check widowforbid widowforbid 7 '' "$W,nowidow"
 check clubzero clubforbid 4 'keepmaxgap=0' "$W,noclub,limitwarn"
@@ -181,9 +189,9 @@ TWOC='\def\testclass{article}\def\testclassopt{a4paper,twocolumn}\def\testtall{.
 check twodefault x 7 '' "nofootwarn" "$TWOC\def\testbody{FIRSTLINE\yieldnote{} \filler\par}"
 check twopassage x 7 '' "footwarn" "$TWOC\def\testbody{{\marginnoteoverflow{foot} FIRSTLINE\yieldnote{} \filler\par}}"
 # Nothing in the way: the note stays with its line.
-check runin runin 4 '' kept,lonewarn
-check theorem theorem 4 '' kept,lonewarn
-check middle middle 9 '' kept,lonewarn
+check runin runin 4 '' kept,lonewarn "$YF"
+check theorem theorem 4 '' kept,lonewarn "$YF"
+check middle middle 9 '' kept,lonewarn "$YF"
 # The rest of a split note doesn't stop the note after it.
 check split split 4 '' "continued"
 
@@ -199,9 +207,9 @@ check footlone x 7 '' "$W" \
   "$ART\\def\\testfootnotefirst{}\\def\\testbody{FIRSTLINE \\filler\\ Now the last line of the paragraph, with its note\\yieldnote{}.}"
 check noteearlier x 7 '' "$W" \
   "$T\\def\\testbody{FIRSTLINE\\marginpar{SHORT} \\filler\\ $L}"
-check footinpara x 5 '' kept,lonewarn \
+check footinpara x 5 '' "$W" \
   "$T\\def\\testbody{FIRSTLINE\\footnote{FOOTB} \\oneline\\ second \\oneline\\ more words$Y \\filler\\ \\filler}"
-check headfoot x 10 '' "kept,together,lonewarn" \
+check headfoot x 10 '' "$W,together" \
   "$T\\def\\testbody{\\section{HEADINGX} FIRSTLINE\\footnote{FOOTB} \\oneline\\ second \\oneline\\ more words$Y \\filler\\ \\filler}"
 check display x 10 '' "$W" \
   '\def\testbody{FIRSTLINE \oneline\ two. \[ x=y \] after DISPLAY \filler\ Now the LASTLINE of the paragraph, with its note\yieldnote{}.}'
@@ -210,17 +218,17 @@ check newline x 7 '' "$W" \
 check markright x 7 '' "$W" \
   '\def\testbody{FIRSTLINE\markright{M} \filler\ Now the last line of the paragraph, with its note\yieldnote{}.}'
 check hboxlines x 9 '' kept,lonewarn \
-  '\def\testbody{\section{HEADINGX} \hbox{Listing line one}\hbox{Listing line two}\hbox{Listing line three} \par FIRSTLINE\yieldnote{} \filler\ \filler}'
+  "$YF"'\def\testbody{\section{HEADINGX} \hbox{Listing line one}\hbox{Listing line two}\hbox{Listing line three} \par FIRSTLINE\yieldnote{} \filler\ \filler}'
 # What is known of a heading ends with its page: a note at the same height on the
 # next page is free.
 check headshipped x 7 '' kept,lonewarn \
-  '\def\testbody{\section{HEADINGX} FIRSTLINE \oneline\par\newpage \noindent x\marginpar{TALLB\par\rule{1pt}{.97\textheight}} text\par\noindent\rule{1cm}{\dimexpr\textheight-52pt\relax}\par FIRSTLINE\yieldnote{} \filler\ \filler}'
+  "$YF"'\def\testbody{\section{HEADINGX} FIRSTLINE \oneline\par\newpage \noindent x\marginpar{TALLB\par\rule{1pt}{.97\textheight}} text\par\noindent\rule{1cm}{\dimexpr\textheight-52pt\relax}\par FIRSTLINE\yieldnote{} \filler\ \filler}'
 check crosspages x 4 '' "$W" \
   '\def\testbody{FIRSTLINE \oneline\ more words\yieldnote{} \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler}'
 check laterpara x 9 '' kept,lonewarn \
-  '\def\testbody{\section{HEADINGX} \filler\par FIRSTLINE\yieldnote{} \filler}'
+  "$YF"'\def\testbody{\section{HEADINGX} \filler\par FIRSTLINE\yieldnote{} \filler}'
 check onelinepara x 4 '' kept,lonewarn \
-  '\def\testbody{FIRSTLINE\yieldnote{}\par \filler}'
+  "$YF"'\def\testbody{FIRSTLINE\yieldnote{}\par \filler}'
 check verticaldue x 7 '' "$W,together" \
   '\def\testbody{\section{HEADINGX} FIRSTLINE.\par\yieldnote{}\par SECONDPARA \filler}'
 
@@ -271,8 +279,8 @@ check overcarry x 9 'noteoverflow=carry' "carried,noover" "$OV"
 # the line above, is pushed up as ever, not run over (noover-LOWZ).  With TeX
 # Live's marginfix 1.2 every line with a margin note may end a page (the kernel's
 # penalty after the note, which margin-inrun takes away), so the line stays and
-# NOTEY runs over there, as it may.
-check overguard x 4 '' "kept,noover-LOWZ" '\def\testtall{.9}\def\testbody{FIRSTLINE \filler\ more\marginpar{LOWX\par LOWY\par LOWZ} \oneline\ end\yieldnote[\par TWO\par THREE] \[ x = y \] after \filler\par}'
+# NOTEY runs over there, as it may, with its warning (over=2 with 1.2).
+check overguard x 4 '' "kept,noover-LOWZ${M12:+,over=2}" '\def\testtall{.9}\def\testbody{FIRSTLINE \filler\ more\marginpar{LOWX\par LOWY\par LOWZ} \oneline\ end\yieldnote[\par TWO\par THREE] \[ x = y \] after \filler\par}'
 # A small note after the one that runs over goes no lower: it is carried, not
 # set in what is left below the foot.
 check overlater x 9 '' "over=2,noover-SMALL" '\def\testtall{.95}\def\testbody{FIRSTLINE \filler\ end\yieldnote[\par TWO\par THREE]\marginpar{SMALL} \filler\par}'
@@ -285,6 +293,52 @@ check overmfloat x 9 '' "carried,noover" '\def\testtall{.95}\def\testbody{FIRSTL
 # A note a little taller than the whole margin, alone at its top, is set whole and
 # runs over, not split (marginfix's split of tall notes reads the same height).
 check overtall x 9 '' "warned,nocontinued" '\def\testtall{1.01}\def\testbody{FIRSTLINE \filler\ end\yieldnote{} \filler\par}'
+# A footnote that fits neither beside its line nor past the foot of the margin
+# (the tall note runs over and fills it) goes to the foot of the page: whole;
+# split, two lines at least on each side; whole and one line past the foot; split
+# with one line past the foot; or carried.  k is the room at the foot in lines of
+# the footnote, n its lines (one paragraph, broken by \break); with this text
+# k = room - 4 (room 4.5: k = 0, but some room).
+fn() { # fn <n> [<label> <first word>]: a footnote of n lines LINEA, LINEB, ...
+  local l=${2:-note-y} w=${3:-LINE} t='' c=0 i
+  for i in A B C D E F G H I J; do
+    [ $c -ge $1 ] && break
+    [ -n "$t" ] && t="$t\\hfil\\break "
+    t="$t$w$i"; c=$((c + 1))
+  done
+  printf '\\footnote{\\label{%s}%s}' "$l" "$t"
+}
+fsbody() { # fsbody <footnote> [<after>]: the callout on the third line
+  printf '\\def\\testtall{.99}\\def\\testbody{FIRSTLINE \\filler\\ end\\label{callout-y}%s \\filler\\ \\filler\\par}' "$1"
+}
+check fsk4n3 x 8 '' "kept,at=LINEA:1/LINEC:1,nobelow" "$(fsbody "$(fn 3)")"
+check fsk3n5 x 7 '' "kept,at=LINEA:1/LINEC:1/LINED:2/LINEE:2,nobelow,nocontinued" "$(fsbody "$(fn 5)")"
+check fsk3n4 x 7 '' "kept,at=LINEA:1/LINEB:1/LINEC:2/LINED:2,nobelow" "$(fsbody "$(fn 4)")"
+check fsk2n4 x 6 '' "kept,at=LINEA:1/LINEB:1/LINEC:2/LINED:2,nobelow" "$(fsbody "$(fn 4)")"
+check fsk2n3 x 6 '' "kept,at=LINEA:1/LINEC:1,below=LINEC" "$(fsbody "$(fn 3)")"
+check fsk1n2 x 5 '' "kept,at=LINEA:1/LINEB:1,below=LINEB" "$(fsbody "$(fn 2)")"
+check fsk1n3 x 5 '' "carried,nobelow" "$(fsbody "$(fn 3)")"
+check fsk1n4 x 5 '' "kept,at=LINEA:1/LINEB:1/LINEC:2/LINED:2,below=LINEB" "$(fsbody "$(fn 4)")"
+check fsk0n1 x 4.5 '' "kept,at=LINEA:1,below=LINEA" "$(fsbody "$(fn 1)")"
+check fsk0n2 x 4.5 '' "carried,nobelow" "$(fsbody "$(fn 2)")"
+# A later footnote on the page of a split one waits for the next page's foot,
+# after the rest: called out on the same line (fstwo), or on the line the split
+# kept back (fsspare: five lines in four lines of room split three and two, which
+# leaves room for a line of the text).
+check fstwo x 6 '' "kept,at=LINEA:1/LINEB:1/LINEC:2/LINED:2/SECA:2,order=LINED<SECA" "$(fsbody "$(fn 4)$(fn 2 n-s SEC)")"
+check fsspare x 8 '' "kept,at=LINEA:1/LINEC:1/LINED:2/LINEE:2/SPAREA:2,order=LINEE<SPAREA" '\def\testtall{.99}\def\testbody{FIRSTLINE \filler\ end\label{callout-y}'"$(fn 5)"' and a few words more to fill this line, and then on the next one\footnote{SPAREA} we go on \filler\ \filler\par}'
+# TeX takes the callout's line to the next page after its footnote was split at
+# this foot (a paragraph that can't break, whose last lines don't fit): the whole footnote
+# goes with the line, nothing of it stays, the split as decided (first part on
+# the line's page, the rest on the next), and a warning says so (pullok; with
+# marginfix 1.2 the line stays, see overguard).
+check fspull x 5 '' "pullok${NOT12:+,label=callout-y:2}" '\def\testtall{.99}\def\testbody{{\interlinepenalty=10000 \noindent FIRSTLINE\newline SECOND\newline THIRD\label{callout-y}'"$(fn 4)"'\newline FOURTH\newline FIFTH\par}}'
+# The rest goes to the next page with text, after a page of floats.
+check fsfloat x 6 '' "kept,at=LINEA:1/FLOATPAGE:2/LINEC:3" "\\def\\testpre{\\renewcommand\\floatpagefraction{.1}}$(fsbody "\\begin{figure}[p]\\rule{1cm}{.8\\textheight}\\caption{FLOATPAGE}\\end{figure}$(fn 4)")"
+# A rest taller than the next page's foot: TeX splits it there, nothing is lost.
+check fstall x 6 '' "kept,at=LINEA:1,has=LASTLINE" "$(fsbody "\\footnote{\\label{note-y}LINEA \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ LASTLINE}")"
+# A label in the rest is on the next page.
+check fslabel x 6 '' "kept,label=n-rest:2" "$(fsbody '\footnote{\label{note-y}LINEA\hfil\break LINEB\hfil\break LINEC\label{n-rest}\hfil\break LINED}')"
 # What leads into a list isn't tied by a penalty of 10000: the keep rules warn.
 check leadlist x 5 '' "$W,leadwarn" \
   "\\def\\testbody{Lead LEADIN:\\begin{itemize}\\item FIRSTLINE$B\\end{itemize}}"
@@ -316,15 +370,15 @@ warm() {
 }
 warm heading warmoff heading 7 'keepafterheading=0' headingoff
 warm heading warmzero heading 7 'keepmaxgap=0' headingzero
-warm widowforbid warmdrop widow 7 '' widow
+warm widowforbid warmdrop widow 7 '' widow "$YF"
 warm headingoff warmback heading 7 '' heading
 warm heading warmmoved heading 12 '' moved
 warm moved warmmovedback heading 7 '' movedcold
 W2='FIRSTLINE \filler\ Now the last line of the paragraph, with its note\yieldnote{}'
 FB='\def\testpre{\AtBeginDocument{\widowpenalty=10000 }}'
 check wforbid x 7 '' "$W,nowidow" "$FB\\def\\testbody{$W2.}"
-check wfreecold x 7 '' kept,lonewarn "$FB\\def\\testbody{$W2 and \\filler\\ \\filler}"
-warm wforbid wfree x 7 '' wfreecold "$FB\\def\\testbody{$W2 and \\filler\\ \\filler}"
+check wfreecold x 7 '' kept,lonewarn "$YF$FB\\def\\testbody{$W2 and \\filler\\ \\filler}"
+warm wforbid wfree x 7 '' wfreecold "$YF$FB\\def\\testbody{$W2 and \\filler\\ \\filler}"
 
 # Under beamer the notes are off: no errors.
 if [ -z "$CASES" ] || case " $CASES " in *" slides "*) true;; *) false;; esac; then

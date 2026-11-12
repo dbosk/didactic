@@ -34,6 +34,11 @@
   \makeatother
 \fi
 \newcommand\yieldnote[1][]{\label{callout-y}\marginpar{\label{note-y}NOTEY#1}}
+% \testyieldfoot: NOTEY a footnote, for the cases that reach the foot (a
+% footnote in the margin, with a copy for the foot).
+\ifdefined\testyieldfoot
+  \renewcommand\yieldnote[1][]{\label{callout-y}\footnote{\label{note-y}NOTEY#1}}
+\fi
 % Where the text column is, for test-noteplace.py (in bp, as pdftotext gives):
 % from the left edge of odd and of even pages, and its width.
 \makeatletter

@@ -44,6 +44,22 @@ test-noteplace.tex writes to the log.  EXPECT is one of:
               unasked); noover-WORD, no such word that
               starts with WORD.
   nocontinued no "(continued)" in the text: no note was split.
+  at=W:P[/W:P...]  each word W is on page P (lines of a footnote at the foot).
+  below=W     W is in the text column below the foot of the text block, by more
+              than a third of a line and at most a line and a half: one line
+              past the foot of the page.
+  nobelow     no word in the text column is that far below the text block on
+              any page (no footnote runs past the foot unasked; the folio is
+              further down).
+  order=A<B   A is above B on the page of A, and B is on that page.
+  movedwarn   a warning says that TeX ended a page before the line of a footnote
+              that had gone to its foot.
+  pullok      if the callout went to a later page than page 1 (TeX's own break),
+              LINEA is on the callout's page and every LINE word on it or the
+              next (the note goes with its line, split as it was), and
+              movedwarn.
+  has=W       W is in the text.
+  label=N:P   the label N is on page P.
 Prints one line, "PASS" or "FAIL" with what failed, and the facts.
 """
 import re
@@ -189,6 +205,52 @@ for e in expect:
             low = [w for w, y in margin_words(n) if y > foot + .3 * line12 and w.startswith(word)]
             if low:
                 fails.append("page %d: margin words below the text block: %s" % (n, " ".join(low[:5])))
+    elif e.startswith("at="):
+        for pair in e[3:].split("/"):
+            w, p = pair.split(":")
+            if str(page_of(w)) != p:
+                fails.append("%s on page %s, not %s" % (w, page_of(w), p))
+    elif e.startswith("below=") or e == "nobelow":
+        for n in range(1, len(pages) + 1):
+            left = geo["odd"] if n % 2 else geo["even"]
+            for w, x, y1 in bottoms[n - 1]:
+                if left - 2 <= x <= left + geo["width"] + 2 and \
+                        foot + .3 * line12 < y1 <= foot + 1.5 * line12:
+                    if e == "nobelow":
+                        fails.append("page %d: %s below the text block" % (n, w))
+                    elif w.startswith(e[6:]):
+                        break
+            else:
+                continue
+            if e != "nobelow":
+                break
+        else:
+            if e != "nobelow":
+                fails.append("%s isn't one line below the text block" % e[6:])
+    elif e.startswith("order="):
+        a, b = e[6:].split("<")
+        n = page_of(a)
+        ya = [y for w, x, y, body in pages[n - 1] if w.startswith(a)] if n else []
+        yb = [y for w, x, y, body in pages[n - 1] if w.startswith(b)] if n else []
+        if not ya or not yb or min(ya) >= min(yb):
+            fails.append("%s isn't above %s on page %s" % (a, b, n))
+    elif e == "movedwarn" and not re.search(r"TeX ended page \d+ before the line of the footnote", joined):
+        fails.append("no warning that TeX ended a page before a footnote's line")
+    elif e == "pullok" and facts["callout"] not in (None, "1"):
+        c = int(facts["callout"])
+        lw = sorted(set(w for ws in pages for w, x, y, b in ws if w.startswith("LINE")))
+        bad = [w for w in lw if page_of(w) not in (c, c + 1)]
+        if bad or page_of("LINEA") != c:
+            fails.append("after TeX moved the callout's line: %s not on its page or the next"
+                         % " ".join(bad or ["LINEA"]))
+        if not re.search(r"TeX ended page \d+ before the line of the footnote", joined):
+            fails.append("no warning that TeX ended a page before a footnote's line")
+    elif e.startswith("has=") and e[4:] not in out:
+        fails.append("%s is not in the text" % e[4:])
+    elif e.startswith("label="):
+        n, p = e[6:].split(":")
+        if label(n) != p:
+            fails.append("label %s on page %s, not %s" % (n, label(n), p))
     elif e == "nocontinued" and "(continued)" in out:
         fails.append("a note was split (continued)")
     elif e.startswith("gap=") and pages:
