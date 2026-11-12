@@ -4677,8 +4677,7 @@
 % the page, but the page may still end above that line: \TeX\ chooses the 
 % break when the page is full, and the best break may come before the 
 % callout, as when a paragraph that can't break goes to the next page as a 
-% whole; and \textsf{didactic} ends a page early for a note that doesn't fit, 
-% below.
+% whole.
 % Then the note must go with its line.
 % \textsf{marginfix} 1.2 sets it on the page it was handed over on, beside 
 % nothing; later versions hold it back by marks of their own.
@@ -4694,16 +4693,19 @@
 % We keep it negative and store our number in it, as $-1-n$, so that $-1$ 
 % still means a note we haven't numbered.
 % The material \textsf{marginfix} injects to block the margin 
-% (|\Mfx@inject@insert|, from 1.5 on) is not a note and gets no number.
+% (|\Mfx@inject@insert|, from 1.5 on) is not a note and gets no number; it
+% comes as |\@marbox|, a macro that names that box, so we compare what it
+% expands to (comparing the macro itself never matched, and those entries were
+% numbered and decided as notes of no height until v2.17).
 % The rest of a note \textsf{marginfix} splits gets the number of its note, 
 % less a million, so that it goes with the note's line but can be told from 
 % the note (|\@didactic@ifrest|): it continues a note set on its page.
 %    \begin{macrocode}
 \newcount\@didactic@noteid
 \newcommand\@didactic@tagnote{%
-  \@didactic@mcolwarn
   \ifnum\@floatpenalty<\z@
     \@didactic@ifinjected\@marbox{}{%
+      \@didactic@mcolwarn
       \global\advance\@didactic@noteid\@ne
       \global\count\@marbox\numexpr-1-\@didactic@noteid\relax
       \expandafter\xdef\csname @didactic@ln@\the\@didactic@noteid\endcsname{%
@@ -4715,7 +4717,7 @@
   \fi}
 \newcommand\@didactic@ifinjected[1]{%
   \ifdefined\Mfx@inject@insert
-    \ifx#1\Mfx@inject@insert
+    \expandafter\ifx#1\Mfx@inject@insert
       \expandafter\expandafter\expandafter\@firstoftwo
     \else
       \expandafter\expandafter\expandafter\@secondoftwo
@@ -5850,7 +5852,9 @@
 % the environment only.
 % A margin note other than a footnote has nowhere to go there, as in \LaTeX\
 % without \textsf{didactic}, where it is lost without a word; we warn
-% (|\@didactic@mcolwarn|, where a margin note is made).
+% (|\@didactic@mcolwarn|, where a margin note is made), but not for what
+% \textsf{marginfix} puts in the margin for itself (|\blockmargin|, which
+% \textsf{didactic}'s code side by side uses too), which is no note.
 %    \begin{macrocode}
 \newcommand\@didactic@mcolfoot{%
   \ifdefined\footnotesatfoot\footnotesatfoot\fi}

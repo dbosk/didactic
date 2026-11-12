@@ -358,6 +358,9 @@ MC='\def\testpre{\usepackage{multicol}}\def\testtall{.1}'
 check mcolfoot x 20 '' "kept,at=MCOLNOTE:1,incol=MCOLNOTE" "$MC"'\def\testbody{\begin{multicols}{2}FIRSTLINE\label{callout-y}\footnote{\label{note-y}MCOLNOTE} \filler\ \filler\end{multicols}}'
 # Any other margin note in multicols is lost, as in LaTeX, but with a warning.
 check mcolnote x 20 '' "mcolwarn" "$MC"'\def\testbody{\begin{multicols}{2}FIRSTLINE\marginpar{MCOLMARGIN} \filler\ \filler\end{multicols}}'
+# What marginfix puts in the margin for itself (\blockmargin, \unblockmargin) is no
+# note of the user's: no warning there.
+check mcolblock x 20 '' "nomcolwarn" "$MC"'\def\testbody{\begin{multicols}{2}FIRSTLINE \blockmargin\filler\ \unblockmargin\filler\end{multicols}}'
 # Room in the margin that is reserved, not taken by notes: a float in the text
 # with a side caption (rsvsidecap), and a passage whose text reaches into the
 # margin between \blockmargin and \unblockmargin (rsvblock).  A note called out

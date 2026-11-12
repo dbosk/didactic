@@ -62,7 +62,8 @@ test-noteplace.tex writes to the log.  EXPECT is one of:
   footwarnpast  a warning says that a footnote runs past the foot of the page.
   label=N:P   the label N is on page P.
   incol=W     W is in the text column (at the foot, not in a margin).
-  mcolwarn    a warning says that a margin note in multicols is lost.
+  mcolwarn    a warning says that a margin note in multicols is lost;
+              nomcolwarn, no such warning.
   overwarn    a warning says that a margin note runs past the foot of the margin
               (where over=N can't measure it: in two columns).
   apart=A:B   on every page, the words starting with A and those starting with B
@@ -272,6 +273,8 @@ for e in expect:
                 fails.append("page %d: %s and %s share a height" % (n, a, b))
     elif e == "overwarn" and not re.search(r"runs .{0,60}?past the foot of the margin", joined):
         fails.append("no warning that a note runs past the foot of the margin")
+    elif e == "nomcolwarn" and "margin note in multicols is lost" in joined:
+        fails.append("a warning that a margin note in multicols is lost, where none is")
     elif e == "mcolwarn" and "margin note in multicols is lost" not in joined:
         fails.append("no warning that a margin note in multicols is lost")
     elif e.startswith("label="):
