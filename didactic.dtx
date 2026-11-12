@@ -475,6 +475,17 @@
 % In a long document, the first compilation may need more passes than 
 % |latexmk| allows by default (5); it continues from where it stopped the next 
 % time, or you can raise |$max_repeat|.
+% A note counts as on the page where it starts: a mark beside the rest of a
+% footnote split over two pages gets a footnote of its own.
+% A citation beside the mark of a footnote that is carried or waits for the next
+% page shares its number, both marks before the note; the warning about that
+% footnote names the marks that share it.
+% Two settled layouts can exist: when a reusing citation's own footnote would
+% move its paragraph off the page of the note it reuses, both \enquote{reuse} (the
+% paragraph stays) and \enquote{a note of its own} (the paragraph moves) are
+% consistent, and which one a build ends in depends on the |.aux| file it starts
+% from.
+% A build from no |.aux| file is the canonical one (issue \#93).
 %
 % \DescribeOpt{biburlpenalty}
 % A URL or DOI in the bibliography, or in a citation, can only break after 
@@ -2684,6 +2695,15 @@
 % normal, and a pass that changes nothing but that state costs another pass 
 % to see that nothing changes.
 % (|compact| has to count it, since it waits for the second change.)
+% That costs |compact| a pass after a change: the count goes back to 0 when the
+% decision holds, the |.aux| file changes, and one more pass sees that nothing
+% else did.
+% Not writing the count back would need the record to tell a change in the pass
+% before from one in an earlier build: a number of passes that changed something
+% does it within a build, but the first pass after an edit reads the same number
+% and would take an unrelated change for a second one in a row (a record outliving
+% its cause, as in issue \#93), and nothing in \TeX\ tells two builds apart
+% without changing in every pass.
 %    \begin{macrocode}
 \def\@didactic@fnhold{%
   \edef\@didactic@fnnow{%
