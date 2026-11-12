@@ -54,4 +54,8 @@ job cross '\def\testcase{cross}'
 job cross-memoir '\def\testcase{cross}\def\testclass{memoir}'
 # Only at the foot does the tall note take its line along to page 4.
 job parted '\def\testcase{parted}' last=4
+# A note counts as on the page where it starts: split over pages 3 and 4, it is
+# reused on page 3 and set again on page 4.
+job splitreuse '\def\testcase{splitreuse}\def\testclass{memoir}'
+job splitrest '\def\testcase{splitrest}\def\testclass{memoir}' last=4
 exit $status

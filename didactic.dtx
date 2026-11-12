@@ -2731,11 +2731,13 @@
       repeats one on the same page, since\MessageBreak
       reusing it didn't settle}%
     \@didactic@fnreusefalse}{}}
-% \@didactic@fnnewnote{<text>}: a real footnote, with a label inside its text
-% for the page where it is printed.
+% \@didactic@fnnewnote{<text>}: a real footnote, with a label at the start of
+% its text for the page where it starts: a note split over two pages counts as
+% on the first, where its number is, and a later citation beside its rest on the
+% next page gets a note of its own.
 \def\@didactic@fnnewnote#1{%
   \edef\@didactic@fnnotelabel{didacticfnnote@\@didactic@fnserial}%
-  \mkbibfootnote{#1\expandafter\zlabel\expandafter{\@didactic@fnnotelabel}}%
+  \mkbibfootnote{\expandafter\zlabel\expandafter{\@didactic@fnnotelabel}#1}%
   \expandafter\xdef\csname @didactic@fncite@\@didactic@fnkey\endcsname
     {\the\c@footnote}%
   \expandafter\xdef\csname @didactic@fnlabel@\@didactic@fnkey\endcsname
