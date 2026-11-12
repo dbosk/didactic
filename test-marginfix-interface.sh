@@ -1,9 +1,16 @@
 #!/bin/bash
 # Build test-marginfix-interface.tex in its variants and check the log.
 #   found   the marginfix found: "didactic-interface: ok", and marginfix's list
-#           of waiting notes made of \mfx@build@note, two boxes and a position
-#   xelatex, lualatex  the same under those engines: ok
-#   tl12    TeX Live's marginfix 1.2: ok as well (its missing names are optional)
+#           of waiting notes in the shape didactic parses: nothing but
+#           \mfx@build@note with two boxes and a position, \mfx@build@skip with
+#           a length and \mfx@build@clear (didactic's check at the start of the
+#           document sees names only)
+#   xelatex, lualatex  the same under those engines: ok, and the list's shape
+#   tl12    TeX Live's marginfix 1.2: ok as well (its missing names are optional),
+#           and the list's shape
+#   changed the marginfix found with its entries in another form (the boxes in
+#           a group): the check of the list's shape fails on it, so that the
+#           check itself is tested
 #   old     the oldest kernel didactic asks for (latexrelease): ok, or carry with
 #           a warning naming what is missing; either way said
 #   broken  the kernel's \@specialoutput changed so that didactic can't patch it:
@@ -24,22 +31,34 @@ say() { # <name> <ok?> <detail>
   else echo "didactic interface test: $1 FAIL $3"; status=1; fi
 }
 line() { grep -o '^didactic-interface: .*' "$1.log" | head -1; }
+# the list after one note, as didactic parses it (\@didactic@sift and the
+# others): one or more entries, each one of three forms, and nothing else
+list() { tr -d '\n' < "$1.log" | grep -o 'interface-list: macro:->.* :end' | head -1; }
+shape() {
+  echo "$1" | grep -Eq '^interface-list: macro:->(\\mfx@build@note \\[A-Za-z@]+ \\[A-Za-z@]+ \{-?[0-9.]+pt\}|\\mfx@build@skip \{-?[0-9.]+pt\}|\\mfx@build@clear )+ :end$'
+}
 build $src-found ''
-l=$(line $src-found)
-list=$(tr -d '\n' < $src-found.log | grep -o 'interface-list: macro:->[^ ]* [^ ]* [^ ]* {[^}]*}' | head -1)
-echo "$l" | grep -q '^didactic-interface: ok' \
-  && echo "$list" | grep -q 'interface-list: macro:->\\mfx@build@note \\[^ ]* \\[^ ]* {-\?[0-9.]*pt}'
-say found $? "($l; $list)"
+l=$(line $src-found) ls=$(list $src-found)
+echo "$l" | grep -q '^didactic-interface: ok' && shape "$ls"
+say found $? "($l; $ls)"
 for e in xelatex lualatex; do
   build $src-$e '' "" $e
-  l=$(line $src-$e)
-  echo "$l" | grep -q '^didactic-interface: ok'
-  say $e $? "($l)"
+  l=$(line $src-$e) ls=$(list $src-$e)
+  echo "$l" | grep -q '^didactic-interface: ok' && shape "$ls"
+  say $e $? "($l; $ls)"
 done
 build $src-tl12 '' "$TL12//:"
-l=$(line $src-tl12)
-echo "$l" | grep -q '^didactic-interface: ok'
-say tl12 $? "($l)"
+l=$(line $src-tl12) ls=$(list $src-tl12)
+echo "$l" | grep -q '^didactic-interface: ok' && shape "$ls"
+say tl12 $? "($l; $ls)"
+mf=$(kpsewhich marginfix.sty)
+rm -rf $src-changed.d && mkdir $src-changed.d
+sed 's/\\noexpand\\mfx@build@note\\@currbox\\@marbox{\\mfx@ypos}/\\noexpand\\mfx@build@note{\\@currbox\\@marbox}{\\mfx@ypos}/' \
+  "$mf" > $src-changed.d/marginfix.sty
+build $src-changed '' "$PWD/$src-changed.d//:$TEXINPUTS"
+ls=$(list $src-changed)
+! shape "$ls" && [ -n "$ls" ] && ! cmp -s "$mf" $src-changed.d/marginfix.sty
+say changed $? "(not the shape: $ls)"
 build $src-old '\def\testoldkernel{}'
 l=$(line $src-old)
 { echo "$l" | grep -q '^didactic-interface: ok'; } \

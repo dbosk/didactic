@@ -20,7 +20,7 @@
 \AtBeginDocument{\ifdefined\MFX@combinefloats@before
   \pretocmd\MFX@combinefloats@before
     {\ifx\mfx@marginlist\@empty\else
-       \typeout{interface-list: \meaning\mfx@marginlist}\fi}{}{}\fi}
+       \typeout{interface-list: \meaning\mfx@marginlist\space:end}\fi}{}{}\fi}
 \makeatother
 \begin{document}
 Text\marginpar{NOTE} and more text.
