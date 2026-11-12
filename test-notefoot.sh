@@ -112,10 +112,12 @@ job mcol3x 4 "$C{mcol3x}${R}{34}" nofalse nooverfull nooverlap
 job mcol3 4 "$C{mcol3}${R}{34}" nofalse nooverfull nooverlap
 job mcol3n 4 "$C{mcol3n}${R}{34}" nofalse nooverfull nooverlap
 job mcol3nm 4 "$C{mcol3n}${R}{34}\\def\\testmulticols{}" nofalse nooverfull nooverlap
-# Cases still placed wrong, each said by the net (review P2, P1): the second note of
-# a line went on with its mark after a heading (found from the last run, by the
-# records), and a rest put back after a later line (said when the next column is
-# made).  They stay with these expectations until their layouts are fixed.
-job waitsec 4 "$C{waitsec}${R}{36}" nooverfull nooverlap foundlast=1
+# The second note of a line after a heading or a shrinkable space (review P2):
+# beside its line (the page so far can shrink, and the break after the line is
+# found all the same).  A rest put back after a later line (P1) is still placed
+# wrong, said when the next column is made: that row stays with its expectation
+# until its layout is fixed.
+job waitsec 4 "$C{waitsec}${R}{36}" beside nofalse nooverfull nooverlap
+job waitsh 4 "$C{waitsh}${R}{37}" beside nofalse nooverfull nooverlap
 job rest2 4 "$C{rest2}${R}{40}\\def\\testK{39}" nooverfull nooverlap 'works=reach the foot'
 exit $status

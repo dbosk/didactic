@@ -14,8 +14,9 @@
 %   mcol3n    the same as mcol3x with the two footnotes later on, in the margin
 %             (in multicols with \testmulticols);
 %   waitsec   the wait case after a heading and a line (shrinkable glue in the
-%             page so far, review P2): the second footnote of the line may go
-%             to the next page with its mark, its line staying;
+%             page so far, review P2): the second footnote of the line stays
+%             beside its line;
+%   waitsh    the same with a \vspace{0pt minus 2pt} instead of the heading;
 %   rest2     a footnote split at the foot, its rest heading the next page's
 %             foot, where a footnote of LaTeX's own and a later margin note
 %             whose line goes on (widow) follow, \testK lines down (review P1).
@@ -31,12 +32,13 @@
   \loop\ifnum\testli<\testN \noindent line \the\testli\par\advance\testli\@ne\repeat}
 \def\testreins{reins}\def\testreinsmix{reinsmix}\def\testwait{wait}
 \def\testmcolx{mcol3x}\def\testmcol{mcol3}\def\testmcoln{mcol3n}
-\def\testwaitsec{waitsec}\def\testrestb{rest2}
+\def\testwaitsec{waitsec}\def\testrestb{rest2}\def\testwaitsh{waitsh}
 \ifx\testcase\testmcolx\def\testfm#1{}\else\def\testfm#1{\fnt{#1}}\fi
+\ifx\testcase\testwaitsh\def\testwaitsec{waitsh}\fi
 \ifx\testcase\testwaitsec
   \noindent x\marginpar{\rule{1pt}{\dimexpr\textheight-8pt}} text.\par
   \testlines
-  \section{SECX}
+  \ifx\testcase\testwaitsh\vspace{0pt minus 2pt}\else\section{SECX}\fi
   SECLINE one.\par
   CALLA\fnt{FOOTA \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ ENDA}
   CALLW\fnt{FOOTW a second note, which waits for the next page.}

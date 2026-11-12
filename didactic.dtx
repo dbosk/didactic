@@ -5028,15 +5028,41 @@
 % them.
 % The kernel has already read the height of the page so far, which this
 % doesn't change; only its depth may move into it.
+% A page so far that can shrink (the glue around a heading, a |\vspace| with a
+% |minus|) fits its own height without its end by shrinking, and the split
+% then takes it all: the height to split to is then the least the copy can be
+% packed to, found by halving (a box packed to less is overfull), less 1sp.
+% A page so far that can shrink without end (|\vss|) is left as it is: the
+% records then say where its notes went (|\@didactic@record|).
 %    \begin{macrocode}
 \newif\if@didactic@samelined
+\newdimen\@didactic@shlo
+\newdimen\@didactic@shhi
 \newcommand\@didactic@sameline{%
   \global\@didactic@samelinedfalse
   \begingroup
     \vbadness\@M \vfuzz\maxdimen
     \splitmaxdepth\maxdimen \splittopskip\z@skip
     \setbox\z@\vbox{\unvcopy\@holdpg\kern1sp}%
-    \setbox\tw@\vsplit\z@ to\dimexpr\ht\z@-1sp\relax
+    \@didactic@shhi\ht\z@
+    \setbox4\vbox to\dimexpr\ht\z@-1sp\relax{\unvcopy\z@}%
+    \ifnum\badness<1000000
+      \setbox4\vbox to\z@{\unvcopy\z@}%
+      \ifnum\badness<1000000
+        \setbox\z@\box\voidb@x
+      \else
+        \@didactic@shlo\z@
+        \loop\ifdim\dimexpr\@didactic@shhi-\@didactic@shlo\relax>\@ne sp
+          \dimen@\dimexpr(\@didactic@shlo+\@didactic@shhi)/2\relax
+          \setbox4\vbox to\dimen@{\unvcopy\z@}%
+          \ifnum\badness=1000000
+            \@didactic@shlo\dimen@\else\@didactic@shhi\dimen@\fi
+        \repeat
+      \fi
+    \fi
+    \ifvoid\z@\else
+      \setbox\tw@\vsplit\z@ to\dimexpr\@didactic@shhi-1sp\relax
+    \fi
     \ifvoid\z@\else
       \ifdim\dimexpr\ht\z@+\dp\z@\relax=\z@
         \global\setbox\@holdpg\vbox{\unvbox\tw@\unvbox\z@}%
