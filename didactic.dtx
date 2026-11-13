@@ -1903,6 +1903,9 @@
 % \DescribeMacro{\didacticlanguage}
 % The edition is the main language of \textsf{babel}: |swedish| gives the 
 % Swedish edition, and any other language the English one.
+% So the feature needs \textsf{babel}, which this package loads anyway: a 
+% document with \textsf{polyglossia} instead stops where this package loads 
+% \textsf{babel}, with or without the bilingual feature.
 % So a driver for each edition needs to say its language only once, before 
 % the shared preamble, and a whole book, such as a Swedish book that binds 
 % some bilingual decks, gets the right edition with no further setting:
