@@ -671,7 +671,10 @@ def frametitle_boxes(c):
         title_word = c.one(title)
         below = [w for w in c.pages[title_word["page"] - 1]
                  if w["text"].split("(")[0] == first]
-        c.ok(any(w["ymin"] >= title_word["ymax"] - 1 for w in below),
+        # below the title by the word's vertical centre: the letters A and B are in
+        # included pictures, whose text boxes pdftotext gives by how the engine
+        # includes them (under pdfTeX the box starts above the glyph)
+        c.ok(any((w["ymin"] + w["ymax"]) / 2 >= title_word["ymax"] for w in below),
              f"{title} is on a line of its own, above {first}")
     heading = max(c.words("Contents"), key=lambda w: w["ymax"] - w["ymin"])
     toc_title = c.one("TTOC")

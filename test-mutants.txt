@@ -37,14 +37,15 @@
 #            -enumitem, and the sweep in variants m, s, k, m3, c, k3 and a, against their
 #            references (5 to 9 minutes; 7)
 #   biburl   test-biburl, which builds test-biburl-overfull and test-biburl-breaks (in
-#            five modes, under xelatex, pdflatex and lualatex) (1 to 2 minutes; 1.5);
+#            five modes, under pdflatex and lualatex) (1 to 2 minutes; 1.5);
 #            with the Makefile's engines, as the target chooses them
 #   footcite test-noteoverflow-foot, its job default only (CASES=default), against the
 #            marginfix found or $MARGINFIX (about 1 minute)
 #   noteplace test-noteplace, its rows rsvsidecap, rsvblock, mcolblock,
 #            rsvsidebefore, heldtop and heldsecond only, against the marginfix found or $MARGINFIX (1 minute)
-# All with pdflatex, for speed, where make tests uses xelatex, but title with xelatex: its
-# check reads a letter inside a picture, whose box depends on the engine.
+# All with pdflatex, the Makefile's default since #72.  The title group's check reads a
+# letter inside a picture by its vertical centre, not by its box, which depends on the
+# engine: its three mutants are killed under xelatex too (PDFLATEX=xelatex make mutants).
 #
 # A kill needs a named reason: the targets are named, and a full disk is an ERROR.  A
 # mutant that breaks a build also fails, so these keep the document compiling.

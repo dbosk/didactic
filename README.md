@@ -49,9 +49,13 @@ For the package:
 
 To build the documentation and run the tests, also:
 
-- `xelatex` (the Makefile's default engine), `pdflatex` (the tests that need it
-  name it) and `lualatex` (`test-noteoverflow-lua`); `latex` for docstrip;
-  `makeindex` and `biber`.
+- `pdflatex` (the Makefile's default engine), `xelatex` and `lualatex` (the
+  tests about those engines name them: `test-noteoverflow-xe` and
+  `test-noteoverflow-lua`, jobs in the note suites, `test-footwide`, the biburl
+  tests); `latex` for docstrip; `makeindex` and `biber`.  The whole set runs on
+  another engine with `PDFLATEX=xelatex make tests`, the engine in the
+  environment: the jobs that name theirs keep it (on make's command line,
+  `PDFLATEX=` would override them too).
 - `pythontex` on the command line, with Python 3.
 - A `noweb` whose `noweb.sty` has the option `[minted]` and whose `noweave` has
   the filter `tominted`: the `integration` branch of
@@ -142,7 +146,8 @@ What isn't tested, as far as we know:
 - The keep rules under KOMA-Script's classes, and under `report` and `book`
   beyond `test-keep-chapter-book`; the tests use `memoir` and `article`.
 - The rules room by room under XeLaTeX or LuaLaTeX: the sweep runs under
-  pdflatex only (for its fonts); the other keep tests run under xelatex.
+  pdflatex only (for its fonts), as the other keep tests do by default;
+  `PDFLATEX=xelatex make tests` runs them under xelatex.
 - `keeplines` and `keepends` on real documents: `measure-real` has the settings
   `keeplines-0` and `keepends-3` (and `keepafterheading-3`) for it, which the
   default run leaves out; no figures from them are in the documentation yet.

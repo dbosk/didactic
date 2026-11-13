@@ -1,5 +1,5 @@
 LATEX?=latex
-PDFLATEX?=xelatex
+PDFLATEX?=pdflatex
 LATEXFLAGS=-shell-escape
 PYTHONTEX=python3 $(shell which pythontex) --interpreter python:python3
 
@@ -450,6 +450,7 @@ NOTEOVERFLOW_SRC=	test-noteoverflow-contents.tex test-noteoverflow.py didactic.s
 test-noteoverflow.pdf test-noteoverflow-carry.pdf test-noteoverflow-draft.pdf \
 		test-noteoverflow-draftfoot.pdf: PDFLATEX=pdflatex
 test-noteoverflow-lua.pdf: PDFLATEX=lualatex
+test-noteoverflow-xe.pdf: PDFLATEX=xelatex
 define settle_many
 floor=15; for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do \
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode \
@@ -642,15 +643,17 @@ test-biburl-breaks: test-biburl-breaks.tex test-biburl-memoir.tex \
 
 # what biburlpenalty is for: a bibliography whose URL and DOI have 90 letters
 # and digits without punctuation is set without an Overfull \hbox; both
-# entries must be there, with their URL and DOI.
+# entries must be there, with their URL and DOI.  The labels are biblatex's, in
+# small caps, which pdftotext gives in lower case under pdfLaTeX's fonts: the
+# greps ignore case.
 test-biburl-overfull.pdf: test-biburl-overfull.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	biber $(basename $@)
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	! grep -A3 'Overfull .hbox' $(basename $@).log
 	test "$$(grep -c 'entry{' $(basename $@).bbl)" -eq 2
-	pdftotext $@ - | grep -q 'DOI:'
-	pdftotext $@ - | grep -q 'URL:'
+	pdftotext $@ - | grep -qi 'doi:'
+	pdftotext $@ - | grep -qi 'url:'
 
 VERSION=$(shell sed -En "s/^.*v([0-9]+(\.[0-9]+)+) didactic.*$$/\1/p" didactic.dtx)
 .PHONY: release

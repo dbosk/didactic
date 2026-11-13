@@ -28,8 +28,10 @@ says what it needs and how to run the tests; this file is for working on it.
 - `make all` builds `didactic.sty` and `didactic.pdf` only. `make tests
   LATEXFLAGS=...` runs every test, `make check` and the note suites among them;
   about an hour and a half on one job. `MARGINFIX=<dir>` chooses the marginfix.
-  The Makefile's default engine is xelatex; tests that need pdflatex or lualatex
-  name it.
+  The Makefile's default engine is pdflatex (#72); the tests about xelatex or
+  lualatex name theirs, so `PDFLATEX=xelatex make tests` (in the environment,
+  not on make's command line, which overrides the named ones) runs the rest
+  under xelatex.
 - A test fails `make`, by the Makefile's checks or `test-check.py`; a PDF that
   merely builds checks nothing. New checks go into `tests`.
 - After a change to how notes are set, run the whole `make -k tests`, not only

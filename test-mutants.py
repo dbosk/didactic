@@ -56,9 +56,9 @@ GROUPS = {
 PHONY = {"test-biburl", "test-noteoverflow-foot", "test-noteplace"}
 # the job of a phony target that the group runs ($CASES of its script)
 CASES = {"footcite": "default", "noteplace": "rsvsidecap rsvblock mcolblock rsvsidebefore heldtop heldsecond"}
-# All with pdflatex, for speed, but the frame titles with the Makefile's xelatex:
-# test-frametitle-boxes reads a letter inside a picture, whose box in pdftotext's output
-# depends on the engine.
+# All with pdflatex, for speed; the frame titles with the Makefile's default engine,
+# pdflatex too since #72 (test-frametitle-boxes reads a letter inside a picture by its
+# vertical centre, which doesn't depend on the engine as its box does).
 BROKEN = re.compile(r"No space left|Disk quota|I can't write on file")
 
 
