@@ -157,7 +157,7 @@ check lastroom x 4 'keepmaxgap=2' "kept,lonewarn,gap=2" "$L4"
 # the foot.  The paragraph can't break, so the page ends before LINEA, taking
 # the three lines back: A, B's copy for the foot and NOTEY go with them to the
 # next page, each beside or under its line there, or with a warning.
-DEC='\def\testtall{.1}\def\testbody{{\interlinepenalty=10000 \clubpenalty=10000 \widowpenalty=10000 \noindent FIRSTLINE LINEA\label{c-a}\marginpar{\label{n-a}A}\newline LINEB\label{c-b}\footnote{\label{n-b}B \filler}\newline LINEC\yieldnote[\par\rule{1pt}{2\baselineskip}]\par}}'
+DEC='\def\testtall{.1}\def\testbody{{\interlinepenalty=10000 \clubpenalty=10000 \widowpenalty=10000 \noindent FIRSTLINE LINEA\label{c-a}\marginpar{A\label{n-a}}\newline LINEB\label{c-b}\footnote{\label{n-b}B \filler}\newline LINEC\yieldnote[\par\rule{1pt}{2\baselineskip}]\par}}'
 check decided x 3 '' "kept,pairs,lonewarn" "$DEC"
 # A note that fits, called out on a line that TeX's own page break then takes
 # to the next page: the paragraph can't break, and when its last line doesn't
@@ -186,7 +186,7 @@ HS='\def\testbody{{\interlinepenalty=10000 \noindent FIRSTLINE\zsavepos{fl}\newl
 check heldsecond x 3 '' kept,align=fl:nt "$ALONE$HP$HS"
 # Two callouts in the paragraph that moves: the special output for the second
 # reads a page so far that holds the mark of the first.
-TWO='\def\testbody{{\interlinepenalty=10000 \noindent FIRSTLINE\newline SECOND\yieldnote{}\newline THIRD\marginpar{\label{n-b}OTHER}\label{c-b}\newline FOURTH\par}}'
+TWO='\def\testbody{{\interlinepenalty=10000 \noindent FIRSTLINE\newline SECOND\yieldnote{}\newline THIRD\marginpar{OTHER\label{n-b}}\label{c-b}\newline FOURTH\par}}'
 check linemovestwo x 3 '' kept,pairs "$ALONE$TWO"
 # The same in two columns, where a column, not a page, is made at a time (the
 # paragraph goes to the second column of page 1; the row caught lineno, which
@@ -210,7 +210,7 @@ check readfallback x 3 '' "warned,callwarn" "$SHRINKOUT\\def\\testtall{.1}\\def\
 # the reading, says nothing either (ltnodoubt: the same table, no note on its
 # pages, the shrink at the column's top).
 LT='\begin{longtable}{l}\endhead '"$(python3 -c "print('row\\\\\\\\ '*150)")"'\end{longtable}'
-check ltcallouts x 3 '' "kept,nocallwarn,pairs" "\\def\\testpre{\\usepackage{longtable}}\\def\\testfirst{}\\def\\testbody{FIRSTLINE\\yieldnote{} \\filler\\par $LT AFTER\\label{c-a}\\marginpar{\\label{n-a}AFTERNOTE} \\filler\\par}"
+check ltcallouts x 3 '' "kept,nocallwarn,pairs" "\\def\\testpre{\\usepackage{longtable}}\\def\\testfirst{}\\def\\testbody{FIRSTLINE\\yieldnote{} \\filler\\par $LT AFTER\\label{c-a}\\marginpar{AFTERNOTE\\label{n-a}} \\filler\\par}"
 check ltnodoubt x 3 '' "nocallwarn" "$SHRINKOUT\\def\\testpre{\\usepackage{longtable}}\\def\\testfirst{}\\def\\testbody{FIRSTLINE \\filler\\par $LT AFTER \\filler\\par}"
 # Who gets the warning that a note is set on another page than its callout:
 # every such note once, whoever moved it, but the rest of a note marginfix
@@ -220,9 +220,9 @@ check ltnodoubt x 3 '' "nocallwarn" "$SHRINKOUT\\def\\testpre{\\usepackage{longt
 # whole to the next page (too little room to cut it there): one warning;
 # deferrable: a deferrable note in the mode split that moves for the note
 # after it: marginfix's notice, none of didactic's.
-TALLCUT='\def\testtall{.1}\def\testbody{FIRSTLINE\marginpar{\label{n-a}TALLCUT\par\rule{1pt}{1.3\textheight}}\label{c-a} \filler\par}'
+TALLCUT='\def\testtall{.1}\def\testbody{FIRSTLINE\marginpar{TALLCUT\label{n-a}\par\rule{1pt}{1.3\textheight}}\label{c-a} \filler\par}'
 check tallcut x 9 '' "pairs,exactwarn" "$TALLCUT"
-DEFER='\def\testtall{.1}\def\testbody{FIRSTLINE\marginpar{\label{n-d1}\marginnotedeferrable DEFER\par\rule{1pt}{.6\textheight}}\label{c-d1} \oneline\ more\marginpar{\label{n-b}PLAIN\par\rule{1pt}{.3\textheight}}\label{c-b} \filler\par}'
+DEFER='\def\testtall{.1}\def\testbody{FIRSTLINE\marginpar{\marginnotedeferrable DEFER\label{n-d1}\par\rule{1pt}{.6\textheight}}\label{c-d1} \oneline\ more\marginpar{PLAIN\label{n-b}\par\rule{1pt}{.3\textheight}}\label{c-b} \filler\par}'
 check deferrable x 9 'notepriority=split' "exactwarn" "$DEFER"
 # In two columns foot works as carry: silently with the default, with a
 # warning when a passage asks for foot (the option's case is in
@@ -414,8 +414,8 @@ check mcolblock x 20 '' "nomcolwarn" "$MC"'\def\testbody{\begin{multicols}{2}FIR
 # after them goes where marginfix finds room, or later with a warning, and never
 # over what reserved the room.
 NOTEL='NOTEY notea noteb notec noted notee notef noteg noteh notei notej notek notel notem noten noteo notep noteq noter notes'
-check rsvsidecap x 30 '' "warned,apart=cap:note" "\\def\\testtall{.1}\\def\\testbody{\\begin{figure}[h]\\begin{sidecaption}{capa capb capc capd cape capf capg caph capi capj capk capl capm capn capo capp capq}\\rule{6cm}{5cm}\\end{sidecaption}\\end{figure}After the figure.\\label{callout-y}\\marginpar{\\label{note-y}$NOTEL} \\filler\\par}"
-check rsvblock x 30 '' "warned,apart=WIDE:note" "\\def\\testtall{.1}\\def\\testbody{\\blockmargin\\begin{adjustwidth}{0pt}{-4cm}WIDEA \\filler\\ WIDEB \\filler\\ WIDEC \\filler\\end{adjustwidth}\\unblockmargin Then the note.\\label{callout-y}\\marginpar{\\label{note-y}$NOTEL} \\filler\\par}"
+check rsvsidecap x 30 '' "warned,apart=cap:note" "\\def\\testtall{.1}\\def\\testbody{\\begin{figure}[h]\\begin{sidecaption}{capa capb capc capd cape capf capg caph capi capj capk capl capm capn capo capp capq}\\rule{6cm}{5cm}\\end{sidecaption}\\end{figure}After the figure.\\label{callout-y}\\marginpar{$NOTEL\\label{note-y}} \\filler\\par}"
+check rsvblock x 30 '' "warned,apart=WIDE:note" "\\def\\testtall{.1}\\def\\testbody{\\blockmargin\\begin{adjustwidth}{0pt}{-4cm}WIDEA \\filler\\ WIDEB \\filler\\ WIDEC \\filler\\end{adjustwidth}\\unblockmargin Then the note.\\label{callout-y}\\marginpar{$NOTEL\\label{note-y}} \\filler\\par}"
 # A float with a side caption after a tall note called out before it on the page:
 # the float gives way, so that the note stays beside its line (the float's rule,
 # \@didactic@floatroom); without it the float took the margin and the note went on.
