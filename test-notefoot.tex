@@ -103,8 +103,12 @@
 \def\testorder{order}\def\testfnrule{fnrule}\def\testfnedge{fnedge}
 \def\testtall{tall}\def\testgen{gen}\def\testtwotall{twotall}
 % A margin note with labels, as \fn's, for the cases that check plain notes too.
+% The label and position go after the note's first word (a word or a rule), in its
+% first line, so that the note's box begins with that line, as a real note's does.
+\def\testmpfirst#1 {#1\label{n-\mkv}\zsavepos{n-\mkv} }
+\let\testmpend\relax
 \newcommand\testmp[1]{\stepcounter{mk}\edef\mkv{\arabic{mk}}%
-  \label{m-\mkv}\zsavepos{m-\mkv}\marginpar{\label{n-\mkv}\zsavepos{n-\mkv}#1}}
+  \label{m-\mkv}\zsavepos{m-\mkv}\marginpar{\testmpfirst#1 \testmpend}}
 \begin{document}
 \ifdefined\testN\input{test-notefoot-reins}\else
 \ifx\testcase\testdrift
