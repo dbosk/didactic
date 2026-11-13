@@ -471,6 +471,7 @@ reading.items.append(
 number = last
 <<constants>>=
 INDENTED_END = re.compile(r"\s+\\end\{" + LANGUAGE + r"\}\s*$")
+AT_END = re.compile(r"@\s+\\end\{" + LANGUAGE + r"\}\s*(?:%.*)?$")
 END_WITH_TEXT = re.compile(r"\\end\{" + LANGUAGE + r"\}\s*\S")
 <<functions>>=
 def end_of_block(lines, number, language, errors):
@@ -487,7 +488,9 @@ def end_of_block(lines, number, language, errors):
             return index
         if shown is None:
             <<check a line of a block>>
-        elif shown == "chunk" and CHUNK_END.match(line) and closer in line:
+        elif shown == "chunk" and (match := AT_END.match(line)) and (
+            match.group(1) == language
+        ):
             errors.append(
                 (index, f"this {closer} after the @ of a chunk doesn't end its "
                  "block: put it on a line of its own")
@@ -499,6 +502,9 @@ def end_of_block(lines, number, language, errors):
 
 One mistake inside a block gets a message of its own, since it looks right in
 the source: [[@ \end{en}]], the end of a chunk and of the block on one line.
+It's that line exactly, the block's own end after the [[@]] with at most a
+comment after it: a line of prose that mentions [[\end{en}]] after the [[@]]
+is prose, and an [[\end{sv}]] there doesn't end an [[en]] block either.
 \texttt{noweave} writes the text after the [[@]] on the same line as its own
 markup, so the [[\end{en}]] isn't alone on its line in the woven file, and
 the block doesn't end there.
@@ -679,6 +685,23 @@ def test_the_at_of_a_chunk_with_the_end_on_its_line_is_named(repo):
   result = run(repo, "contents.nw")
   assert result.returncode == 2
   assert "contents.nw:4: this \\end{en} after the @ of a chunk" in result.stderr
+
+
+@pytest.mark.parametrize(
+  "line",
+  [
+    "@ We close with \\verb|\\end{en}| below.",
+    "@ \\end{sv}",
+  ],
+)
+def test_other_text_after_the_at_of_a_chunk_is_fine(repo, line):
+  (repo / "contents.nw").write_text(
+    "\\begin{en}\n@<<[[a.py]]>>=\nx\n" + line + "\n\\end{en}\n"
+    "\\begin{sv}\nB\n\\end{sv}\n@<<[[b.py]]>>=\ny\n@\n"
+  )
+  result = run(repo, "--list", "contents.nw")
+  assert result.returncode == 0, result.stderr
+  assert "after the @" not in result.stderr
 
 
 @pytest.mark.parametrize("last_in_block", [True, False])
