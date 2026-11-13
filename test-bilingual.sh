@@ -41,9 +41,11 @@ check() {
     *) fail "$job" "SHARED is missing" ;;
   esac
   case "$text" in
-    *"Hello, World"*|*"hello"*) ;;
-    *) fail "$job" "the block's minted or runpython is missing" ;;
+    *'print("Hello, world!")'*) ;;
+    *) fail "$job" "the block's \\inputminted is missing" ;;
   esac
+  printf '%s\n' "$text" | grep -qx 'Hello, world!' \
+    || fail "$job" "the output of the block's \\runpython is missing"
 }
 
 NOTES="TITLE CHAPTER SECTION PROSE FRAMETITLE FRAME VERBATIM EXERCISE ITEM \
@@ -87,6 +89,7 @@ esac
 # A name that comment.sty would overwrite stops the build, with a message that
 # names the way out; an environment of that name is no such thing.
 taken() {
+  rm -f test-bilingual-taken.pdf
   ${PDFLATEX:-pdflatex} -shell-escape -interaction=nonstopmode \
     -jobname=test-bilingual-taken \
     "\\documentclass{${CLASS:-article}}\\usepackage[british]{babel}$1\\begin{document}${2:-x}\\end{document}" \
@@ -174,6 +177,7 @@ esac
 mkdir -p test-bilingual-import.d
 printf '\\begin{en}\nFRESHCUT\n\\end{en}\n' > test-bilingual-import.d/inner.tex
 echo STALECUT > test-bilingual-import.d/test-bilingual-import.cut
+rm -f test-bilingual-import.pdf
 ${PDFLATEX:-pdflatex} -shell-escape -interaction=nonstopmode \
   -jobname=test-bilingual-import \
   "\\documentclass{article}\\usepackage[british]{babel}\\usepackage{import}\\usepackage{didactic}\\begin{document}\\subimport{test-bilingual-import.d/}{inner}\\end{document}" \
