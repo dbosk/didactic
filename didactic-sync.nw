@@ -303,6 +303,7 @@ class Reading:
     stamp_lines: dict = field(default_factory=dict)
     text_lines: set = field(default_factory=set)
     errors: list = field(default_factory=list)
+    notes: list = field(default_factory=list)
 <<functions>>=
 def read_source(text):
     """Read `text` as `LaTeX` will: find the blocks and the other lines."""
@@ -797,6 +798,14 @@ the strings written with it.
 What isn't a use is a definition, in a document that has its own [[\ensv]]
 and the option [[nobilingual]]: the name right after a command that defines
 one, such as [[\newcommand]] or [[\def]].
+And a file that defines [[\ensv]] has its own, so there, as in the package,
+the name is the document's: its uses are neither pairs nor errors, whatever
+their arguments, and only [[\didactictr]] is read.
+The state check says so once, on the standard error, since a deck's pairs
+written with [[\ensv]] would otherwise vanish from the report without a word.
+What the script can't know is a definition in another file, such as a preamble
+that the document inputs: there the uses of [[\ensv]] are read as ours, and
+[[\didactictr]] is the way out.
 Nor is one that's shown as code, in noweb's quoting, [[\verb]] or
 [[\mintinline]]: a text about this package has plenty of those.
 So the search for the command looks at a copy of the text with those blanked
@@ -812,6 +821,7 @@ DEFINING = re.compile(
     r"|(?:New|Renew|Provide|Declare)DocumentCommand)\s*\{?\s*$"
 )
 DEFINING_REACH = 40
+OWN_ENSV = "this file defines \\ensv, so it's left alone here; use \\didactictr"
 QUOTED = re.compile(
     r"\[\[.*?\]\]"
     r"|\\verb\*?([^a-zA-Z\s]).*?\1"
@@ -827,18 +837,27 @@ class Ensv:
     en: str
     sv: str
 <<functions>>=
+def is_definition(match):
+    """Tell whether a match of `ENSV` is the name a defining command defines."""
+    start = match.start()
+    before = match.string[max(0, start - DEFINING_REACH) : start]
+    return bool(DEFINING.search(before))
+
+
 def find_ensv(reading):
     """Return all uses of `\\ensv` in a source, in order."""
     raw = "\n".join(reading.lines)
     text = "\n".join(blank_non_text(reading))
     searchable = QUOTED.sub(lambda quoted: " " * len(quoted.group()), text)
+    matches = list(ENSV.finditer(searchable))
+    defined = {match.group("name") for match in matches if is_definition(match)}
+    if "ensv" in defined:
+        reading.notes.append(OWN_ENSV)
     found = []
     position = 0
     while match := ENSV.search(searchable, position):
         position = match.end()
-        start = match.start()
-        before = searchable[max(0, start - DEFINING_REACH) : start]
-        if DEFINING.search(before):
+        if is_definition(match) or match.group("name") in defined:
             continue
         first = read_argument(text, position)
         second = first and read_argument(text, first[1] + 1)
@@ -1065,17 +1084,18 @@ def ensv_pairs(reading):
 @
 
 Now it comes together, for a text from wherever it comes.
-The stamp lines that no pair used are returned too.
+The stamp lines that no pair used are returned too, and the notes for the
+report.
 
 <<functions>>=
 def read_pairs(text):
-    """Return a source's pairs, in order, unused stamp lines and errors."""
+    """Return a source's pairs, in order, unused stamp lines, errors, notes."""
     reading = read_source(text)
     pairs, used = block_pairs(reading)
     pairs += ensv_pairs(reading)
     pairs.sort(key=lambda pair: pair.first)
     leftover = sorted(set(reading.stamp_lines) - used)
-    return pairs, leftover, reading.errors
+    return pairs, leftover, reading.errors, reading.notes
 @
 
 Let's verify the pairing rule, in its various directions: comments and blank
@@ -1379,6 +1399,22 @@ def test_our_names_without_two_arguments_are_an_error(repo, source):
   assert "contents.nw:1" in result.stderr
 
 
+def test_a_file_that_defines_ensv_keeps_it(repo):
+  path = repo / "contents.nw"
+  path.write_text(
+    "\\newcommand\\ensv[2]{#1}\n"
+    "\\ensv{x}{y} and \\ensv{z}\n"
+    "\\didactictr{Yes}{Ja}\n"
+  )
+  result = run(repo, "-v", "contents.nw")
+  assert result.returncode == 1, result.stderr
+  assert "1 pairs" in result.stdout
+  assert "contents.nw:3: new pair" in result.stdout
+  assert result.stderr.count("defines \\ensv") == 1
+  assert run(repo, "--stamp", "contents.nw:3").returncode == 0
+  assert run(repo, "contents.nw").returncode == 0
+
+
 def test_a_tr_is_somebody_elses(repo):
   path = repo / "contents.nw"
   path.write_text("$\\tr{A}$ and $\\tr{B}{C}$, \\ensv{Yes}{Ja}\n")
@@ -1428,9 +1464,11 @@ can use, so it goes to standard error and gives a status of its own.
 <<functions>>=
 def check_file(path, verbose=False):
     """Report on the pairs of one file; return how many aren't in sync."""
-    pairs, leftover, errors = read_pairs(read_text(path))
+    pairs, leftover, errors, notes = read_pairs(read_text(path))
     for line, message in errors:
         print(f"{path}:{line + 1}: {message}", file=sys.stderr)
+    for note in notes:
+        print(f"{path}: {note}", file=sys.stderr)
     counts = Counter()
     for line in leftover:
         print(f"{path}:{line + 1}: {LEFTOVER_STAMP}")
@@ -1975,7 +2013,7 @@ def stamp_pair(target):
         return f"{path}: no such file"
     text = read_text(path)
     mark = BYTE_ORDER_MARK if text.startswith(BYTE_ORDER_MARK) else ""
-    pairs, leftover, errors = read_pairs(text)
+    pairs, leftover, errors, _ = read_pairs(text)
     if errors:
         return f"{path}:{errors[0][0] + 1}: {errors[0][1]}"
     lines = text.removeprefix(mark).split("\n")
@@ -2404,7 +2442,7 @@ def pairs_at(root, commit, names):
     for name in names:
         text = git(root, "show", f"{commit}:{name}")
         if text is not None:
-            pairs, _, problems = read_pairs(text)
+            pairs, _, problems, _ = read_pairs(text)
             found += [(name, pair) for pair in pairs]
             errors += [
                 f"{name}:{line + 1}: {message}" for line, message in problems

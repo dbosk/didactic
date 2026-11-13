@@ -1979,9 +1979,11 @@
 % |\comment|.
 % (This package defines no |\tr|, which \textsf{physics} has for the trace.)
 % If |\ensv| is taken when this package is loaded, it stays as it is, with a 
-% warning, and the command is available as |\didactictr|; then 
-% \texttt{didactic-sync.py} sees only the strings written with 
-% |\didactictr|.
+% warning, and the command is available as |\didactictr|.
+% \texttt{didactic-sync.py} leaves |\ensv| alone only in a file that defines 
+% it; it can't know of a package's, or of a definition in another file, and 
+% reads the uses there as pairs, so such a document is best checked with its 
+% strings written as |\didactictr| (\cref{sec:sync-tr}).
 % If |\en|, |\sv| or a command |\comment| is taken, then \textsf{comment} would 
 % overwrite it and the document would break somewhere else, so that's an error.
 % An environment |comment| is replaced by one that drops its contents.
