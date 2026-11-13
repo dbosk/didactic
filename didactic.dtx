@@ -5357,8 +5357,8 @@
 % Deferrable notes are \textsf{marginfix}'s: they give way to the others at 
 % the page build, by its mode (|\marginnotepriority|), so we never decide for 
 % one, and count it at what it keeps (|\@didactic@deferclaim|).
-% Counting them at their full height would carry notes or end pages early 
-% where \textsf{marginfix} would have made room.
+% Counting them at their full height would send the notes after them to the
+% foot or to the next page where \textsf{marginfix} would have made room.
 %
 % \begin{macro}{\@didactic@decide}
 % The decision itself, for the note at the head of |\@currlist|, before the 

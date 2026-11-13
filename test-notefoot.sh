@@ -5,14 +5,15 @@
 # and the checks are the labels, saved positions, PDF and warnings.  Each job runs
 # until its .aux file stops changing and LaTeX asks for no other run, within the
 # runs a case allows; and runs to settle are a requirement: each job is built
-# again with noteoverflow=carry (\testfloor, job <job>-floor), which moves no note
-# for a page that ends early, and may take at most one run more than that floor.
+# again with noteoverflow=carry (\testfloor, job <job>-floor), which places no note
+# but beside its line or on a later page, and may take at most one run more than
+# that floor.
 # $ENGINE (pdflatex), $CASES (job names) and $PRE (TeX code put first, to load
 # another implementation, say) can be set; RECHECK=1 checks the jobs there are.
 #
 # Dropped from footcheck, as they test a mechanism, not an outcome: firstrun (the
-# fork's message that the notes haven't settled), local (\marginnoteoverflow in a
-# group, marginfix's), lastlimit, footrec, stale and limit (yield records and
+# fork's message that the notes haven't settled), local (marginfix's
+# \marginnoteoverflow in a group; didactic's is the row local below), lastlimit, footrec, stale and limit (yield records and
 # \marginnoteyieldlimit; the limit is keepmaxgap now: test-noteplace's lastlimit
 # and lastroom are the limit honoured for a note on the last lines of a page).
 src=test-notefoot

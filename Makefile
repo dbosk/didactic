@@ -444,8 +444,8 @@ test-keep-stale.pdf: test-keep-stale.tex test-keep-stale.sh didactic.sty
 # from labels at each footnote's mark and in its note, on which page each note is
 # set, and that every note away from its mark is named by a warning.  Runs to
 # settle are a requirement: each document is built first with noteoverflow=carry
-# (\testfloor, job <name>-floor), which moves no note for a page that ends early,
-# and may then take at most one run more than that floor.
+# (\testfloor, job <name>-floor), which places no note but beside its line or on
+# a later page, and may then take at most one run more than that floor.
 NOTEOVERFLOW_SRC=	test-noteoverflow-contents.tex test-noteoverflow.py didactic.sty
 test-noteoverflow.pdf test-noteoverflow-carry.pdf test-noteoverflow-draft.pdf \
 		test-noteoverflow-draftfoot.pdf: PDFLATEX=pdflatex

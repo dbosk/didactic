@@ -40,8 +40,9 @@
 # on each command line (to load another implementation, say).
 #
 # Runs to settle are a requirement: each job is built again with
-# noteoverflow=carry (\testfloor, job <job>-floor), which moves no note for a
-# page that ends early, and may take at most two runs more than that floor:
+# noteoverflow=carry (\testfloor, job <job>-floor), which places no note but
+# beside its line or on a later page, and may take at most two runs more than
+# that floor:
 # citations here reuse notes (footnotereuse), and the number of a reusing mark
 # may change a run after the note it reuses moves.
 src=test-noteoverflow-foot

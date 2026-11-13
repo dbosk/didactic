@@ -4,9 +4,9 @@
 # test-footreuse-spread.py.  Each job runs biber after its first run, then runs
 # until its .aux file stops changing and LaTeX asks for no other run (at most
 # $MAXRUNS, 8: not settling fails).  Runs to settle are a requirement: each job is
-# built again with noteoverflow=carry (\testfloor, job <job>-floor), which moves
-# no note for a page that ends early, and may take at most two runs more than that
-# floor, as these rows are about reuse: the number of a reusing mark may change
+# built again with noteoverflow=carry (\testfloor, job <job>-floor), which places
+# no note but beside its line or on a later page, and may take at most two runs
+# more than that floor, as these rows are about reuse: the number of a reusing mark may change
 # a run after the note it reuses moves.  $ENGINE (pdflatex), $CASES (job names) and
 # $PRE (TeX code put first, to load another implementation, say) can be set.
 src=test-footreuse-spread

@@ -9,8 +9,8 @@
 # a job that doesn't settle, or has an error, fails, as does a run that takes
 # more than $TEXTIMEOUT seconds (120): a layout that never ends.  Runs to settle are a
 # requirement: each job is built again with noteoverflow=carry (\testfloor, job
-# <job>-floor), which moves no note for a page that ends early, and may take at
-# most one run more than that floor.  $ENGINE (pdflatex), $CASES
+# <job>-floor), which places no note but beside its line or on a later page, and
+# may take at most one run more than that floor.  $ENGINE (pdflatex), $CASES
 # (names to run; all by default) and $PRE (TeX code put before the document, say
 # to load another implementation) can be set; RECHECK=1 checks the jobs there are
 # again without building them.  Run from the repository after make didactic.sty.
