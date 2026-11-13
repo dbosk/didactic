@@ -932,6 +932,10 @@ written with [[\ensv]] would otherwise vanish from the report without a word.
 What the script can't know is a definition in another file, such as a preamble
 that the document inputs, or in a package: there the uses of [[\ensv]] are read
 as ours, and [[\didactictr]] is the way out.
+Nor can it run \TeX: a definition that \TeX\ never reaches, inside
+[[\iffalse]], counts all the same, and so does a [[\providecommand]] after
+the package is loaded, which keeps the package's [[\ensv]]; for the latter
+the note says that it was a [[\providecommand]].
 Our name as the second operand of [[\let]], [[\let\x\ensv]], is an alias, and
 an error, since the strings written with [[\x]] would never be seen.
 
@@ -949,6 +953,10 @@ DEFINERS = {
 }
 COPIERS = {"let", "NewCommandCopy", "RenewCommandCopy", "DeclareCommandCopy"}
 OWN_ENSV = "this file defines \\ensv, so it's left alone here; use \\didactictr"
+PROVIDED_ENSV = (
+    "this file defines \\ensv with \\providecommand, which keeps didactic's "
+    "if it comes after it; it's left alone here all the same; use \\didactictr"
+)
 DOUBTFUL_COMMENT = (
     "this % may not start a comment, and what follows holds our names"
 )
@@ -986,7 +994,8 @@ def find_ensv(reading):
     tokens = tokens_of(reading)
     uses, defined = classify_names(tokens, reading, raw)
     if "ensv" in defined:
-        reading.notes.append((None, OWN_ENSV))
+        own = PROVIDED_ENSV if defined["ensv"] == "providecommand" else OWN_ENSV
+        reading.notes.append((None, own))
     for comment in doubtful_comments(tokens):
         line = raw.count("\n", 0, comment.start)
         reading.notes.append((line, DOUBTFUL_COMMENT))
@@ -1033,7 +1042,7 @@ the file says.
 def classify_names(tokens, reading, raw):
     """Return the indices of uses of our names, and the names defined."""
     uses = []
-    defined = set()
+    defined = {}
     index = 0
     while index < len(tokens):
         token = tokens[index]
@@ -1049,7 +1058,7 @@ def classify_names(tokens, reading, raw):
                 index += 1
                 continue
             if tokens[target].text == "ensv":
-                defined.add("ensv")
+                defined.setdefault("ensv", token.text)
             elif tokens[target].text in OUR_NAMES:
                 line = raw.count("\n", 0, tokens[target].start)
                 name = tokens[target].text
@@ -1760,6 +1769,13 @@ def test_a_percent_sign_that_is_no_comment_hides_nothing(repo, source):
   result = run(repo, "contents.nw")
   assert result.returncode == 2, result.stdout
   assert "contents.nw:1" in result.stderr
+
+
+def test_a_provided_ensv_is_named_in_the_note(repo):
+  (repo / "contents.nw").write_text("\\providecommand\\ensv[2]{#1}\n\\ensv{x}\n")
+  result = run(repo, "contents.nw")
+  assert result.returncode == 0
+  assert "with \\providecommand" in result.stderr
 
 
 def test_a_definition_after_a_percent_sign_in_a_link_is_seen(repo):
@@ -3020,6 +3036,9 @@ doesn't read.
   [[--stamp]] work on any file; [[--stamp]] warns when it stamps another one.
   \item[A file that can't be read at the start] hides the pairs after the place
   where reading fails, so a re-stamp of one of them isn't listed; see below.
+  \item[A file's own [[\ensv]] at the start] makes its uses of [[\ensv]] no
+  pairs there, so a branch that takes the definition out and re-stamps such a
+  use with one side changed isn't listed.
   \item[A change that keeps the hash] goes unseen by the state check as well;
   the chance is about one in 17 million for each change
   (\cref{sec:sync-pairs}).
