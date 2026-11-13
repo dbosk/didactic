@@ -912,8 +912,10 @@ After a command that defines one, such as [[\newcommand]], [[\def]] or
 [[\NewDocumentCommand]], with or without a star and braces around the name,
 it's a definition; and so it is as the first operand of [[\let]], or of
 [[\NewCommandCopy]] and its relatives.
-A file that defines [[\ensv]] has its own, so there, as in the package, the
-name is the document's: its uses are neither pairs nor errors, whatever their
+The long name is the package's own, which no document has a reason to
+redefine, and a file that does can't be checked, so that's an error.
+A file that defines [[\ensv]], on the other hand, has its own, so there, as
+in the package, the name is the document's: its uses are neither pairs nor errors, whatever their
 arguments, and only [[\didactictr]] is read.
 The state check says so once, on the standard error, since a deck's pairs
 written with [[\ensv]] would otherwise vanish from the report without a word.
@@ -1020,8 +1022,12 @@ def classify_names(tokens, reading, raw):
             if target is None:
                 index += 1
                 continue
-            if tokens[target].text in OUR_NAMES:
-                defined.add(tokens[target].text)
+            if tokens[target].text == "ensv":
+                defined.add("ensv")
+            elif tokens[target].text in OUR_NAMES:
+                line = raw.count("\n", 0, tokens[target].start)
+                name = tokens[target].text
+                reading.errors.append((line, f"this file redefines \\{name}"))
             index = target + 1
             if token.text in COPIERS:
                 <<skip the source of a copy, reporting an alias>>
@@ -1510,7 +1516,7 @@ def test_what_is_not_an_ensv_is_quiet(repo):
     "\\newcommand\\tr[2]{#1}\n"
     "\\newcommand\\ensv[2]{#1}\n"
     "\\renewcommand{\\ensv}[2]{#1}\n"
-    "\\NewDocumentCommand\\didactictr{mm}{#1}\n"
+    "\\NewDocumentCommand\\ensv{mm}{#1}\n"
     "\\def\\ensv#1#2{#1}\n"
     "\\translate{a}{b}\n"
     "\\tr{a}{b} and $\\tr{a}$\n"
@@ -1641,6 +1647,17 @@ def test_a_file_that_defines_ensv_keeps_it(repo):
   assert result.stderr.count("defines \\ensv") == 1
   assert run(repo, "--stamp", "contents.nw:3").returncode == 0
   assert run(repo, "contents.nw").returncode == 0
+
+
+@pytest.mark.parametrize(
+  "definition",
+  ["\\renewcommand\\didactictr[2]{#1}\n", "\\let\\didactictr\\relax\n"],
+)
+def test_redefining_didactictr_is_an_error(repo, definition):
+  (repo / "contents.nw").write_text(definition + "\\didactictr{a}{b}\n")
+  result = run(repo, "contents.nw")
+  assert result.returncode == 2
+  assert "contents.nw:1: this file redefines \\didactictr" in result.stderr
 
 
 def test_a_tr_is_somebody_elses(repo):
