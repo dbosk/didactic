@@ -137,6 +137,7 @@ Each test makes its own repository, so they can run in any order.
 
 <<[[test_didactic_sync.py]]>>=
 """Tests of didactic-sync.py: real git repositories in tmp_path, no mocks."""
+import importlib.util
 import os
 import re
 import subprocess
@@ -211,6 +212,27 @@ def stamped_file(repo, order, name="contents.nw"):
 
 \subsection{Reading a source: what is a block}\label{sec:sync-reading}
 
+The languages are English and Swedish, and the names that the script looks
+for, the environments and the short command, all come from one table, which
+gives each command the codes of its two languages.
+The codes are also the keys of a stamp, [[en=...]] and [[sv=...]].
+A second pair, such as English and German, would start here, with
+[[\ende]] for [[("en", "de")]].
+In this script, the [[Stamp]] and the [[Pair]] and the reports still know their
+two languages by name, [[en]] and [[sv]]; in the package, the environments,
+[[\didacticlanguage]] and the short command are made for those two
+(\cref{sec:impl-bilingual}).
+
+<<imports>>=
+import re
+<<constants>>=
+PAIRS = {"ensv": ("en", "sv"), "didactictr": ("en", "sv")}
+LANGUAGES = tuple(
+    dict.fromkeys(code for pair in PAIRS.values() for code in pair)
+)
+LANGUAGE = "(" + "|".join(LANGUAGES) + ")"
+@
+
 The test of whether a line opens a block is what \LaTeX\ will do with it, and
 that's less obvious in a literate source than it looks.
 The deck on \LaTeX\ will show [[\begin{en}]] in a code chunk, and a chunk is
@@ -228,12 +250,10 @@ it's just a chunk in turn.
 [[@@]] at the start of a line is noweb's escape for a literal [[@]] in the
 code, so the [[@]] has to stand alone or be followed by a space.
 
-<<imports>>=
-import re
 <<constants>>=
 CHUNK_START = re.compile(r"@<<.*>>=\s*$")
 CHUNK_END = re.compile(r"@(\s|$)")
-BLOCK_BEGIN = re.compile(r"\s*\\begin\{(en|sv)\}")
+BLOCK_BEGIN = re.compile(r"\s*\\begin\{" + LANGUAGE + r"\}")
 VERBATIM_BEGIN = re.compile(
     r"\s*\\begin\{(minted|lstlisting|comment|pyverbatim|pycode|pyblock"
     r"|[BL]?[Vv]erbatim\*?)\}"
@@ -426,8 +446,8 @@ reading.items.append(
 )
 number = last
 <<constants>>=
-INDENTED_END = re.compile(r"\s+\\end\{(en|sv)\}\s*$")
-END_WITH_TEXT = re.compile(r"\\end\{(en|sv)\}\s*\S")
+INDENTED_END = re.compile(r"\s+\\end\{" + LANGUAGE + r"\}\s*$")
+END_WITH_TEXT = re.compile(r"\\end\{" + LANGUAGE + r"\}\s*\S")
 <<functions>>=
 def end_of_block(lines, number, language, errors):
     """Return the number of the line ending the block at `number`."""
@@ -952,7 +972,9 @@ Our name as the second operand of [[\let]], [[\let\x\ensv]], is an alias, and
 an error, since the strings written with [[\x]] would never be seen.
 
 <<constants>>=
-OUR_NAMES = ("ensv", "didactictr")
+OUR_NAMES = tuple(PAIRS)
+LONG_NAME = "didactictr"
+SHORT_NAMES = tuple(name for name in OUR_NAMES if name != LONG_NAME)
 MENTIONS = {"string": 1, "ifdefined": 1, "noexpand": 1, "show": 1,
             "meaning": 1, "ifx": 2}
 DEFINERS = {
@@ -1069,8 +1091,8 @@ def classify_names(tokens, reading, raw):
             if target is None:
                 index += 1
                 continue
-            if tokens[target].text == "ensv":
-                defined.setdefault("ensv", token.text)
+            if tokens[target].text in SHORT_NAMES:
+                defined.setdefault(tokens[target].text, token.text)
             elif tokens[target].text in OUR_NAMES:
                 line = raw.count("\n", 0, tokens[target].start)
                 name = tokens[target].text
@@ -1213,7 +1235,7 @@ the second out of step.
 <<imports>>=
 from typing import NamedTuple
 <<constants>>=
-ENTRY = r"en=(?:[0-9a-f]+|-) sv=(?:[0-9a-f]+|-)"
+ENTRY = " ".join(code + r"=(?:[0-9a-f]+|-)" for code in LANGUAGES)
 STAMP_COMMENT = re.compile(
     r"\s*%\s*sync\s+(?P<entries>" + ENTRY + r"(?:;\s*" + ENTRY + r")*)\s*$"
 )
@@ -1756,6 +1778,21 @@ def test_redefining_didactictr_is_an_error(repo, definition):
   assert "contents.nw:1: this file redefines \\didactictr" in result.stderr
 
 
+def test_the_names_and_the_stamps_come_from_the_table_of_pairs():
+  spec = importlib.util.spec_from_file_location("sync", SCRIPT)
+  sync = importlib.util.module_from_spec(spec)
+  spec.loader.exec_module(sync)
+  assert sync.OUR_NAMES == tuple(sync.PAIRS)
+  codes = {code for pair in sync.PAIRS.values() for code in pair}
+  assert set(sync.LANGUAGES) == codes
+  for code in codes:
+    assert sync.BLOCK_BEGIN.match("\\begin{" + code + "}")
+    assert f"{code}=abc123" in str(sync.Stamp("abc123", "abc123"))
+  entry = " ".join(f"{code}=-" for code in sync.LANGUAGES)
+  assert sync.STAMP_COMMENT.fullmatch("% sync " + entry)
+  assert not sync.BLOCK_BEGIN.match("\\begin{de}")
+
+
 def test_a_tr_is_somebody_elses(repo):
   path = repo / "contents.nw"
   path.write_text("$\\tr{A}$ and $\\tr{B}{C}$, \\ensv{Yes}{Ja}\n")
@@ -1788,7 +1825,9 @@ def test_a_percent_sign_that_is_no_comment_hides_nothing(repo, source):
 
 
 def test_a_provided_ensv_is_named_in_the_note(repo):
-  (repo / "contents.nw").write_text("\\providecommand\\ensv[2]{#1}\n\\ensv{x}\n")
+  (repo / "contents.nw").write_text(
+    "\\providecommand\\ensv[2]{#1}\n\\ensv{x}\n"
+  )
   result = run(repo, "contents.nw")
   assert result.returncode == 0
   assert "with \\providecommand" in result.stderr
@@ -2225,7 +2264,8 @@ def text_at_stamp(path, pair):
         if name.startswith("\x01"):
             commit = name[1:]
         elif name:
-            found = stamped_pair(pairs_in_commit(root, commit, name), pair.stamp)
+            pairs = pairs_in_commit(root, commit, name)
+            found = stamped_pair(pairs, pair.stamp)
             if found:
                 return commit, found
     return None
