@@ -37,7 +37,9 @@ CHECKs:
   held=N      N floats held back for the margin notes on their page (didactic's
               information, "The float ending at ... waits");
   away=N      exactly N notes away from their marks' pages;
-  reasons     every warning that a note is set on a later page gives a reason.
+  reasons     every warning that a note is set on a later page gives a reason;
+  nocantread  no warning of didactic's that the callouts of a page can't be read
+              (marginfix's own may be there).
 Prints a line per job, PASS or FAIL with what failed; exit status 1 on FAIL.
 """
 import re
@@ -165,6 +167,8 @@ for c in checks:
                      f" floats held, not {c[5:]}")
     elif c.startswith("away=") and len(away) != int(c[5:]):
         fails.append(f"{len(away)} notes away, not {c[5:]}: {away[:8]}")
+    elif c == "nocantread" and "didactic Warning: Can't read the callouts" in joined:
+        fails.append("a warning that the callouts of a page can't be read")
     elif c == "reasons" and re.search(r"is set on page \d+\.", joined):
         fails.append("a note set on a later page without a reason")
     elif c == "nooverlap" and overlaps(job):

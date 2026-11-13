@@ -148,4 +148,7 @@ job warnclaim 4 "$C{warnclaim}${R}{5}\\def\\testprio{warn}" foot beside nooverla
 # floats (LaTeX allocates boxes for them; no "Too many unprocessed floats").
 job queue 4 "$C{queue}${R}{5}\\def\\testQ{4}" held=1 nofalse
 job queue-many 4 "$C{queue}${R}{5}\\def\\testQ{20}" held=1 nofalse
+# A page that comes out empty has no callouts to read: no warning (review, first
+# pass, minor).
+job cant 4 "$C{cant}${R}{0}" nocantread
 exit $status

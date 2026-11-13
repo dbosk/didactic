@@ -5246,22 +5246,36 @@
 % is not overfull.
 % Then we fall back to |\botmarks|, with a warning that a note called out 
 % near the foot of the page may be set there, a page before its line.
+% We warn once for the page, though it is read twice (|\@didactic@colfeet| and
+% |\MFX@combinefloats@before|).
+% A column with no height, an empty page, isn't overfull at no height either,
+% shrink or not; it splits all the same, so the test is only for a column with
+% height.
 %    \begin{macrocode}
 \newcount\@didactic@pagelast
+\newcount\@didactic@cantpage
+\@didactic@cantpage\m@ne
 \newcommand\@didactic@readlast{%
   \begingroup
     \vbadness\@M \vfuzz\maxdimen
     \splittopskip\z@skip \splitmaxdepth\maxdimen
     \setbox\z@\vbox{\unvcopy\@outputbox}%
     \setbox\tw@\vbox to\z@{\unvcopy\z@}%
+    \@tempswafalse
     \ifnum\badness<1000000
+      \ifdim\dimexpr\ht\z@+\dp\z@\relax>\z@ \@tempswatrue \fi
+    \fi
+    \if@tempswa
       \edef\@didactic@tmp{\botmarks\@didactic@notemarks}%
       \ifx\@didactic@tmp\@empty\else
         \global\@didactic@pagelast\@didactic@tmp\relax
       \fi
-      \PackageWarningNoLine{didactic}{Can't read the callouts of page
-        \thepage:\MessageBreak a margin note called out near its foot may
-        be set there,\MessageBreak a page before its line}%
+      \ifnum\c@page=\@didactic@cantpage\else
+        \global\@didactic@cantpage\c@page
+        \PackageWarningNoLine{didactic}{Can't read the callouts of page
+          \thepage:\MessageBreak a margin note called out near its foot may
+          be set there,\MessageBreak a page before its line}%
+      \fi
     \else
       \let\@didactic@last\@empty
       \@didactic@splitall

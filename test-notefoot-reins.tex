@@ -40,7 +40,10 @@
 %   queue     a tall margin note at the top of page 1, then \testQ floats for
 %             the bottom: the first waits for the notes (said in the log), the
 %             others wait behind it, as \LaTeX\ keeps floats in order; with
-%             many, at the end on pages of floats.
+%             many, at the end on pages of floats;
+%   cant      a chapter whose page comes out empty before it (as without
+%             didactic): no warning that the callouts of a page can't be read,
+%             as an empty column has none.
 \makeatletter
 \newcommand\fnt[1]{%
   \stepcounter{mk}\edef\mkv{\arabic{mk}}%
@@ -55,7 +58,7 @@
 \def\testmcolx{mcol3x}\def\testmcol{mcol3}\def\testmcoln{mcol3n}
 \def\testwaitsec{waitsec}\def\testrestb{rest2}\def\testwaitsh{waitsh}
 \def\testlocal{local}\def\testdefercarry{defercarry}\def\testwarnclaim{warnclaim}
-\def\testqueue{queue}
+\def\testqueue{queue}\def\testcant{cant}
 \ifx\testcase\testmcolx\def\testfm#1{}\else\def\testfm#1{\fnt{#1}}\fi
 \ifx\testcase\testwaitsh\def\testwaitsec{waitsh}\fi
 \ifx\testcase\testwaitsec
@@ -113,6 +116,13 @@
     \begin{figure}[b]\centering\rule{4cm}{3\baselineskip}\caption{QF}\end{figure}%
   \repeat
   \par\filler\ \filler\ \filler\par
+\else\ifx\testcase\testcant
+  \chapter{Two}
+  \noindent x\marginpar{\rule{1pt}{\dimexpr\textheight-8pt}} text.\par
+  \vspace*{\dimexpr\textheight-6\baselineskip}
+  \filler\ LOWCALL\fnt{FOOTLOW \filler\ \filler\ \filler\ \filler\ \filler\
+  \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler}
+  \filler\par
 \else\ifx\testcase\testwait
   \noindent x\marginpar{\rule{1pt}{\dimexpr\textheight-8pt}} text.\par
   \testlines
@@ -148,5 +158,5 @@
   \ifx\testcase\testmcol\end{multicols}\fi
   \ifx\testcase\testmcolx\else\ifdefined\testmulticols\end{multicols}\fi\fi
   AFTER.
-\fi\fi\fi\fi\fi\fi\fi\fi
+\fi\fi\fi\fi\fi\fi\fi\fi\fi
 \makeatother

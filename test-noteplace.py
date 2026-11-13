@@ -27,7 +27,8 @@ test-noteplace.tex writes to the log.  Always: no footnote found not plain
   continued   the rest of a split note is marked as continued.
   footwarn    a warning says that noteoverflow=foot works as carry here;
   nofootwarn  no such warning.
-  callwarn    a warning says that the callouts of a page can't be read.
+  callwarn    a warning says that the callouts of a page can't be read, once for
+              each such page.
   exactwarn   as many of didactic's warnings that a note is set on another page
               as notes set on another page than their callout, NOTEY and the
               notes labelled c-X/n-X; notes labelled c-dX (deferrable) apart.
@@ -323,6 +324,10 @@ for e in expect:
                 fails.append("note %s not set" % x)
             elif pn != pc and not warned:
                 fails.append("note %s on page %s, its callout on %s, without a warning" % (x, pn, pc))
+    elif e == "callwarn" and len(set(re.findall(
+            r"didactic Warning: Can't read the callouts of page (\d+)", joined))) \
+            != len(re.findall(r"didactic Warning: Can't read the callouts of page (\d+)", joined)):
+        fails.append("a page whose callouts can't be read is warned about twice")
     elif e == "callwarn" and not re.search(r"Can't read the callouts of page \d+", joined):
         fails.append("no warning that the callouts of a page can't be read")
     elif e == "exactwarn":
