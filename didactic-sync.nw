@@ -2599,6 +2599,9 @@ written [[\ensv{the }{\relax}]], which counts as text and prints nothing.
 A stamp with no pair is removed the same way, from the end of its line; only a
 line that is nothing but a stamp, as they were written before, goes as a whole,
 and the command says that the lines after it have moved up.
+On a line where uses of [[\ensv]] end, only the entries beyond them go: the
+others still belong to their pairs, and taking them too would turn a pair that
+is behind into a new one, its change no longer shown.
 
 <<functions>>=
 def has_text(side):
@@ -2625,7 +2628,9 @@ def stamp_pair(target):
     lines = text.removeprefix(mark).split("\n")
     pair, message = find_target(pairs, line, match.group("which"))
     if pair is None and line - 1 in leftover and match.group("which") is None:
-        print(remove_stamp(lines, line - 1, path))
+        here = [p for p in pairs if not p.is_block and p.last == line - 1]
+        uses = max((p.uses_on_line for p in here), default=0)
+        print(remove_stamp(lines, line - 1, path, uses))
         write_text(path, mark + "\n".join(lines))
         return None
     if pair is None:
@@ -2668,14 +2673,20 @@ def write_block_stamp(lines, pair):
         lines[pair.other_begin] = with_stamp(other, None)
 
 
-def remove_stamp(lines, number, path):
-    """Take out a stamp that has no pair; return what was done."""
+def remove_stamp(lines, number, path, uses):
+    """Take out a stamp, or the entries of one, that no pair uses."""
     if COMMENT.match(lines[number]) and STAMP_COMMENT.fullmatch(
         lines[number].removesuffix("\r")
     ):
         del lines[number]
         where = f"{path}:{number + 1}"
         return f"removed the line {where}; the lines after it moved up"
+    if uses:
+        match = STAMP_COMMENT.search(lines[number].removesuffix("\r"))
+        entries = match.group("entries").split(";")[:uses]
+        kept = "; ".join(entry.strip() for entry in entries)
+        lines[number] = with_stamp(lines[number], kept)
+        return f"removed the entries with no pair at {path}:{number + 1}"
     lines[number] = with_stamp(lines[number], None)
     return f"removed the stamp at {path}:{number + 1}"
 @
@@ -2952,6 +2963,25 @@ def test_a_surplus_entry_is_a_leftover_that_a_stamp_clears(repo):
   assert run(repo, "--stamp", "contents.nw:1").returncode == 0
   assert "111111" not in path.read_text()
   assert run(repo, "contents.nw").returncode == 0
+
+
+def test_removing_a_surplus_entry_keeps_the_others(repo):
+  path = repo / "contents.nw"
+  path.write_text("\\ensv{Yes}{Ja} and \\ensv{No}{Nej}\n")
+  for name in ("1.1", "1.2"):
+    assert run(repo, "--stamp", f"contents.nw:{name}").returncode == 0
+  commit(repo, "stamps")
+  path.write_text(
+    path.read_text().replace("Yes", "Yeah").replace("\n", "; en=1 sv=2\n")
+  )
+  assert "contents.nw:1: a stamp with no pair here" in run(
+    repo, "contents.nw"
+  ).stdout
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  result = run(repo, "-v", "contents.nw")
+  assert "contents.nw:1.1: sv is behind" in result.stdout
+  assert "contents.nw:1.2: in sync" in result.stdout
+  assert "no pair here" not in result.stdout
 
 
 def test_a_stamp_above_an_ensv_line_is_a_leftover_that_can_go(repo):
