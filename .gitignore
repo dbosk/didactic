@@ -392,3 +392,17 @@ test-biburl-memoir.unq
 test-biburl-memoir.bib
 test-marginfix-interface-*.pdf
 test-marginfix-interface-*.unq
+# the note suites' jobs (their .aux, .log and the like are ignored above)
+*.aux.old
+test-noteplace-*.pdf
+test-noteplace-*.unq
+test-notefoot-*.pdf
+test-notefoot-*.unq
+test-footwide-*.pdf
+test-footwide-*.unq
+test-footwide.bib
+test-noteoverflow-foot-*.pdf
+test-noteoverflow-foot-*.unq
+test-noteoverflow-foot-*.bib
+test-footreuse-spread-*.pdf
+test-footreuse-spread-*.unq
