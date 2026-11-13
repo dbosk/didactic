@@ -249,12 +249,17 @@ test-pair.pdf test-pair-slides.pdf: %.pdf: %.tex didactic.sty ${TEST_PAIR_EXAMPL
 TEST_BILINGUAL=	test-bilingual test-bilingual-sv \
 		test-bilingual-slides test-bilingual-slides-sv
 $(addsuffix .pdf,${TEST_BILINGUAL}): %.pdf: %.tex test-bilingual-contents.tex \
+		test-bilingual-preamble.tex test-bilingual-woven.tex \
 		didactic.sty hello.py
 	@mkdir -p _minted
 	-${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	${PYTHONTEX} $*
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
+
+# a literate source with chunks in blocks, woven as the decks weave theirs
+test-bilingual-woven.tex: test-bilingual-woven.nw
+	noweave -n -delay -t2 -autolang -index -filter tominted $< > $@
 
 # nobilingual leaves the names alone, for a document with its own \ensv
 test-bilingual-off.pdf: test-bilingual-off.tex didactic.sty
@@ -268,7 +273,7 @@ test-bilingual-nested.pdf: test-bilingual-nested.tex \
 
 .PHONY: check-bilingual
 check-bilingual: $(addsuffix .pdf,${TEST_BILINGUAL}) test-bilingual-off.pdf \
-		test-bilingual-nested.pdf
+		test-bilingual-nested.pdf didactic-sync.py
 	./test-bilingual.sh
 
 # Run LaTeX on $< until the references settle.  Without a cache minted sets its
@@ -649,6 +654,8 @@ clean:
 	${RM} test-bilingual-taken.pdf test-bilingual-taken.unq
 	${RM} -R test-bilingual-import.d
 	${RM} -R test-bilingual-stamp.d test-bilingual-stamp.tex
+	${RM} test-bilingual-woven.tex
+	${RM} test-bilingual-titles.tex test-bilingual-titles.pdf
 	${RM} test-bilingual-stamp.pdf test-bilingual-stamp.unq
 	${RM} test-bilingual-import.pdf test-bilingual-import.unq
 	${RM} $(addsuffix .unq,${TEST_BILINGUAL}) test-bilingual-off.unq
