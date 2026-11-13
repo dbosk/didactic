@@ -11243,6 +11243,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % They get no |\clubpenalties| from around them either.
 % A display in the first paragraph is lines enough, and what follows it in the
 % same paragraph would count its lines from the start: the penalties end there.
+% Not a display in a box, such as a footnote's in the first paragraph, which
+% is no line of that paragraph.
 %
 % At the start of the first paragraph the heading is on the page, so we can 
 % measure, in vertical mode (|para/before|), again counting what the page can 
@@ -11540,7 +11542,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \global\@didactic@keep@headstate\z@
     \global\let\@didactic@keep@shortmsg\@empty
   \fi}
-\def\@didactic@keep@display{\global\clubpenalties\z@}
+\def\@didactic@keep@display{%
+  \if@didactic@keep@inbox\else\global\clubpenalties\z@\fi}
 \AddToHook{para/before}{\@didactic@keep@parabefore}
 \AddToHook{para/begin}{\@didactic@keep@parabegin}
 \AddToHook{para/after}{\@didactic@keep@paraafter}
