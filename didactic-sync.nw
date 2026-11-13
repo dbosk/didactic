@@ -704,6 +704,15 @@ def test_other_text_after_the_at_of_a_chunk_is_fine(repo, line):
   assert "after the @" not in result.stderr
 
 
+def test_the_last_chunk_of_a_tex_file_gets_no_note(repo):
+  (repo / "contents.tex").write_text(
+    "\\begin{en}\n@<<[[a.py]]>>=\nx\n@\n\\end{en}\n\\begin{sv}\nB\n\\end{sv}\n"
+  )
+  result = run(repo, "--list", "contents.tex")
+  assert result.returncode == 0, result.stderr
+  assert "last code chunk" not in result.stderr
+
+
 @pytest.mark.parametrize("last_in_block", [True, False])
 def test_a_last_chunk_in_a_block_gets_a_note(repo, last_in_block):
   source = (
