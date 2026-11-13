@@ -1,0 +1,4053 @@
+\section{Keeping the two languages in step}\label{sec:didactic-sync}
+
+A bilingual source (\cref{sec:bilingual}) has one danger that two separate
+files don't have in the same way, and that's a quiet one.
+Somebody fixes a paragraph in one language, the document builds, both editions
+look fine, and from then on they say different things.
+Nothing in \LaTeX\ can notice that.
+Neither can a script, in the sense that matters: no program can tell whether
+two paragraphs say the same thing.
+What a program can tell is whether one of them has \emph{changed} since
+somebody last judged that they did.
+
+So that's what we record.
+On the line of each pair's first [[\begin]] stands a comment that only this
+script writes,
+\begin{minted}{text}
+\begin{en} % sync en=3f9c1a sv=b20e7d
+The cat sat.
+\end{en}
+\begin{sv}
+Katten satt.
+\end{sv}
+\end{minted}
+holding a short hash of each side as it was when the two last said the same
+thing.
+After a change to the English side, the script reports
+\begin{minted}{text}
+contents.nw:1: sv is behind
+  en since the stamp (4f1c2ab): The [-cat-]{+dog+} sat.
+  sv now: Katten satt.
+\end{minted}
+and it goes on saying so, in every build and from every clone, until somebody
+has read the two and stamps the pair again.
+No note has to survive between commits, or between people, since the state is
+in the file.
+
+\Cref{tab:didactic-sync-states} gives the whole of what can be reported.
+The last row is a stamp that has lost its pair, see \cref{sec:sync-pairs}.
+
+\begin{table}
+  \centering
+  \caption{%
+    What the script reports for a pair, by whether each side still has the
+    hash in its stamp.
+    Only the first row leaves the exit status at zero.
+  }\label{tab:didactic-sync-states}
+  \begin{tabular}{lll}
+    \toprule
+    \textbf{en} & \textbf{sv} & \textbf{Report} \\
+    \midrule
+    unchanged & unchanged & in sync \\
+    changed & unchanged & sv is behind \\
+    unchanged & changed & en is behind \\
+    changed & changed & read both and stamp \\
+    \multicolumn{2}{l}{no stamp} & new pair, stamp once both are written \\
+    \multicolumn{2}{l}{a stamp, but no pair} & a stamp with no pair here \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The word \enquote{changed} carries a limit that the row \enquote{read both and
+stamp} makes visible: when both sides have changed, the script knows only that
+both have moved, not that they moved to the same place.
+That's why a stamp is a judgement by whoever gives it, and why the script has
+no way of stamping everything at once.
+A command that stamps a whole file makes the report go away without anybody
+having read anything, which is the very failure that the script exists to
+prevent.
+
+\subsection{Commands}
+
+The script has three modes, and each of the following sections builds one of
+them from the same reading of the source.
+\begin{description}
+  \item[State check] [[didactic-sync.py contents.nw ...]] reports on each pair
+  (\cref{sec:sync-state}).
+  The exit status is 0 if all pairs are in sync, 1 if any is not, and 2 if a
+  file can't be read as blocks at all, so a book build can fail on it.
+  With [[--list]] it only lists, and it exits with 0 even if something is
+  behind, which is what a deck's build wants while the text is being worked on.
+  With [[-v]] it also lists the pairs that are in sync.
+  \item[Accepting] [[didactic-sync.py --stamp contents.nw:12]] stamps the one
+  pair at that line (\cref{sec:sync-stamp}), after a translation, or to accept
+  a
+  fix of a typo in one language as needing no translation.
+  \item[Branch check] [[didactic-sync.py origin/master...HEAD]] lists the pairs
+  whose stamp a branch has refreshed while only one side changed
+    (\cref{sec:sync-branch}): those acceptances, for the description of a pull
+    request, so that somebody can look at them.
+\end{description}
+
+Builds find the script with [[kpsewhich didactic-sync.py]], so it's installed
+next to [[didactic.sty]].
+
+\subsection{The outline of the program}
+
+Everything goes from text to pairs: the three modes differ only in what they
+do with the pairs of a file (or of two versions of it).
+A pair therefore has to be recognised in exactly one way, which is the reason
+for reading git's old versions of a file with the same functions as the file
+on disk.
+\begin{description}
+  \item[Reading] finds what \LaTeX\ will treat as blocks and as [[\ensv]], and
+  ignores what it won't (\cref{sec:sync-reading,sec:sync-tr}).
+  \item[Pairing] turns those into pairs with their stamps
+  (\cref{sec:sync-pairs}).
+  \item[The modes] are the state check with its word diff, stamping and the
+  branch check
+  (\cref{sec:sync-state,sec:sync-diff,sec:sync-stamp,sec:sync-branch}).
+  \item[The command line] ties them together (\cref{sec:sync-cli}).
+\end{description}
+
+<<[[didactic-sync.py]]>>=
+#!/usr/bin/env python3
+"""Keep the two languages of a bilingual didactic document in step.
+
+See the section "Keeping the two languages in step" in didactic.pdf.
+"""
+
+<<imports>>
+
+<<constants>>
+
+<<classes>>
+
+<<functions>>
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+@
+
+The tests run the script as a user does, as a separate process, in real git
+repositories, since what they have to show is what the command line reports
+and what it leaves in the files.
+Each test makes its own repository, so they can run in any order.
+
+<<[[test_didactic_sync.py]]>>=
+"""Tests of didactic-sync.py: real git repositories in tmp_path, no mocks."""
+import importlib.util
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+import pytest
+
+SCRIPT = Path(__file__).with_name("didactic-sync.py")
+
+
+<<test helpers>>
+
+
+<<test functions>>
+@
+
+The helpers keep the test data small.
+[[stamped_file]] gives a test its starting point, a committed pair that's in
+sync, and it gets there through the script itself: a test with a hand-written
+hash would break on any change of the hash, and say nothing about that change.
+
+<<test helpers>>=
+def run(cwd, *args):
+  return subprocess.run(
+    [sys.executable, str(SCRIPT), *args],
+    cwd=cwd,
+    capture_output=True,
+    text=True,
+  )
+
+
+def git(cwd, *args):
+  return subprocess.run(
+    ["git", *args], cwd=cwd, check=True, capture_output=True, text=True
+  ).stdout
+
+
+@pytest.fixture
+def repo(tmp_path):
+  git(tmp_path, "init", "-q", "-b", "master")
+  git(tmp_path, "config", "user.name", "Test")
+  git(tmp_path, "config", "user.email", "test@example.org")
+  git(tmp_path, "config", "commit.gpgsign", "false")
+  return tmp_path
+
+
+def commit(repo, message="change"):
+  git(repo, "add", "-A")
+  git(repo, "commit", "-q", "-m", message)
+
+
+def blocks(first, second, en="The cat sat.", sv="Katten satt."):
+  text = {"en": en, "sv": sv}
+  return (
+    f"\\begin{{{first}}}\n{text[first]}\n\\end{{{first}}}\n"
+    f"\\begin{{{second}}}\n{text[second]}\n\\end{{{second}}}\n"
+  )
+
+
+ORDERS = [("en", "sv"), ("sv", "en")]
+
+
+def stamped_file(repo, order, name="contents.nw"):
+  """A committed file with one stamped pair, in the given block order."""
+  path = repo / name
+  path.write_text(blocks(*order))
+  assert run(repo, "--stamp", f"{name}:1").returncode == 0
+  commit(repo, "stamp")
+  return path
+@
+
+\subsection{Reading a source: what is a block}\label{sec:sync-reading}
+
+The languages are English and Swedish, and the names that the script looks
+for, the environments and the short command, all come from one table, which
+gives each command the codes of its two languages.
+The codes are also the keys of a stamp, [[en=...]] and [[sv=...]].
+A second pair, such as English and German, would start here, with
+[[\ende]] for [[("en", "de")]]; what else it takes is in
+dbosk/didactic\#105.
+In this script, the [[Stamp]] and the [[Pair]] and the reports still know their
+two languages by name, [[en]] and [[sv]]; in the package, the environments,
+[[\didacticlanguage]] and the short command are made for those two
+(\cref{sec:impl-bilingual}).
+
+<<imports>>=
+import re
+<<constants>>=
+PAIRS = {"ensv": ("en", "sv"), "didactictr": ("en", "sv")}
+LANGUAGES = tuple(
+    dict.fromkeys(code for pair in PAIRS.values() for code in pair)
+)
+LANGUAGE = "(" + "|".join(LANGUAGES) + ")"
+@
+
+The test of whether a line opens a block is what \LaTeX\ will do with it, and
+that's less obvious in a literate source than it looks.
+The deck on \LaTeX\ will show [[\begin{en}]] in a code chunk, and a chunk is
+shown by [[minted]], which never sees it as a command, so it isn't a block;
+the same goes for a [[minted]] environment in the prose, and for a line that's
+commented out.
+A pair that the script invents in such a place would ask for a stamp that
+makes no sense, and a stamp written into a chunk would change the program.
+
+That means a pass over the lines with a little state: are we in a code chunk,
+or a verbatim environment, or a frame?
+A chunk starts on a line of its own, [[@<<name>>=]], and it runs until a line
+that starts with [[@]]; another chunk's start doesn't end the chunk mode, as
+it's just a chunk in turn.
+[[@@]] at the start of a line is noweb's escape for a literal [[@]] in the
+code, so the [[@]] has to stand alone or be followed by a space.
+
+<<constants>>=
+CHUNK_START = re.compile(r"@<<.*>>=\s*$")
+CHUNK_END = re.compile(r"@(\s|$)")
+BLOCK_BEGIN = re.compile(r"\s*\\begin\{" + LANGUAGE + r"\}")
+VERBATIM_BEGIN = re.compile(
+    r"\s*\\begin\{(minted|lstlisting|comment|pyverbatim|pycode|pyblock"
+    r"|[BL]?[Vv]erbatim\*?)\}"
+)
+FRAME_BEGIN = re.compile(
+    r"\s*\\begin\{frame\}\s*(?:<[^>]*>\s*)?(?P<options>(?:\[[^\]]*\]\s*)*)"
+)
+FRAGILE_OPTION = re.compile(r"[\[,]\s*fragile\s*[,=\]]")
+COMMENT = re.compile(r"\s*%")
+@
+
+Inside a block, the rules are those of \textsf{comment}, which reads the lines
+until one that's \emph{exactly} [[\end{en}]].
+So an indented [[\end{en}]] doesn't end the block, and neither \LaTeX\ nor we
+can go on from there: it's an error, reported at that line, which is a good
+deal better than the \enquote{File ended while scanning use of [[\next]]} that
+\LaTeX\
+gives at the end of the file.
+For the same reason a chunk that shows [[\end{en}]] in the first column ends
+an
+\texttt{en} block, whatever noweb thinks, while [[\end{sv}]] means nothing
+there.
+
+We record the other errors that a build would otherwise only reveal much
+later, or never: an [[\end{en}]] with no block to end; a block that never
+ends; text after [[\begin{en}]], which \textsf{comment} silently drops, so
+it's neither in the PDF nor in the hash; text after [[\end{en}]], which makes
+it no end at all; and a new block inside a block, which is what a forgotten
+[[\end{en}]] looks like.
+The rule that a frame holding a block must be fragile also belongs here.
+It's cheap to check on the source, and in the slides the error from \LaTeX\ is
+again the one about the end of the file.
+It only looks for the key among a frame's options, in square brackets: a title
+may well mention something fragile, and so may the value of a label.
+The options may start on a later line, which is why the match sees a few
+lines.
+Only the environment is checked: in beamer's command form, [[\frame{...}]],
+the body is an argument, which no block may be in, and the script doesn't see
+that.
+
+A [[Reading]] holds the result: what was found, in order, with an [[OTHER]]
+for whatever separates two blocks.
+Blank lines and comments leave no trace there, and that's what makes the
+pairing rule of the next section so short.
+The comments that are stamps are kept apart, with the lines that can hold
+[[\ensv]].
+
+<<imports>>=
+from dataclasses import dataclass, field
+<<constants>>=
+OTHER = None
+LOOK_AHEAD = 5
+BYTE_ORDER_MARK = "\ufeff"
+<<classes>>=
+@dataclass
+class Block:
+    """A block of one language, its text, and the stamp on its first line."""
+
+    language: str
+    first: int
+    last: int
+    text: str
+    stamp: object = None
+
+
+@dataclass
+class Reading:
+    """What a source holds, by 0-based line numbers."""
+
+    lines: list
+    items: list = field(default_factory=list)
+    stamp_lines: dict = field(default_factory=dict)
+    text_lines: set = field(default_factory=set)
+    errors: list = field(default_factory=list)
+    notes: list = field(default_factory=list)
+    blank_lines: set = field(default_factory=set)
+    comment_lines: set = field(default_factory=set)
+    trailing_stamps: dict = field(default_factory=dict)
+    noweb: bool = True
+<<functions>>=
+def read_source(text, noweb=True):
+    """Read `text` as `LaTeX` will: find the blocks and the other lines."""
+    reading = Reading(
+        lines=text.removeprefix(BYTE_ORDER_MARK).split("\n"), noweb=noweb
+    )
+    lines = reading.lines
+    number = 0
+    frame = None
+    while number < len(lines):
+        line = lines[number].rstrip("\r")
+        <<skip a chunk or a verbatim environment>>
+        if not line.strip():
+            reading.blank_lines.add(number)
+        elif COMMENT.match(line):
+            reading.comment_lines.add(number)
+            <<note a stamp on a line of its own>>
+        elif match := BLOCK_BEGIN.match(line):
+            <<read a block>>
+        else:
+            <<note a line of text>>
+        number += 1
+    return reading
+@
+
+Chunks and verbatim environments are skipped whole, and each counts as
+something between two blocks.
+A chunk may be followed directly by another, so we look at the first line of
+each.
+The [[@]] that ends a chunk often starts the documentation on its own line,
+[[@ The function ...]], and what follows it there is text like any other.
+A verbatim environment may end on the line where it starts, and if it never
+ends we had better say so, or everything after it would pass as checked.
+
+<<skip a chunk or a verbatim environment>>=
+if CHUNK_START.match(line):
+    number = end_of_chunk(lines, number)
+    reading.items.append(OTHER)
+    if CHUNK_END.match(lines[number]) and lines[number][1:].strip():
+        reading.text_lines.add(number)
+    number += 1
+    continue
+if match := VERBATIM_BEGIN.match(line):
+    number = end_of_verbatim(lines, number, match.group(1), reading.errors)
+    reading.items.append(OTHER)
+    number += 1
+    continue
+<<functions>>=
+def end_of_chunk(lines, number):
+    """Return the number of the `@` line that ends the chunk at `number`."""
+    for index in range(number + 1, len(lines)):
+        if CHUNK_END.match(lines[index]):
+            return index
+    return len(lines) - 1
+
+
+def end_of_verbatim(lines, number, name, errors):
+    """Return the number of the line that ends the environment at `number`."""
+    end = "\\end{" + name + "}"
+    for index in range(number, len(lines)):
+        if end in lines[index]:
+            return index
+    errors.append((number, f"this environment has no {end}"))
+    return len(lines) - 1
+@
+
+The lines of text also tell us about frames, and they're where an [[\ensv]] can
+be.
+An [[\end{en}]] is only stray here: the one that belongs to a block is
+consumed when the block is read.
+
+<<note a line of text>>=
+reading.items.append(OTHER)
+reading.text_lines.add(number)
+if match := FRAME_BEGIN.match("\n".join(lines[number : number + LOOK_AHEAD])):
+    frame = (number, bool(FRAGILE_OPTION.search(match.group("options"))))
+if "\\end{frame}" in line:
+    frame = None
+elif line in ("\\end{en}", "\\end{sv}"):
+    reading.errors.append((number, f"{line} with no block to end"))
+@
+
+Reading a block means reading as \textsf{comment} does, and keeping track of
+the chunks inside only so that we can say what's wrong if one of them ends the
+block.
+The text of the block is what's between the two lines: what follows
+[[\begin{en}]] on its line is ignored by \textsf{comment}, so we ignore it
+too.
+
+<<read a block>>=
+language = match.group(1)
+if line[match.end() :].strip() and not COMMENT.match(line[match.end() :]):
+    reading.errors.append(
+        (number, f"text after \\begin{{{language}}} is dropped by LaTeX")
+    )
+if frame and not frame[1]:
+    reading.errors.append(
+        (
+            number,
+            f"this block is in a frame (line {frame[0] + 1}) "
+            "that must be [fragile]",
+        )
+    )
+last = end_of_block(lines, number, language, reading.errors)
+stamp = STAMP_COMMENT.search(line[match.end() :])
+reading.items.append(
+    Block(
+        language,
+        number,
+        last,
+        without_stamps("\n".join(lines[number + 1 : last])),
+        parse_entries(stamp.group("entries"))[0] if stamp else None,
+    )
+)
+number = last
+<<constants>>=
+INDENTED_END = re.compile(r"\s+\\end\{" + LANGUAGE + r"\}\s*$")
+END_WITH_TEXT = re.compile(r"\\end\{" + LANGUAGE + r"\}\s*\S")
+<<functions>>=
+def end_of_block(lines, number, language, errors):
+    """Return the number of the line ending the block at `number`."""
+    closer = "\\end{" + language + "}"
+    shown = None
+    for index in range(number + 1, len(lines)):
+        line = lines[index].rstrip(" \r")
+        if line == closer:
+            if shown:
+                errors.append(
+                    (index, f"this {closer} in a {shown} ends its block")
+                )
+            return index
+        if shown is None:
+            <<check a line of a block>>
+        shown = next_shown(line, shown)
+    errors.append((number, f"this block has no {closer}"))
+    return len(lines) - 1
+@
+
+The three checks on a line of a block only make sense for what \LaTeX\ would
+read as text if it got that far.
+A chunk or a verbatim environment can show all of this.
+
+<<check a line of a block>>=
+match = INDENTED_END.match(line)
+if match and match.group(1) == language:
+    errors.append((index, f"{closer} must be in the first column"))
+match = END_WITH_TEXT.match(line)
+if match and match.group(1) == language:
+    errors.append((index, f"{closer} must be alone on its line"))
+if BLOCK_BEGIN.match(line):
+    errors.append((index, f"a block inside a block: is {closer} missing?"))
+<<functions>>=
+def next_shown(line, shown):
+    """Return what a line leaves open: a chunk, an environment or `None`."""
+    if shown is None:
+        if CHUNK_START.match(line):
+            return "chunk"
+        match = VERBATIM_BEGIN.match(line)
+        if match and "\\end{" + match.group(1) + "}" not in line:
+            return match.group(1)
+        return None
+    if shown == "chunk":
+        return None if CHUNK_END.match(line) else shown
+    return None if "\\end{" + shown + "}" in line else shown
+@
+
+Let's verify that the blocks are the ones \LaTeX\ will see, starting with
+those that aren't blocks at all.
+In the first test the stamp would end up inside the program if the script took
+the text for a block.
+
+<<test functions>>=
+def test_a_block_in_a_code_chunk_is_not_a_block(repo):
+  (repo / "contents.nw").write_text(
+    "@<<[[show.tex]]>>=\n" + blocks("en", "sv") + "@\nText.\n"
+  )
+  result = run(repo, "-v", "contents.nw")
+  assert result.returncode == 0, result.stdout
+  assert "0 pairs" in result.stdout
+
+
+def test_a_chunk_without_an_end_runs_to_the_end_of_the_file(repo):
+  (repo / "contents.nw").write_text("@<<a>>=\nx\n" + blocks("en", "sv"))
+  result = run(repo, "-v", "contents.nw")
+  assert result.returncode == 0, result.stdout
+  assert "0 pairs" in result.stdout
+
+
+@pytest.mark.parametrize("line", ["@@ not the end", "@foo"])
+def test_only_a_lone_at_sign_ends_a_chunk(repo, line):
+  (repo / "contents.nw").write_text(
+    f"@<<a>>=\n{line}\n" + blocks("en", "sv") + "@\n"
+  )
+  result = run(repo, "-v", "contents.nw")
+  assert result.returncode == 0, result.stdout
+  assert "0 pairs" in result.stdout
+
+
+def test_a_block_after_a_code_chunk_is_a_block(repo):
+  (repo / "contents.nw").write_text(
+    "@<<[[show.py]]>>=\nx = 1\n@\n" + blocks("en", "sv")
+  )
+  assert "new pair" in run(repo, "contents.nw").stdout
+
+
+def test_a_block_in_a_comment_is_not_a_block(repo):
+  commented = "".join(
+    "% " + line + "\n" for line in blocks("en", "sv").splitlines()
+  )
+  (repo / "contents.nw").write_text(commented)
+  result = run(repo, "-v", "contents.nw")
+  assert result.returncode == 0
+  assert "0 pairs" in result.stdout
+
+
+@pytest.mark.parametrize(
+  "name",
+  [
+    "minted",
+    "lstlisting",
+    "comment",
+    "pyverbatim",
+    "pycode",
+    "pyblock",
+    "verbatim",
+    "verbatim*",
+    "Verbatim",
+    "Verbatim*",
+    "BVerbatim",
+    "LVerbatim",
+  ],
+)
+def test_a_block_in_a_verbatim_environment_is_not_a_block(repo, name):
+  (repo / "contents.nw").write_text(
+    f"\\begin{{{name}}}\n" + blocks("en", "sv") + "\\ensv{a}{b}\n"
+    f"\\end{{{name}}}\n"
+  )
+  result = run(repo, "-v", "contents.nw")
+  assert result.returncode == 0
+  assert "0 pairs" in result.stdout
+
+
+def test_a_verbatim_environment_may_end_on_its_first_line(repo):
+  (repo / "contents.nw").write_text(
+    "\\begin{verbatim}x\\end{verbatim}\n" + blocks("en", "sv")
+  )
+  assert "contents.nw:2: new pair" in run(repo, "contents.nw").stdout
+
+
+def test_a_verbatim_environment_without_an_end_is_an_error(repo):
+  (repo / "contents.nw").write_text(
+    "Text.\n\\begin{minted}{text}\nx\n" + blocks("en", "sv")
+  )
+  result = run(repo, "contents.nw")
+  assert result.returncode == 2
+  assert "contents.nw:2" in result.stderr
+@
+
+Then the errors, which must point at the line that \LaTeX\ will stumble on.
+An indented [[\begin{en}]] is fine, since \TeX\ doesn't care about the spaces
+before a command.
+
+<<test functions>>=
+def test_spaces_after_an_end_are_fine(repo):
+  (repo / "contents.nw").write_text(
+    "\\begin{en}\nA.\n\\end{en}   \n\\begin{sv}\nB.\n\\end{sv} \n"
+  )
+  result = run(repo, "contents.nw")
+  assert result.returncode == 1, result.stderr
+  assert "contents.nw:1: new pair" in result.stdout
+
+
+def test_an_indented_end_is_an_error(repo):
+  (repo / "contents.nw").write_text("\\begin{en}\nA.\n  \\end{en}\nText.\n")
+  result = run(repo, "contents.nw")
+  assert result.returncode == 2
+  assert "contents.nw:3" in result.stderr
+
+
+def test_an_indented_begin_is_fine(repo):
+  (repo / "contents.nw").write_text(
+    "  \\begin{en}\nA.\n\\end{en}\n  \\begin{sv}\nB.\n\\end{sv}\n"
+  )
+  assert "contents.nw:1: new pair" in run(repo, "contents.nw").stdout
+
+
+def test_an_unclosed_block_is_an_error(repo):
+  (repo / "contents.nw").write_text("Text.\n\\begin{en}\nA.\n")
+  result = run(repo, "contents.nw")
+  assert result.returncode == 2
+  assert "contents.nw:2" in result.stderr
+
+
+def test_a_stray_end_is_an_error(repo):
+  (repo / "contents.nw").write_text("Text.\n\\end{en}\n")
+  result = run(repo, "contents.nw")
+  assert result.returncode == 2
+  assert "contents.nw:2" in result.stderr
+
+
+def test_a_chunk_that_shows_the_end_of_its_own_block_is_an_error(repo):
+  (repo / "contents.nw").write_text(
+    "\\begin{en}\n@<<[[a.tex]]>>=\n\\end{en}\n@\n\\end{en}\n"
+  )
+  assert run(repo, "contents.nw").returncode == 2
+
+
+def test_nothing_is_read_after_a_verbatim_environment_without_an_end(repo):
+  (repo / "contents.nw").write_text(
+    "\\begin{minted}{text}\nx\n" + blocks("en", "sv")
+  )
+  result = run(repo, "-v", "contents.nw")
+  assert result.returncode == 2
+  assert "0 pairs" in result.stdout
+  assert "new pair" not in result.stdout
+
+
+def test_text_on_the_line_of_begin_is_an_error(repo):
+  (repo / "contents.nw").write_text("\\begin{en} Hello\nA.\n\\end{en}\n")
+  result = run(repo, "contents.nw")
+  assert result.returncode == 2
+  assert "contents.nw:1" in result.stderr
+
+
+def test_a_comment_on_the_line_of_begin_is_fine(repo):
+  (repo / "contents.nw").write_text(
+    "\\begin{en} % a note\nA.\n\\end{en}\n"
+  )
+  assert run(repo, "contents.nw").returncode == 0
+
+
+def test_text_after_end_is_an_error(repo):
+  (repo / "contents.nw").write_text(
+    "\\begin{en}\nA.\n\\end{en} % note\n\\end{en}\n"
+  )
+  result = run(repo, "contents.nw")
+  assert result.returncode == 2
+  assert "contents.nw:3" in result.stderr
+
+
+def test_a_forgotten_end_is_an_error(repo):
+  (repo / "contents.nw").write_text(
+    "\\begin{en}\nA.\n\\begin{sv}\nB.\n\\end{sv}\n\\end{en}\n"
+  )
+  result = run(repo, "contents.nw")
+  assert result.returncode == 2
+  assert "contents.nw:3" in result.stderr
+
+
+def test_a_chunk_or_verbatim_in_a_block_may_show_blocks(repo):
+  (repo / "contents.nw").write_text(
+    "\\begin{en}\n"
+    "@<<[[a.tex]]>>=\n\\begin{sv}\n  \\end{en}\n\\end{sv} x\n@\n"
+    "\\begin{minted}{latex}\n\\begin{sv}\n  \\end{en}\n\\end{minted}\n"
+    "\\end{en}\n"
+  )
+  result = run(repo, "contents.nw")
+  assert result.returncode == 0, result.stderr
+
+
+def test_a_chunk_may_show_the_end_of_the_other_block(repo):
+  (repo / "contents.nw").write_text(
+    "\\begin{en}\n@<<[[a.tex]]>>=\n\\end{sv}\n@\n\\end{en}\n"
+  )
+  assert run(repo, "contents.nw").returncode == 0
+
+
+@pytest.mark.parametrize(
+  "frame",
+  [
+    "\\begin{frame}[fragile]",
+    "\\begin{frame}[fragile,label=first]",
+    "\\begin{frame}<1>[t,fragile]",
+  ],
+)
+def test_a_block_in_a_fragile_frame_is_fine(repo, frame):
+  (repo / "contents.nw").write_text(
+    frame + "\n\\begin{en}\nA.\n\\end{en}\n\\end{frame}\n"
+  )
+  assert run(repo, "contents.nw").returncode == 0
+
+
+def test_fragile_may_be_on_the_next_line(repo):
+  (repo / "contents.nw").write_text(
+    "\\begin{frame}\n[t,\n fragile]\n"
+    "\\begin{en}\nA.\n\\end{en}\n\\end{frame}\n"
+  )
+  assert run(repo, "contents.nw").returncode == 0
+
+
+@pytest.mark.parametrize(
+  "frame",
+  [
+    "\\begin{frame}",
+    "\\begin{frame}[t]",
+    "\\begin{frame}{How fragile glass is}",
+    "\\begin{frame}{Title} % not fragile",
+    "\\begin{frame}[label=fragile-demo]",
+    "\\begin{frame}[label=fragile]",
+  ],
+)
+def test_a_block_in_another_frame_is_an_error(repo, frame):
+  (repo / "contents.nw").write_text(
+    "\\begin{frame}[fragile]\n\\end{frame}\n"
+    + frame
+    + "\n\\begin{en}\nA.\n\\end{en}\n\\end{frame}\n"
+  )
+  result = run(repo, "contents.nw")
+  assert result.returncode == 2
+  assert "contents.nw:4" in result.stderr
+  assert "fragile" in result.stderr
+
+
+def test_a_frame_on_one_line_is_closed(repo):
+  (repo / "contents.nw").write_text(
+    "\\begin{frame}Text.\\end{frame}\n\\begin{en}\nA.\n\\end{en}\n"
+  )
+  assert run(repo, "contents.nw").returncode == 0
+
+
+def test_a_block_after_a_frame_is_fine(repo):
+  (repo / "contents.nw").write_text(
+    "\\begin{frame}\nText.\n\\end{frame}\n\\begin{en}\nA.\n\\end{en}\n"
+  )
+  assert run(repo, "contents.nw").returncode == 0
+@
+
+\subsection{Reading a source: what is a string}\label{sec:sync-tr}
+
+An [[\ensv]] is a pair on a smaller scale, with the difference that its parts
+aren't on lines of their own: [[\ensv{A \emph{big} cat}{En \emph{stor} katt}]].
+Finding one means reading the text lines as \TeX\ will, and that's where
+earlier versions of this script went wrong: a [[%]] inside [[\verb|%|]] or a
+URL taken for a comment, [[\string\ensv]] taken for a use, a blank line between
+the two arguments taken for nothing.
+Each of these came from a regular expression that knew one rule of \TeX\ and
+not the next, applied in an order that let one pass undo another.
+
+So the text lines are read in one pass, from left to right, into tokens, and
+at each place exactly one rule applies.
+The line-by-line reading of the previous section stays as it is, since blocks,
+chunks and verbatim environments really do end at whole lines, whatever \TeX\
+would make of them.
+What's left for this pass is the lines that \LaTeX\ reads as text, and between
+them the lines that it doesn't: an empty line is a [[\par]], a line that holds
+only a comment is nothing at all, and anything else, a chunk or a block, is
+something that no argument can run across.
+
+<<constants>>=
+OPAQUE = "opaque"
+PAR = "par"
+<<classes>>=
+@dataclass
+class Token:
+    """A token of `LaTeX` text: its kind, its text and where it is."""
+
+    kind: str
+    text: str
+    start: int
+    end: int
+<<functions>>=
+def tokens_of(reading):
+    """Return the tokens of the text lines of a source, in order."""
+    tokens = []
+    offset = 0
+    for number, line in enumerate(reading.lines):
+        if number in reading.text_lines:
+            tokens += tokens_of_line(line, offset, reading.noweb)
+        elif number in reading.blank_lines:
+            tokens.append(Token(PAR, "", offset, offset))
+        elif number not in reading.comment_lines:
+            tokens.append(Token(OPAQUE, "", offset, offset + len(line)))
+        offset += len(line) + 1
+    return tokens
+@
+
+On a text line, a backslash starts a control sequence, a word of letters or a
+single other character: [[\\]] is one token, so [[\\ensv]] is a line break and
+four letters, and [[\%]] is no comment.
+The letters include [[@]], so that [[\ensv@x]], a name in some package's code,
+isn't taken for ours.
+A [[%]] that's left starts a comment, which runs to the end of the line.
+Braces are kept as tokens; everything else is a character that only matters as
+something that isn't a brace.
+
+What makes this a reader of \LaTeX\ and not of \TeX\ is a short table of the
+commands that read their argument verbatim, where a [[%]] or a brace is a
+character like any other.
+Each is read whole, as one token: [[\verb]], [[\Verb]] and
+[[\SaveVerb]] up to the next delimiter; [[\lstinline]], [[\mintinline]],
+[[\mint]] and [[\path]], with a delimiter or in braces; the address of
+[[\url]], [[\nolinkurl]] and [[\href]], in which [[%20]] is a space and no
+comment; PythonTeX's inline code; and noweb's
+quoting of code in double brackets, which isn't \LaTeX\ but is in every
+literate source.
+Only in a literate source, though: in a [[.tex]] file, as [[$x[[0]$]], two
+brackets are two brackets, and in a [[.nw]] file a pair that never closes on
+its line is taken for two brackets too, rather than for quoting that would
+hide the rest of the line.
+A command that isn't in the table is read as \TeX, so a [[%]] in the argument
+of a verbatim command of somebody else's still looks like a comment to us.
+That's a limit to state, not a rule we could complete: any package may define
+such a command, and a document may change what [[%]] means; dbosk/didactic\#106
+collects the script's limits.
+The harm would be in one direction, a use of ours that we don't see, so we
+look for the sign of it: a comment that holds one of our names and starts
+inside a group that hasn't closed, as the address of an unknown link command
+would.
+That gets a note on the standard error, which may be a false alarm about a
+comment inside a long [[\ensv]], and leaves the exit status alone.
+
+<<constants>>=
+VERBATIM_COMMANDS = {
+    "verb", "Verb", "SaveVerb", "lstinline", "mint", "mintinline", "path",
+    "url", "nolinkurl", "py", "pyc", "pys", "pyv", "pyb",
+}
+STARRED = {"verb", "Verb"}
+OPTIONS_FIRST = {"Verb", "SaveVerb", "lstinline", "mint", "mintinline", "href"}
+GROUP_FIRST = {"SaveVerb", "mint", "mintinline"}
+LETTER = re.compile(r"[A-Za-z@]")
+<<functions>>=
+def tokens_of_line(line, offset, noweb=True):
+    """Return the tokens of one line of text, at `offset` in the source."""
+    tokens = []
+    index = 0
+    while index < len(line):
+        start = index
+        char = line[index]
+        if char == "\\":
+            index = end_of_name(line, index + 1)
+            name = line[start + 1 : index] or " "
+            tokens.append(Token("cs", name, offset + start, offset + index))
+            if name in VERBATIM_COMMANDS or name == "href":
+                verbatim = index
+                index = end_of_verbatim_argument(line, index, name)
+                tokens.append(
+                    Token("verbatim", "", offset + verbatim, offset + index)
+                )
+        elif noweb and line.startswith("[[", index) and "]]" in line[index:]:
+            index = line.find("]]", index) + 2
+            tokens.append(Token("verbatim", "", offset + start, offset + index))
+        elif char == "%":
+            index = len(line)
+            tokens.append(
+                Token("comment", line[start:], offset + start, offset + index)
+            )
+        elif char in "{}":
+            index += 1
+            tokens.append(Token(char, char, offset + start, offset + index))
+        else:
+            index += 1
+            if not char.isspace():
+                token = Token("char", char, offset + start, offset + index)
+                tokens.append(token)
+    return tokens
+
+
+def end_of_name(line, index):
+    """Return where the name of a control sequence at `index` ends."""
+    if index >= len(line):
+        return index
+    if not LETTER.match(line[index]):
+        return index + 1
+    while index < len(line) and LETTER.match(line[index]):
+        index += 1
+    return index
+@
+
+The argument of a verbatim command starts after its star, its options in
+brackets and, for [[\mintinline]], the language in braces.
+Then the first character is the delimiter, unless it's a brace, in which case
+the braces count.
+Of [[\href]] only the address is verbatim, not the text that follows it.
+An argument that doesn't end on its line runs to the end of the line, which is
+as far as any of these can reach.
+
+<<functions>>=
+def end_of_verbatim_argument(line, index, name):
+    """Return where the verbatim argument of command `name` at `index` ends."""
+    if name in STARRED and line.startswith("*", index):
+        index += 1
+    if name != "verb":
+        index = skip_spaces(line, index)
+    if name in OPTIONS_FIRST and line.startswith("[", index):
+        close = line.find("]", index)
+        index = skip_spaces(line, close + 1 if close != -1 else len(line))
+    if name in GROUP_FIRST and line.startswith("{", index):
+        index = skip_spaces(line, end_of_braces(line, index))
+    if index >= len(line):
+        return index
+    if line[index] == "{":
+        return end_of_braces(line, index)
+    close = line.find(line[index], index + 1)
+    return close + 1 if close != -1 else len(line)
+
+
+def end_of_braces(line, index):
+    """Return where the group that opens at `index` ends, or the line's end."""
+    depth = 0
+    for position in range(index, len(line)):
+        if line[position] == "{":
+            depth += 1
+        elif line[position] == "}":
+            depth -= 1
+            if depth == 0:
+                return position + 1
+    return len(line)
+
+
+def skip_spaces(line, index):
+    """Return the first place at or after `index` that isn't a space."""
+    while index < len(line) and line[index].isspace():
+        index += 1
+    return index
+@
+
+Now the names.
+The command is named [[\ensv]], or [[\didactictr]] in a document where
+[[\ensv]] is taken.
+A [[\tr]] is none of our business: the package defines none, and
+\textsf{physics} has one for the trace, so a [[\tr]] in a source is that or
+the document's own.
+
+Not every token with our name is a use.
+After [[\string]], [[\ifdefined]], [[\noexpand]], [[\show]] or [[\meaning]] it
+is only mentioned, and so are the two after [[\ifx]]: a text about this
+package, or a preamble that looks before it defines, has those.
+After a command that defines one, such as [[\newcommand]], [[\def]] or
+[[\NewDocumentCommand]], with or without a star and braces around the name,
+it's a definition; and so it is as the first operand of [[\let]], or of
+[[\NewCommandCopy]] and its relatives.
+The long name is the package's own, which no document has a reason to
+redefine, and a file that does can't be checked, so that's an error.
+A file that defines [[\ensv]], on the other hand, has its own, so there, as
+in the package, the name is the document's: its uses are neither pairs nor
+errors, whatever their arguments, and only [[\didactictr]] is read.
+The state check says so once, on the standard error, since a deck's pairs
+written with [[\ensv]] would otherwise vanish from the report without a word.
+What the script can't know is a definition in another file, such as a preamble
+that the document inputs, or in a package: there the uses of [[\ensv]] are read
+as ours, and [[\didactictr]] is the way out.
+Nor can it run \TeX: a definition that \TeX\ never reaches, inside
+[[\iffalse]], counts all the same, and so does a [[\providecommand]] after
+the package is loaded, which keeps the package's [[\ensv]]; for the latter
+the note says that it was a [[\providecommand]].
+These, too, are in dbosk/didactic\#106.
+Our name as the second operand of [[\let]], [[\let\x\ensv]], is an alias, and
+an error, since the strings written with [[\x]] would never be seen.
+
+<<constants>>=
+OUR_NAMES = tuple(PAIRS)
+LONG_NAME = "didactictr"
+SHORT_NAMES = tuple(name for name in OUR_NAMES if name != LONG_NAME)
+MENTIONS = {"string": 1, "ifdefined": 1, "noexpand": 1, "show": 1,
+            "meaning": 1, "ifx": 2}
+DEFINERS = {
+    "def", "gdef", "edef", "xdef", "newcommand", "renewcommand",
+    "providecommand", "DeclareRobustCommand", "newrobustcmd",
+    "renewrobustcmd", "providerobustcmd", "NewDocumentCommand",
+    "RenewDocumentCommand", "ProvideDocumentCommand", "DeclareDocumentCommand",
+    "NewExpandableDocumentCommand", "RenewExpandableDocumentCommand",
+    "ProvideExpandableDocumentCommand", "DeclareExpandableDocumentCommand",
+}
+COPIERS = {"let", "NewCommandCopy", "RenewCommandCopy", "DeclareCommandCopy"}
+OWN_ENSV = "this file defines \\ensv, so it's left alone here; use \\didactictr"
+PROVIDED_ENSV = (
+    "this file defines \\ensv with \\providecommand, which keeps didactic's "
+    "if it comes after it; it's left alone here all the same; use \\didactictr"
+)
+DOUBTFUL_COMMENT = (
+    "this % may not start a comment, and what follows holds our names"
+)
+@
+
+The rest of the rules is about the arguments.
+Both of our names are only ours, so a use is followed by two groups, and
+anything else is an error: [[\ensv{a}]] alone, or [[\ensv\foo]].
+Before each group there may be spaces, a line end and comments, but not a
+blank line: [[\didactictr]] is long, so \LaTeX\ takes the [[\par]] of a blank
+line for the second argument and prints the Swedish in the English edition.
+Inside a group anything goes but a chunk, a block or a verbatim environment.
+What we keep of a side is that span of the file itself, comments included, as
+a change in a comment, or in quoted code, is a change of the string, but
+without stamps (\cref{sec:sync-pairs}); and the line where the use ends, as
+that's where a comment can stand without being in the way of the rest of the
+command.
+A use that a file's own [[\ensv]] leaves alone is kept too, as a place in the
+count of the uses on its line, and nothing else.
+
+<<classes>>=
+@dataclass
+class Ensv:
+    """A use of `\\ensv`, with the 0-based line where it starts and ends."""
+
+    first: int
+    last: int
+    en: str
+    sv: str
+    own: bool = False
+<<functions>>=
+def find_ensv(reading):
+    """Return all uses of `\\ensv` in a source, in order."""
+    raw = "\n".join(reading.lines)
+    tokens = tokens_of(reading)
+    uses, defined = classify_names(tokens, reading, raw)
+    if "ensv" in defined:
+        own = PROVIDED_ENSV if defined["ensv"] == "providecommand" else OWN_ENSV
+        reading.notes.append((None, own))
+    for comment in doubtful_comments(tokens):
+        line = raw.count("\n", 0, comment.start)
+        reading.notes.append((line, DOUBTFUL_COMMENT))
+    note_trailing_stamps(tokens, reading, raw)
+    found = []
+    for index in uses:
+        name = tokens[index].text
+        line = raw.count("\n", 0, tokens[index].start)
+        groups = read_groups(tokens, index + 1)
+        if name in defined:
+            last = raw.count("\n", 0, groups[1][1].start) if groups else line
+            found.append(Ensv(line, last, "", "", own=True))
+            continue
+        if groups is None:
+            reading.errors.append((line, f"this \\{name} needs two arguments"))
+            continue
+        (open_en, close_en), (open_sv, close_sv) = groups
+        found.append(
+            Ensv(
+                line,
+                raw.count("\n", 0, close_sv.start),
+                without_stamps(raw[open_en.end : close_en.start]),
+                without_stamps(raw[open_sv.end : close_sv.start]),
+            )
+        )
+    return found
+
+
+def note_trailing_stamps(tokens, reading, raw):
+    """Note the stamp comments that end lines of text, by line."""
+    for token in tokens:
+        if token.kind == "comment":
+            if match := STAMP_COMMENT.search(token.text):
+                line = raw.count("\n", 0, token.start)
+                reading.trailing_stamps[line] = match.group("entries")
+@
+
+Telling uses from mentions and definitions is a walk over the tokens that
+skips what each of those commands takes.
+An alias is reported where it stands, as it's an error whatever the rest of
+the file says.
+
+<<functions>>=
+def classify_names(tokens, reading, raw):
+    """Return the indices of uses of our names, and the names defined."""
+    uses = []
+    defined = {}
+    index = 0
+    while index < len(tokens):
+        token = tokens[index]
+        if token.kind != "cs":
+            index += 1
+            continue
+        if token.text in MENTIONS:
+            index += 1 + MENTIONS[token.text]
+            continue
+        if token.text in DEFINERS or token.text in COPIERS:
+            target = defined_name(tokens, index + 1)
+            if target is None:
+                index += 1
+                continue
+            if tokens[target].text in SHORT_NAMES:
+                defined.setdefault(tokens[target].text, token.text)
+            elif tokens[target].text in OUR_NAMES:
+                line = raw.count("\n", 0, tokens[target].start)
+                name = tokens[target].text
+                reading.errors.append((line, f"this file redefines \\{name}"))
+            index = target + 1
+            if token.text in COPIERS:
+                <<skip the source of a copy, reporting an alias>>
+            continue
+        if token.text in OUR_NAMES:
+            uses.append(index)
+        index += 1
+    return uses, defined
+
+
+def defined_name(tokens, index):
+    """Return the index of the name a defining command defines, or `None`."""
+    while index < len(tokens) and tokens[index].text in ("*", "{"):
+        index += 1
+    if index < len(tokens) and tokens[index].kind == "cs":
+        return index
+    return None
+<<skip the source of a copy, reporting an alias>>=
+while index < len(tokens) and tokens[index].text in ("=", "{", "}"):
+    index += 1
+if index < len(tokens) and tokens[index].text in OUR_NAMES:
+    if tokens[target].text not in OUR_NAMES:
+        line = raw.count("\n", 0, tokens[index].start)
+        name = tokens[index].text
+        reading.errors.append((line, f"an alias of \\{name} hides its pairs"))
+index += 1
+@
+
+The doubtful comments are found by counting the braces as we go, from the
+start of the file, since a group may well span lines.
+
+<<functions>>=
+def doubtful_comments(tokens):
+    """Return the comments that start in an open group and hold our names."""
+    doubtful = []
+    depth = 0
+    for token in tokens:
+        if token.kind == "{":
+            depth += 1
+        elif token.kind == "}":
+            depth = max(0, depth - 1)
+        elif token.kind in (PAR, OPAQUE):
+            depth = 0
+        elif token.kind == "comment" and depth > 0:
+            if any("\\" + name in token.text for name in OUR_NAMES):
+                doubtful.append(token)
+    return doubtful
+@
+
+Reading the two groups follows the rule above: comments are skipped between
+them, and a blank line, a chunk or anything else ends the search.
+
+<<functions>>=
+def read_groups(tokens, index):
+    """Return the braces of two groups at `index`, or `None`."""
+    groups = []
+    while len(groups) < 2:
+        while index < len(tokens) and tokens[index].kind == "comment":
+            index += 1
+        if index >= len(tokens) or tokens[index].kind != "{":
+            return None
+        close = matching_brace(tokens, index)
+        if close is None:
+            return None
+        groups.append((tokens[index], tokens[close]))
+        index = close + 1
+    return groups
+
+
+def matching_brace(tokens, index):
+    """Return the index of the brace that closes the one at `index`."""
+    depth = 0
+    for position in range(index, len(tokens)):
+        kind = tokens[position].kind
+        if kind == OPAQUE:
+            return None
+        if kind == "{":
+            depth += 1
+        elif kind == "}":
+            depth -= 1
+            if depth == 0:
+                return position
+    return None
+@
+
+\subsection{Pairs and stamps}\label{sec:sync-pairs}
+
+Two blocks form a pair when they have different languages and only blank lines
+and comments lie between them.
+Since a reading holds just the blocks and an [[OTHER]] for everything else,
+that's a question of whether they're neighbours in the list; going through it
+from the start also settles what three blocks in a row mean: the first two
+pair up.
+So a block of one edition right before a pair, with only comments between,
+pairs with the pair's first block, and the stamp of the pair is then reported
+as one with no pair; any line of text between them, [[\relax]] if there's
+nothing else to say, keeps them apart.
+A block without a partner belongs to one edition only, and that's a normal
+thing to want (a pointer to a deck that only one of the courses has), so it
+needs no stamp and it's never reported.
+
+A stamp is a comment at the end of a line, and stamping never adds a line or
+takes one away, so that the names in a report, which are line numbers, stay
+true however many pairs are stamped after it.
+A block pair's stamp stands on the line of its first [[\begin]], where
+\textsf{comment} ignores whatever follows:
+\begin{minted}{text}
+\begin{en} % sync en=3f9c1a sv=b20e7d
+The cat sat.
+\end{en}
+\begin{sv}
+Katten satt.
+\end{sv}
+\end{minted}
+If the blocks change places, the stamp is still found on the [[\begin]] of the
+other; a stamp on both is one too many, and the second is reported.
+An [[\ensv]]'s stamp stands on the line where it ends, one entry per use of
+[[\ensv]] or [[\didactictr]] that ends there, separated by semicolons, in
+the order they appear:
+\begin{minted}{text}
+\ensv{one}{ett} \ensv{two}{två} % sync en=7692c3 sv=4e07d4; en=ad0234 sv=f4e6a1
+\end{minted}
+An entry of [[-]] marks an [[\ensv]] on that line that hasn't been stamped yet,
+so that the second can be stamped before the first, and they don't change
+places.
+The uses that a file's own [[\ensv]] leaves alone keep their places in the
+count, so that adding such a definition doesn't hand one pair's entry to the
+next.
+
+A stamp is never part of the side it stands in.
+A pair that starts on the line where another ends, [[\ensv{a}{b} \ensv{c]]
+with [[d}{e}]] on the next line, has the first one's stamp inside its own
+first argument, and if the stamp counted, every stamp of the first would put
+the second out of step.
+
+<<imports>>=
+from typing import NamedTuple
+<<constants>>=
+ENTRY = " ".join(code + r"=(?:[0-9a-f]+|-)" for code in LANGUAGES)
+STAMP_COMMENT = re.compile(
+    r"\s*%\s*sync\s+(?P<entries>" + ENTRY + r"(?:;\s*" + ENTRY + r")*)\s*$"
+)
+<<classes>>=
+class Stamp(NamedTuple):
+    """The hashes of the two sides when they last said the same thing."""
+
+    en: str
+    sv: str
+
+    def __str__(self):
+        return f"en={self.en} sv={self.sv}"
+<<functions>>=
+def without_stamps(text):
+    """Return `text` without the stamp comments at the ends of its lines."""
+    lines = []
+    for line in text.split("\n"):
+        if match := STAMP_COMMENT.search(line):
+            line = line[: match.start()]
+        lines.append(line)
+    return "\n".join(lines)
+
+
+def parse_entries(entries):
+    """Return the stamps in the text of a stamp comment; `-` gives `None`."""
+    stamps = []
+    for entry in entries.split(";"):
+        en, sv = (part.split("=")[1] for part in entry.split())
+        stamps.append(None if "-" in (en, sv) else Stamp(en, sv))
+    return stamps
+@
+
+A stamp that no pair uses is reported: a block with a stamp and no partner, a
+stamp entry on a line where fewer uses end, a stamp at the end of a line where
+none ends at all.
+It means that a pair has lost a partner, or a use has been rewritten as plain
+text.
+Saying nothing there would turn a paragraph that had a translation into a
+paragraph of one edition only, without anybody having decided that.
+If that's the decision, [[--stamp]] at that line removes the stamp
+(\cref{sec:sync-stamp}).
+A line that is nothing but a stamp comment is how stamps of blocks were
+written before they moved to the [[\begin]] line; no pair has one now, so it
+is reported in the same way.
+
+<<note a stamp on a line of its own>>=
+if match := STAMP_COMMENT.fullmatch(line):
+    reading.stamp_lines[number] = parse_entries(match.group("entries"))[0]
+@
+
+Here is the hash.
+It's of the whole text of a side, a comment in it included, with all white
+space in the prose normalised, because re-wrapping a paragraph doesn't change
+what it says, and a report after each re-wrap would teach everybody to stamp
+without reading.
+That doesn't hold for code: moving a line of a chunk in or out of a loop
+changes the program, and so does joining two lines of a script.
+So the lines of a chunk or a verbatim environment in a block stay whole, with
+their indentation.
+Six hexadecimal digits are plenty: a hash only has to differ from the previous
+hash of the same paragraph.
+A change that happens to keep it goes unseen, but with 24 bits that's about
+one change in 17 million.
+
+<<imports>>=
+import hashlib
+<<constants>>=
+HASH_LENGTH = 6
+<<functions>>=
+def side_hash(text):
+    """Return the short hash of one side, ignoring how its prose is spaced."""
+    normal = normal_form(text).encode("utf-8", "surrogateescape")
+    return hashlib.sha256(normal).hexdigest()[:HASH_LENGTH]
+
+
+def normal_form(text):
+    """Return a side with its prose as words and its code as whole lines."""
+    parts = []
+    shown = None
+    for line in text.split("\n"):
+        after = next_shown(line, shown)
+        if shown or after:
+            parts.append(line.rstrip())
+        else:
+            parts += line.split()
+        shown = after
+    return "\n".join(parts)
+@
+
+A [[Pair]] then has all that the modes need, whichever way it came about.
+The [[target]] is how the report names it: the line, followed by which [[\ensv]]
+on the line if there are several.
+
+<<classes>>=
+@dataclass
+class Pair:
+    """Two sides that should say the same thing, and the stamp above them."""
+
+    target: str
+    first: int
+    last: int
+    en: str
+    sv: str
+    stamp: Stamp | None
+    is_block: bool = False
+    other_begin: int = 0
+    position: int = 0
+    uses_on_line: int = 1
+
+    def current(self):
+        """Return the stamp the two sides would get now."""
+        return Stamp(side_hash(self.en), side_hash(self.sv))
+<<functions>>=
+def block_pairs(reading):
+    """Return the pairs of blocks in a source, and the stamps they don't use."""
+    pairs = []
+    unused = []
+    items = reading.items
+    index = 0
+    while index < len(items):
+        one = items[index]
+        two = items[index + 1] if index + 1 < len(items) else OTHER
+        if one is OTHER:
+            index += 1
+            continue
+        if two is OTHER or one.language == two.language:
+            if one.stamp:
+                unused.append(one.first)
+            index += 1
+            continue
+        if one.stamp and two.stamp:
+            unused.append(two.first)
+        sides = {one.language: one.text, two.language: two.text}
+        pairs.append(
+            Pair(
+                str(one.first + 1),
+                one.first,
+                two.last,
+                sides["en"],
+                sides["sv"],
+                one.stamp or two.stamp,
+                is_block=True,
+                other_begin=two.first,
+            )
+        )
+        index += 2
+    return pairs, unused
+@
+
+The pairs of [[\ensv]] are simpler, since nothing can separate their sides.
+Their stamps are grouped by the line where they end, so that the entries on a
+line go with the [[\ensv]]s in order, however many there are.
+
+<<functions>>=
+def ensv_pairs(reading):
+    """Return the pairs that the uses of `\\ensv` make, and unused stamps."""
+    by_line = {}
+    for use in find_ensv(reading):
+        by_line.setdefault(use.last, []).append(use)
+    pairs = []
+    unused = []
+    for line in sorted(set(by_line) | set(reading.trailing_stamps)):
+        uses = by_line.get(line, [])
+        entries = reading.trailing_stamps.get(line)
+        stamps = parse_entries(entries) if entries else []
+        if len(stamps) > len(uses):
+            unused.append(line)
+        for position, use in enumerate(uses):
+            if use.own:
+                continue
+            target = str(line + 1)
+            if len(uses) > 1:
+                target += f".{position + 1}"
+            stamp = stamps[position] if position < len(stamps) else None
+            pairs.append(
+                Pair(
+                    target,
+                    use.first,
+                    line,
+                    use.en,
+                    use.sv,
+                    stamp,
+                    position=position,
+                    uses_on_line=len(uses),
+                )
+            )
+    return pairs, unused
+@
+
+Now it comes together, for a text from wherever it comes, with the name of
+its file, which says whether noweb's quoting is quoting there.
+The stamp lines that no pair used are returned too, and the notes for the
+report.
+
+<<functions>>=
+def read_pairs(text, name=""):
+    """Return a source's pairs, in order, unused stamp lines, errors, notes."""
+    reading = read_source(text, noweb=not name.endswith(".tex"))
+    pairs, unused_by_blocks = block_pairs(reading)
+    more_pairs, unused_by_ensv = ensv_pairs(reading)
+    pairs = sorted(pairs + more_pairs, key=lambda pair: pair.first)
+    leftover = sorted(
+        set(reading.stamp_lines) | set(unused_by_blocks) | set(unused_by_ensv)
+    )
+    return pairs, leftover, reading.errors, reading.notes
+@
+
+Let's verify the pairing rule, in its various directions: comments and blank
+lines don't separate a pair, and anything else does.
+The chunk is a separate case because it isn't a line of text.
+
+<<test functions>>=
+def test_only_blank_lines_and_comments_may_lie_between_a_pair(repo):
+  (repo / "contents.nw").write_text(
+    "\\begin{en}\nA.\n\\end{en}\n\n% a comment\n\n"
+    "\\begin{sv}\nB.\n\\end{sv}\n"
+  )
+  assert "new pair" in run(repo, "contents.nw").stdout
+
+
+def test_text_between_makes_two_single_blocks_with_no_stamp(repo):
+  (repo / "contents.nw").write_text(
+    "\\begin{en}\nA.\n\\end{en}\nText.\n\\begin{sv}\nB.\n\\end{sv}\n"
+  )
+  result = run(repo, "contents.nw")
+  assert result.returncode == 0, result.stdout
+  assert "new pair" not in result.stdout
+
+
+def test_a_chunk_between_makes_two_single_blocks(repo):
+  (repo / "contents.nw").write_text(
+    "\\begin{en}\nA.\n\\end{en}\n@<<[[a.py]]>>=\nx = 1\n@\n"
+    "\\begin{sv}\nB.\n\\end{sv}\n"
+  )
+  assert run(repo, "contents.nw").returncode == 0
+
+
+def test_a_verbatim_environment_between_makes_two_single_blocks(repo):
+  (repo / "contents.nw").write_text(
+    "\\begin{en}\nA.\n\\end{en}\n\\begin{verbatim}\nx\n\\end{verbatim}\n"
+    "\\begin{sv}\nB.\n\\end{sv}\n"
+  )
+  assert run(repo, "contents.nw").returncode == 0
+
+
+def test_two_blocks_of_one_language_are_no_pair(repo):
+  (repo / "contents.nw").write_text(
+    "\\begin{en}\nA.\n\\end{en}\n\\begin{en}\nB.\n\\end{en}\n"
+  )
+  assert run(repo, "contents.nw").returncode == 0
+
+
+def test_the_first_two_of_three_blocks_are_the_pair(repo):
+  (repo / "contents.nw").write_text(
+    blocks("en", "sv") + "\\begin{en}\nMore.\n\\end{en}\n"
+  )
+  assert run(repo, "-v", "contents.nw").stdout.count("new pair") == 1
+
+
+def test_pairs_are_taken_in_order(repo):
+  (repo / "contents.nw").write_text(blocks("en", "sv") + blocks("en", "sv"))
+  result = run(repo, "contents.nw")
+  assert "contents.nw:1: new pair" in result.stdout
+  assert "contents.nw:7: new pair" in result.stdout
+
+
+def test_a_stamp_whose_partner_is_gone_is_reported(repo):
+  path = stamped_file(repo, ("en", "sv"))
+  path.write_text(
+    re.sub(
+      r"\\begin\{sv\}.*\\end\{sv\}\n", "", path.read_text(), flags=re.S
+    )
+  )
+  result = run(repo, "contents.nw")
+  assert result.returncode == 1
+  assert "contents.nw:1: a stamp with no pair here" in result.stdout
+
+
+def test_a_stamp_stands_on_the_first_begin_line(repo):
+  path = stamped_file(repo, ("sv", "en"))
+  first = path.read_text().splitlines()[0]
+  stamp = r"\\begin\{sv\} % sync en=[0-9a-f]{6} sv=[0-9a-f]{6}"
+  assert re.fullmatch(stamp, first)
+  assert path.read_text().count("\n") == 6
+
+
+@pytest.mark.parametrize("between", ["\n", "% a note\n", "\n% a note\n\n"])
+def test_a_blank_line_or_comment_between_keeps_a_pair_stamped(repo, between):
+  path = stamped_file(repo, ("en", "sv"))
+  text = path.read_text()
+  path.write_text(text.replace("\\end{en}\n", "\\end{en}\n" + between))
+  assert run(repo, "contents.nw").returncode == 0
+
+
+def test_the_blocks_of_a_pair_may_change_places(repo):
+  path = stamped_file(repo, ("en", "sv"))
+  en, sv = path.read_text().split("\\end{en}\n")
+  path.write_text(sv + en + "\\end{en}\n")
+  assert run(repo, "-v", "contents.nw").returncode == 0
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  text = path.read_text()
+  assert text.count("% sync") == 1
+  assert text.startswith("\\begin{sv} % sync")
+
+
+def test_a_stamp_on_a_line_of_its_own_belongs_to_no_pair(repo):
+  path = repo / "contents.nw"
+  path.write_text("% sync en=aaaaaa sv=bbbbbb\n" + blocks("en", "sv"))
+  result = run(repo, "contents.nw")
+  assert result.returncode == 1
+  assert "contents.nw:1: a stamp with no pair here" in result.stdout
+  assert "contents.nw:2: new pair" in result.stdout
+
+
+def test_a_moved_pair_keeps_its_stamp(repo):
+  path = stamped_file(repo, ("en", "sv"))
+  path.write_text("Some text\n\nbefore it.\n\n" + path.read_text())
+  assert run(repo, "contents.nw").returncode == 0
+
+
+def test_two_pairs_that_change_places_keep_their_stamps(repo):
+  path = repo / "contents.nw"
+  one = blocks("en", "sv", en="One.", sv="Ett.")
+  two = blocks("en", "sv", en="Two.", sv="Två.")
+  path.write_text(one + "Text.\n" + two)
+  stamp_at(repo, path, "One.")
+  stamp_at(repo, path, "Two.")
+  one, two = path.read_text().split("Text.\n")
+  path.write_text(two + "Text.\n" + one)
+  assert run(repo, "contents.nw").returncode == 0
+
+
+def test_a_comment_in_a_block_counts_as_a_change(repo):
+  path = stamped_file(repo, ("en", "sv"))
+  path.write_text(path.read_text().replace("The cat", "% note\nThe cat"))
+  assert "sv is behind" in run(repo, "contents.nw").stdout
+@
+
+The same for [[\ensv]], where the difficulty is in the braces.
+Note that the tests of what isn't an [[\ensv]] have to come out quietly, with
+status 0:
+a definition, a comment, a chunk, a line break, and a [[\tr]].
+
+<<test functions>>=
+def test_ensv_with_nested_braces_is_one_pair(repo):
+  path = repo / "contents.nw"
+  path.write_text(
+    "\\section{\\ensv{A \\emph{big {one}} cat}{En \\emph{stor} katt}}\n"
+  )
+  assert "contents.nw:1: new pair" in run(repo, "contents.nw").stdout
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  line = path.read_text().splitlines()[0]
+  assert re.search(r"\}\} % sync en=[0-9a-f]{6} sv=[0-9a-f]{6}$", line)
+  assert run(repo, "contents.nw").returncode == 0
+  path.write_text(path.read_text().replace("stor", "liten"))
+  assert "en is behind" in run(repo, "contents.nw").stdout
+
+
+def test_a_change_after_a_nested_brace_is_seen(repo):
+  path = repo / "contents.nw"
+  path.write_text("\\ensv{a {b} c}{d {e} f}\n")
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  path.write_text(path.read_text().replace("{b} c", "{b} x"))
+  assert "sv is behind" in run(repo, "contents.nw").stdout
+
+
+def test_several_ensv_on_a_line_are_separate(repo):
+  path = repo / "contents.nw"
+  path.write_text("\\ensv{one}{ett} and \\ensv{two}{två}\n")
+  result = run(repo, "contents.nw")
+  assert "contents.nw:1.1: new pair" in result.stdout
+  assert "contents.nw:1.2: new pair" in result.stdout
+
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 2
+  assert run(repo, "--stamp", "contents.nw:1.2").returncode == 0
+  result = run(repo, "contents.nw")
+  assert "contents.nw:1.1: new pair" in result.stdout
+  assert "contents.nw:1.2" not in result.stdout
+
+  assert run(repo, "--stamp", "contents.nw:1.1").returncode == 0
+  assert run(repo, "contents.nw").returncode == 0
+  commit(repo)
+
+  path.write_text(path.read_text().replace("two", "too"))
+  result = run(repo, "contents.nw")
+  assert "contents.nw:1.2: sv is behind" in result.stdout
+  assert "contents.nw:1.1" not in result.stdout
+  assert "[-two-]{+too+}" in result.stdout
+
+
+def test_what_is_not_an_ensv_is_quiet(repo):
+  (repo / "contents.nw").write_text(
+    "% \\ensv{a}{b}\n"
+    "Text. % \\ensv{a}{b}\n"
+    "@<<[[a.tex]]>>=\n\\ensv{a}{b}\n@\n"
+    "Two lines\\\\ensv{a}{b}\n"
+    "\\newcommand\\tr[2]{#1}\n"
+    "\\newcommand\\ensv[2]{#1}\n"
+    "\\renewcommand{\\ensv}[2]{#1}\n"
+    "\\NewDocumentCommand\\ensv{mm}{#1}\n"
+    "\\def\\ensv#1#2{#1}\n"
+    "\\translate{a}{b}\n"
+    "\\tr{a}{b} and $\\tr{a}$\n"
+  )
+  result = run(repo, "-v", "contents.nw")
+  assert result.returncode == 0, result.stdout
+  assert "0 pairs" in result.stdout
+
+
+@pytest.mark.parametrize(
+  "shown",
+  [
+    "Use [[\\ensv{en}{sv}]] here.",
+    "Use \\verb|\\ensv{en}{sv}| here.",
+    "Use \\mintinline{latex}|\\ensv{en}{sv}| here.",
+    "Use \\mintinline[breaklines]{latex}{\\ensv} here{a}{b}.",
+  ],
+)
+def test_an_ensv_shown_as_code_is_quiet(repo, shown):
+  (repo / "contents.nw").write_text(shown + "\n")
+  result = run(repo, "-v", "contents.nw")
+  assert result.returncode == 0, result.stdout
+  assert "0 pairs" in result.stdout
+
+
+def test_a_change_in_quoted_code_in_an_ensv_is_a_change(repo):
+  path = repo / "contents.nw"
+  path.write_text("\\ensv{Use [[foo]]}{Ta [[foo]]}\n")
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  path.write_text(path.read_text().replace("Use [[foo]]", "Use [[bar]]"))
+  assert "sv is behind" in run(repo, "contents.nw").stdout
+
+
+@pytest.mark.parametrize(
+  "source",
+  [
+    "\\ensv{100\\% [[a%b]] x}{100\\% [[a%b]] y}\n",
+    "\\ensv {a} {b}\n",
+    "\\ensv{a % a comment\n b}{c}\n",
+  ],
+)
+def test_ensv_with_percent_signs_and_spaces_is_one_pair(repo, source):
+  path = repo / "contents.nw"
+  path.write_text(source)
+  assert "new pair" in run(repo, "contents.nw").stdout
+  last = len(source.splitlines())
+  assert run(repo, "--stamp", f"contents.nw:{last}").returncode == 0
+  assert run(repo, "contents.nw").returncode == 0
+  assert path.read_text().count("% sync") == 1
+
+
+def test_stamping_an_ensv_again_replaces_its_stamp(repo):
+  path = repo / "contents.nw"
+  path.write_text("\\ensv{a}{b}\n")
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  path.write_text(path.read_text().replace("{a}", "{x}"))
+  assert "sv is behind" in run(repo, "contents.nw").stdout
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  assert path.read_text().count("% sync") == 1
+  assert run(repo, "contents.nw").returncode == 0
+
+
+def test_crlf_on_an_ensv_line_survives_a_stamp(repo):
+  path = repo / "contents.nw"
+  path.write_bytes(b"\\ensv{a}{b}\r\nNext.\r\n")
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  data = path.read_bytes()
+  assert data.count(b"\r\n") == 2
+  assert data.count(b"\n") == 2
+  assert b"\r % sync" not in data
+  assert run(repo, "contents.nw").returncode == 0
+
+
+def test_didactictr_is_an_ensv_too(repo):
+  path = repo / "contents.nw"
+  path.write_text("\\didactictr{Yes}{Ja}\n")
+  assert "contents.nw:1: new pair" in run(repo, "contents.nw").stdout
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  path.write_text(path.read_text().replace("Yes", "No"))
+  assert "sv is behind" in run(repo, "contents.nw").stdout
+
+
+def test_a_comment_edit_in_an_ensv_counts_as_a_change(repo):
+  path = repo / "contents.nw"
+  path.write_text("\\ensv{a % one\n b}{c}\n")
+  assert run(repo, "--stamp", "contents.nw:2").returncode == 0
+  path.write_text(path.read_text().replace("% one", "% two"))
+  assert "sv is behind" in run(repo, "contents.nw").stdout
+
+
+def test_ensv_may_quote_code_and_escaped_braces(repo):
+  (repo / "contents.nw").write_text(
+    "\\ensv{a [[d{]] \\{ b}{c [[d{]] \\{ d}\n"
+  )
+  assert "contents.nw:1: new pair" in run(repo, "contents.nw").stdout
+
+
+def test_an_ensv_over_several_lines_has_its_stamp_where_it_ends(repo):
+  path = repo / "contents.nw"
+  path.write_text("\\ensv{one\ntwo}{ett\ntvå}\nNext.\n")
+  assert run(repo, "--stamp", "contents.nw:3").returncode == 0
+  assert path.read_text().splitlines()[2].startswith("två} % sync en=")
+  assert run(repo, "contents.nw").returncode == 0
+
+
+@pytest.mark.parametrize(
+  "source",
+  ["\\ensv{one}\n", "\\ensv\\foo\n", "\\didactictr\\foo\n", "\\let\\x\\ensv\n"],
+)
+def test_our_names_without_two_arguments_are_an_error(repo, source):
+  (repo / "contents.nw").write_text(source)
+  result = run(repo, "contents.nw")
+  assert result.returncode == 2
+  assert "contents.nw:1" in result.stderr
+
+
+def test_a_file_that_defines_ensv_keeps_it(repo):
+  path = repo / "contents.nw"
+  path.write_text(
+    "\\newcommand\\ensv[2]{#1}\n"
+    "\\ensv{x}{y} and \\ensv{z}\n"
+    "\\didactictr{Yes}{Ja}\n"
+  )
+  result = run(repo, "-v", "contents.nw")
+  assert result.returncode == 1, result.stderr
+  assert "1 pairs" in result.stdout
+  assert "contents.nw:3: new pair" in result.stdout
+  assert result.stderr.count("defines \\ensv") == 1
+  assert run(repo, "--stamp", "contents.nw:3").returncode == 0
+  assert run(repo, "contents.nw").returncode == 0
+
+
+@pytest.mark.parametrize(
+  "definition",
+  ["\\renewcommand\\didactictr[2]{#1}\n", "\\let\\didactictr\\relax\n"],
+)
+def test_redefining_didactictr_is_an_error(repo, definition):
+  (repo / "contents.nw").write_text(definition + "\\didactictr{a}{b}\n")
+  result = run(repo, "contents.nw")
+  assert result.returncode == 2
+  assert "contents.nw:1: this file redefines \\didactictr" in result.stderr
+
+
+def test_the_names_and_the_stamps_come_from_the_table_of_pairs():
+  spec = importlib.util.spec_from_file_location("sync", SCRIPT)
+  sync = importlib.util.module_from_spec(spec)
+  spec.loader.exec_module(sync)
+  assert sync.OUR_NAMES == tuple(sync.PAIRS)
+  codes = {code for pair in sync.PAIRS.values() for code in pair}
+  assert set(sync.LANGUAGES) == codes
+  for code in codes:
+    assert sync.BLOCK_BEGIN.match("\\begin{" + code + "}")
+    assert f"{code}=abc123" in str(sync.Stamp("abc123", "abc123"))
+  entry = " ".join(f"{code}=-" for code in sync.LANGUAGES)
+  assert sync.STAMP_COMMENT.fullmatch("% sync " + entry)
+  assert not sync.BLOCK_BEGIN.match("\\begin{de}")
+
+
+def test_a_tr_is_somebody_elses(repo):
+  path = repo / "contents.nw"
+  path.write_text("$\\tr{A}$ and $\\tr{B}{C}$, \\ensv{Yes}{Ja}\n")
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  result = run(repo, "-v", "contents.nw")
+  assert result.returncode == 0, result.stderr
+  assert "1 pairs" in result.stdout
+
+
+@pytest.mark.parametrize(
+  "source",
+  [
+    "Use \\verb|%| here: \\ensv{broken}\n",
+    "Use \\verb*|%| here: \\ensv{broken}\n",
+    "\\href{https://example.org/a%20b}{\\ensv{broken}}\n",
+    "\\url{https://example.org/%7E} \\ensv{broken}\n",
+    "\\url{https://example.org/{x}%7E} \\ensv{broken}\n",
+    "\\nolinkurl{a%b} \\ensv{broken}\n",
+    "\\path|a%b| \\ensv{broken}\n",
+    "\\lstinline|%| \\ensv{broken}\n",
+    "\\mintinline{latex}|%| \\ensv{broken}\n",
+    "Use [[a%b]] here: \\ensv{broken}\n",
+  ],
+)
+def test_a_percent_sign_that_is_no_comment_hides_nothing(repo, source):
+  (repo / "contents.nw").write_text(source)
+  result = run(repo, "contents.nw")
+  assert result.returncode == 2, result.stdout
+  assert "contents.nw:1" in result.stderr
+
+
+def test_a_provided_ensv_is_named_in_the_note(repo):
+  (repo / "contents.nw").write_text(
+    "\\providecommand\\ensv[2]{#1}\n\\ensv{x}\n"
+  )
+  result = run(repo, "contents.nw")
+  assert result.returncode == 0
+  assert "with \\providecommand" in result.stderr
+
+
+def test_a_definition_after_a_percent_sign_in_a_link_is_seen(repo):
+  (repo / "contents.nw").write_text(
+    "\\url{https://example.org/%7E} \\newcommand\\ensv[2]{#1}\n\\ensv{own}\n"
+  )
+  result = run(repo, "contents.nw")
+  assert result.returncode == 0, result.stderr
+  assert "defines \\ensv" in result.stderr
+
+
+@pytest.mark.parametrize(
+  "shown",
+  [
+    "% \\newcommand\\ensv[2]{#1}\n",
+    "\\verb|\\newcommand\\ensv[2]{#1}|\n",
+    "Use [[\\newcommand\\ensv[2]{#1}]] here.\n",
+    "\\mintinline{latex}{\\newcommand\\ensv[2]{#1}}\n",
+    "\\begin{minted}{latex}\n\\newcommand\\ensv[2]{#1}\n\\end{minted}\n",
+    "\\begin{en}\n\\newcommand\\ensv[2]{#1}\n\\end{en}\n",
+  ],
+)
+def test_a_definition_that_is_only_shown_defines_nothing(repo, shown):
+  (repo / "contents.nw").write_text(shown + "Then \\ensv{a}{b}.\n")
+  result = run(repo, "contents.nw")
+  assert "defines" not in result.stderr
+  assert "new pair" in result.stdout
+
+
+@pytest.mark.parametrize(
+  "source",
+  [
+    "\\mint{latex}|\\ensv{a}{b}| and \\mint[linenos]{latex}|\\ensv{x}|\n",
+    "\\mint{latex}{\\ensv{x}}\n",
+    "\\Verb*|%| \\ensv{a}{b}\n",
+    "\\SaveVerb{name}|%\\ensv{x}| \\ensv{a}{b}\n",
+  ],
+)
+def test_more_verbatim_commands_are_read_whole(repo, source):
+  (repo / "contents.nw").write_text(source)
+  result = run(repo, "-v", "contents.nw")
+  assert result.returncode in (0, 1), result.stderr
+  pairs = 1 if "\\ensv{a}{b}\n" in source else 0
+  assert f"{pairs} pairs" in result.stdout
+
+
+def test_double_brackets_are_text_in_a_tex_file(repo):
+  (repo / "contents.tex").write_text("$x[[0]$ \\ensv{broken}\n")
+  assert run(repo, "contents.tex").returncode == 2
+
+
+def test_double_brackets_that_never_close_hide_nothing(repo):
+  (repo / "contents.nw").write_text("Use [[x and \\ensv{broken}\n")
+  assert run(repo, "contents.nw").returncode == 2
+
+
+@pytest.mark.parametrize(
+  "source",
+  [
+    "\\href[pdfnewwindow]{https://example.org/a%20b}{\\ensv{broken}}\n",
+    "\\lstinline[style=x]|%| \\ensv{broken}\n",
+    "\\url {https://example.org/%7E} \\ensv{broken}\n",
+  ],
+)
+def test_options_and_spaces_before_a_verbatim_argument(repo, source):
+  (repo / "contents.nw").write_text(source)
+  assert run(repo, "contents.nw").returncode == 2
+
+
+def test_a_comment_may_stand_between_the_arguments(repo):
+  (repo / "contents.nw").write_text("\\ensv{a}%\n{b}\n")
+  assert "contents.nw:2: new pair" in run(repo, "contents.nw").stdout
+
+
+@pytest.mark.parametrize(
+  "between", ["\\begin{en}\nx\n\\end{en}\n", "@<<x>>=\ny\n@\n"]
+)
+def test_an_argument_cannot_run_across_a_block_or_chunk(repo, between):
+  (repo / "contents.nw").write_text("\\ensv{a\n" + between + "b}{c}\n")
+  assert run(repo, "contents.nw").returncode == 2
+
+
+@pytest.mark.parametrize(
+  "source", ["\\ifx\\relax\\ensv \\fi\n", "\\makeatletter\\ensv@x{a}\n"]
+)
+def test_more_names_that_are_no_use(repo, source):
+  (repo / "contents.nw").write_text(source)
+  result = run(repo, "-v", "contents.nw")
+  assert result.returncode == 0, result.stderr
+  assert "0 pairs" in result.stdout
+
+
+def test_a_starred_newcommand_defines_ensv(repo):
+  (repo / "contents.nw").write_text("\\newcommand*\\ensv[2]{#1}\n\\ensv{x}\n")
+  result = run(repo, "contents.nw")
+  assert result.returncode == 0
+  assert "defines \\ensv" in result.stderr
+
+
+def test_a_percent_sign_in_an_unknown_command_gets_a_note(repo):
+  (repo / "contents.nw").write_text(
+    "\\mylink{https://example.org/a%20b}{\\ensv{broken}}\n"
+  )
+  result = run(repo, "contents.nw")
+  assert result.returncode == 0
+  assert "contents.nw:1: this % may not start a comment" in result.stderr
+
+
+def test_a_pair_after_a_percent_sign_in_a_link_is_seen(repo):
+  (repo / "contents.nw").write_text(
+    "\\href{https://example.org/a%20b}{\\ensv{Link}{Länk}}\n"
+  )
+  assert "contents.nw:1: new pair" in run(repo, "contents.nw").stdout
+
+
+@pytest.mark.parametrize(
+  "source", ["\\\\% \\ensv{broken}\n", "100\\% sure % \\ensv{broken}\n"]
+)
+def test_a_comment_after_a_line_break_or_a_percent_is_a_comment(repo, source):
+  (repo / "contents.nw").write_text(source)
+  result = run(repo, "-v", "contents.nw")
+  assert result.returncode == 0, result.stderr
+  assert "0 pairs" in result.stdout
+
+
+@pytest.mark.parametrize(
+  "source",
+  [
+    "\\ensv{a}\n\n{b}\n",
+    "\\ensv\n\n{a}{b}\n",
+    "\\didactictr{a}\n  \n{b}\n",
+  ],
+)
+def test_a_blank_line_ends_the_arguments(repo, source):
+  (repo / "contents.nw").write_text(source)
+  result = run(repo, "contents.nw")
+  assert result.returncode == 2, result.stdout
+  assert "contents.nw:1" in result.stderr
+
+
+def test_one_line_end_between_the_arguments_is_fine(repo):
+  (repo / "contents.nw").write_text("\\ensv{a}\n  {b}\n")
+  assert "new pair" in run(repo, "contents.nw").stdout
+
+
+def test_the_text_on_the_line_that_ends_a_chunk_is_read(repo):
+  (repo / "contents.nw").write_text(
+    "@<<a>>=\nx = 1\n@ The \\ensv{Yes}{Ja} is here.\n"
+  )
+  assert "contents.nw:3: new pair" in run(repo, "contents.nw").stdout
+  (repo / "contents.nw").write_text(
+    "@<<a>>=\nx = 1\n@ The \\ensv{broken}.\n"
+  )
+  assert run(repo, "contents.nw").returncode == 2
+
+
+@pytest.mark.parametrize(
+  "source",
+  [
+    "The command \\texttt{\\string\\ensv} is ours.\n",
+    "\\ifdefined\\ensv \\message{yes}\\fi\n",
+    "\\ifx\\ensv\\undefined \\message{no}\\fi\n",
+  ],
+)
+def test_a_name_that_is_only_mentioned_is_no_use(repo, source):
+  (repo / "contents.nw").write_text(source)
+  result = run(repo, "-v", "contents.nw")
+  assert result.returncode == 0, result.stderr
+  assert "0 pairs" in result.stdout
+
+
+@pytest.mark.parametrize(
+  "source",
+  [
+    "\\let\\ensv\\relax\n",
+    "\\let\\ensv=\\relax\n",
+    "\\newrobustcmd\\ensv[2]{#1}\n",
+    "\\NewExpandableDocumentCommand\\ensv{mm}{#1}\n",
+  ],
+)
+def test_more_ways_of_defining_ensv_are_definitions(repo, source):
+  (repo / "contents.nw").write_text(source + "\\ensv{own}\n")
+  result = run(repo, "-v", "contents.nw")
+  assert result.returncode == 0, result.stderr
+  assert "0 pairs" in result.stdout
+  assert "defines \\ensv" in result.stderr
+@
+
+\subsection{The state of a pair}\label{sec:sync-state}
+
+The state follows from comparing the hashes with the stamp, and it's the rows
+of
+\cref{tab:didactic-sync-states} as code.
+The order of the blocks doesn't matter: the hashes are kept by language.
+
+<<constants>>=
+IN_SYNC = "in sync"
+SV_BEHIND = "sv is behind"
+EN_BEHIND = "en is behind"
+BOTH_CHANGED = "read both and stamp"
+NEW_PAIR = "new pair, stamp once both are written"
+LEFTOVER_STAMP = "a stamp with no pair here"
+<<functions>>=
+def pair_state(pair):
+    """Return the report for a pair: what has changed since its stamp."""
+    if pair.stamp is None:
+        return NEW_PAIR
+    now = pair.current()
+    en_changed = now.en != pair.stamp.en
+    sv_changed = now.sv != pair.stamp.sv
+    if en_changed and sv_changed:
+        return BOTH_CHANGED
+    if en_changed:
+        return SV_BEHIND
+    if sv_changed:
+        return EN_BEHIND
+    return IN_SYNC
+@
+
+Reports go to standard output, and they're the same for each pair: where it is
+and in what state, then the two sides in the form that helps whoever has to
+act (\cref{sec:sync-diff}).
+An error in a source is another thing entirely: the file isn't what a build
+can use, so it goes to standard error and gives a status of its own.
+
+<<functions>>=
+def check_file(path, verbose=False):
+    """Report on the pairs of one file; return how many aren't in sync."""
+    pairs, leftover, errors, notes = read_pairs(read_text(path), path)
+    for line, message in errors:
+        print(f"{path}:{line + 1}: {message}", file=sys.stderr)
+    for line, note in notes:
+        where = f"{path}:{line + 1}" if line is not None else path
+        print(f"{where}: {note}", file=sys.stderr)
+    counts = Counter()
+    for line in leftover:
+        print(f"{path}:{line + 1}: {LEFTOVER_STAMP}")
+    for pair in pairs:
+        state = pair_state(pair)
+        counts[state] += 1
+        if state != IN_SYNC or verbose:
+            print(f"{path}:{pair.target}: {state}")
+        if state not in (IN_SYNC, NEW_PAIR):
+            print_sides(path, pair, state)
+    if verbose:
+        print(f"{path}: {len(pairs)} pairs")
+    return len(pairs) - counts[IN_SYNC] + len(leftover), bool(errors)
+<<imports>>=
+import sys
+from collections import Counter
+from pathlib import Path
+@
+
+Files are read and written as bytes, with the bytes that aren't UTF-8 kept as
+they are, and they're split only on line feeds.
+This is what lets [[--stamp]] promise that every other line stays
+byte-identical (\cref{sec:sync-stamp}), in particular those with CRLF ends or
+with a form feed.
+
+<<functions>>=
+def read_text(path):
+    """Return the contents of a file, every byte kept."""
+    return Path(path).read_bytes().decode("utf-8", "surrogateescape")
+
+
+def write_text(path, text):
+    """Write what `read_text` has read, every byte kept."""
+    Path(path).write_bytes(text.encode("utf-8", "surrogateescape"))
+@
+
+Let's verify the table, row by row and in both orders of the blocks.
+A test for each row also says what the two sides must look like in the report.
+
+<<test functions>>=
+@pytest.mark.parametrize("order", ORDERS)
+def test_a_new_pair_is_reported(repo, order):
+  (repo / "contents.nw").write_text(blocks(*order))
+  result = run(repo, "contents.nw")
+  assert result.returncode == 1
+  assert (
+    "contents.nw:1: new pair, stamp once both are written" in result.stdout
+  )
+
+
+@pytest.mark.parametrize("order", ORDERS)
+def test_a_stamped_pair_is_in_sync(repo, order):
+  stamped_file(repo, order)
+  result = run(repo, "-v", "contents.nw")
+  assert result.returncode == 0, result.stdout
+  assert "in sync" in result.stdout
+
+
+@pytest.mark.parametrize("order", ORDERS)
+def test_a_changed_en_side_means_sv_is_behind(repo, order):
+  path = stamped_file(repo, order)
+  path.write_text(path.read_text().replace("The cat sat.", "The dog sat."))
+  result = run(repo, "contents.nw")
+  assert result.returncode == 1
+  assert "sv is behind" in result.stdout
+  assert "[-cat-]{+dog+}" in result.stdout
+  assert "Katten satt." in result.stdout
+
+
+@pytest.mark.parametrize("order", ORDERS)
+def test_a_changed_sv_side_means_en_is_behind(repo, order):
+  path = stamped_file(repo, order)
+  path.write_text(path.read_text().replace("Katten", "Hunden"))
+  result = run(repo, "contents.nw")
+  assert result.returncode == 1
+  assert "en is behind" in result.stdout
+  assert "[-Katten-]{+Hunden+}" in result.stdout
+  assert "The cat sat." in result.stdout
+
+
+@pytest.mark.parametrize("order", ORDERS)
+def test_two_changed_sides_ask_to_read_both(repo, order):
+  path = stamped_file(repo, order)
+  path.write_text(
+    path.read_text()
+    .replace("The cat sat.", "The dog sat.")
+    .replace("Katten", "Hunden")
+  )
+  result = run(repo, "contents.nw")
+  assert result.returncode == 1
+  assert "read both and stamp" in result.stdout
+  assert "[-cat-]{+dog+}" in result.stdout
+  assert "[-Katten-]{+Hunden+}" in result.stdout
+
+
+def test_rewrapping_a_block_changes_nothing(repo):
+  path = stamped_file(repo, ("en", "sv"))
+  path.write_text(
+    path.read_text().replace("The cat sat.", "The cat\n   sat.")
+  )
+  assert run(repo, "contents.nw").returncode == 0
+
+
+def test_reindenting_a_chunk_in_a_block_is_a_change(repo):
+  path = repo / "contents.nw"
+  path.write_text(
+    "\\begin{en}\n@<<[[a.py]]>>=\nif x:\n    y()\nz()\n@\nText\n\\end{en}\n"
+    "\\begin{sv}\nB\n\\end{sv}\n"
+  )
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  path.write_text(path.read_text().replace("z()", "    z()"))
+  assert "sv is behind" in run(repo, "contents.nw").stdout
+
+
+def test_joining_lines_of_a_chunk_in_a_block_is_a_change(repo):
+  path = repo / "contents.nw"
+  path.write_text(
+    "\\begin{en}\n@<<[[a.sh]]>>=\nx\ny\n@\n\\end{en}\n"
+    "\\begin{sv}\nB\n\\end{sv}\n"
+  )
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  path.write_text(path.read_text().replace("x\ny", "x y"))
+  assert "sv is behind" in run(repo, "contents.nw").stdout
+
+
+def test_reindenting_verbatim_in_a_block_is_a_change(repo):
+  path = repo / "contents.nw"
+  path.write_text(
+    "\\begin{en}\n\\begin{minted}{python}\nif x:\n  y()\n\\end{minted}\n"
+    "\\end{en}\n\\begin{sv}\nB\n\\end{sv}\n"
+  )
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  path.write_text(path.read_text().replace("  y()", "y()"))
+  assert "sv is behind" in run(repo, "contents.nw").stdout
+
+
+def test_rewrapping_the_prose_around_a_chunk_changes_nothing(repo):
+  path = repo / "contents.nw"
+  path.write_text(
+    "\\begin{en}\nOne two\n@<<[[a.py]]>>=\nx = 1\n@\nThree four\n\\end{en}\n"
+    "\\begin{sv}\nB\n\\end{sv}\n"
+  )
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  path.write_text(
+    path.read_text()
+    .replace("One two", "One\n  two")
+    .replace("Three four", "Three\nfour")
+  )
+  assert run(repo, "contents.nw").returncode == 0
+
+
+@pytest.mark.parametrize("changed", ["The catsat.", "The Cat sat."])
+def test_a_changed_word_is_a_change(repo, changed):
+  path = stamped_file(repo, ("en", "sv"))
+  path.write_text(path.read_text().replace("The cat sat.", changed))
+  assert run(repo, "contents.nw").returncode == 1
+@
+
+\subsection{The word diff, and the commit of the stamp}\label{sec:sync-diff}
+
+A report that a side is behind isn't yet much help.
+What whoever translates needs to see is what changed in the one side, next to
+what the other side says now.
+In a paragraph that was re-wrapped on the way, a line diff would show the
+whole paragraph as changed, so it's a diff of words, printed in the notation
+of [[git diff --word-diff]].
+The words are those that the hash compares, from [[normal_form]]: in the prose
+a word, but in a chunk or a verbatim environment a whole line with its
+indentation.
+Splitting the code into words as well would make a re-indented or a joined
+line look the same before and after, and the report would say that a side is
+behind while showing no change in it.
+
+<<imports>>=
+import difflib
+<<functions>>=
+def word_diff(old, new):
+    """Return a diff of two texts by words, as in `git diff --word-diff`."""
+    before = normal_form(old).split("\n")
+    after = normal_form(new).split("\n")
+    matcher = difflib.SequenceMatcher(None, before, after, autojunk=False)
+    parts = []
+    for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+        if tag == "equal":
+            parts += before[i1:i2]
+            continue
+        change = ""
+        if i2 > i1:
+            change += "[-" + " ".join(before[i1:i2]) + "-]"
+        if j2 > j1:
+            change += "{+" + " ".join(after[j1:j2]) + "+}"
+        parts.append(change)
+    return " ".join(parts)
+@
+
+To diff against the text as it was stamped we need that text, and the stamp is
+how to find it: the commit that wrote this stamp is where the two sides said
+the same thing.
+[[git log -S]] gives the commits that changed the number of occurrences of a
+string, which for a stamp means those that wrote or removed it, and with
+[[--name-only]] it says in which files.
+We don't limit it to the file at hand, since the pair may have been moved to
+another one since.
+File names come back separated by NUL with [[-z]], since git would otherwise
+quote the ones with unusual characters, a Swedish letter being one, and we
+would look for a file by its quoted name; a mark that no file name starts with
+tells the commits from the names.
+
+A file in such a commit is read with the same [[read_pairs]] as the file on
+disk, to find the pair with this stamp and check that the side has the stamped
+hash.
+That check also rules out a commit that removed the stamp, and a stamp that
+was written by hand.
+If nothing is found, the stamp stands outside of history: it isn't committed
+yet, or it has been made up, or this isn't a git repository at all.
+It's still as stale as it was, so the report is given anyway without the diff.
+
+After a large edit, a book has many pairs behind in the same few files, and
+the commits that wrote their stamps are mostly the same few too.
+Reading such a file at such a commit again for every pair made the report take
+minutes on a large file, so what a file holds at a commit is read once and
+kept, and so is the top of the repository.
+Both are only ever read, never changed, within a run.
+The variable [[DIDACTIC_SYNC_NO_CACHE]] turns the keeping off, which is how
+the tests show that it changes nothing in the report.
+
+<<imports>>=
+import subprocess
+import functools
+import os
+<<constants>>=
+COMMIT_MARK = "%x01"
+<<functions>>=
+def git(directory, *args):
+    """Return the output of a git command, or `None` if it fails."""
+    try:
+        done = subprocess.run(
+            ["git", *args],
+            cwd=directory,
+            capture_output=True,
+            check=True,
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
+    return done.stdout.decode("utf-8", "surrogateescape")
+
+
+def text_at_stamp(path, pair):
+    """Return the commit that wrote a pair's stamp, and the pair there."""
+    root = top_of(Path(path).resolve().parent)
+    if root is None:
+        return None
+    log = git(
+        root,
+        "log",
+        f"-S{pair.stamp}",
+        f"--format={COMMIT_MARK}%h",
+        "--name-only",
+        "-z",
+        "HEAD",
+    )
+    if log is None:
+        return None
+    commit = None
+    for entry in log.split("\0"):
+        name = entry.lstrip("\n")
+        if name.startswith("\x01"):
+            commit = name[1:]
+        elif name:
+            pairs = pairs_in_commit(root, commit, name)
+            found = stamped_pair(pairs, pair.stamp)
+            if found:
+                return commit, found
+    return None
+
+
+def stamped_pair(pairs, stamp):
+    """Return the pair whose sides have the hashes of `stamp`."""
+    for pair in pairs:
+        if pair.stamp == stamp and pair.current() == stamp:
+            return pair
+    return None
+
+
+def kept(function):
+    """Return `function` with its results kept, unless that's turned off."""
+    if os.environ.get("DIDACTIC_SYNC_NO_CACHE"):
+        return function
+    return functools.cache(function)
+
+
+@kept
+def top_of(directory):
+    """Return the top of the repository that holds `directory`, or `None`."""
+    root = git(directory, "rev-parse", "--show-toplevel")
+    return root.strip() if root is not None else None
+
+
+@kept
+def pairs_in_commit(root, commit, name):
+    """Return the pairs of a file as it is at a commit, read once."""
+    text = git(root, "show", f"{commit}:{name}")
+    return read_pairs(text, name)[0] if text else []
+@
+
+The report then gives the diff of each side that has changed, and the current
+text of a side that hasn't.
+Without a commit, the current texts of both sides are all that we have, and
+they're still what the reader needs to go on.
+
+<<functions>>=
+def print_sides(path, pair, state):
+    """Print the two sides of a pair that isn't in sync."""
+    found = text_at_stamp(path, pair)
+    sides = (
+        ("en", pair.en, state != EN_BEHIND),
+        ("sv", pair.sv, state != SV_BEHIND),
+    )
+    if found is None:
+        print("  (no commit found for this stamp, so no diff)")
+    for language, text, changed in sides:
+        if changed and found is not None:
+            commit, old = found
+            change = word_diff(getattr(old, language), text)
+            print(f"  {language} since the stamp ({commit}): {change}")
+        else:
+            print(f"  {language} now: {' '.join(text.split())}")
+@
+
+Let's verify that the diff is against the stamp and not just the last commit,
+which is why the first test has a commit between the stamp and the working
+tree.
+Then come the three ways of having no commit to find.
+
+<<test functions>>=
+def test_the_diff_is_against_the_commit_that_wrote_the_stamp(repo):
+  path = stamped_file(repo, ("en", "sv"))
+  path.write_text(path.read_text().replace("The cat sat.", "The dog sat."))
+  commit(repo, "one more commit, without a new stamp")
+  path.write_text(path.read_text().replace("The dog sat.", "The dog ran."))
+  result = run(repo, "contents.nw")
+  assert "[-cat sat.-]{+dog ran.+}" in result.stdout
+  commit_id = git(repo, "log", "--format=%h", "-1", "--skip=1").strip()
+  assert commit_id in result.stdout
+
+
+def test_the_diff_shows_the_other_side_now_as_it_is(repo):
+  path = stamped_file(repo, ("en", "sv"))
+  path.write_text(path.read_text().replace("The cat", "The dog"))
+  result = run(repo, "contents.nw")
+  assert "sv now: Katten satt." in result.stdout
+
+
+@pytest.mark.parametrize(
+  "change", [("z()", "    z()"), ("y()\nz()", "y() z()")]
+)
+def test_the_diff_shows_a_change_to_the_lines_of_a_chunk(repo, change):
+  path = repo / "contents.nw"
+  path.write_text(
+    "\\begin{en}\n@<<[[a.py]]>>=\nif x:\n    y()\nz()\n@\nText\n\\end{en}\n"
+    "\\begin{sv}\nB\n\\end{sv}\n"
+  )
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  commit(repo, "stamp")
+  path.write_text(path.read_text().replace(*change))
+  result = run(repo, "contents.nw").stdout
+  assert "[-" in result and "{+" in result
+
+
+def test_the_diff_follows_a_pair_into_another_file(repo):
+  path = stamped_file(repo, ("en", "sv"))
+  other = repo / "other.nw"
+  other.write_text(path.read_text().replace("The cat sat.", "The dog sat."))
+  path.write_text("Nothing here.\n")
+  commit(repo, "moved it")
+  result = run(repo, "other.nw")
+  assert "sv is behind" in result.stdout
+  assert "[-cat-]{+dog+}" in result.stdout
+
+
+def test_keeping_what_a_file_holds_at_a_commit_changes_no_report(repo):
+  path = repo / "contents.nw"
+  path.write_text(
+    "".join(blocks("en", "sv", en=f"One {i}.", sv=f"Ett {i}.") + "x\n"
+            for i in range(4))
+    + "\\ensv{Two}{Två} \\ensv{Three}{Tre}\n"
+  )
+  for name in ("1", "8", "15", "22", "29.1", "29.2"):
+    assert run(repo, "--stamp", f"contents.nw:{name}").returncode == 0
+  commit(repo, "stamps")
+  path.write_text(path.read_text().replace("One 3", "Uno 3"))
+  assert run(repo, "--stamp", "contents.nw:22").returncode == 0
+  commit(repo, "a later stamp")
+  text = path.read_text()
+  for old, new in (("One", "Uno"), ("Ett 1", "Etta 1"), ("{Två}", "{Tvåa}")):
+    text = text.replace(old, new)
+  path.write_text(text)
+  reports = []
+  for keep in ({}, {"DIDACTIC_SYNC_NO_CACHE": "1"}):
+    reports.append(subprocess.run(
+      [sys.executable, str(SCRIPT), "contents.nw"],
+      cwd=repo, capture_output=True, text=True,
+      env={**os.environ, **keep},
+    ))
+  assert reports[0].returncode == reports[1].returncode == 1
+  assert reports[0].stdout == reports[1].stdout
+  assert reports[0].stdout.count("since the stamp") >= 5
+
+
+def test_the_commit_named_is_the_one_that_wrote_the_stamp(repo):
+  path = stamped_file(repo, ("en", "sv"))
+  written = git(repo, "log", "--format=%h", "-1").strip()
+  path.write_text(path.read_text() + "Unrelated text.\n")
+  commit(repo, "the pair is not touched here")
+  later = git(repo, "log", "--format=%h", "-1").strip()
+  path.write_text(path.read_text().replace("cat", "dog"))
+  result = run(repo, "contents.nw").stdout
+  assert written in result
+  assert later not in result
+
+
+def test_the_commit_named_is_not_one_that_removed_the_stamp(repo):
+  path = stamped_file(repo, ("en", "sv"))
+  written = git(repo, "log", "--format=%h", "-1").strip()
+  stamped = path.read_text()
+  stamp, rest = stamped.split("\n", 1)
+  path.write_text(rest)
+  commit(repo, "the stamp went away")
+  removed = git(repo, "log", "--format=%h", "-1").strip()
+  path.write_text(stamp + "\n" + rest.replace("cat", "dog"))
+  result = run(repo, "contents.nw").stdout
+  assert written in result
+  assert removed not in result
+
+
+def test_common_words_anchor_the_diff_of_a_long_side(repo):
+  path = repo / "contents.nw"
+  common = "the " * 150
+  path.write_text(blocks("en", "sv", en=common + "cat " + common))
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  commit(repo)
+  path.write_text(path.read_text().replace("cat", "dog"))
+  assert "[-cat-]{+dog+}" in run(repo, "contents.nw").stdout
+
+
+def test_a_stale_stamp_without_a_commit_still_reports_without_the_diff(repo):
+  (repo / "contents.nw").write_text(
+    blocks("en", "sv").replace("{en}\n", "{en} % sync en=000000 sv=111111\n", 1)
+  )
+  commit(repo)
+  result = run(repo, "contents.nw")
+  assert result.returncode == 1
+  assert "read both and stamp" in result.stdout
+  assert "[-" not in result.stdout
+  assert "no commit found" in result.stdout
+  assert "The cat sat." in result.stdout
+  assert "Katten satt." in result.stdout
+
+
+def test_a_stale_stamp_outside_git_still_reports(tmp_path):
+  (tmp_path / "contents.nw").write_text(
+    blocks("en", "sv").replace("{en}\n", "{en} % sync en=000000 sv=111111\n", 1)
+  )
+  result = run(tmp_path, "contents.nw")
+  assert result.returncode == 1
+  assert "read both and stamp" in result.stdout
+  assert "Traceback" not in result.stderr
+
+
+def test_a_stale_stamp_without_git_installed_still_reports(tmp_path):
+  (tmp_path / "contents.nw").write_text(
+    blocks("en", "sv").replace("{en}\n", "{en} % sync en=000000 sv=111111\n", 1)
+  )
+  result = subprocess.run(
+    [sys.executable, str(SCRIPT), "contents.nw"],
+    cwd=tmp_path,
+    capture_output=True,
+    text=True,
+    env={"PATH": str(tmp_path)},
+  )
+  assert result.returncode == 1
+  assert "read both and stamp" in result.stdout
+  assert "Traceback" not in result.stderr
+
+
+def test_bytes_that_are_not_utf8_are_kept_and_reported(repo):
+  path = repo / "contents.nw"
+  path.write_bytes(
+    b"\\begin{en}\nThe cat.\n\\end{en}\n"
+    b"\\begin{sv}\nP\xe5 katt.\n\\end{sv}\n"
+  )
+  stamped = subprocess.run(
+    [sys.executable, str(SCRIPT), "--stamp", "contents.nw:1"],
+    cwd=repo,
+    capture_output=True,
+  )
+  assert stamped.returncode == 0
+  assert b"sv P\xe5 katt." in stamped.stdout
+  assert b"P\xe5 katt." in path.read_bytes()
+  commit(repo)
+  path.write_bytes(path.read_bytes().replace(b"cat", b"dog"))
+  result = subprocess.run(
+    [sys.executable, str(SCRIPT), "contents.nw"],
+    cwd=repo,
+    capture_output=True,
+  )
+  assert result.returncode == 1
+  assert b"Traceback" not in result.stderr
+  assert b"sv now: P\xe5 katt." in result.stdout
+
+
+def test_a_file_in_a_subdirectory_finds_its_stamp_from_anywhere(repo):
+  (repo / "deck").mkdir()
+  path = repo / "deck" / "contents.nw"
+  path.write_text(blocks("en", "sv"))
+  assert run(repo / "deck", "--stamp", "contents.nw:1").returncode == 0
+  commit(repo)
+  path.write_text(path.read_text().replace("cat", "dog"))
+  assert "[-cat-]{+dog+}" in run(repo, "deck/contents.nw").stdout
+  assert "[-cat-]{+dog+}" in run(repo / "deck", "contents.nw").stdout
+  assert "[-cat-]{+dog+}" in run(repo.parent, str(path)).stdout
+
+
+def test_a_file_name_that_git_quotes_finds_its_stamp(repo):
+  path = stamped_file(repo, ("en", "sv"), 'a"b.nw')
+  path.write_text(path.read_text().replace("cat", "dog"))
+  assert "[-cat-]{+dog+}" in run(repo, 'a"b.nw').stdout
+
+
+def test_a_file_name_with_swedish_letters_finds_its_stamp(repo):
+  git(repo, "config", "core.quotepath", "true")
+  path = stamped_file(repo, ("en", "sv"), "övning.nw")
+  path.write_text(path.read_text().replace("cat", "dog"))
+  assert "[-cat-]{+dog+}" in run(repo, "övning.nw").stdout
+
+
+def test_an_uncommitted_stamp_still_reports_without_the_diff(repo):
+  path = repo / "contents.nw"
+  path.write_text(blocks("en", "sv"))
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  path.write_text(path.read_text().replace("cat", "dog"))
+  result = run(repo, "contents.nw")
+  assert "sv is behind" in result.stdout
+  assert "[-" not in result.stdout
+@
+
+\subsection{Stamping one pair}\label{sec:sync-stamp}
+
+A stamp is a judgement about one pair, so the command takes one pair, by the
+name that the report gives it: the line of a block pair's first [[\begin]], or
+the line where an [[\ensv]] ends, followed by which one if several end there,
+[[contents.nw:12.2]].
+Any other line of the pair is refused, with the pair's name, instead of taken
+to mean the pair it lies in.
+A line can lie in several pairs, as an [[\ensv]] over several lines shares its
+first line with whatever ends there, and only the name is certain to mean one.
+Since stamping never changes the number of lines, the names in a report stay
+right however many of its pairs are stamped one after another; it's an edit
+by hand that moves them, and after one the report is run again anyway.
+The command says what it stamped, with the start of both sides, so that a slip
+of the finger shows.
+There's no form for a whole file and no way to give several targets, which is
+deliberate: see the start of this section.
+
+<<constants>>=
+TARGET = re.compile(r"(?P<path>.+):(?P<line>[0-9]+)(?:\.(?P<which>[0-9]+))?$")
+SHOWN_WORDS = 6
+<<functions>>=
+def find_target(pairs, line, which):
+    """Return the pair with a report's name, or a message why there's none."""
+    named = f"{line}.{which}" if which is not None else str(line)
+    for pair in pairs:
+        if pair.target == named:
+            return pair, None
+    around = [p.target for p in pairs if p.first <= line - 1 <= p.last]
+    if around:
+        names = ", ".join(around)
+        return None, f"no pair is named {named}; the line is in {names}"
+    return None, f"no pair is named {named}"
+
+
+def shown(side):
+    """Return the start of a side, for saying what was stamped."""
+    words = side.split()
+    more = " ..." if len(words) > SHOWN_WORDS else ""
+    return " ".join(words[:SHOWN_WORDS]) + more
+@
+
+Writing the stamp changes one line and nothing else, which is why the text is
+handled as a list of the lines as they are in the file.
+A line ending in a carriage return keeps it, so that a CRLF file doesn't get
+mixed line ends, and a byte order mark stays the first thing in the file; the
+reader doesn't see it.
+A side with no text has nothing to agree with, so a pair isn't stamped until
+both sides are written, and a comment such as [[% TODO translate]] doesn't
+count as written.
+A word that one language has and the other hasn't, such as an article, is
+written [[\ensv{the }{\relax}]], which counts as text and prints nothing.
+A stamp with no pair is removed the same way, from the end of its line; only a
+line that is nothing but a stamp, as they were written before, goes as a whole,
+and the command says that the lines after it have moved up.
+On a line where uses of [[\ensv]] end, only the entries beyond them go: the
+others still belong to their pairs, and taking them too would turn a pair that
+is behind into a new one, its change no longer shown.
+
+<<functions>>=
+def has_text(side):
+    """Tell whether a side holds anything but blank lines and comments."""
+    return any(
+        line.strip() and not COMMENT.match(line) for line in side.split("\n")
+    )
+
+
+def stamp_pair(target):
+    """Write a pair's current stamp to a file; return an error message."""
+    match = TARGET.match(target)
+    if match is None:
+        return "name a pair as FILE:LINE or FILE:LINE.N"
+    path = match.group("path")
+    line = int(match.group("line"))
+    if not Path(path).is_file():
+        return f"{path}: no such file"
+    text = read_text(path)
+    mark = BYTE_ORDER_MARK if text.startswith(BYTE_ORDER_MARK) else ""
+    pairs, leftover, errors, _ = read_pairs(text, path)
+    if errors:
+        return f"{path}:{errors[0][0] + 1}: {errors[0][1]}"
+    lines = text.removeprefix(mark).split("\n")
+    pair, message = find_target(pairs, line, match.group("which"))
+    if pair is None and line - 1 in leftover and match.group("which") is None:
+        here = [p for p in pairs if not p.is_block and p.last == line - 1]
+        uses = max((p.uses_on_line for p in here), default=0)
+        print(remove_stamp(lines, line - 1, path, uses))
+        write_text(path, mark + "\n".join(lines))
+        return None
+    if pair is None:
+        return f"{path}: {message}"
+    if not has_text(pair.en) or not has_text(pair.sv):
+        return f"{path}:{line}: stamp once both sides are written"
+    if pair.is_block:
+        write_block_stamp(lines, pair)
+    else:
+        write_tr_stamp(lines, pair)
+    write_text(path, mark + "\n".join(lines))
+    sides = f"en {shown(pair.en)} / sv {shown(pair.sv)}"
+    print(f"stamped {path}:{pair.target}: {sides}")
+    <<warn if the branch check can't see [[path]]>>
+    return None
+@
+
+A stamp is put at the end of a line, after the text and a space, or replaces
+the one that's there; taking it out leaves the text as it was.
+A block pair's stamp goes on its first [[\begin]] line, and a stamp on the
+other one, from before the blocks changed places, goes.
+
+<<functions>>=
+def with_stamp(line, entries):
+    """Return a line with its stamp comment replaced, or taken out if `None`."""
+    ending = "\r" if line.endswith("\r") else ""
+    body = line.removesuffix("\r")
+    if match := STAMP_COMMENT.search(body):
+        body = body[: match.start()].rstrip()
+    if entries is None:
+        return body + ending
+    return f"{body.rstrip()} % sync {entries}{ending}"
+
+
+def write_block_stamp(lines, pair):
+    """Put the stamp of a block pair on its first begin line."""
+    lines[pair.first] = with_stamp(lines[pair.first], str(pair.current()))
+    other = lines[pair.other_begin]
+    if STAMP_COMMENT.search(other.removesuffix("\r")):
+        lines[pair.other_begin] = with_stamp(other, None)
+
+
+def remove_stamp(lines, number, path, uses):
+    """Take out a stamp, or the entries of one, that no pair uses."""
+    if COMMENT.match(lines[number]) and STAMP_COMMENT.fullmatch(
+        lines[number].removesuffix("\r")
+    ):
+        del lines[number]
+        where = f"{path}:{number + 1}"
+        return f"removed the line {where}; the lines after it moved up"
+    if uses:
+        match = STAMP_COMMENT.search(lines[number].removesuffix("\r"))
+        entries = match.group("entries").split(";")[:uses]
+        kept = "; ".join(entry.strip() for entry in entries)
+        lines[number] = with_stamp(lines[number], kept)
+        return f"removed the entries with no pair at {path}:{number + 1}"
+    lines[number] = with_stamp(lines[number], None)
+    return f"removed the stamp at {path}:{number + 1}"
+@
+
+A stamp of an [[\ensv]] rewrites the entries of its line: the new entry in its
+place, the others as they were, or as [[-]] where there was none, and as many
+as there are uses on the line, so that a surplus left by a rewritten use goes.
+
+<<functions>>=
+def write_tr_stamp(lines, pair):
+    """Replace or append the stamp comment where an `\\ensv` ends."""
+    line = lines[pair.last]
+    match = STAMP_COMMENT.search(line.removesuffix("\r"))
+    old = parse_entries(match.group("entries")) if match else []
+    entries = []
+    for position in range(pair.uses_on_line):
+        stamp = old[position] if position < len(old) else None
+        if position == pair.position:
+            stamp = pair.current()
+        entries.append(str(stamp) if stamp else "en=- sv=-")
+    lines[pair.last] = with_stamp(line, "; ".join(entries))
+@
+
+Let's verify the promise about the other lines on a file with a bit of
+everything, including a last line without a line feed; the bytes of each line
+are compared.
+
+<<test functions>>=
+def test_stamping_one_pair_leaves_all_others_byte_identical(repo):
+  path = repo / "contents.nw"
+  before = (
+    "First   line \n\n"
+    + blocks("en", "sv", en="One", sv="Ett")
+    + "\t\ttabs\n"
+    + "  \\begin{en}\n  Two\n\\end{en}\n  \\begin{sv}\n  Två\n\\end{sv}\n"
+    + "\\ensv{x}{y}\n"
+    + blocks("sv", "en", en="Three", sv="Tre")
+    + "no newline at the end"
+  )
+  path.write_bytes(before.encode())
+  assert run(repo, "--stamp", "contents.nw:10").returncode == 0
+  after = path.read_bytes().decode()
+  lines = before.splitlines(keepends=True)
+  new_lines = after.splitlines(keepends=True)
+  assert len(new_lines) == len(lines)
+  assert new_lines[:9] == lines[:9]
+  assert new_lines[10:] == lines[10:]
+  stamp = r"  \\begin\{en\} % sync en=[0-9a-f]{6} sv=[0-9a-f]{6}\n"
+  assert re.fullmatch(stamp, new_lines[9])
+
+
+def test_a_stamp_is_replaced_in_place(repo):
+  path = stamped_file(repo, ("sv", "en"))
+  path.write_text(path.read_text().replace("cat", "dog"))
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  assert path.read_text().count("% sync") == 1
+  assert path.read_text().splitlines()[0].startswith("\\begin{sv} % sync en=")
+  assert run(repo, "contents.nw").returncode == 0
+
+
+def test_stamping_adds_no_line(repo):
+  path = repo / "contents.nw"
+  path.write_text(blocks("en", "sv") + "\\ensv{a}{b}\n")
+  for name in ("1", "7"):
+    assert run(repo, "--stamp", f"contents.nw:{name}").returncode == 0
+    assert len(path.read_text().splitlines()) == 7
+
+
+def test_crlf_line_ends_survive_a_stamp(repo):
+  path = repo / "contents.nw"
+  path.write_bytes(
+    b"\\begin{en}\r\nA\r\n\\end{en}\r\n\\begin{sv}\r\nB\r\n\\end{sv}\r\n"
+  )
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  data = path.read_bytes()
+  assert data.count(b"\r\n") == 6
+  assert data.count(b"\n") == 6
+  assert data.startswith(b"\\begin{en} % sync en=")
+  assert run(repo, "contents.nw").returncode == 0
+
+
+@pytest.mark.parametrize(
+  "target", ["contents.nw", "contents.nw:99", "contents.nw:4", "missing.nw:1"]
+)
+def test_stamp_needs_one_pair(repo, target):
+  (repo / "contents.nw").write_text(
+    "\\begin{en}\nA.\n\\end{en}\nText.\n\\begin{sv}\nB.\n\\end{sv}\n"
+  )
+  before = (repo / "contents.nw").read_text()
+  assert run(repo, "--stamp", target).returncode == 2
+  assert (repo / "contents.nw").read_text() == before
+
+
+def test_every_pair_a_report_names_can_be_stamped(repo):
+  path = repo / "contents.nw"
+  path.write_text("\\ensv{a}{b} \\ensv{c\n  d}{e}\n")
+  report = run(repo, "contents.nw").stdout
+  targets = re.findall(r"contents\.nw:(\S+): new pair", report)
+  assert targets == ["1", "2"]
+  for target in targets:
+    assert run(repo, "--stamp", f"contents.nw:{target}").returncode == 0
+  assert run(repo, "contents.nw").returncode == 0
+
+
+@pytest.mark.parametrize(
+  "source",
+  [
+    "\\begin{en}\nA.\n\\end{en}\n\\begin{sv}\n\\end{sv}\n",
+    "\\begin{en}\nA.\n\\end{en}\n\\begin{sv}\n% TODO translate\n\\end{sv}\n",
+    "\\ensv{x}{}\n",
+    "\\ensv{x}{% TODO translate\n}\n",
+  ],
+)
+def test_a_pair_with_an_empty_side_cannot_be_stamped(repo, source):
+  path = repo / "contents.nw"
+  path.write_text(source)
+  assert "new pair" in run(repo, "contents.nw").stdout
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 2
+  assert path.read_text() == source
+
+
+def test_stamping_does_not_accept_a_stale_neighbour(repo):
+  path = repo / "contents.nw"
+  path.write_text(
+    blocks("en", "sv", en="One.", sv="Ett.")
+    + "Text.\n"
+    + blocks("en", "sv", en="Two.", sv="Två.")
+    + "\\ensv{a}{b} and \\ensv{c}{d}\n"
+    + "Text.\n"
+    + blocks("en", "sv", en="Three.", sv="Tre.")
+  )
+  stamp_at(repo, path, "One.")
+  stamp_at(repo, path, "Two.")
+  stamp_at(repo, path, "Three.")
+  line = line_of(path, "{a}")
+  assert run(repo, "--stamp", f"contents.nw:{line}.1").returncode == 0
+  assert run(repo, "--stamp", f"contents.nw:{line}.2").returncode == 0
+  path.write_text(
+    path.read_text()
+    .replace("One.", "Uno.")
+    .replace("Three.", "Tres.")
+    .replace("{a}", "{x}")
+    .replace("{c}", "{y}")
+  )
+  before = path.read_text().splitlines()
+  stamp_at(repo, path, "Two.")
+  assert path.read_text().splitlines() == before
+  line = line_of(path, "{x}")
+  assert run(repo, "--stamp", f"contents.nw:{line}.2").returncode == 0
+  after = path.read_text().splitlines()
+  changed = [i for i, (a, b) in enumerate(zip(before, after)) if a != b]
+  assert changed == [line - 1]
+  result = run(repo, "contents.nw")
+  assert result.stdout.count("sv is behind") == 3
+
+
+def test_stamping_a_leftover_stamp_removes_it(repo):
+  path = stamped_file(repo, ("en", "sv"))
+  path.write_text(
+    re.sub(
+      r"\\begin\{sv\}.*\\end\{sv\}\n", "", path.read_text(), flags=re.S
+    )
+  )
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  assert "% sync" not in path.read_text()
+  assert run(repo, "contents.nw").returncode == 0
+
+
+@pytest.mark.parametrize("order", [("1", "2"), ("2", "1")])
+def test_a_stamp_never_puts_its_neighbour_out_of_step(repo, order):
+  path = repo / "contents.nw"
+  path.write_text("X \\ensv{a}{b} \\ensv{see\n  the}{e} Y\n")
+  for name in order:
+    assert run(repo, "--stamp", f"contents.nw:{name}").returncode == 0
+  assert run(repo, "contents.nw").returncode == 0
+  path.write_text(path.read_text().replace("{b}", "{bb}"))
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  result = run(repo, "-v", "contents.nw")
+  assert result.returncode == 0, result.stdout
+  assert "contents.nw:2: in sync" in result.stdout
+
+
+def test_the_names_of_a_report_stay_right_while_stamping(repo):
+  path = repo / "a.tex"
+  path.write_text(
+    blocks("en", "sv", en="New.", sv="Ny.")
+    + "Text.\n"
+    + blocks("en", "sv", en="The cat sat.", sv="Katten satt.")
+    + "Text.\n"
+    + "\\ensv{Yes}{Ja}\n"
+  )
+  for name in ("8", "15"):
+    assert run(repo, "--stamp", f"a.tex:{name}").returncode == 0
+  commit(repo, "stamped")
+  path.write_text(
+    path.read_text().replace("The cat", "The dog").replace("{Yes}", "{Yeah}")
+  )
+  report = run(repo, "a.tex").stdout
+  names = re.findall(r"a\.tex:(\S+): ", report)
+  assert names == ["1", "8", "15"]
+  for name in ("1", "15"):
+    assert run(repo, "--stamp", f"a.tex:{name}").returncode == 0
+  report = run(repo, "a.tex").stdout
+  assert "a.tex:8: sv is behind" in report
+  assert "a.tex:15" not in report
+
+
+def test_a_line_that_is_not_a_name_is_refused_with_the_name(repo):
+  path = repo / "contents.nw"
+  path.write_text(blocks("en", "sv"))
+  before = path.read_text()
+  result = run(repo, "--stamp", "contents.nw:2")
+  assert result.returncode == 2
+  assert "the line is in 1" in result.stderr
+  assert path.read_text() == before
+
+
+def test_a_word_one_language_lacks_can_be_stamped(repo):
+  (repo / "contents.nw").write_text("\\ensv{the }{\\relax}cat\n")
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  assert run(repo, "contents.nw").returncode == 0
+
+
+def test_stamping_says_what_it_stamped(repo):
+  (repo / "contents.nw").write_text(blocks("en", "sv"))
+  result = run(repo, "--stamp", "contents.nw:1")
+  assert "stamped contents.nw:1: en The cat sat. / sv Katten satt." in (
+    result.stdout
+  )
+
+
+def test_entries_stay_with_their_uses_when_ensv_becomes_the_files_own(repo):
+  path = repo / "contents.nw"
+  path.write_text("\\ensv{a}{b} \\didactictr{Yes}{Ja}\n")
+  for name in ("1.1", "1.2"):
+    assert run(repo, "--stamp", f"contents.nw:{name}").returncode == 0
+  path.write_text("\\newcommand\\ensv[2]{#1}\n" + path.read_text())
+  result = run(repo, "-v", "contents.nw")
+  assert result.returncode == 0, result.stdout
+  assert "contents.nw:2.2: in sync" in result.stdout
+  path.write_text(path.read_text().replace("{Ja}", "{Jo}"))
+  assert run(repo, "--stamp", "contents.nw:2.2").returncode == 0
+  first = path.read_text().splitlines()[1].split("% sync ")[1].split("; ")[0]
+  assert first != "en=- sv=-"
+
+
+def test_removing_a_leftover_stamp_keeps_the_byte_order_mark(repo):
+  path = repo / "contents.nw"
+  path.write_bytes(b"\xef\xbb\xbf% sync en=aaaaaa sv=bbbbbb\nText.\n")
+  result = run(repo, "--stamp", "contents.nw:1")
+  assert result.returncode == 0
+  assert "moved up" in result.stdout
+  assert path.read_bytes() == b"\xef\xbb\xbfText.\n"
+
+
+def test_a_stamp_at_the_end_of_a_line_with_no_ensv_is_a_leftover(repo):
+  path = repo / "contents.nw"
+  path.write_text("Yes % sync en=aaaaaa sv=bbbbbb\n")
+  result = run(repo, "contents.nw")
+  assert result.returncode == 1
+  assert "contents.nw:1: a stamp with no pair here" in result.stdout
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  assert path.read_text() == "Yes\n"
+
+
+def test_a_surplus_entry_is_a_leftover_that_a_stamp_clears(repo):
+  path = repo / "contents.nw"
+  path.write_text("\\ensv{a}{b}\n")
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  path.write_text(path.read_text().replace("\n", "; en=111111 sv=222222\n"))
+  result = run(repo, "contents.nw")
+  assert result.returncode == 1
+  assert "contents.nw:1: a stamp with no pair here" in result.stdout
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  assert "111111" not in path.read_text()
+  assert run(repo, "contents.nw").returncode == 0
+
+
+def test_a_stamp_on_both_begin_lines_is_one_too_many(repo):
+  path = stamped_file(repo, ("en", "sv"))
+  stamp = path.read_text().splitlines()[0].split(" % ")[1]
+  path.write_text(
+    path.read_text().replace("\\begin{sv}\n", "\\begin{sv} % " + stamp + "\n")
+  )
+  result = run(repo, "contents.nw")
+  assert result.returncode == 1
+  assert "contents.nw:4: a stamp with no pair here" in result.stdout
+  assert run(repo, "--stamp", "contents.nw:4").returncode == 0
+  assert run(repo, "contents.nw").returncode == 0
+
+
+def test_removing_a_surplus_entry_keeps_the_others(repo):
+  path = repo / "contents.nw"
+  path.write_text("\\ensv{Yes}{Ja} and \\ensv{No}{Nej}\n")
+  for name in ("1.1", "1.2"):
+    assert run(repo, "--stamp", f"contents.nw:{name}").returncode == 0
+  commit(repo, "stamps")
+  path.write_text(
+    path.read_text().replace("Yes", "Yeah").replace("\n", "; en=1 sv=2\n")
+  )
+  assert "contents.nw:1: a stamp with no pair here" in run(
+    repo, "contents.nw"
+  ).stdout
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  result = run(repo, "-v", "contents.nw")
+  assert "contents.nw:1.1: sv is behind" in result.stdout
+  assert "contents.nw:1.2: in sync" in result.stdout
+  assert "no pair here" not in result.stdout
+
+
+def test_a_stamp_above_an_ensv_line_is_a_leftover_that_can_go(repo):
+  path = repo / "contents.nw"
+  path.write_text("\\ensv{a}{b}\n")
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  stamp = path.read_text().split(" % ")[1]
+  path.write_text("% " + stamp + "\\ensv{a}{b}\n")
+  result = run(repo, "contents.nw")
+  assert result.returncode == 1
+  assert "contents.nw:1: a stamp with no pair here" in result.stdout
+  assert "contents.nw:2: new pair" in result.stdout
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  assert path.read_text() == "\\ensv{a}{b}\n"
+
+
+def test_a_stamp_in_an_ensv_over_several_lines_is_a_leftover_that_can_go(repo):
+  path = repo / "contents.nw"
+  path.write_text("\\ensv{a\n% sync en=aaaaaa sv=bbbbbb\nb}{c}\n")
+  result = run(repo, "contents.nw")
+  assert result.returncode == 1
+  assert "contents.nw:2: a stamp with no pair here" in result.stdout
+  assert run(repo, "--stamp", "contents.nw:2").returncode == 0
+  assert path.read_text() == "\\ensv{a\nb}{c}\n"
+
+
+def test_a_single_block_cannot_be_stamped(repo):
+  (repo / "contents.nw").write_text("\\begin{en}\nA.\n\\end{en}\n")
+  assert run(repo, "--stamp", "contents.nw:2").returncode == 2
+
+
+def test_there_is_no_way_to_stamp_everything(repo):
+  path = repo / "contents.nw"
+  path.write_text(blocks("en", "sv") + "\n" + blocks("en", "sv"))
+  assert run(repo, "--stamp", "contents.nw").returncode == 2
+  assert run(repo, "--stamp").returncode == 2
+  assert run(repo, "--stamp", "contents.nw:1", "contents.nw:8").returncode == 2
+  two = ("--stamp", "contents.nw:1", "--stamp", "contents.nw:8")
+  assert run(repo, *two).returncode == 2
+  assert run(repo, "--stamp-all", "contents.nw").returncode == 2
+  assert "% sync" not in path.read_text()
+@
+
+\subsection{The branch check}\label{sec:sync-branch}
+
+The stamp is also a way of hiding things.
+A one-language fix is accepted by stamping the pair, which is right for a
+typo, and the same command will do for a sentence that does need translating.
+So the acceptances have to be visible to someone, and the diff of a pull
+request doesn't show them: a changed hash in a comment says nothing, and the
+paragraph that changed looks like any other.
+
+What we can list is those: pairs that a branch has re-stamped while only one
+side changed.
+We compare the stamps at the two ends of the range, and for that we don't have
+to track where a pair has moved in between, since the stamps themselves are
+the identity here.
+A stamp that's in both versions hasn't been refreshed, wherever it stands, and
+a new stamp that shares none of its hashes with a stamp that went away belongs
+to a new pair or to one where both sides changed.
+A new stamp that shares exactly one hash with one that went away has refreshed
+it with only the other side changed.
+
+<<constants>>=
+STAMPED_SUFFIXES = (".nw", ".tex")
+<<functions>>=
+def restamped_one_side(old_pairs, new_pairs):
+    """Return (file, old, new, changed language, certain) for the refreshes."""
+    old_stamps = Counter(pair.stamp for _, pair in old_pairs if pair.stamp)
+    new_stamps = Counter(pair.stamp for _, pair in new_pairs if pair.stamp)
+    gone = stamps_only_in(old_pairs, old_stamps - new_stamps)
+    old_stamped = [item for item in old_pairs if item[1].stamp]
+    found = []
+    for path, pair in stamps_only_in(new_pairs, new_stamps - old_stamps):
+        match = one_side_match(path, pair, gone)
+        if match:
+            gone.remove(match)
+        possible = match or one_side_match(path, pair, old_stamped)
+        if possible:
+            old = possible[1]
+            language = "sv" if old.stamp.en == pair.stamp.en else "en"
+            found.append((path, old, pair, language, bool(match)))
+    return found
+
+
+def one_side_match(path, pair, candidates):
+    """Return the first candidate sharing one hash, same file first."""
+    for candidate in sorted(candidates, key=lambda item: item[0] != path):
+        same_en = candidate[1].stamp.en == pair.stamp.en
+        same_sv = candidate[1].stamp.sv == pair.stamp.sv
+        if same_en != same_sv:
+            return candidate
+    return None
+
+
+def stamps_only_in(pairs, surplus):
+    """Return as many of the (file, pair) with a stamp as `surplus` counts."""
+    left = Counter(surplus)
+    chosen = []
+    for path, pair in pairs:
+        if pair.stamp and left[pair.stamp] > 0:
+            left[pair.stamp] -= 1
+            chosen.append((path, pair))
+    return chosen
+@
+
+The same string often occurs several times in a deck, with the same stamp, so
+these have to be counted and can't just be compared as sets: one of two equal
+pairs may be re-stamped while its twin keeps the old stamp.
+A refreshed pair is matched with a stamp that went away in the same file
+first, in order, as a pair rarely moves to another file while it's being
+fixed.
+
+Stamps alone can't always tell what happened, and the listing errs on the side
+of showing too much.
+If a pair is changed and re-stamped and the branch also adds a new pair equal
+to what the first one was, then the old stamp is still there and no stamp went
+away: this looks exactly like a new pair beside an untouched one.
+So a new stamp that shares one hash with a stamp that's still there is listed
+too, under a label of its own, \enquote{new, or re-stamped}.
+Likewise, if both sides of a pair are rewritten and one of the new sides
+happens to equal a side of another pair that also went away, the two look like
+one refresh, and the listing shows the wrong old text.
+A pair listed for no reason costs a look at it in the review, which is the
+cheap direction to be wrong in.
+Pairs that exchange sides among themselves, two or three of them, are listed,
+for instance: each new stamp shares one hash with a stamp that went away.
+
+What escapes the listing is what the stamps can't show, and what the check
+doesn't read; these limits, with the wrong old text above, are collected in
+dbosk/didactic\#106.
+\begin{description}
+  \item[A stamp that was there already] isn't new, so a pair that a branch
+  makes equal to another stamped pair, and re-stamps, isn't listed if that
+  other pair goes away in the same range: [[\ensv{Yes}{Ja}]] and
+  [[\ensv{Yeah}{Ja}]], both stamped, of which only [[\ensv{Yeah}{Ja}]] is
+  left.
+  The same goes for two pairs that exchange a side when their other sides are
+  equal, [[\ensv{Yes}{Ja}]] and [[\ensv{Yeah}{Ja}]] becoming each other: the
+  file then holds the same pairs as before in another order.
+  Nothing is lost by either: the two sides of each pair were stamped as saying
+  the same thing before.
+  \item[A change to both sides] isn't a one-side re-stamp, however small the
+  second change is: a fix in one language with a comment edited in the other is
+  stamped like a translation and isn't listed.
+  The check trusts that whoever changed both sides read both; it shows where
+  one side was accepted as it stood, not whether anybody read with care.
+  \item[Other files] aren't read: the check reads only sources, the files
+  whose names end in [[.nw]] or [[.tex]], although the state check and
+  [[--stamp]] work on any file; [[--stamp]] warns when it stamps another one.
+  \item[A file that can't be read at the start] hides the pairs after the place
+  where reading fails, so a re-stamp of one of them isn't listed; see below.
+  \item[A file's own [[\ensv]] at the start] makes its uses of [[\ensv]] no
+  pairs there, so a branch that takes the definition out and re-stamps such a
+  use with one side changed isn't listed.
+  \item[A change that keeps the hash] goes unseen by the state check as well;
+  the chance is about one in 17 million for each change
+  (\cref{sec:sync-pairs}).
+\end{description}
+
+The range means what it means to [[git diff]], whose two forms it takes, and
+what we need of it is the two commits.
+[[A...B]] is what [[B]] did since it left [[A]], from their merge base: that's
+the one for a pull request.
+[[A..B]] compares the two ends as they are, so a pair that [[A]] re-stamped
+after [[B]] left shows up too, the other way round; unlike [[git log A..B]],
+it isn't only the commits of [[B]].
+All the files the range changed are read at both ends, deleted ones too, so a
+pair that has moved between files is still matched.
+The suffixes keep us out of files that aren't sources: a program or a data
+file may well hold [[\begin{en}]] or [[\ensv]] as text, and reading it as blocks
+would give errors, which would fail the check.
+A stamp that [[--stamp]] writes into such a file is one that the check won't
+list, so it says so.
+
+<<warn if the branch check can't see [[path]]>>=
+if not path.endswith(STAMPED_SUFFIXES):
+    print(
+        f"{path}: the branch check reads only files named "
+        f"{' or '.join(STAMPED_SUFFIXES)}, so it won't list this stamp",
+        file=sys.stderr,
+    )
+@
+
+<<functions>>=
+def range_ends(root, revisions):
+    """Return the two commits of a revision range, or `None`."""
+    three_dots = "..." in revisions
+    start, end = revisions.split("..." if three_dots else "..", 1)
+    start, end = start or "HEAD", end or "HEAD"
+    if three_dots:
+        start = git(root, "merge-base", start, end)
+    else:
+        start = git(root, "rev-parse", "--verify", "-q", start + "^{commit}")
+    if start is None:
+        return None
+    if git(root, "rev-parse", "--verify", "-q", end + "^{commit}") is None:
+        return None
+    return start.strip(), end
+@
+
+A file that can't be read as blocks can hide any number of pairs, so at the
+end of the range it's an error like any other, instead of a listing that looks
+complete.
+At the start of the range it's only worth a warning: the branch may be what
+repairs the file, and it would otherwise never get a listing.
+That listing is short of the pairs that couldn't be read at the start, though,
+and the warning goes to the standard error, which a pull request's description
+doesn't get.
+So the listing itself says that it may be incomplete.
+
+<<constants>>=
+UNREAD_START = (
+    "Part of the start of the range can't be read (see the warnings), "
+    "so a pair re-stamped after such a place isn't listed."
+)
+<<functions>>=
+def pairs_at(root, commit, names):
+    """Return (file, pair) for the pairs in files at a commit, and errors."""
+    found = []
+    errors = []
+    for name in names:
+        text = git(root, "show", f"{commit}:{name}")
+        if text is not None:
+            pairs, _, problems, _ = read_pairs(text, name)
+            found += [(name, pair) for pair in pairs]
+            errors += [
+                f"{name}:{line + 1}: {message}" for line, message in problems
+            ]
+    return found, errors
+@
+
+The rest is putting that together, and printing each listed pair in the same
+form as a report.
+
+<<functions>>=
+def check_branch(revisions):
+    """List what a range re-stamped with one side changed; return a status."""
+    root = git(".", "rev-parse", "--show-toplevel")
+    ends = root and range_ends(root.strip(), revisions)
+    if not ends:
+        print(f"{revisions}: not a range of this repository", file=sys.stderr)
+        return STATUS_ERROR
+    root = root.strip()
+    changed = git(
+        root, "diff", "--name-only", "--no-renames", "-z", ends[0], ends[1]
+    )
+    if changed is None:
+        print(f"{revisions}: git diff failed", file=sys.stderr)
+        return STATUS_ERROR
+    names = [
+        name
+        for name in changed.split("\0")
+        if name.endswith(STAMPED_SUFFIXES)
+    ]
+    old_pairs, old_errors = pairs_at(root, ends[0], names)
+    new_pairs, new_errors = pairs_at(root, ends[1], names)
+    for message in old_errors:
+        print(f"at the start of the range: {message}", file=sys.stderr)
+    for message in new_errors:
+        print(message, file=sys.stderr)
+    if new_errors:
+        return STATUS_ERROR
+    print_restamped(restamped_one_side(old_pairs, new_pairs))
+    if old_errors:
+        print(UNREAD_START)
+    return STATUS_OK
+
+
+def print_restamped(found):
+    """Print what the branch check found."""
+    if not found:
+        print("No pair was re-stamped with only one side changed.")
+    for path, old, pair, language, certain in found:
+        other = "sv" if language == "en" else "en"
+        what = (
+            f"re-stamped, only {language} changed"
+            if certain
+            else f"new, or re-stamped with only {language} changed"
+        )
+        print(f"{path}:{pair.target}: {what}")
+        change = word_diff(getattr(old, language), getattr(pair, language))
+        print(f"  {language}: {change}")
+        print(f"  {other} now: {' '.join(getattr(pair, other).split())}")
+@
+
+Let's verify the three cases that the design separates, on one file with three
+stamped pairs and an [[\ensv]].
+
+<<test helpers>>=
+def base_of_three(repo):
+  """On master: three stamped pairs and an `\\ensv`. Then on a branch."""
+  path = repo / "contents.nw"
+  path.write_text(
+    blocks("en", "sv", en="One.", sv="Ett.")
+    + "Text.\n"
+    + blocks("en", "sv", en="Two.", sv="Två.")
+    + "Text.\n"
+    + blocks("en", "sv", en="Three.", sv="Tre.")
+    + "\\ensv{Four}{Fyra}\n"
+  )
+  for text in ("One.", "Two.", "Three.", "Four"):
+    target = f"contents.nw:{name_of(path, text)}"
+    assert run(repo, "--stamp", target).returncode == 0, target
+  assert run(repo, "contents.nw").returncode == 0
+  commit(repo, "base")
+  git(repo, "checkout", "-q", "-b", "topic")
+  return path
+
+
+def line_of(path, text):
+  for number, line in enumerate(path.read_text().splitlines(), 1):
+    if text in line:
+      return number
+  raise AssertionError(text)
+
+
+def name_of(path, text):
+  """The report's name of the pair that holds `text`: for a block pair, the
+  line of its first begin."""
+  lines = path.read_text().splitlines()
+  number = line_of(path, text) - 1
+  if "\\ensv" in lines[number] or "\\didactictr" in lines[number]:
+    return number + 1
+  while not lines[number].lstrip().startswith("\\begin{"):
+    number -= 1
+  above = number - 1
+  while above >= 0 and (
+    not lines[above].strip() or lines[above].lstrip().startswith("%")
+  ):
+    above -= 1
+  if above >= 0 and lines[above].startswith("\\end{"):
+    number = above
+    while not lines[number].lstrip().startswith("\\begin{"):
+      number -= 1
+  return number + 1
+
+
+def stamp_at(repo, path, text):
+  target = f"{path.name}:{name_of(path, text)}"
+  result = run(repo, "--stamp", target)
+  assert result.returncode == 0, result.stderr
+
+
+def assert_nothing_listed(result):
+  assert result.returncode == 0
+  assert "No pair" in result.stdout
+  listing = result.stdout.replace("No pair was re-stamped", "")
+  assert "re-stamped" not in listing
+<<test functions>>=
+def test_branch_check_lists_a_one_side_restamp(repo):
+  path = base_of_three(repo)
+  path.write_text(path.read_text().replace("One.", "Uno."))
+  stamp_at(repo, path, "Uno.")
+  commit(repo, "a typo")
+  result = run(repo, "master...HEAD")
+  assert result.returncode == 0
+  assert "re-stamped, only en changed" in result.stdout
+  assert "[-One.-]{+Uno.+}" in result.stdout
+  assert "sv now: Ett." in result.stdout
+  assert "Two." not in result.stdout
+  assert "Three." not in result.stdout
+
+
+def test_branch_check_does_not_list_a_two_side_restamp(repo):
+  path = base_of_three(repo)
+  path.write_text(
+    path.read_text().replace("Two.", "Dos.").replace("Två.", "Tvåan.")
+  )
+  stamp_at(repo, path, "Dos.")
+  commit(repo, "both sides")
+  result = run(repo, "master...HEAD")
+  assert result.returncode == 0
+  assert "re-stamped, only" not in result.stdout
+  assert "No pair" in result.stdout
+
+
+def test_branch_check_does_not_list_an_untouched_pair(repo):
+  path = base_of_three(repo)
+  path.write_text("A new first line.\n" + path.read_text())
+  commit(repo, "moved everything")
+  result = run(repo, "master...HEAD")
+  assert result.returncode == 0
+  assert "re-stamped, only" not in result.stdout
+
+
+def test_branch_check_does_not_list_a_changed_pair_that_kept_its_stamp(repo):
+  path = base_of_three(repo)
+  path.write_text(path.read_text().replace("One.", "Uno."))
+  commit(repo, "changed and left reported")
+  assert_nothing_listed(run(repo, "master...HEAD"))
+
+
+def test_branch_check_does_not_list_a_new_pair(repo):
+  path = base_of_three(repo)
+  path.write_text(path.read_text() + "\nText.\n" + blocks("en", "sv"))
+  stamp_at(repo, path, "The cat sat.")
+  commit(repo, "a new pair")
+  assert_nothing_listed(run(repo, "master...HEAD"))
+
+
+def test_branch_check_lists_a_new_pair_with_an_old_side_as_possible(repo):
+  path = base_of_three(repo)
+  path.write_text(
+    path.read_text() + "\nText.\n" + blocks("en", "sv", en="Uno.", sv="Ett.")
+  )
+  stamp_at(repo, path, "Uno.")
+  commit(repo, "a new pair, whose sv side is the same as another's")
+  result = run(repo, "master...HEAD")
+  assert result.returncode == 0
+  assert "re-stamped, only" not in result.stdout
+  assert "new, or re-stamped with only en changed" in result.stdout
+  assert "[-One.-]{+Uno.+}" in result.stdout
+
+
+def test_branch_check_sees_a_restamp_hidden_by_a_new_equal_pair(repo):
+  path = repo / "contents.nw"
+  path.write_text("\\ensv{Exercise}{Övning}\n")
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  commit(repo, "base")
+  git(repo, "checkout", "-q", "-b", "topic")
+  path.write_text(
+    "\\ensv{Exercise}{Övningar}\nText.\n\\ensv{Exercise}{Övning}\n"
+  )
+  for line in (1, 3):
+    assert run(repo, "--stamp", f"contents.nw:{line}").returncode == 0
+  commit(repo, "one changed, and a new one like it was")
+  result = run(repo, "master...HEAD")
+  assert result.returncode == 0
+  assert "new, or re-stamped with only sv changed" in result.stdout
+  assert "[-Övning-]{+Övningar+}" in result.stdout
+
+
+def test_branch_check_fails_on_a_malformed_file_at_the_end(repo):
+  path = base_of_three(repo)
+  path.write_text(path.read_text() + "\\begin{en}\nNever ended.\n")
+  commit(repo, "broken")
+  result = run(repo, "master...HEAD")
+  assert result.returncode == 2
+  assert "contents.nw:" in result.stderr
+
+
+def test_branch_check_warns_of_a_malformed_file_at_the_start(repo):
+  path = repo / "contents.nw"
+  path.write_text(blocks("en", "sv") + "\\begin{en}\nNever ended.\n")
+  commit(repo, "broken from the start")
+  git(repo, "checkout", "-q", "-b", "topic")
+  path.write_text(blocks("en", "sv"))
+  commit(repo, "repaired")
+  result = run(repo, "master...HEAD")
+  assert result.returncode == 0
+  assert "master" in result.stderr or "contents.nw:" in result.stderr
+
+
+def test_branch_check_lists_one_of_two_equal_pairs(repo):
+  path = repo / "contents.nw"
+  path.write_text(
+    "\\ensv{Exercise}{Övning}\nText.\n\\ensv{Exercise}{Övning}\n"
+  )
+  for line in (1, 3):
+    assert run(repo, "--stamp", f"contents.nw:{line}").returncode == 0
+  commit(repo, "base")
+  git(repo, "checkout", "-q", "-b", "topic")
+  first, rest = path.read_text().split("\n", 1)
+  path.write_text(first.replace("Övning", "Övningen") + "\n" + rest)
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  commit(repo, "one of them")
+  result = run(repo, "master...HEAD")
+  assert result.stdout.count("re-stamped, only sv changed") == 1
+
+
+def test_branch_check_lists_a_fix_that_makes_two_pairs_equal(repo):
+  path = repo / "contents.nw"
+  path.write_text(
+    "\\ensv{Exercise}{Övnng}\nText.\n\\ensv{Exercise}{Övning}\n"
+  )
+  for line in (1, 3):
+    assert run(repo, "--stamp", f"contents.nw:{line}").returncode == 0
+  commit(repo, "base")
+  git(repo, "checkout", "-q", "-b", "topic")
+  path.write_text(path.read_text().replace("Övnng", "Övning"))
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  commit(repo, "the typo")
+  assert "[-Övnng-]{+Övning+}" in run(repo, "master...HEAD").stdout
+
+
+def test_branch_check_reads_tex_files_and_follows_renames(repo):
+  path = repo / "part.tex"
+  path.write_text(blocks("en", "sv") + "".join(
+    f"Shared line {number}.\n" for number in range(30)
+  ))
+  assert run(repo, "--stamp", "part.tex:1").returncode == 0
+  commit(repo, "stamp")
+  git(repo, "checkout", "-q", "-b", "topic")
+  git(repo, "mv", "part.tex", "whole.tex")
+  path = repo / "whole.tex"
+  path.write_text(path.read_text().replace("cat", "dog"))
+  assert run(repo, "--stamp", "whole.tex:1").returncode == 0
+  commit(repo, "renamed, with a typo")
+  result = run(repo, "master...HEAD")
+  assert "whole.tex:" in result.stdout
+  assert "[-cat-]{+dog+}" in result.stdout
+
+
+def test_branch_check_only_reads_sources(repo):
+  path = stamped_file(repo, ("en", "sv"), "notes.txt")
+  git(repo, "checkout", "-q", "-b", "topic")
+  path.write_text(path.read_text().replace("cat", "dog"))
+  assert run(repo, "--list", "notes.txt").returncode == 0
+  stamped = run(repo, "--stamp", "notes.txt:1")
+  assert stamped.returncode == 0
+  assert "the branch check" in stamped.stderr
+  commit(repo, "a stamped pair in a file that isn't a source")
+  assert_nothing_listed(run(repo, "master...HEAD"))
+
+
+def test_branch_check_lists_pairs_that_exchange_sides(repo):
+  path = repo / "contents.nw"
+  path.write_text("\\ensv{A}{X}\nx\n\\ensv{B}{Y}\nx\n\\ensv{C}{Z}\n")
+  for line in (1, 3, 5):
+    assert run(repo, "--stamp", f"contents.nw:{line}").returncode == 0
+  commit(repo, "base")
+  git(repo, "checkout", "-q", "-b", "topic")
+  path.write_text("\\ensv{B}{X}\nx\n\\ensv{C}{Y}\nx\n\\ensv{A}{Z}\n")
+  for line in (1, 3, 5):
+    assert run(repo, "--stamp", f"contents.nw:{line}").returncode == 0
+  commit(repo, "a three-way cycle of the en sides")
+  result = run(repo, "master...HEAD")
+  assert result.stdout.count("only en changed") == 3
+
+
+def test_stamping_a_source_says_nothing(repo):
+  for name in ("part.tex", "contents.nw"):
+    (repo / name).write_text(blocks("en", "sv"))
+    stamped = run(repo, "--stamp", f"{name}:1")
+    assert stamped.returncode == 0
+    assert stamped.stderr == ""
+
+
+def test_branch_check_says_what_a_malformed_start_hides(repo):
+  path = repo / "contents.nw"
+  path.write_text("\\ensv{Yes}{Ja}\n")
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  path.write_text("\\begin{en}\nNever ended.\n\n" + path.read_text())
+  commit(repo, "broken from the start, with a stamped pair after it")
+  git(repo, "checkout", "-q", "-b", "topic")
+  path.write_text(
+    path.read_text()
+    .replace("ended.\n", "ended.\n\\end{en}\n")
+    .replace("Yes", "Yeah")
+  )
+  assert run(repo, "--stamp", "contents.nw:5").returncode == 0
+  commit(repo, "repaired, and a one-side re-stamp after the repair")
+  result = run(repo, "master...HEAD")
+  assert result.returncode == 0
+  assert "re-stamped, only" not in result.stdout
+  assert "can't be read" in result.stdout
+
+
+def test_branch_check_matches_a_stamp_that_went_away_only_once(repo):
+  path = repo / "contents.nw"
+  path.write_text("\\ensv{Yes}{Ja}\n")
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  commit(repo, "base")
+  git(repo, "checkout", "-q", "-b", "topic")
+  path.write_text("\\ensv{Yeah}{Ja}\nx\n\\ensv{Yep}{Ja}\n")
+  for line in (1, 3):
+    assert run(repo, "--stamp", f"contents.nw:{line}").returncode == 0
+  commit(repo, "one pair became two")
+  result = run(repo, "master...HEAD").stdout
+  assert result.count("re-stamped, only") == 1
+  assert result.count("new, or re-stamped") == 1
+
+
+def test_branch_check_works_from_a_subdirectory(repo):
+  path = base_of_three(repo)
+  path.write_text(path.read_text().replace("One.", "Uno."))
+  stamp_at(repo, path, "Uno.")
+  commit(repo, "a typo")
+  (repo / "deep").mkdir()
+  assert "[-One.-]{+Uno.+}" in run(repo / "deep", "master...HEAD").stdout
+
+
+def test_a_range_may_leave_out_its_end(repo):
+  path = base_of_three(repo)
+  path.write_text(path.read_text().replace("One.", "Uno."))
+  stamp_at(repo, path, "Uno.")
+  commit(repo, "a typo")
+  assert "[-One.-]{+Uno.+}" in run(repo, "master...").stdout
+
+
+@pytest.mark.parametrize("fixed", ["Yes.", "Yeah."])
+def test_branch_check_does_not_confuse_pairs_with_one_equal_side(repo, fixed):
+  path = repo / "contents.nw"
+  path.write_text(
+    blocks("en", "sv", en="Yes.", sv="Ja.")
+    + "Text.\n"
+    + blocks("en", "sv", en="Yeah.", sv="Ja.")
+  )
+  stamp_at(repo, path, "Yes.")
+  stamp_at(repo, path, "Yeah.")
+  commit(repo, "base")
+  git(repo, "checkout", "-q", "-b", "topic")
+  path.write_text(path.read_text().replace(fixed, "Yep."))
+  stamp_at(repo, path, "Yep.")
+  commit(repo, "a typo")
+  result = run(repo, "master...HEAD")
+  assert result.stdout.count("re-stamped, only") == 1
+  assert "[-" + fixed + "-]{+Yep.+}" in result.stdout
+
+
+def test_branch_check_prefers_the_old_pair_in_the_same_file(repo):
+  (repo / "a.nw").write_text(blocks("en", "sv", en="First.", sv="Ja."))
+  (repo / "b.nw").write_text(blocks("en", "sv", en="Second.", sv="Ja."))
+  assert run(repo, "--stamp", "a.nw:1").returncode == 0
+  assert run(repo, "--stamp", "b.nw:1").returncode == 0
+  commit(repo, "base")
+  git(repo, "checkout", "-q", "-b", "topic")
+  (repo / "a.nw").write_text("Nothing here.\n")
+  path = repo / "b.nw"
+  path.write_text(path.read_text().replace("Second.", "Third."))
+  stamp_at(repo, path, "Third.")
+  commit(repo, "one gone, one fixed")
+  result = run(repo, "master...HEAD")
+  assert "[-Second.-]{+Third.+}" in result.stdout
+  assert "First." not in result.stdout
+
+
+def test_branch_check_lists_a_one_side_restamp_of_ensv(repo):
+  path = base_of_three(repo)
+  path.write_text(path.read_text().replace("Fyra", "Fyran"))
+  stamp_at(repo, path, "Fyran")
+  commit(repo, "a typo in a tr")
+  result = run(repo, "master...HEAD")
+  assert "only sv changed" in result.stdout
+  assert "[-Fyra-]{+Fyran+}" in result.stdout
+  assert "en now: Four" in result.stdout
+
+
+def test_branch_check_lists_a_restamp_moved_to_another_file(repo):
+  path = base_of_three(repo)
+  other = repo / "other.nw"
+  other.write_text(blocks("en", "sv", en="One.", sv="Ettan."))
+  path.write_text(
+    re.sub(
+      r"\\begin\{en\}[^\n]*\nOne\..*?\\end\{sv\}\n",
+      "",
+      path.read_text(),
+      flags=re.S,
+    )
+  )
+  assert run(repo, "--stamp", "other.nw:1").returncode == 0
+  commit(repo, "moved and changed")
+  result = run(repo, "master...HEAD")
+  assert "other.nw:" in result.stdout
+  assert "[-Ett.-]{+Ettan.+}" in result.stdout
+
+
+def test_branch_check_only_looks_at_what_the_branch_did(repo):
+  path = base_of_three(repo)
+  git(repo, "checkout", "-q", "master")
+  path.write_text(path.read_text().replace("One.", "Uno."))
+  stamp_at(repo, path, "Uno.")
+  commit(repo, "a typo on master, after the branch left")
+  git(repo, "checkout", "-q", "topic")
+  assert_nothing_listed(run(repo, "master...HEAD"))
+
+
+def test_a_two_dot_range_compares_the_two_ends(repo):
+  path = base_of_three(repo)
+  git(repo, "checkout", "-q", "master")
+  path.write_text(path.read_text().replace("One.", "Uno."))
+  stamp_at(repo, path, "Uno.")
+  commit(repo, "a typo on master, after the branch left")
+  git(repo, "checkout", "-q", "topic")
+  assert_nothing_listed(run(repo, "master...HEAD"))
+  assert "[-Uno.-]{+One.+}" in run(repo, "master..HEAD").stdout
+
+
+def test_a_two_dot_range_is_a_range_too(repo):
+  path = base_of_three(repo)
+  path.write_text(path.read_text().replace("One.", "Uno."))
+  stamp_at(repo, path, "Uno.")
+  commit(repo, "a typo")
+  assert "[-One.-]{+Uno.+}" in run(repo, "master..HEAD").stdout
+
+
+def test_a_range_that_does_not_exist_is_an_error(repo):
+  base_of_three(repo)
+  assert run(repo, "nosuchbranch...HEAD").returncode == 2
+  assert run(repo, "master...nosuchbranch").returncode == 2
+@
+
+\subsection{The command line}\label{sec:sync-cli}
+
+What's left is to tell the three modes apart and to turn the outcome into an
+exit status.
+A range looks like a range and isn't a file; an argument with two dots that
+happens to be an existing file is the file, and so is one named like a source.
+What a report prints is the text of the source, which may hold bytes that
+aren't UTF-8, so the two streams let them through as they are.
+Mixing a range with files has no meaning, and neither has a target for
+[[--stamp]] and anything else, so those are errors rather than something
+that's silently ignored.
+A deliberate side of that: giving [[--stamp]] a second target is an error
+instead of a convenience, and [[allow_abbrev]] is off so that nothing else can
+be taken for a shorthand of it.
+
+The exit status is an interface: build scripts read 1 as \enquote{something is
+behind}.
+Python's own way of failing, a traceback and status 1, would read as just
+that, so a file that can't be read or written is an error of ours, with
+status~2 and one line saying why, and so is anything we didn't foresee, with
+the traceback for whoever has to fix it.
+A reader that stops reading, as [[head]] does, leaves the report unfinished,
+so its status can't be told either: that's status~2 too, but quietly, since
+the reader asked for no more, and with the standard output pointed at nothing
+so that Python doesn't complain about it on the way out.
+Status~0 would be wrong there: it says that everything is in sync.
+
+<<imports>>=
+import argparse
+import traceback
+<<constants>>=
+STATUS_OK = 0
+STATUS_NOT_IN_SYNC = 1
+STATUS_ERROR = 2
+<<functions>>=
+def is_range(argument):
+    """Tell a revision range from a file name."""
+    return (
+        ".." in argument
+        and not Path(argument).exists()
+        and not argument.endswith(STAMPED_SUFFIXES)
+    )
+
+
+def parse_arguments(argv):
+    """Return the command line, parsed."""
+    parser = argparse.ArgumentParser(
+        prog="didactic-sync.py",
+        description=__doc__.splitlines()[0],
+        allow_abbrev=False,
+    )
+    parser.add_argument(
+        "targets",
+        nargs="*",
+        metavar="FILE|RANGE",
+        help="the files to check, or a range to list the pairs it re-stamped "
+        "with only one side changed: A...B (as for a pull request) is what B "
+        "did since it left A; A..B compares the two ends, as git diff does",
+    )
+    parser.add_argument(
+        "--stamp",
+        action="append",
+        metavar="FILE:LINE[.N]",
+        help="stamp the one pair at that line, after reading both sides",
+    )
+    parser.add_argument(
+        "--list",
+        action="store_true",
+        help="only list: exit with 0 even if a pair is not in sync",
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="list the pairs that are in sync too",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv=None):
+    """Run the mode that the command line asks for; return the exit status."""
+    args = parse_arguments(argv)
+    sys.stdout.reconfigure(errors="surrogateescape")
+    sys.stderr.reconfigure(errors="surrogateescape")
+    try:
+        status = run_mode(args)
+        sys.stdout.flush()
+        return status
+    except BrokenPipeError:
+        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        return STATUS_ERROR
+    except OSError as error:
+        print(f"{error.filename}: {error.strerror}", file=sys.stderr)
+    except Exception:
+        traceback.print_exc()
+        print("internal error", file=sys.stderr)
+    return STATUS_ERROR
+
+
+def run_mode(args):
+    """Run the mode that the arguments ask for; return the exit status."""
+    if args.stamp is not None:
+        if args.targets or len(args.stamp) > 1:
+            print("--stamp takes one pair and nothing else", file=sys.stderr)
+            return STATUS_ERROR
+        message = stamp_pair(args.stamp[0])
+        if message:
+            print(message, file=sys.stderr)
+            return STATUS_ERROR
+        return STATUS_OK
+    ranges = [target for target in args.targets if is_range(target)]
+    if ranges:
+        if len(args.targets) > 1:
+            print("a range takes no other arguments", file=sys.stderr)
+            return STATUS_ERROR
+        return check_branch(ranges[0])
+    if not args.targets:
+        print("name the files to check", file=sys.stderr)
+        return STATUS_ERROR
+    return check_files(args.targets, args.verbose, args.list)
+@
+
+The files are checked independently, and a missing or broken one doesn't stop
+the others from being reported.
+The status is the worst outcome over all of them, and [[--list]] takes away
+only the one that says that something isn't in sync: a build that lists is
+still told if the file can't be read as blocks, since it isn't going to build
+anyway.
+
+<<functions>>=
+def check_files(paths, verbose, list_only):
+    """Report on the files; return the exit status."""
+    not_in_sync = 0
+    broken = False
+    for path in paths:
+        if not Path(path).is_file():
+            print(f"{path}: no such file", file=sys.stderr)
+            broken = True
+            continue
+        try:
+            count, errors = check_file(path, verbose)
+        except BrokenPipeError:
+            raise
+        except OSError as error:
+            print(f"{path}: {error.strerror}", file=sys.stderr)
+            broken = True
+            continue
+        not_in_sync += count
+        broken = broken or errors
+    if broken:
+        return STATUS_ERROR
+    if not_in_sync and not list_only:
+        return STATUS_NOT_IN_SYNC
+    return STATUS_OK
+<<test functions>>=
+def test_list_only_lists_and_exits_zero(repo):
+  (repo / "contents.nw").write_text(blocks("en", "sv"))
+  result = run(repo, "--list", "contents.nw")
+  assert result.returncode == 0
+  assert "new pair" in result.stdout
+
+
+def test_list_does_not_hide_a_broken_file(repo):
+  (repo / "contents.nw").write_text("\\begin{en}\nA.\n")
+  assert run(repo, "--list", "contents.nw").returncode == 2
+
+
+def test_all_in_sync_exits_zero_and_says_nothing(repo):
+  stamped_file(repo, ("en", "sv"))
+  result = run(repo, "contents.nw")
+  assert result.returncode == 0
+  assert result.stdout == ""
+
+
+def test_a_missing_file_is_an_error(repo):
+  assert run(repo, "missing.nw").returncode == 2
+
+
+def test_several_files_are_checked(repo):
+  stamped_file(repo, ("en", "sv"), "a.nw")
+  (repo / "b.nw").write_text(blocks("en", "sv"))
+  result = run(repo, "a.nw", "b.nw")
+  assert result.returncode == 1
+  assert "b.nw:1: new pair" in result.stdout
+  assert "a.nw:1" not in result.stdout
+
+
+def test_a_file_with_two_dots_in_its_name_is_a_file(repo):
+  (repo / "a..b.nw").write_text(blocks("en", "sv"))
+  assert "a..b.nw:1: new pair" in run(repo, "a..b.nw").stdout
+
+
+def test_a_byte_order_mark_stays_first_and_hides_nothing(repo):
+  path = repo / "contents.nw"
+  mark = b"\xef\xbb\xbf"
+  path.write_bytes(mark + blocks("en", "sv").encode())
+  assert "contents.nw:1: new pair" in run(repo, "contents.nw").stdout
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  data = path.read_bytes()
+  assert data.startswith(mark + b"\\begin{en} % sync en=")
+  assert data.count(mark) == 1
+  assert run(repo, "contents.nw").returncode == 0
+
+
+def test_a_missing_source_with_dots_is_no_range(repo):
+  result = run(repo, "../missing.nw")
+  assert result.returncode == 2
+  assert "no such file" in result.stderr
+
+
+def test_a_range_takes_no_files(repo):
+  stamped_file(repo, ("en", "sv"))
+  assert run(repo, "HEAD..HEAD", "contents.nw").returncode == 2
+
+
+def test_a_shorthand_of_stamp_is_not_taken(repo):
+  path = repo / "contents.nw"
+  path.write_text(blocks("en", "sv"))
+  assert run(repo, "--sta", "contents.nw:1").returncode == 2
+  assert "% sync" not in path.read_text()
+
+
+def test_a_file_name_that_is_not_utf8_is_kept_in_a_message(repo):
+  result = subprocess.run(
+    [sys.executable, str(SCRIPT), b"p\xe5.nw"],
+    cwd=repo,
+    capture_output=True,
+  )
+  assert result.returncode == 2
+  assert result.stderr == b"p\xe5.nw: no such file\n"
+
+
+def test_no_arguments_is_an_error(repo):
+  assert run(repo).returncode == 2
+
+
+def test_a_reader_that_stops_early_gets_no_noise(repo):
+  (repo / "contents.nw").write_text("\\ensv{a}{b}\n" * 5000)
+  process = subprocess.Popen(
+    [sys.executable, str(SCRIPT), "contents.nw"],
+    cwd=repo, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+  )
+  process.stdout.readline()
+  process.stdout.close()
+  stderr = process.stderr.read()
+  assert process.wait() == 2
+  assert stderr == b""
+
+
+def test_a_file_that_cannot_be_read_is_an_error(repo):
+  path = repo / "contents.nw"
+  path.write_text(blocks("en", "sv"))
+  path.chmod(0)
+  try:
+    result = run(repo, "contents.nw")
+  finally:
+    path.chmod(0o644)
+  assert result.returncode == 2
+  assert "contents.nw:" in result.stderr
+  assert "Traceback" not in result.stderr
+
+
+def test_a_file_that_cannot_be_written_is_an_error(repo):
+  path = repo / "contents.nw"
+  path.write_text(blocks("en", "sv"))
+  path.chmod(0o444)
+  try:
+    result = run(repo, "--stamp", "contents.nw:1")
+  finally:
+    path.chmod(0o644)
+  assert result.returncode == 2
+  assert "contents.nw" in result.stderr
+  assert "Traceback" not in result.stderr
+
+
+def test_a_range_that_ends_in_a_file_is_an_error(repo):
+  base_of_three(repo)
+  (repo / "notes.md").write_text("x\n")
+  commit(repo, "a file")
+  result = run(repo, "master..HEAD:notes.md")
+  assert result.returncode == 2
+  assert "Traceback" not in result.stderr
+@

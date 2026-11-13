@@ -1,0 +1,14 @@
+% The Swedish edition of test-bilingual.tex; see there.
+\documentclass[a4paper,oneside]{memoir}
+\PassOptionsToPackage{main=swedish}{babel}
+\PassOptionsToPackage{english,swedish}{cleveref}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\input{test-bilingual-preamble.tex}
+\begin{document}
+\title{\ensv{ENTITLE}{SVTITLE}}
+\author{A}
+\maketitle
+\tableofcontents*
+\chapter{\ensv{ENCHAPTER}{SVCHAPTER}}
+\input{test-bilingual-contents.tex}
+\end{document}
