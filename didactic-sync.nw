@@ -304,6 +304,8 @@ class Reading:
     text_lines: set = field(default_factory=set)
     errors: list = field(default_factory=list)
     notes: list = field(default_factory=list)
+    blank_lines: set = field(default_factory=set)
+    comment_lines: set = field(default_factory=set)
 <<functions>>=
 def read_source(text):
     """Read `text` as `LaTeX` will: find the blocks and the other lines."""
@@ -315,8 +317,9 @@ def read_source(text):
         line = lines[number].rstrip("\r")
         <<skip a chunk or a verbatim environment>>
         if not line.strip():
-            pass
+            reading.blank_lines.add(number)
         elif COMMENT.match(line):
+            reading.comment_lines.add(number)
             <<note a stamp on a line of its own>>
         elif match := BLOCK_BEGIN.match(line):
             <<read a block>>
@@ -330,6 +333,8 @@ Chunks and verbatim environments are skipped whole, and each counts as
 something between two blocks.
 A chunk may be followed directly by another, so we look at the first line of
 each.
+The [[@]] that ends a chunk often starts the documentation on its own line,
+[[@ The function ...]], and what follows it there is text like any other.
 A verbatim environment may end on the line where it starts, and if it never
 ends we had better say so, or everything after it would pass as checked.
 
@@ -337,6 +342,8 @@ ends we had better say so, or everything after it would pass as checked.
 if CHUNK_START.match(line):
     number = end_of_chunk(lines, number)
     reading.items.append(OTHER)
+    if CHUNK_END.match(lines[number]) and lines[number][1:].strip():
+        reading.text_lines.add(number)
     number += 1
     continue
 if match := VERBATIM_BEGIN.match(line):
@@ -711,122 +718,242 @@ def test_a_block_after_a_frame_is_fine(repo):
 \subsection{Reading a source: what is a string}\label{sec:sync-tr}
 
 An [[\ensv]] is a pair on a smaller scale, with the difference that its parts
-aren't on lines of their own.
-To find where its two arguments end we have to balance the braces, since the
-arguments are \LaTeX\ and hold groups of their own:
-[[\ensv{A \emph{big} cat}{En \emph{stor} katt}]].
-Three things inside them must not count as braces: an escaped one, [[\{]];
-anything in noweb's quoting, which might hold one brace on its own; and
-anything after a comment sign.
-Before counting we therefore blank out all that isn't \LaTeX\ text, keeping
-the positions: blocks, chunks and comments become spaces, so a position in the
-blanked text is still one in the file.
+aren't on lines of their own: [[\ensv{A \emph{big} cat}{En \emph{stor} katt}]].
+Finding one means reading the text lines as \TeX\ will, and that's where
+earlier versions of this script went wrong: a [[%]] inside [[\verb|%|]] or a
+URL taken for a comment, [[\string\ensv]] taken for a use, a blank line between
+the two arguments taken for nothing.
+Each of these came from a regular expression that knew one rule of \TeX\ and
+not the next, applied in an order that let one pass undo another.
 
+So the text lines are read in one pass, from left to right, into tokens, and
+at each place exactly one rule applies.
+The line-by-line reading of the previous section stays as it is, since blocks,
+chunks and verbatim environments really do end at whole lines, whatever \TeX\
+would make of them.
+What's left for this pass is the lines that \LaTeX\ reads as text, and between
+them the lines that it doesn't: an empty line is a [[\par]], a line that holds
+only a comment is nothing at all, and anything else, a chunk or a block, is
+something that no argument can run across.
+
+<<constants>>=
+OPAQUE = "opaque"
+PAR = "par"
+<<classes>>=
+@dataclass
+class Token:
+    """A token of `LaTeX` text: its kind, its text and where it is."""
+
+    kind: str
+    text: str
+    start: int
+    end: int
 <<functions>>=
-def blank_non_text(reading):
-    """Return the lines of a source with all but its `LaTeX` text as spaces."""
-    blanked = []
+def tokens_of(reading):
+    """Return the tokens of the text lines of a source, in order."""
+    tokens = []
+    offset = 0
     for number, line in enumerate(reading.lines):
         if number in reading.text_lines:
-            blanked.append(blank_comment(line))
-        else:
-            blanked.append(" " * len(line))
-    return blanked
+            tokens += tokens_of_line(line, offset)
+        elif number in reading.blank_lines:
+            tokens.append(Token(PAR, "", offset, offset))
+        elif number not in reading.comment_lines:
+            tokens.append(Token(OPAQUE, "", offset, offset + len(line)))
+        offset += len(line) + 1
+    return tokens
+@
 
+On a text line, a backslash starts a control sequence, a word of letters or a
+single other character: [[\\]] is one token, so [[\\ensv]] is a line break and
+four letters, and [[\%]] is no comment.
+The letters include [[@]], so that [[\ensv@x]], a name in some package's code,
+isn't taken for ours.
+A [[%]] that's left starts a comment, which runs to the end of the line.
+Braces are kept as tokens; everything else is a character that only matters as
+something that isn't a brace.
 
-def blank_comment(line):
-    """Return `line` with a comment, if any, turned into spaces."""
+What makes this a reader of \LaTeX\ and not of \TeX\ is a short table of the
+commands that read their argument verbatim, where a [[%]] or a brace is a
+character like any other.
+Each is read whole, as one token: [[\verb]] and [[\Verb]] up to the next
+delimiter; [[\lstinline]], [[\mintinline]] and [[\path]], with a delimiter or
+in braces; the address of [[\url]], [[\nolinkurl]] and [[\href]], in which
+[[%20]] is a space and no comment; PythonTeX's inline code; and noweb's
+quoting of code in double brackets, which isn't \LaTeX\ but is in every
+literate source.
+A command that isn't in the table is read as \TeX, so a [[%]] in the argument
+of a verbatim command of somebody else's still looks like a comment to us.
+That's a limit to state, not a rule we could complete: any package may define
+such a command, and a document may change what [[%]] means.
+The harm would be in one direction, a use of ours that we don't see, so we
+look for the sign of it: a comment that holds one of our names and starts
+inside a group that hasn't closed, as the address of an unknown link command
+would.
+That gets a note on the standard error, which may be a false alarm about a
+comment inside a long [[\ensv]], and leaves the exit status alone.
+
+<<constants>>=
+VERBATIM_COMMANDS = {
+    "verb", "Verb", "lstinline", "mintinline", "path", "url", "nolinkurl",
+    "py", "pyc", "pys", "pyv", "pyb",
+}
+OPTIONS_FIRST = {"Verb", "lstinline", "mintinline", "href"}
+LETTER = re.compile(r"[A-Za-z@]")
+<<functions>>=
+def tokens_of_line(line, offset):
+    """Return the tokens of one line of text, at `offset` in the source."""
+    tokens = []
     index = 0
     while index < len(line):
-        if line[index] == "\\":
-            index += 2
+        start = index
+        char = line[index]
+        if char == "\\":
+            index = end_of_name(line, index + 1)
+            name = line[start + 1 : index] or " "
+            tokens.append(Token("cs", name, offset + start, offset + index))
+            if name in VERBATIM_COMMANDS or name == "href":
+                verbatim = index
+                index = end_of_verbatim_argument(line, index, name)
+                tokens.append(
+                    Token("verbatim", "", offset + verbatim, offset + index)
+                )
         elif line.startswith("[[", index):
             end = line.find("]]", index)
             index = end + 2 if end != -1 else len(line)
-        elif line[index] == "%":
-            return line[:index] + " " * (len(line) - index)
+            tokens.append(Token("verbatim", "", offset + start, offset + index))
+        elif char == "%":
+            index = len(line)
+            tokens.append(
+                Token("comment", line[start:], offset + start, offset + index)
+            )
+        elif char in "{}":
+            index += 1
+            tokens.append(Token(char, char, offset + start, offset + index))
         else:
             index += 1
-    return line
+            if not char.isspace():
+                token = Token("char", char, offset + start, offset + index)
+                tokens.append(token)
+    return tokens
+
+
+def end_of_name(line, index):
+    """Return where the name of a control sequence at `index` ends."""
+    if index >= len(line):
+        return index
+    if not LETTER.match(line[index]):
+        return index + 1
+    while index < len(line) and LETTER.match(line[index]):
+        index += 1
+    return index
 @
 
-With that done, an argument is read by counting, in the blanked text, but what
-we keep is that span of the file itself: a comment in a side counts as part of
-it, in a string as in a block.
-A missing argument is an error for the user, so the reader reports back where
-it failed instead of raising something.
+The argument of a verbatim command starts after its star, its options in
+brackets and, for [[\mintinline]], the language in braces.
+Then the first character is the delimiter, unless it's a brace, in which case
+the braces count.
+Of [[\href]] only the address is verbatim, not the text that follows it.
+An argument that doesn't end on its line runs to the end of the line, which is
+as far as any of these can reach.
 
 <<functions>>=
-def read_argument(text, position):
-    """Return the span of the group at `position` in `text`, or `None`."""
-    while position < len(text) and text[position].isspace():
-        position += 1
-    if position >= len(text) or text[position] != "{":
-        return None
+def end_of_verbatim_argument(line, index, name):
+    """Return where the verbatim argument of command `name` at `index` ends."""
+    if name == "verb" and line.startswith("*", index):
+        index += 1
+    if name != "verb":
+        index = skip_spaces(line, index)
+    if name in OPTIONS_FIRST and line.startswith("[", index):
+        close = line.find("]", index)
+        index = skip_spaces(line, close + 1 if close != -1 else len(line))
+    if name == "mintinline" and line.startswith("{", index):
+        index = skip_spaces(line, end_of_braces(line, index))
+    if index >= len(line):
+        return index
+    if line[index] == "{":
+        return end_of_braces(line, index)
+    close = line.find(line[index], index + 1)
+    return close + 1 if close != -1 else len(line)
+
+
+def end_of_braces(line, index):
+    """Return where the group that opens at `index` ends, or the line's end."""
     depth = 0
-    index = position
-    while index < len(text):
-        if text[index] == "\\":
-            index += 2
-            continue
-        if text.startswith("[[", index):
-            end = text.find("]]", index)
-            index = end + 2 if end != -1 else len(text)
-            continue
-        if text[index] == "{":
+    for position in range(index, len(line)):
+        if line[position] == "{":
             depth += 1
-        elif text[index] == "}":
+        elif line[position] == "}":
             depth -= 1
             if depth == 0:
-                return position + 1, index
+                return position + 1
+    return len(line)
+
+
+def skip_spaces(line, index):
+    """Return the first place at or after `index` that isn't a space."""
+    while index < len(line) and line[index].isspace():
         index += 1
-    return None
+    return index
 @
 
+Now the names.
 The command is named [[\ensv]], or [[\didactictr]] in a document where
-[[\ensv]] is taken, and nothing longer, and it isn't preceded by an odd number
-of backslashes: [[\\ensv]] is a line break followed by the letters
-\enquote{ensv}.
+[[\ensv]] is taken.
 A [[\tr]] is none of our business: the package defines none, and
 \textsf{physics} has one for the trace, so a [[\tr]] in a source is that or
 the document's own.
-Both of our names are only ours, though, so a use of one that isn't followed by
-two groups is an error, whatever follows: [[\ensv{a}]] alone, or
-[[\ensv\foo]].
-An alias such as [[\let\x\ensv]] is one too, since the script would never see
-the strings written with it.
-What isn't a use is a definition, in a document that has its own [[\ensv]]
-and the option [[nobilingual]]: the name right after a command that defines
-one, such as [[\newcommand]] or [[\def]].
-And a file that defines [[\ensv]] has its own, so there, as in the package,
-the name is the document's: its uses are neither pairs nor errors, whatever
-their arguments, and only [[\didactictr]] is read.
+
+Not every token with our name is a use.
+After [[\string]], [[\ifdefined]], [[\noexpand]], [[\show]] or [[\meaning]] it
+is only mentioned, and so are the two after [[\ifx]]: a text about this
+package, or a preamble that looks before it defines, has those.
+After a command that defines one, such as [[\newcommand]], [[\def]] or
+[[\NewDocumentCommand]], with or without a star and braces around the name,
+it's a definition; and so it is as the first operand of [[\let]], or of
+[[\NewCommandCopy]] and its relatives.
+A file that defines [[\ensv]] has its own, so there, as in the package, the
+name is the document's: its uses are neither pairs nor errors, whatever their
+arguments, and only [[\didactictr]] is read.
 The state check says so once, on the standard error, since a deck's pairs
 written with [[\ensv]] would otherwise vanish from the report without a word.
 What the script can't know is a definition in another file, such as a preamble
-that the document inputs: there the uses of [[\ensv]] are read as ours, and
-[[\didactictr]] is the way out.
-Nor is one that's shown as code, in noweb's quoting, [[\verb]] or
-[[\mintinline]]: a text about this package has plenty of those.
-So the search for the command looks at a copy of the text with those blanked
-out, while the arguments are read from the text itself, as a change in quoted
-code is a change of the string.
-What we store is the line where it ends, as that's the line where a comment
-can stand without being in the way of the rest of the command.
+that the document inputs, or in a package: there the uses of [[\ensv]] are read
+as ours, and [[\didactictr]] is the way out.
+Our name as the second operand of [[\let]], [[\let\x\ensv]], is an alias, and
+an error, since the strings written with [[\x]] would never be seen.
 
 <<constants>>=
-ENSV = re.compile(r"(?<!\\)(?:\\\\)*\\(?P<name>didactictr|ensv)(?![a-zA-Z@])")
-DEFINING = re.compile(
-    r"\\(?:[gex]?def|(?:renew|provide|new)command\*?|DeclareRobustCommand\*?"
-    r"|(?:New|Renew|Provide|Declare)DocumentCommand)\s*\{?\s*$"
-)
-DEFINING_REACH = 40
+OUR_NAMES = ("ensv", "didactictr")
+MENTIONS = {"string": 1, "ifdefined": 1, "noexpand": 1, "show": 1,
+            "meaning": 1, "ifx": 2}
+DEFINERS = {
+    "def", "gdef", "edef", "xdef", "newcommand", "renewcommand",
+    "providecommand", "DeclareRobustCommand", "newrobustcmd",
+    "renewrobustcmd", "providerobustcmd", "NewDocumentCommand",
+    "RenewDocumentCommand", "ProvideDocumentCommand", "DeclareDocumentCommand",
+    "NewExpandableDocumentCommand", "RenewExpandableDocumentCommand",
+    "ProvideExpandableDocumentCommand", "DeclareExpandableDocumentCommand",
+}
+COPIERS = {"let", "NewCommandCopy", "RenewCommandCopy", "DeclareCommandCopy"}
 OWN_ENSV = "this file defines \\ensv, so it's left alone here; use \\didactictr"
-QUOTED = re.compile(
-    r"\[\[.*?\]\]"
-    r"|\\verb\*?([^a-zA-Z\s]).*?\1"
-    r"|\\mintinline(?:\[[^\]]*\])?\{[^}]*\}(?:\{[^}]*\}|([^{\s]).*?\2)"
+DOUBTFUL_COMMENT = (
+    "this % may not start a comment, and what follows holds our names"
 )
+@
+
+The rest of the rules is about the arguments.
+Both of our names are only ours, so a use is followed by two groups, and
+anything else is an error: [[\ensv{a}]] alone, or [[\ensv\foo]].
+Before each group there may be spaces, a line end and comments, but not a
+blank line: [[\didactictr]] is long, so \LaTeX\ takes the [[\par]] of a blank
+line for the second argument and prints the Swedish in the English edition.
+Inside a group anything goes but a chunk, a block or a verbatim environment.
+What we keep of a side is that span of the file itself, comments included, as
+a change in a comment, or in quoted code, is a change of the string; and the
+line where the use ends, as that's where a comment can stand without being in
+the way of the rest of the command.
+
 <<classes>>=
 @dataclass
 class Ensv:
@@ -837,46 +964,147 @@ class Ensv:
     en: str
     sv: str
 <<functions>>=
-def is_definition(match):
-    """Tell whether a match of `ENSV` is the name a defining command defines."""
-    start = match.start()
-    before = match.string[max(0, start - DEFINING_REACH) : start]
-    return bool(DEFINING.search(before))
-
-
 def find_ensv(reading):
     """Return all uses of `\\ensv` in a source, in order."""
     raw = "\n".join(reading.lines)
-    text = "\n".join(blank_non_text(reading))
-    searchable = QUOTED.sub(lambda quoted: " " * len(quoted.group()), text)
-    matches = list(ENSV.finditer(searchable))
-    defined = {match.group("name") for match in matches if is_definition(match)}
+    tokens = tokens_of(reading)
+    uses, defined = classify_names(tokens, reading, raw)
     if "ensv" in defined:
-        reading.notes.append(OWN_ENSV)
+        reading.notes.append((None, OWN_ENSV))
+    for comment in doubtful_comments(tokens):
+        line = raw.count("\n", 0, comment.start)
+        reading.notes.append((line, DOUBTFUL_COMMENT))
     found = []
-    position = 0
-    while match := ENSV.search(searchable, position):
-        position = match.end()
-        if is_definition(match) or match.group("name") in defined:
+    for index in uses:
+        name = tokens[index].text
+        if name in defined:
             continue
-        first = read_argument(text, position)
-        second = first and read_argument(text, first[1] + 1)
-        line = text.count("\n", 0, match.start())
-        if second is None:
-            name = match.group("name")
+        line = raw.count("\n", 0, tokens[index].start)
+        groups = read_groups(tokens, index + 1)
+        if groups is None:
             reading.errors.append((line, f"this \\{name} needs two arguments"))
-            position = first[1] + 1 if first else position
             continue
+        (open_en, close_en), (open_sv, close_sv) = groups
         found.append(
             Ensv(
                 line,
-                text.count("\n", 0, second[1]),
-                raw[first[0] : first[1]],
-                raw[second[0] : second[1]],
+                raw.count("\n", 0, close_sv.start),
+                raw[open_en.end : close_en.start],
+                raw[open_sv.end : close_sv.start],
             )
         )
-        position = second[1] + 1
     return found
+@
+
+Telling uses from mentions and definitions is a walk over the tokens that
+skips what each of those commands takes.
+An alias is reported where it stands, as it's an error whatever the rest of
+the file says.
+
+<<functions>>=
+def classify_names(tokens, reading, raw):
+    """Return the indices of uses of our names, and the names defined."""
+    uses = []
+    defined = set()
+    index = 0
+    while index < len(tokens):
+        token = tokens[index]
+        if token.kind != "cs":
+            index += 1
+            continue
+        if token.text in MENTIONS:
+            index += 1 + MENTIONS[token.text]
+            continue
+        if token.text in DEFINERS or token.text in COPIERS:
+            target = defined_name(tokens, index + 1)
+            if target is None:
+                index += 1
+                continue
+            if tokens[target].text in OUR_NAMES:
+                defined.add(tokens[target].text)
+            index = target + 1
+            if token.text in COPIERS:
+                <<skip the source of a copy, reporting an alias>>
+            continue
+        if token.text in OUR_NAMES:
+            uses.append(index)
+        index += 1
+    return uses, defined
+
+
+def defined_name(tokens, index):
+    """Return the index of the name a defining command defines, or `None`."""
+    while index < len(tokens) and tokens[index].text in ("*", "{"):
+        index += 1
+    if index < len(tokens) and tokens[index].kind == "cs":
+        return index
+    return None
+<<skip the source of a copy, reporting an alias>>=
+while index < len(tokens) and tokens[index].text in ("=", "{", "}"):
+    index += 1
+if index < len(tokens) and tokens[index].text in OUR_NAMES:
+    if tokens[target].text not in OUR_NAMES:
+        line = raw.count("\n", 0, tokens[index].start)
+        name = tokens[index].text
+        reading.errors.append((line, f"an alias of \\{name} hides its pairs"))
+index += 1
+@
+
+The doubtful comments are found by counting the braces as we go, from the
+start of the file, since a group may well span lines.
+
+<<functions>>=
+def doubtful_comments(tokens):
+    """Return the comments that start in an open group and hold our names."""
+    doubtful = []
+    depth = 0
+    for token in tokens:
+        if token.kind == "{":
+            depth += 1
+        elif token.kind == "}":
+            depth = max(0, depth - 1)
+        elif token.kind in (PAR, OPAQUE):
+            depth = 0
+        elif token.kind == "comment" and depth > 0:
+            if any("\\" + name in token.text for name in OUR_NAMES):
+                doubtful.append(token)
+    return doubtful
+@
+
+Reading the two groups follows the rule above: comments are skipped between
+them, and a blank line, a chunk or anything else ends the search.
+
+<<functions>>=
+def read_groups(tokens, index):
+    """Return the braces of two groups at `index`, or `None`."""
+    groups = []
+    while len(groups) < 2:
+        while index < len(tokens) and tokens[index].kind == "comment":
+            index += 1
+        if index >= len(tokens) or tokens[index].kind != "{":
+            return None
+        close = matching_brace(tokens, index)
+        if close is None:
+            return None
+        groups.append((tokens[index], tokens[close]))
+        index = close + 1
+    return groups
+
+
+def matching_brace(tokens, index):
+    """Return the index of the brace that closes the one at `index`."""
+    depth = 0
+    for position in range(index, len(tokens)):
+        kind = tokens[position].kind
+        if kind == OPAQUE:
+            return None
+        if kind == "{":
+            depth += 1
+        elif kind == "}":
+            depth -= 1
+            if depth == 0:
+                return position
+    return None
 @
 
 \subsection{Pairs and stamps}\label{sec:sync-pairs}
@@ -1422,6 +1650,144 @@ def test_a_tr_is_somebody_elses(repo):
   result = run(repo, "-v", "contents.nw")
   assert result.returncode == 0, result.stderr
   assert "1 pairs" in result.stdout
+
+
+@pytest.mark.parametrize(
+  "source",
+  [
+    "Use \\verb|%| here: \\ensv{broken}\n",
+    "Use \\verb*|%| here: \\ensv{broken}\n",
+    "\\href{https://example.org/a%20b}{\\ensv{broken}}\n",
+    "\\url{https://example.org/%7E} \\ensv{broken}\n",
+    "\\url{https://example.org/{x}%7E} \\ensv{broken}\n",
+    "\\nolinkurl{a%b} \\ensv{broken}\n",
+    "\\path|a%b| \\ensv{broken}\n",
+    "\\lstinline|%| \\ensv{broken}\n",
+    "\\mintinline{latex}|%| \\ensv{broken}\n",
+    "Use [[a%b]] here: \\ensv{broken}\n",
+  ],
+)
+def test_a_percent_sign_that_is_no_comment_hides_nothing(repo, source):
+  (repo / "contents.nw").write_text(source)
+  result = run(repo, "contents.nw")
+  assert result.returncode == 2, result.stdout
+  assert "contents.nw:1" in result.stderr
+
+
+def test_a_definition_after_a_percent_sign_in_a_link_is_seen(repo):
+  (repo / "contents.nw").write_text(
+    "\\url{https://example.org/%7E} \\newcommand\\ensv[2]{#1}\n\\ensv{own}\n"
+  )
+  result = run(repo, "contents.nw")
+  assert result.returncode == 0, result.stderr
+  assert "defines \\ensv" in result.stderr
+
+
+@pytest.mark.parametrize(
+  "shown",
+  [
+    "% \\newcommand\\ensv[2]{#1}\n",
+    "\\verb|\\newcommand\\ensv[2]{#1}|\n",
+    "Use [[\\newcommand\\ensv[2]{#1}]] here.\n",
+    "\\mintinline{latex}{\\newcommand\\ensv[2]{#1}}\n",
+    "\\begin{minted}{latex}\n\\newcommand\\ensv[2]{#1}\n\\end{minted}\n",
+    "\\begin{en}\n\\newcommand\\ensv[2]{#1}\n\\end{en}\n",
+  ],
+)
+def test_a_definition_that_is_only_shown_defines_nothing(repo, shown):
+  (repo / "contents.nw").write_text(shown + "Then \\ensv{a}{b}.\n")
+  result = run(repo, "contents.nw")
+  assert "defines" not in result.stderr
+  assert "new pair" in result.stdout
+
+
+def test_a_percent_sign_in_an_unknown_command_gets_a_note(repo):
+  (repo / "contents.nw").write_text(
+    "\\mylink{https://example.org/a%20b}{\\ensv{broken}}\n"
+  )
+  result = run(repo, "contents.nw")
+  assert result.returncode == 0
+  assert "contents.nw:1: this % may not start a comment" in result.stderr
+
+
+def test_a_pair_after_a_percent_sign_in_a_link_is_seen(repo):
+  (repo / "contents.nw").write_text(
+    "\\href{https://example.org/a%20b}{\\ensv{Link}{Länk}}\n"
+  )
+  assert "contents.nw:1: new pair" in run(repo, "contents.nw").stdout
+
+
+@pytest.mark.parametrize(
+  "source", ["\\\\% \\ensv{broken}\n", "100\\% sure % \\ensv{broken}\n"]
+)
+def test_a_comment_after_a_line_break_or_a_percent_is_a_comment(repo, source):
+  (repo / "contents.nw").write_text(source)
+  result = run(repo, "-v", "contents.nw")
+  assert result.returncode == 0, result.stderr
+  assert "0 pairs" in result.stdout
+
+
+@pytest.mark.parametrize(
+  "source",
+  [
+    "\\ensv{a}\n\n{b}\n",
+    "\\ensv\n\n{a}{b}\n",
+    "\\didactictr{a}\n  \n{b}\n",
+  ],
+)
+def test_a_blank_line_ends_the_arguments(repo, source):
+  (repo / "contents.nw").write_text(source)
+  result = run(repo, "contents.nw")
+  assert result.returncode == 2, result.stdout
+  assert "contents.nw:1" in result.stderr
+
+
+def test_one_line_end_between_the_arguments_is_fine(repo):
+  (repo / "contents.nw").write_text("\\ensv{a}\n  {b}\n")
+  assert "new pair" in run(repo, "contents.nw").stdout
+
+
+def test_the_text_on_the_line_that_ends_a_chunk_is_read(repo):
+  (repo / "contents.nw").write_text(
+    "@<<a>>=\nx = 1\n@ The \\ensv{Yes}{Ja} is here.\n"
+  )
+  assert "contents.nw:3: new pair" in run(repo, "contents.nw").stdout
+  (repo / "contents.nw").write_text(
+    "@<<a>>=\nx = 1\n@ The \\ensv{broken}.\n"
+  )
+  assert run(repo, "contents.nw").returncode == 2
+
+
+@pytest.mark.parametrize(
+  "source",
+  [
+    "The command \\texttt{\\string\\ensv} is ours.\n",
+    "\\ifdefined\\ensv \\message{yes}\\fi\n",
+    "\\ifx\\ensv\\undefined \\message{no}\\fi\n",
+  ],
+)
+def test_a_name_that_is_only_mentioned_is_no_use(repo, source):
+  (repo / "contents.nw").write_text(source)
+  result = run(repo, "-v", "contents.nw")
+  assert result.returncode == 0, result.stderr
+  assert "0 pairs" in result.stdout
+
+
+@pytest.mark.parametrize(
+  "source",
+  [
+    "\\let\\ensv\\relax\n",
+    "\\let\\ensv=\\relax\n",
+    "\\newrobustcmd\\ensv[2]{#1}\n",
+    "\\NewExpandableDocumentCommand\\ensv{mm}{#1}\n",
+  ],
+)
+def test_more_ways_of_defining_ensv_are_definitions(repo, source):
+  (repo / "contents.nw").write_text(source + "\\ensv{own}\n")
+  result = run(repo, "-v", "contents.nw")
+  assert result.returncode == 0, result.stderr
+  assert "0 pairs" in result.stdout
+  assert "defines \\ensv" in result.stderr
 @
 
 \subsection{The state of a pair}\label{sec:sync-state}
@@ -1467,8 +1833,9 @@ def check_file(path, verbose=False):
     pairs, leftover, errors, notes = read_pairs(read_text(path))
     for line, message in errors:
         print(f"{path}:{line + 1}: {message}", file=sys.stderr)
-    for note in notes:
-        print(f"{path}: {note}", file=sys.stderr)
+    for line, note in notes:
+        where = f"{path}:{line + 1}" if line is not None else path
+        print(f"{where}: {note}", file=sys.stderr)
     counts = Counter()
     for line in leftover:
         print(f"{path}:{line + 1}: {LEFTOVER_STAMP}")
