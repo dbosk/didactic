@@ -89,7 +89,7 @@ esac
 taken() {
   ${PDFLATEX:-pdflatex} -shell-escape -interaction=nonstopmode \
     -jobname=test-bilingual-taken \
-    "\\documentclass{article}\\usepackage[british]{babel}$1\\begin{document}x\\end{document}" \
+    "\\documentclass{${CLASS:-article}}\\usepackage[british]{babel}$1\\begin{document}x\\end{document}" \
     >/dev/null 2>&1
 }
 for name in comment en sv; do
@@ -108,7 +108,23 @@ for package in comment verbatim; do
   if grep -q '^!' test-bilingual-taken.log; then
     fail taken "$package loaded first"
   fi
+  if grep -q 'Package didactic Warning.*comment' test-bilingual-taken.log; then
+    fail taken "a warning about the comment environment of $package"
+  fi
 done
+
+CLASS=memoir taken "\\usepackage{didactic}"
+if grep -q 'Package didactic Warning.*comment' test-bilingual-taken.log; then
+  fail taken "a warning about memoir's comment environment"
+fi
+
+# The document's own environment comment is replaced by comment.sty's, which
+# drops its contents; if it printed them, that text is lost, so say so.
+taken "\\newenvironment{comment}{NOTE:}{}\\usepackage{didactic}"
+grep -q "Package didactic Warning.*comment" test-bilingual-taken.log \
+  || fail taken "no warning for an environment comment of the document's own"
+grep -q nobilingual test-bilingual-taken.log \
+  || fail taken "the warning for an environment comment does not name nobilingual"
 
 # A package loaded later may replace \tr without a word, as physics does with
 # \DeclareDocumentCommand; then the document's \tr{...}{...} is that package's,

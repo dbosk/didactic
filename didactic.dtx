@@ -960,9 +960,10 @@
 % If |\tr| is taken when this package is loaded, it stays as it is, with a 
 % warning, and the command is available as |\didactictr|.
 % If |\en|, |\sv| or a command |\comment| is taken, then \textsf{comment} would 
-% overwrite it and the document would break somewhere else, so that's an error; 
-% an environment |comment|, as \textsf{verbatim} and \textsf{memoir} have, works 
-% just like the one that replaces it.
+% overwrite it and the document would break somewhere else, so that's an error.
+% An environment |comment| is replaced by one that drops its contents.
+% That's what those of \textsf{verbatim} and \textsf{memoir} do anyway; any 
+% other gets a warning, since its contents would be lost if it printed them.
 % If the document defines one of them afterwards with |\newcommand|, or
 % loads a package that does, \LaTeX\ says so itself.
 % A package may replace a command without asking, though, as \textsf{physics}
@@ -2292,8 +2293,12 @@
 % It defines |\comment| and, through the blocks, |\en| and |\sv| without 
 % looking whether they're taken, and the document then fails far from the cause 
 % with something like \enquote{Extra \textbackslash endgroup}, so we look first.
-% An environment |comment| has an end, a command doesn't, and an environment of 
-% that name does what \textsf{comment}'s does.
+% An environment |comment| has an end, a command doesn't.
+% The environments |comment| of \textsf{verbatim} and \textsf{memoir} drop 
+% their contents, just as the one that replaces them does.
+% One that the document defines for itself may print them, though, and then 
+% that text would be gone without a word; we can't tell which kind it is, so 
+% we warn about any other.
 %    \begin{macrocode}
 \if@didactic@bilingual
 \newcommand\@didactic@nametaken[1]{%
@@ -2307,7 +2312,19 @@
 }
 \@ifpackageloaded{comment}{}{%
   \ifdefined\comment
-    \ifdefined\endcomment\else\@didactic@nametaken\comment\fi
+    \ifdefined\endcomment
+      \@ifpackageloaded{verbatim}{}{%
+        \@ifclassloaded{memoir}{}{%
+          \PackageWarningNoLine{didactic}{%
+            The environment comment is replaced by one that\MessageBreak 
+            drops its contents.  If it printed them, load\MessageBreak 
+            didactic with the option nobilingual%
+          }%
+        }%
+      }%
+    \else
+      \@didactic@nametaken\comment
+    \fi
   \fi
 }
 \ifdefined\en\@didactic@nametaken\en\fi
