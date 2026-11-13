@@ -655,6 +655,7 @@ clean:
 	${RM} -R test-bilingual-import.d
 	${RM} -R test-bilingual-stamp.d test-bilingual-stamp.tex
 	${RM} test-bilingual-woven.tex
+	${RM} test-bilingual-titles.tex test-bilingual-titles.pdf
 	${RM} test-bilingual-stamp.pdf test-bilingual-stamp.unq
 	${RM} test-bilingual-import.pdf test-bilingual-import.unq
 	${RM} $(addsuffix .unq,${TEST_BILINGUAL}) test-bilingual-off.unq

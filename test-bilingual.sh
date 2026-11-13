@@ -76,6 +76,30 @@ for job in test-bilingual test-bilingual-sv; do
     || fail "$job" "the chunk index has $entries entries, not 3"
 done
 
+# The test notes load beamerarticle with notheorems, so their example is this
+# package's own, which follows babel anyway.  Notes without notheorems get
+# beamer's, from translator, like the slides: they need the two lines of the
+# shared preamble just as much.
+cat > test-bilingual-titles.tex <<'TITLES'
+\documentclass{memoir}
+\PassOptionsToPackage{main=swedish}{babel}
+\PassOptionsToPackage{english,swedish}{cleveref}
+\usepackage{beamerarticle}
+\input{test-bilingual-preamble.tex}
+\begin{document}
+\begin{example}NOTESEXAMPLE\end{example}
+\begin{theorem}NOTESTHEOREM\end{theorem}
+\end{document}
+TITLES
+rm -f test-bilingual-titles.pdf
+${PDFLATEX:-pdflatex} -shell-escape -interaction=nonstopmode \
+  test-bilingual-titles.tex >/dev/null 2>&1
+text=$(pdftotext test-bilingual-titles.pdf - 2>/dev/null | tr -s ' \n' '  ')
+case "$text" in
+  *Exempel*NOTESEXAMPLE*Teorem*NOTESTHEOREM*) ;;
+  *) fail titles "beamer's titles in Swedish notes without notheorems: $text" ;;
+esac
+
 # The test documents are examples too, so the script must find nothing wrong
 # with them: no error, and no stamp in a form that it no longer reads.
 for source in test-bilingual.tex test-bilingual-sv.tex \

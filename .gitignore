@@ -13,6 +13,7 @@ test-bilingual-import.d
 test-bilingual-stamp.d
 test-bilingual-stamp.tex
 test-bilingual-woven.tex
+test-bilingual-titles.tex
 ltxobj
 test.pdf
 test.unq
