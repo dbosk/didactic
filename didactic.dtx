@@ -788,6 +788,13 @@
 % line, half as wide as \TeX\ allows (8191\,pt): a |\parbox{\linewidth}|
 % makes the note one of those, but |\makebox[.01\linewidth]| is 82\,pt wide
 % in the margin and at the foot.
+% Under Xe\LaTeX\ a footnote that stays in the margin can break its lines
+% otherwise than without \textsf{didactic}, at a hyphen or a dash: Xe\TeX\ keeps
+% a word it doesn't break at its hyphen or dash as one piece, and drops that
+% place to break, so the long lines it is measured in have lost it, and the
+% margin's lines, broken again from them, can't use it.
+% pdf\LaTeX\ and Lua\LaTeX\ are not affected; |noteoverflow=carry| sets the note
+% directly, as without \textsf{didactic}.
 % A document whose margin overflows on every page can run out of \LaTeX's
 % boxes for floats (``Too many unprocessed floats'') under Xe\LaTeX, where
 % carried notes pile up (issue \#103).
@@ -1740,17 +1747,35 @@
 %   insertion class of our own to stay correct, a rest put after a later line
 %   landed a page too late, and no real document of the measure splits a note.
 %   \emph{Strength:} no outside support; the maintainer's choice.
-%   \emph{Reopens:} if on the eight documents it costs a page or more, or twice its pages
-%   with three lines or more empty: now no page, and 2 such pages more, so 4.
-%   \emph{Measured} (for v2.15's \texttt{break}, which ended a page before the line
-%   of a note that didn't fit, and is gone: no page ends early for a note now):
-%   against \texttt{carry}, 813 pages either way; pages with three lines
-%   or more empty 114 against 112, with more than five 64 against 63, of 674 text pages.
-%   Only two documents differ, where a margin overflows: \texttt{carry} moves two notes
-%   in each to the next page, and \texttt{break} ends those pages early instead, with
-%   4.3 and 8.9 lines empty, and needs up to six runs to settle, against three.
-%   Under Xe\TeX\ it carries, as \texttt{break} needs \texttt{\textbackslash vadjust pre}
-%   (\cref{app:pb-measure}).} \\
+%   \emph{Reopens:} on these builds, a page more than \texttt{carry}, or more than 136
+%   pages with three lines or more empty (\texttt{carry}'s count; \texttt{foot} now has
+%   134).
+%   \emph{Measured} (\texttt{foot} against \texttt{carry}, from clean; eight documents,
+%   seven under pdf\LaTeX\ and one under Xe\LaTeX, and two of the seven again under
+%   Xe\LaTeX: 1058 pages, 913 text pages): the same pages; 43 runs against 44; notes off
+%   their marks 0 against 7, in three of the builds (\texttt{carry} moves them to the next
+%   page; \texttt{foot} sets them at the foot of their own, whole, or two of them up to a
+%   line past it, with a warning); pages with three lines or more empty 134 against 136,
+%   with more than five 73 against 74, every difference on a page after a note that
+%   \texttt{carry} moved.
+%   Under Xe\TeX\ a footnote that stays in the margin can break its lines otherwise than
+%   with \texttt{carry}, at a hyphen or a dash, on 14 pages of the three Xe\LaTeX\ builds
+%   (see the option \texttt{noteoverflow}).
+%   (v2.15's \texttt{break}, which ended a page before the line of a note that didn't
+%   fit, is gone, with its measure; \cref{app:pb-measure}.)} \\
+% \midrule
+% A citation's footnote is reused on its spread, \texttt{footnotereuse} & \texttt{compact} &
+%   \textsf{biblatex}: every citation in a footnote makes a footnote of its own. \\*
+% \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} a margin without blanks that wait
+%   for an edit, for a run more than \texttt{fast} (the evaluation with the option).
+%   \emph{Strength:} no outside support; the maintainer's choice.
+%   \emph{Reopens:} on these three documents, \texttt{compact} needing a run more than now
+%   (3/5/6), or \texttt{fast} keeping no blank in a settled build.
+%   \emph{Measured} (on three of the documents, from clean): runs 3/3/3 with reuse off
+%   (one page more on the densest), 3/5/6 with \texttt{compact}, 3/4/5 with \texttt{fast};
+%   in the settled builds \texttt{fast} keeps 6 citations reserving space (blanks that wait
+%   for an edit) in the third, \texttt{compact} none (counted from the reuse states in the
+%   \texttt{.aux} file).} \\
 % \midrule
 % A float gives way to the margin notes already on its page & Yes &
 %   A float that fits in the text block goes on the page. \\*
