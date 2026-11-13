@@ -1894,6 +1894,9 @@
 % language.
 % Its arguments are read as arguments, so they can't hold verbatim material 
 % such as a chunk or |\verb|, but noweb's |[[code]]| quoting is fine.
+% In |\index|, |\ensv| is written to the index file as it stands, so the 
+% entry is typeset in the edition's language but sorted by its source text, 
+% the same in both editions.
 %
 % \DescribeOpt{language}
 % \DescribeMacro{\didacticlanguage}

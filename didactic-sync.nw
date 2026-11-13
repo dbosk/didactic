@@ -270,6 +270,9 @@ It only looks for the key among a frame's options, in square brackets: a title
 may well mention something fragile, and so may the value of a label.
 The options may start on a later line, which is why the match sees a few
 lines.
+Only the environment is checked: in beamer's command form, [[\frame{...}]],
+the body is an argument, which no block may be in, and the script doesn't see
+that.
 
 A [[Reading]] holds the result: what was found, in order, with an [[OTHER]]
 for whatever separates two blocks.
@@ -570,6 +573,15 @@ An indented [[\begin{en}]] is fine, since \TeX\ doesn't care about the spaces
 before a command.
 
 <<test functions>>=
+def test_spaces_after_an_end_are_fine(repo):
+  (repo / "contents.nw").write_text(
+    "\\begin{en}\nA.\n\\end{en}   \n\\begin{sv}\nB.\n\\end{sv} \n"
+  )
+  result = run(repo, "contents.nw")
+  assert result.returncode == 1, result.stderr
+  assert "contents.nw:1: new pair" in result.stdout
+
+
 def test_an_indented_end_is_an_error(repo):
   (repo / "contents.nw").write_text("\\begin{en}\nA.\n  \\end{en}\nText.\n")
   result = run(repo, "contents.nw")
@@ -1156,6 +1168,10 @@ Since a reading holds just the blocks and an [[OTHER]] for everything else,
 that's a question of whether they're neighbours in the list; going through it
 from the start also settles what three blocks in a row mean: the first two
 pair up.
+So a block of one edition right before a pair, with only comments between,
+pairs with the pair's first block, and the stamp of the pair is then reported
+as one with no pair; any line of text between them, [[\relax]] if there's
+nothing else to say, keeps them apart.
 A block without a partner belongs to one edition only, and that's a normal
 thing to want (a pointer to a deck that only one of the courses has), so it
 needs no stamp and it's never reported.
@@ -2535,6 +2551,8 @@ reader doesn't see it.
 A side with no text has nothing to agree with, so a pair isn't stamped until
 both sides are written, and a comment such as [[% TODO translate]] doesn't
 count as written.
+A word that one language has and the other hasn't, such as an article, is
+written [[\ensv{the }{\relax}]], which counts as text and prints nothing.
 A stamp with no pair is removed the same way, from the end of its line; only a
 line that is nothing but a stamp, as they were written before, goes as a whole,
 and the command says that the lines after it have moved up.
@@ -2830,6 +2848,12 @@ def test_a_line_that_is_not_a_name_is_refused_with_the_name(repo):
   assert result.returncode == 2
   assert "the line is in 1" in result.stderr
   assert path.read_text() == before
+
+
+def test_a_word_one_language_lacks_can_be_stamped(repo):
+  (repo / "contents.nw").write_text("\\ensv{the }{\\relax}cat\n")
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  assert run(repo, "contents.nw").returncode == 0
 
 
 def test_stamping_says_what_it_stamped(repo):
