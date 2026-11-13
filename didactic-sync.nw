@@ -217,7 +217,8 @@ for, the environments and the short command, all come from one table, which
 gives each command the codes of its two languages.
 The codes are also the keys of a stamp, [[en=...]] and [[sv=...]].
 A second pair, such as English and German, would start here, with
-[[\ende]] for [[("en", "de")]].
+[[\ende]] for [[("en", "de")]]; what else it takes is in
+dbosk/didactic\#105.
 In this script, the [[Stamp]] and the [[Pair]] and the reports still know their
 two languages by name, [[en]] and [[sv]]; in the package, the environments,
 [[\didacticlanguage]] and the short command are made for those two
@@ -827,7 +828,8 @@ literate source.
 A command that isn't in the table is read as \TeX, so a [[%]] in the argument
 of a verbatim command of somebody else's still looks like a comment to us.
 That's a limit to state, not a rule we could complete: any package may define
-such a command, and a document may change what [[%]] means.
+such a command, and a document may change what [[%]] means; dbosk/didactic\#106
+collects the script's limits.
 The harm would be in one direction, a use of ours that we don't see, so we
 look for the sign of it: a comment that holds one of our names and starts
 inside a group that hasn't closed, as the address of an unknown link command
@@ -968,6 +970,7 @@ Nor can it run \TeX: a definition that \TeX\ never reaches, inside
 [[\iffalse]], counts all the same, and so does a [[\providecommand]] after
 the package is loaded, which keeps the package's [[\ensv]]; for the latter
 the note says that it was a [[\providecommand]].
+These, too, are in dbosk/didactic\#106.
 Our name as the second operand of [[\let]], [[\let\x\ensv]], is an alias, and
 an error, since the strings written with [[\x]] would never be seen.
 
@@ -3078,7 +3081,8 @@ Pairs that exchange sides among themselves, two or three of them, are listed,
 for instance: each new stamp shares one hash with a stamp that went away.
 
 What escapes the listing is what the stamps can't show, and what the check
-doesn't read.
+doesn't read; these limits, with the wrong old text above, are collected in
+dbosk/didactic\#106.
 \begin{description}
   \item[A stamp that was there already] isn't new, so a pair that a branch
   makes equal to another stamped pair, and re-stamps, isn't listed if that

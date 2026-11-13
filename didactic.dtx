@@ -1862,6 +1862,7 @@
 % One source can hold two editions of a text, in English and in Swedish: 
 % the material that doesn't depend on the language (code, runs, figures, 
 % the structure) is written once and only the prose is written twice.
+% Other pairs of languages are the subject of dbosk/didactic\#105.
 %
 % \DescribeEnv{en}
 % \DescribeEnv{sv}
@@ -1987,7 +1988,8 @@
 % \texttt{didactic-sync.py} leaves |\ensv| alone only in a file that defines 
 % it; it can't know of a package's, or of a definition in another file, and 
 % reads the uses there as pairs, so such a document is best checked with its 
-% strings written as |\didactictr| (\cref{sec:sync-tr}).
+% strings written as |\didactictr| (\cref{sec:sync-tr}; the script's limits 
+% are collected in dbosk/didactic\#106).
 % If |\en|, |\sv| or a command |\comment| is taken, then \textsf{comment} would 
 % overwrite it and the document would break somewhere else, so that's an error.
 % An environment |comment| is replaced by one that drops its contents.
