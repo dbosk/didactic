@@ -43,7 +43,11 @@
 %             many, at the end on pages of floats;
 %   cant      a chapter whose page comes out empty before it (as without
 %             didactic): no warning that the callouts of a page can't be read,
-%             as an empty column has none.
+%             as an empty column has none;
+%   overmove  a short note after a tall one carried from the page: marginfix
+%             keeps the notes in order, so it goes with the tall one, and it isn't
+%             warned as running past the foot of the margin of a page it isn't on
+%             (both are carried, each with its reason).
 \makeatletter
 \newcommand\fnt[1]{%
   \stepcounter{mk}\edef\mkv{\arabic{mk}}%
@@ -58,7 +62,7 @@
 \def\testmcolx{mcol3x}\def\testmcol{mcol3}\def\testmcoln{mcol3n}
 \def\testwaitsec{waitsec}\def\testrestb{rest2}\def\testwaitsh{waitsh}
 \def\testlocal{local}\def\testdefercarry{defercarry}\def\testwarnclaim{warnclaim}
-\def\testqueue{queue}\def\testcant{cant}
+\def\testqueue{queue}\def\testcant{cant}\def\testovermove{overmove}
 \ifx\testcase\testmcolx\def\testfm#1{}\else\def\testfm#1{\fnt{#1}}\fi
 \ifx\testcase\testwaitsh\def\testwaitsec{waitsh}\fi
 \ifx\testcase\testwaitsec
@@ -123,6 +127,13 @@
   \filler\ LOWCALL\fnt{FOOTLOW \filler\ \filler\ \filler\ \filler\ \filler\
   \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler}
   \filler\par
+\else\ifx\testcase\testovermove
+  \noindent x\testmp{\rule{1pt}{.5\textheight}} text.\par
+  \noindent y\testmp{\rule{1pt}{.9\textheight}} text.\par
+  \testlines
+  \widowpenalty=10000
+  LINEONE\\ LINETWO\testmp{OVNOTE}\\ LINETHREE\par
+  \filler\par
 \else\ifx\testcase\testwait
   \noindent x\marginpar{\rule{1pt}{\dimexpr\textheight-8pt}} text.\par
   \testlines
@@ -158,5 +169,5 @@
   \ifx\testcase\testmcol\end{multicols}\fi
   \ifx\testcase\testmcolx\else\ifdefined\testmulticols\end{multicols}\fi\fi
   AFTER.
-\fi\fi\fi\fi\fi\fi\fi\fi\fi
+\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi
 \makeatother

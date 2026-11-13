@@ -40,6 +40,7 @@ CHECKs:
   reasons     every warning that a note is set on a later page gives a reason;
   nocantread  no warning of didactic's that the callouts of a page can't be read
               (marginfix's own may be there);
+  noover      no warning that a note runs past the foot of the margin;
   nofootwhy   no warning says a note fits "nor at the foot" (for a job whose notes
               away are plain margin notes, which can't go there).
 Prints a line per job, PASS or FAIL with what failed; exit status 1 on FAIL.
@@ -169,6 +170,8 @@ for c in checks:
                      f" floats held, not {c[5:]}")
     elif c.startswith("away=") and len(away) != int(c[5:]):
         fails.append(f"{len(away)} notes away, not {c[5:]}: {away[:8]}")
+    elif c == "noover" and re.search(r"runs [\d.]+pt past the foot of the margin", joined):
+        fails.append("a warning that a note runs past the foot of the margin")
     elif c == "nofootwhy" and "nor at the foot" in joined:
         fails.append("a plain note's warning names the foot")
     elif c == "nocantread" and "didactic Warning: Can't read the callouts" in joined:

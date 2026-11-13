@@ -5395,7 +5395,8 @@
   \else
     \@didactic@ifcarry
       {\@didactic@setwhy{noteoverflow is carry}%
-       \global\@didactic@used\@didactic@room}
+       \global\@didactic@used\@didactic@room
+       \global\@didactic@carriedtrue}
       {\@didactic@footplace\@ne
        \if@tempswa\else
          \@didactic@ifover
@@ -5404,6 +5405,7 @@
             \if@tempswa\else
               \expandafter\@didactic@setwhy\expandafter{\@didactic@footwhy}%
               \global\@didactic@used\@didactic@room
+              \global\@didactic@carriedtrue
             \fi}%
        \fi}%
   \fi}
@@ -5454,6 +5456,10 @@
 % shorter than the room, so that nothing is left for a note after it.
 % The cause goes into the warning: what the notes above it take of the margin,
 % and what floats on the page take of the column.
+% Not after a note carried from the page (|\if@didactic@carried|, until the next
+% page): \textsf{marginfix} keeps the notes in order, so every note after one
+% carried goes with it, and room past the foot can't keep it on the page; it was
+% warned as running past the foot here and then set on the next page.
 %    \begin{macrocode}
 \newcount\@didactic@ovid
 \newcount\@didactic@ovnote
@@ -5467,7 +5473,11 @@
   \else
     \expandafter\@didactic@ifover@
   \fi}
+\newif\if@didactic@carried
 \newcommand\@didactic@ifover@{%
+  \if@didactic@carried\expandafter\@secondoftwo\else
+    \expandafter\@didactic@ifover@@\fi}
+\newcommand\@didactic@ifover@@{%
   \ifdefined\marginheightadjustment
     \ifdim\dimexpr\@didactic@used+\@didactic@noteht\relax
         <\dimexpr\@didactic@room+\@didactic@overmax\relax
@@ -5559,6 +5569,7 @@
 %    \begin{macrocode}
 \newcommand\@didactic@newpage{%
   \global\@didactic@used\z@
+  \global\@didactic@carriedfalse
   \begingroup
     \def\mfx@build@note##1##2##3{%
       \@didactic@noteht\dimexpr\ht##1+\dp##1\relax
