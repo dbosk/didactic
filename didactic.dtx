@@ -5098,6 +5098,13 @@
 % packed to, found by halving (a box packed to less is overfull), less 1sp.
 % A page so far that can shrink without end (|\vss|) is left as it is: the
 % records then say where its notes went (|\@didactic@record|).
+% The two parts are taken only if together they are as tall as the page so far
+% was: the place to break may be glue, the space before a note made in
+% vertical mode (after a |\vspace|, the |\addvspace| at an environment's end,
+% the title's space after the date before its |\thanks|), and the split drops
+% it at the top of the second part; then the place to break is no penalty to
+% move, and the page so far stays as it is (the rows |vgap|\ldots\ of
+% |test-noteplace|).
 %    \begin{macrocode}
 \newif\if@didactic@samelined
 \newdimen\@didactic@shlo
@@ -5129,8 +5136,11 @@
     \fi
     \ifvoid\z@\else
       \ifdim\dimexpr\ht\z@+\dp\z@\relax=\z@
-        \global\setbox\@holdpg\vbox{\unvbox\tw@\unvbox\z@}%
-        \global\@didactic@samelinedtrue
+        \setbox4\vbox{\unvcopy\tw@\unvcopy\z@}%
+        \ifdim\dimexpr\ht4+\dp4\relax=\dimexpr\ht\@holdpg+\dp\@holdpg\relax
+          \global\setbox\@holdpg\box4
+          \global\@didactic@samelinedtrue
+        \fi
       \fi
     \fi
   \endgroup}

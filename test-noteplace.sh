@@ -444,6 +444,45 @@ check wforbid x 7 '' "$W,nowidow" "$FB\\def\\testbody{$W2.}"
 check wfreecold x 7 '' kept,lonewarn "$YF$FB\\def\\testbody{$W2 and \\filler\\ \\filler}"
 warm wforbid wfree x 7 '' wfreecold "$YF$FB\\def\\testbody{$W2 and \\filler\\ \\filler}"
 
+# A note made in vertical mode after vertical space keeps the space (sameline
+# took it out with the place to break, c3858d1 and b392e04): every line of the
+# text (words VGL...) is where it is in the same document without the note
+# (\testnonote): after a \vspace (vgapvspace), after the \addvspace at the end of
+# an environment, a marginfigure (vgapenv), and a \thanks in a title (vgapthanks).
+vgap() { # vgap <name> <body, where \vgnote{...} is the note>
+  local name=$1 j=$job-$1
+  [ -z "$CASES" ] || case " $CASES " in *" $name "*) ;; *) return;; esac
+  local P='\def\testfirst{}\def\testpre{\newcommand\vgnote[1]{\ifdefined\testnonote\else##1\fi}}'
+  if [ -z "$RECHECK" ]; then
+    rm -f "$j.aux" "$j-ref.aux"
+    settle "$j" x 9 '' "$P\\def\\testbody{$2}"; s1=$settled
+    settle "$j-ref" x 9 '' "$P\\def\\testnonote{}\\def\\testbody{$2}"
+    [ "$s1" = yes ] || settled=no
+  else settled=yes; fi
+  errors=$(cat "$j.log" "$j-ref.log" | grep -c '^!')
+  if [ "$settled$errors" != yes0 ]; then
+    echo "didactic noteplace test: $name FAIL (settled: $settled, errors: $errors)"; status=1; return
+  fi
+  if res=$(python3 - "$j.pdf" "$j-ref.pdf" <<'PY'
+import re, subprocess, sys
+def lines(pdf):
+    out = subprocess.run(["pdftotext", "-bbox", pdf, "-"], capture_output=True, text=True).stdout
+    return [(n, w, round(float(y), 1)) for n, pg in enumerate(re.findall(r"<page[^>]*>(.*?)</page>", out, re.S), 1)
+            for y, w in re.findall(r'yMin="([\d.]+)"[^>]*>(VGL[A-Z]*)', pg)]
+a, b = lines(sys.argv[1]), lines(sys.argv[2])
+bad = [(x, y) for x, y in zip(a, b) if x != y]
+if not a or len(a) != len(b) or bad:
+    print("FAIL: lines moved against the document without the note:", bad[:4] or (len(a), len(b)))
+    sys.exit(1)
+print("PASS (%d lines where they are without the note)" % len(a))
+PY
+  ); then echo "didactic noteplace test: $name PASS $res"
+  else echo "didactic noteplace test: $name FAIL $res"; status=1; fi
+}
+vgap vgapvspace '\noindent VGLA \filler\par\vspace{2\baselineskip}\vgnote{\marginpar{VGNOTE}}VGLB \filler\par VGLC \filler\par'
+vgap vgapenv '\noindent VGLA \filler\begin{quote}VGLQ \filler\end{quote}\vgnote{\begin{marginfigure}\rule{1cm}{1cm}\caption{VGNFIG}\end{marginfigure}}VGLB \filler\par VGLC \filler\par'
+vgap vgapthanks '\title{VGLT\vgnote{\thanks{VGNOTE in the title.}}}\author{VGLAU}\date{VGLD}\maketitle VGLB \filler\par VGLC \filler\par'
+
 # Under beamer the notes are off: no errors.
 if [ -z "$CASES" ] || case " $CASES " in *" slides "*) true;; *) false;; esac; then
   [ -n "$RECHECK" ] || rm -f "$job-slides.aux"
