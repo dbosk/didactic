@@ -1679,3 +1679,15 @@ Mrsvinj didactic.dtx
 Mheldtop didactic.dtx
 -          \noexpand\mfx@build@note\noexpand##1\noexpand##2{\MFX@minus@inf}}%
 +          \noexpand\mfx@build@note\noexpand##1\noexpand##2{0pt}}%
+
+# The document's own \emergencystretch wins over bibemergencystretch: the bibliography sets
+# its 3em only where the stretch is 0pt.  Without the test, the bibliography overrides a
+# stretch the document set (the cases before:::0:2em:2em and after:::0:2em:2em, whose
+# expectation is the document's 2em, taken where the document set it).
+#: biburl
+#= killed test-biburl
+Bstretchown didactic.dtx
+-       \ifdim\emergencystretch=\z@
+-         \setlength\emergencystretch{\@didactic@bibemergencystretch}%
+-       \fi}%
++         \setlength\emergencystretch{\@didactic@bibemergencystretch}}%

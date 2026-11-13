@@ -37,6 +37,11 @@
 \fi
 \ifx\testsetstretch\empty\else
   \setlength\emergencystretch{\testsetstretch}%
+  % A stretch of the document's own is expected as the document set it: in ems
+  % of the font of the preamble, which under pdfLaTeX (ecrm1000, 9.99756pt) is
+  % not the text's (10pt).  didactic's own default is set in the bibliography,
+  % and expected in the text's font, below.
+  \setlength\dimen@{\testexpectstretch}\edef\testexpectstretch{\the\dimen@}%
 \fi
 \begin{document}
 \makeatletter
