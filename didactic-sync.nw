@@ -2767,8 +2767,13 @@ doesn't read.
   (\cref{sec:sync-pairs}).
 \end{description}
 
-The range is either [[A...B]], meaning what's on [[B]] since it left [[A]], or
-[[A..B]], and what we need of it is the two commits.
+The range means what it means to [[git diff]], whose two forms it takes, and
+what we need of it is the two commits.
+[[A...B]] is what [[B]] did since it left [[A]], from their merge base: that's
+the one for a pull request.
+[[A..B]] compares the two ends as they are, so a pair that [[A]] re-stamped
+after [[B]] left shows up too, the other way round; unlike [[git log A..B]],
+it isn't only the commits of [[B]].
 All the files the range changed are read at both ends, deleted ones too, so a
 pair that has moved between files is still matched.
 The suffixes keep us out of files that aren't sources: a program or a data
@@ -3238,6 +3243,17 @@ def test_branch_check_only_looks_at_what_the_branch_did(repo):
   assert_nothing_listed(run(repo, "master...HEAD"))
 
 
+def test_a_two_dot_range_compares_the_two_ends(repo):
+  path = base_of_three(repo)
+  git(repo, "checkout", "-q", "master")
+  path.write_text(path.read_text().replace("One.", "Uno."))
+  stamp_at(repo, path, "Uno.")
+  commit(repo, "a typo on master, after the branch left")
+  git(repo, "checkout", "-q", "topic")
+  assert_nothing_listed(run(repo, "master...HEAD"))
+  assert "[-Uno.-]{+One.+}" in run(repo, "master..HEAD").stdout
+
+
 def test_a_two_dot_range_is_a_range_too(repo):
   path = base_of_three(repo)
   path.write_text(path.read_text().replace("One.", "Uno."))
@@ -3302,8 +3318,9 @@ def parse_arguments(argv):
         "targets",
         nargs="*",
         metavar="FILE|RANGE",
-        help="the files to check, or a range such as origin/master...HEAD "
-        "to list the pairs it re-stamped with only one side changed",
+        help="the files to check, or a range to list the pairs it re-stamped "
+        "with only one side changed: A...B (as for a pull request) is what B "
+        "did since it left A; A..B compares the two ends, as git diff does",
     )
     parser.add_argument(
         "--stamp",
