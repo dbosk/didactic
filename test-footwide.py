@@ -13,8 +13,7 @@ three quarters of the text's width (the width of the text, not the margin's);
 where the note has ONCE, the PDF says ONCE1 and no ONCE3 (its counter stepped
 once, or was set back), and RUNS1 (the text ran once), or RUNS2 for the notes
 that aren't plain, whose version at the foot is the second of three runs.
-split: ENDA is on the next page, at its foot; wait: NOTEB is there too, below
-ENDA, and the PDF says ONCE2.  linewidth: LWA and LWB are more than 60bp apart
+linewidth: LWA and LWB are more than 60bp apart
 (the box of .01\\linewidth is measured where \\linewidth is half as wide as TeX
 allows: a limit, pinned).  huge: only that it isn't plain, for a line too
 wide.  bs: the margin note's BSLINE (the line after \\) starts at the margin's
@@ -35,7 +34,7 @@ CASES = {
     "plain": (None, True, True), "cite": (None, False, True), "url": (None, False, True),
     "prepost": (None, False, True), "reuse": (None, False, True),
     "twopar": (None, True, True), "mixed": (None, True, True), "color": (None, True, True),
-    "linewidth": (None, True, True), "split": (None, True, True), "wait": (None, True, True),
+    "linewidth": (None, True, True),
     "list": ("another width|space of its own", True, True),
     "display": ("another width|space of its own", True, True),
     "parbox": ("too wide", True, True),
@@ -101,19 +100,6 @@ if hasonce:
     runs = "RUNS2" if reason else "RUNS1"
     if runs not in text:
         fails.append(f"no {runs}: {re.findall(r'RUNS[0-9]+', text)}")
-if case in ("split", "wait"):
-    enda = find("ENDA")
-    if not enda or not calla or enda[-1][0] != calla[0][0] + 1:
-        fails.append(f"ENDA not on the page after CALLA's: {[n for n, _ in enda]}")
-    elif not left - 2 <= enda[-1][1][0] < right:
-        fails.append("ENDA not in the text column")
-if case == "wait":
-    noteb, enda = find("NOTEB"), find("ENDA")
-    if not noteb or not enda or noteb[-1][0] != enda[-1][0] \
-            or noteb[-1][1][1] <= enda[-1][1][1]:
-        fails.append("NOTEB not below ENDA on its page")
-    if "ONCE2" not in text:
-        fails.append("no ONCE2")
 if case == "linewidth":
     a, b = find("LWA"), find("LWB")
     if not a or not b or b[-1][1][0] - a[-1][1][2] < 60:

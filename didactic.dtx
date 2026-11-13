@@ -156,7 +156,9 @@
 %   note is called out, in one run: \texttt{foot} (the default) or
 %   \texttt{carry}; \texttt{break} is gone, since no page ends early for a note
 %   any more; it no longer needs \textsf{marginfix} 1.6 or records in
-%   the \texttt{.aux} file.  A footnote at the foot is set in the width of the
+%   the \texttt{.aux} file.  A footnote goes to the foot whole, or whole and one
+%   line past it, never split; one too long for that is carried, with a
+%   warning that says so.  A footnote at the foot is set in the width of the
 %   text, and its text runs once (twice more, quietly, for a footnote with
 %   more than paragraphs).  \textsf{didactic}
 %   checks the names of \textsf{marginfix} and the kernel it relies on and
@@ -478,9 +480,10 @@
 % |latexmk| allows by default (5); it continues from where it stopped the next 
 % time, or you can raise |$max_repeat|.
 % A note counts as on the page where it starts: a mark beside the rest of a
-% footnote split over two pages gets a footnote of its own.
-% A citation beside the mark of a footnote that is carried or waits for the next
-% page shares its number, both marks before the note; the warning about that
+% footnote split over two pages (by \TeX, at the foot, or by \textsf{marginfix},
+% in the margin) gets a footnote of its own.
+% A citation beside the mark of a footnote that is carried to the next page
+% shares its number, both marks before the note; the warning about that
 % footnote names the marks that share it.
 % Two settled layouts can exist: when a reusing citation's own footnote would
 % move its paragraph off the page of the note it reuses, both \enquote{reuse} (the
@@ -747,13 +750,13 @@
 % \textsf{memoir} set it, since the folio is under the text; a running foot as
 % wide as the text and the margin (\textsf{memoir}'s |\headwidth| widened into
 % the margin, as in its |companion| style) would be in its way.
-% A footnote that misses by more goes to the foot of its page after all: split
-% over that page and the next if each part has two lines at least
-% (the rest heads the next page's foot, after a page of floats if one comes
-% between, and says nothing more: the rule marks it, as Chicago does); whole
-% and one line past the foot if only a line is missing; or two lines there and
-% one past the foot when that is what makes the split possible; each time it
-% runs past, with a warning.
+% A footnote that misses by more goes to the foot of its page after all, whole,
+% if only a line is missing there: it runs one line past the foot, with a
+% warning.
+% A footnote is never split over two pages (issue \#104 has why that waits):
+% one too long for the foot whole is carried to the next page, as any note that
+% fits nowhere, and the warning says that it doesn't fit the foot whole and how
+% many lines the foot had left.
 % At the foot a footnote is set as \textsf{memoir} sets one there, in the width
 % of the text.
 % Its text runs once, where it is called out, as without \textsf{didactic}: it
@@ -780,9 +783,10 @@
 % carried notes pile up (issue \#103).
 % A footnote that would need two lines past the foot (the folio is there) is
 % carried.
-% One called out on the same page after a footnote that was split or runs past
-% the foot, and that fits nowhere else, waits for the next page's foot, after
-% the rest, with a warning.
+% One called out on the same page after a footnote that runs past the foot, and
+% that fits nowhere else, is carried too: the foot is full.
+% So is one called out after a footnote carried from the page, even where it
+% would fit at the foot: the footnotes keep their order.
 % The room at the foot is counted at the natural size of the page, so that
 % \TeX's own page break agrees; where it still takes a footnote's line to the
 % next page (lines that must stay together with it), the note goes with the
@@ -1710,6 +1714,12 @@
 %   runs past the foot of the margin, so the foot goes to the first footnote that
 %   fits it; on a page dense with notes that can cost a later note its page, with a
 %   warning (one note in \texttt{test-noteoverflow}).
+%   A footnote goes to the foot only whole, or whole and one line past it; one too
+%   long for that is carried with a warning that says so.
+%   Splitting it over two pages, as \LaTeX\ splits a footnote at the foot, is
+%   deferred (issue \#104): a rest at the head of the next page's foot needs an
+%   insertion class of our own to stay correct, a rest put after a later line
+%   landed a page too late, and no real document of the measure splits a note.
 %   \emph{Strength:} no outside support; the maintainer's choice.
 %   \emph{Reopens:} if on the eight documents it costs a page or more, or twice its pages
 %   with three lines or more empty: now no page, and 2 such pages more, so 4.
@@ -2983,7 +2993,7 @@
      % reuse only when both pages are resolved (>0) and the citation shares a
      % group with the earlier footnote or with its resolved mark: the mark's
      % page counts as well, so that a second citation beside the mark of a
-     % note carried or waiting for the next page shares its number, both marks
+     % note carried to the next page shares its number, both marks
      % before the note and in order, instead of setting the note again there
      % under a number of its own
      \@didactic@fnreusefalse
@@ -4587,8 +4597,8 @@
 % A margin note that doesn't fit beside its line is \textsf{didactic}'s to 
 % place, by the option |noteoverflow|: beside its line, running past the foot
 % of the margin by up to two lines; at the foot of its page if it is a footnote,
-% whole, split over two pages, or one line past the foot; or carried to a later
-% page, with a warning.
+% whole, or whole and one line past the foot; or carried to a later page, with a
+% warning.
 % No page ends early for a note.
 % The decision is taken where the note is called out, in the kernel's special 
 % output for the note, and once only: nothing about it is written to the 
@@ -4619,9 +4629,8 @@
 % \item[\texttt{\textbackslash @makecol}] where the kernel makes a column: at
 %   its start (the kernel's hook |build/column/before|, or before
 %   |\@makecol| on a kernel without it) the notes at the foot whose
-%   lines went to the next column are taken back, and the rest of a split
-%   note and the notes that wait are inserted for the next column
-%   (|\@didactic@colfeet|).
+%   lines went to the next column are taken back and inserted for the next
+%   column (|\@didactic@colfeet|).
 %   In one column only, the only place notes go to the foot.
 % \item[\texttt{\textbackslash @flcheckspace}] the kernel's test whether a
 %   float fits at the top or the bottom of a column, |#1| the room for such
@@ -4871,7 +4880,7 @@
 % kernel's material is there already.
 % The note's record is a |\write| at the top of its box, and of its version for
 % the foot when it is made (|\@didactic@footset|, the fallback's copy): it is
-% shipped with the version printed, and a split's first part has it.
+% shipped with the version printed.
 % A box \textsf{memoir} sets as a |\vtop| (without colour) is put in a |\vbox|,
 % as colour does, so that the |\write| doesn't change its height.
 % A warning that names a note on another page in the run records that too
@@ -4998,8 +5007,8 @@
 % we can't take back a footnote whose line goes on: a footnote of ours may then
 % be put after a later line and go to the next page, which the column's check
 % warns about (|\@didactic@footnet|).
-% Where the kernel's part for the note is skipped (a note sent to the foot or
-% waiting), its |\@reinserts| is ours to do: without it no insertion of
+% Where the kernel's part for the note is skipped (a note sent to the foot),
+% its |\@reinserts| is ours to do: without it no insertion of
 % footnotes would be on the page and \TeX\ wouldn't count the foot (the rows
 % |mcol3x| and |mcol3|); we do it before the place to break after the line.
 %
@@ -5155,24 +5164,11 @@
 % Glue, kerns and penalties are passed; any other item ends the scan (\TeX\
 % can't take it off a list), and the scan isn't complete: what is above it is
 % unknown, and the foot isn't taken as all ours.
-% The rests and waiting notes that head a column's foot are ours too, but
-% unpacked, so that \TeX\ may split them line by line (|\@didactic@colfeet|):
-% they begin and end with an empty box of no height, a |\@didactic@sentinel|,
-% a million sp wider than the column at their end, where the scan stops, since
-% all above it is ours, and a sp less at their start, which the scan passes;
-% seeing either says they are at this foot, or their first part if \TeX\
-% split them (|\@didactic@restcheck|).
 %    \begin{macrocode}
 \newif\if@didactic@allours
 \newif\if@didactic@scanfull
 \let\@didactic@stamps\@empty
-\newcommand\@didactic@sentinel[1]{%
-  \vbox{\hrule\@width\dimexpr\columnwidth+#1sp\relax\@height\z@\@depth\z@}}
-\newif\if@didactic@sawrests
-\let\@didactic@expect\@empty
-\let\@didactic@expectnext\@empty
 \newcommand\@didactic@scan[1]{%
-  \global\@didactic@sawrestsfalse
   \global\@didactic@alloursfalse
   \global\@didactic@scanfulltrue
   \gdef\@didactic@stamps{,}%
@@ -5189,20 +5185,12 @@
   \ifnum\lastnodetype=\tw@
     \setbox\z@\lastbox
     \@tempcnta\numexpr\wd\z@-\columnwidth\relax
-    \ifnum\@tempcnta=1000000
-      \global\@didactic@sawreststrue
-      \let\@didactic@next\relax
-    \else\ifnum\@tempcnta=999999
-      \global\@didactic@sawreststrue
-      \let\@didactic@next\@didactic@scanloop
+    \ifnum\@tempcnta>\z@
+      \xdef\@didactic@stamps{\@didactic@stamps\the\@tempcnta,}%
     \else
-      \ifnum\@tempcnta>\z@
-        \xdef\@didactic@stamps{\@didactic@stamps\the\@tempcnta,}%
-      \else
-        \global\let\@didactic@scanlatex\@empty
-      \fi
-      \let\@didactic@next\@didactic@scanloop
-    \fi\fi
+      \global\let\@didactic@scanlatex\@empty
+    \fi
+    \let\@didactic@next\@didactic@scanloop
   \else\ifnum\lastnodetype=\@ne
     \setbox\z@\lastbox
     \global\let\@didactic@scanlatex\@empty
@@ -5416,6 +5404,10 @@
               \expandafter\@didactic@setwhy\expandafter{\@didactic@footwhy}%
               \global\@didactic@used\@didactic@room
               \global\@didactic@carriedtrue
+              \ifcsname @didactic@fn@\the\@didactic@noteof\@didactic@head
+                  \endcsname
+                \global\@didactic@fncarriedtrue
+              \fi
             \fi}%
        \fi}%
   \fi}
@@ -5580,6 +5572,7 @@
 \newcommand\@didactic@newpage{%
   \global\@didactic@used\z@
   \global\@didactic@carriedfalse
+  \global\@didactic@fncarriedfalse
   \begingroup
     \def\mfx@build@note##1##2##3{%
       \@didactic@noteht\dimexpr\ht##1+\dp##1\relax
@@ -6262,7 +6255,7 @@
 %
 % \begin{macro}{\@didactic@reuser,\@didactic@reusers}
 % A footnote's number may be reused by later citations (above); when the note
-% is carried or waits for the next page, its warning names them too, since the
+% is carried to the next page, its warning names them too, since the
 % reader of the log will look for every mark with that number.
 % |\@didactic@reuser{|\meta{note}|}| records the place of a reusing mark under
 % the serial of the margin note it reuses, kept when the citation's footnote
@@ -6319,26 +6312,30 @@
 % |\@didactic@footplace|\meta{1 or 0}: a footnote that doesn't fit beside its
 % line goes to the foot of its page if it fits there whole (|1|, tried first,
 % where its version for the foot is made); if not, it may run past the foot of
-% the margin (above), and if it can't do that either it goes to the foot
-% (|0|): split over this page
-% and the next, if a split leaves at least two lines on each side; whole and
-% one line past the foot of the page, if only one line is missing; split with
-% one line past the foot, if that makes the split possible (one line of room
-% and a note of four lines or more: two lines here, the rest on the next
-% page); and otherwise it is carried, with the reason.
-% Two lines past the foot would reach the folio: the two cases that would need
-% it (no room and a note of two lines or more; one line of room and a note of
-% three) carry.
+% the margin (above), and if it can't do that either (|0|) it goes to the foot
+% whole and one line past it, if only one line is missing, and is otherwise
+% carried, with the reason: that it doesn't fit at the foot whole, and how many
+% lines are left there.
+% It is never split over two pages: a rest at the head of the next page's foot
+% stays correct, wherever \TeX\ ends the page, only in an insertion class of
+% its own, which waits (issue \#104).
+% Two lines past the foot would reach the folio: a note that would need them
+% is carried.
 % The reason counts the lines left at the foot, or says less than a line: the
 % count rounds, and under half a line it came out as $-1$.
-% On a page where a footnote was split or runs past the foot, the foot is
-% full: a later footnote that fits nowhere else waits for the foot of the next
-% page, after the rest, with a warning, as \TeX\ does with its own insertions,
-% so that the footnotes keep their order.
+% On a page where a footnote runs past the foot, the foot is full: a later
+% footnote that fits nowhere else is carried, with that reason.
+% On a page a footnote was carried from, a later footnote doesn't go to the foot
+% either, but is carried too, after it (|\if@didactic@fncarried|, set in
+% |\@didactic@decide@|, cleared with the page, |\@didactic@newpage|): a
+% footnote at this foot would come before one with a lower number, and the
+% footnotes keep their order, as \textsf{marginfix} keeps the notes in the
+% margin.
 % The lines are those of the footnote font, |\@didactic@fl| (above).
 % The note's version for the foot is made first (|\@didactic@footset|, above).
 %    \begin{macrocode}
 \newif\if@didactic@footfull
+\newif\if@didactic@fncarried
 \let\@didactic@footwhy\@empty
 \newcommand\@didactic@footplace[1]{%
   \@tempswafalse
@@ -6347,43 +6344,34 @@
     \ifnum#1=\@ne
       \@didactic@footset{\the\@didactic@noteof\@didactic@head}%
     \fi
-    \let\@didactic@fbx\@didactic@footbox
-    \if@didactic@footfull
-      \ifnum#1=\z@ \@didactic@footwait \fi
-    \else\ifnum#1=\@ne
-      \@didactic@footcompute
-      \ifdim\@didactic@footroom<\z@\else
-        \ifdim\dimexpr\ht\@didactic@fbx+\dp\@didactic@fbx\relax>\@didactic@footroom
-        \else
-          \@didactic@tofoot\@didactic@fbx
-          \@tempswatrue
-        \fi
-      \fi
+    \if@didactic@fncarried
+      \def\@didactic@footwhy{it fits neither beside its line nor at the foot
+        (a footnote before it on the page was carried, and the footnotes keep
+        their order)}%
+    \else\if@didactic@footfull
+      \def\@didactic@footwhy{it fits neither beside its line nor at the foot
+        (a footnote already runs past the foot of the page)}%
     \else
       \@didactic@footcompute
-      \dimen@\dimexpr\ht\@didactic@fbx+\dp\@didactic@fbx\relax
+      \dimen@\dimexpr\ht\@didactic@footbox+\dp\@didactic@footbox\relax
       \ifdim\@didactic@footroom<\z@
         \def\@didactic@footwhy{it fits neither beside its line nor at the
           foot (the page has no room for a footnote)}%
       \else\ifdim\dimen@>\@didactic@footroom
-        \@didactic@trysplit\@didactic@footroom\z@
-        \if@tempswa\else
+        \ifnum#1=\z@
           \ifdim\dimen@>\dimexpr\@didactic@footroom+\@didactic@fl+\p@\relax
-            \@didactic@trysplit
-              {\dimexpr\@didactic@footroom+\@didactic@fl\relax}\@didactic@fl
-            \if@tempswa\else
-              \edef\@didactic@footwhy{it fits neither beside its line nor at
-                the foot (\ifnum\@didactic@flines\@didactic@footroom<\@ne
-                  less than a line\else
-                  \@didactic@flines\@didactic@footroom\space lines\fi\space
-                left there; it would run more than one line past it)}%
-            \fi
+            \edef\@didactic@footwhy{it fits neither beside its line nor at
+              the foot, where it doesn't fit whole
+              (\ifnum\@didactic@flines\@didactic@footroom<\@ne
+                less than a line\else
+                \@didactic@flines\@didactic@footroom\space lines\fi\space
+              left there; it would run more than one line past it)}%
           \else
             \@didactic@footover
           \fi
         \fi
       \else
-        \@didactic@tofoot\@didactic@fbx
+        \@didactic@tofoot\@didactic@footbox
         \@tempswatrue
       \fi\fi
     \fi\fi}%
@@ -6393,129 +6381,25 @@
       \def\@didactic@footwhy{it doesn't fit beside its line, and only a
         footnote can go to the foot}%
     \fi}}
-\newcommand\@didactic@lines[1]{%
-  \number\numexpr(#1+\@didactic@fl/2)/\@didactic@fl\relax}
 \newcommand\@didactic@flines[1]{%
   \number\numexpr(2*(#1)-\@didactic@fl)/(2*\@didactic@fl)\relax}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\@didactic@trysplit}
-% |\@didactic@trysplit{|\meta{room}|}{|\meta{short}|}|: split the note to the room,
-% where \TeX\ breaks a page, by the penalties of the note's lines, which forbid
-% one line alone on either side as far as the note's paragraphs say; a split is
-% taken if the first part is no taller than the room and each part has two
-% lines at least, counted, since the penalties may allow a lone line and a note
-% of several paragraphs can break after a paragraph of one line.
-% If the rest would have one line, the split is tried again one line lower:
-% one line less here rather than one alone on the next page.
-% The room holds the part's last line with its depth, as the page builder counts
-% an insertion, so |\splitmaxdepth| is zero: \TeX\ then counts the depth as
-% height when it chooses where to split, and doesn't choose a part that fits the
-% room only without its last line's depth.
-% The first part goes after the line, counted no taller than the room when
-% \meta{short} is a line (one line past the foot), and the rest after it, as an
-% insertion of its own class (|\@didactic@restins|, below) that the next column's
-% foot starts with.
-% The rest starts as a footnote does, |\footnotesep| from its top; Chicago
-% marks a continuation by the rule alone, so it says nothing more.
-%    \begin{macrocode}
-\newbox\@didactic@first
-\newbox\@didactic@restbox
-\newcount\@didactic@restid
-\newif\if@didactic@splitok
-\newcount\@didactic@la
-\newcount\@didactic@lb
-\newcommand\@didactic@trysplit[2]{%
-  \begingroup
-    \vbadness\@M \vfuzz\maxdimen
-    \splittopskip\footnotesep \splitmaxdepth\z@
-    \global\@didactic@splitokfalse
-    \dimen4=#1\relax
-    \@didactic@splitat
-    \ifnum\@didactic@lb<\tw@\ifnum\@didactic@la>\tw@
-      \dimen4\dimexpr\ht\z@+\dp\z@-\@didactic@fl\relax
-      \@didactic@splitat
-    \fi\fi
-    \ifvoid\tw@\else
-      \ifnum\@didactic@la<\tw@\else\ifnum\@didactic@lb<\tw@\else
-        \ifdim\dimexpr\ht\z@+\dp\z@\relax>#1\else
-          \global\@didactic@splitoktrue
-          \global\setbox\@didactic@first\box\z@
-          \global\setbox\@didactic@restbox\vbox{\unvbox\tw@}%
-        \fi
-      \fi\fi
-    \fi
-  \endgroup
-  \if@didactic@splitok
-    \@tempswatrue
-    \@didactic@splitdone{#2}%
-  \fi}
-\newcommand\@didactic@splitat{%
-  \setbox\tw@\copy\@didactic@fbx
-  \setbox\z@\vsplit\tw@ to\dimen4
-  \setbox\z@\vbox{\unvbox\z@}%
-  \@didactic@countlines\z@\@didactic@la
-  \@didactic@countlines\tw@\@didactic@lb}
-% |\@didactic@countlines|\meta{box}\meta{count}: the lines of a part, its
-% boxes, counted from its end, past glue, kerns and penalties.
-\newcommand\@didactic@countlines[2]{%
-  \global#2\z@
-  \ifvoid#1\else
-    \setbox4\vbox{\unvcopy#1\def\@didactic@cnt{#2}\@didactic@countline}%
-  \fi}
-\newcommand\@didactic@countline{%
-  \let\@didactic@next\relax
-  \ifcase\numexpr\lastnodetype-10\relax
-  \or\unskip\let\@didactic@next\@didactic@countline
-  \or\unkern\let\@didactic@next\@didactic@countline
-  \or\unpenalty\let\@didactic@next\@didactic@countline
-  \else
-    \ifnum\lastnodetype=\@ne
-      \setbox6\lastbox\global\advance\@didactic@cnt\@ne
-      \let\@didactic@next\@didactic@countline
-    \else\ifnum\lastnodetype=\tw@
-      \setbox6\lastbox\global\advance\@didactic@cnt\@ne
-      \let\@didactic@next\@didactic@countline
-    \fi\fi
-  \fi
-  \@didactic@next}
-\newcommand\@didactic@splitdone[1]{%
-  \global\@didactic@restid\@didactic@noteof\@didactic@head
-  \global\wd\@didactic@restbox
-    \dimexpr\columnwidth+\@didactic@restid sp\relax
-  \global\@didactic@footfulltrue
-  \expandafter\xdef\csname @didactic@sp@\the\@didactic@restid\endcsname{%
-    \the\@didactic@la\space lines at its foot, \the\@didactic@lb\space at the
-    foot of the next page}%
-  \ifdim#1>\z@
-    \@didactic@overwarn{\the\@didactic@restid}\@didactic@first
-    \@didactic@countroom\@didactic@first
-  \fi
-  \global\let\@didactic@fbx\@didactic@first
-  \@didactic@tofoot\@didactic@fbx
-  \def\@didactic@after{%
-    \@didactic@attach{%
-      \insert\footins{\floatingpenalty\@MM\box\@didactic@fbx}%
-      \insert\@didactic@restins{\floatingpenalty\z@\box\@didactic@restbox}}}}
 %    \end{macrocode}
 % \end{macro}
 %
 % \begin{macro}{\@didactic@footover,\@didactic@overwarn}
 % A note at most one line too tall for the room (a point more, for its
 % depth) goes whole, counted exactly as tall as the room, so that \TeX's page
-% builder finds it fits and its last line stands below the foot of the page; so
-% does the first part of a split that needs that line.
+% builder finds it fits and its last line stands below the foot of the page.
 % A page with no room at the foot at all, not even for the space above the
 % footnotes, takes none.
 % The warning says how much, up to a line, and why: what the margin's notes
 % took, and how many lines the foot had.
 %    \begin{macrocode}
 \newcommand\@didactic@footover{%
-  \@didactic@overwarn{\the\@didactic@noteof\@didactic@head}\@didactic@fbx
-  \@didactic@countroom\@didactic@fbx
+  \@didactic@overwarn{\the\@didactic@noteof\@didactic@head}\@didactic@footbox
+  \@didactic@countroom\@didactic@footbox
   \global\@didactic@footfulltrue
-  \@didactic@tofoot\@didactic@fbx
+  \@didactic@tofoot\@didactic@footbox
   \@tempswatrue}
 \newcommand\@didactic@countroom[1]{%
   \ifdim\dimexpr\ht#1+\dp#1\relax>\@didactic@footroom
@@ -6533,47 +6417,21 @@
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\@didactic@footwait}
-% A footnote that waits for the next page's foot leaves the margin as one that
-% goes to the foot does, and its box goes after its line as an insertion of
-% the rests' class, so that it comes after the rest at the head of the next
-% column's foot.
-%    \begin{macrocode}
-\newcommand\@didactic@footwait{%
-  \global\wd\@didactic@fbx
-    \dimexpr\columnwidth+\@didactic@noteof\@didactic@head sp\relax
-  \@didactic@footid
-  \expandafter\gdef\csname @didactic@fw@\the\@didactic@noteof\@didactic@head
-    \endcsname{}%
-  \@didactic@warned{\the\@didactic@noteof\@didactic@head}%
-  \PackageWarningNoLine{didactic}{Footnote called out at
-    \csname @didactic@ln@\the\@didactic@noteof\@didactic@head\endcsname
-    \MessageBreak on page \thepage\space waits for the foot of the next
-    page:\MessageBreak the margin is full and the foot of this page is taken
-    \ifnum\@didactic@restid>\z@ \MessageBreak by the footnote called out at
-      \csname @didactic@ln@\the\@didactic@restid\endcsname, split over the
-      pages\fi
-    \@didactic@reusers{\the\@didactic@noteof\@didactic@head}}%
-  \@didactic@offmargin
-  \def\@didactic@after{%
-    \@didactic@attach{\insert\@didactic@restins{\floatingpenalty\z@
-      \box\@didactic@fbx}}}%
-  \@tempswatrue}
-%    \end{macrocode}
-% \end{macro}
-%
 % \begin{macro}{\@didactic@tofoot,\@didactic@offmargin}
 % A note that goes to the foot leaves \textsf{marginfix} out: its two boxes
 % come off the head of |\@currlist|, back to the free list, so that it takes no
-% room in the margin, and the note, or its first part, is inserted after its
-% line, where it travels with the line; it carries the note's number in its
-% width, above the column's, for |\@didactic@colfeet| (below).
+% room in the margin, and the note is inserted after its line, where it
+% travels with the line; it carries the note's number in its width, above the
+% column's, for |\@didactic@colfeet| (below).
 % \textsf{marginfix} 1.5 and later number the notes it is handed
 % (|\mfx@placeid|) in the order of their callouts, which it reads from marks of
 % its own; a note it never sees must still advance the number, or every later
 % note would take the place of the one before.
 % The kernel's |\@next| for the note, which follows our part of the special
 % output, is then skipped (|\@didactic@skipnext|).
+% The notes sent to the foot in a column are listed by number
+% (|\@didactic@footids|), for the warning when \TeX\ takes a line to the next
+% column after all, and for the check that they are at the column's foot.
 %    \begin{macrocode}
 \newcommand\@didactic@offmargin{%
   \@next\@currbox\@currlist{}\@latexbug
@@ -6591,23 +6449,6 @@
     \@didactic@attach{\insert\footins{\floatingpenalty\@MM
       \box\@didactic@fbx}}}}
 \def\@didactic@skipnext\@next\@currbox\@currlist#1#2{}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\@didactic@restins,\@didactic@footid}
-% The rest of a split note, and a note that waits, are insertions of a class
-% of their own, |\@didactic@restins|, that takes no room on the page, inserted
-% after the line as the first part is: so they travel with the line as the
-% first part does, whatever \TeX's page builder later does with it, and come
-% out where the line's column is made.
-% The notes sent to the foot in a column are listed by number
-% (|\@didactic@footids|), for the warning when \TeX\ takes a line to the next
-% column after all.
-%    \begin{macrocode}
-\newinsert\@didactic@restins
-\count\@didactic@restins\z@
-\dimen\@didactic@restins\maxdimen
-\skip\@didactic@restins\z@skip
 \let\@didactic@footids\@empty
 \newcommand\@didactic@footid{%
   \xdef\@didactic@footids{\@didactic@footids
@@ -6615,19 +6456,22 @@
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\@didactic@colfeet,\@didactic@pull,\@didactic@restsort,
+% \begin{macro}{\@didactic@colfeet,\@didactic@pull,\@didactic@pullcheck,
 %   \@didactic@movedwarn}
-% When a column is made, before its footnotes are attached, the foot of the
-% next column is made up, in the order of the notes: the rests and waiting
-% notes of lines in this column; then the notes at this foot whose
-% lines went to the next column after all (a later special output on the page
-% put them into |\footins| while their lines were still on it), each
-% carrying its number in its width, numbered higher than the last callout in
-% the column; and the rests and waiting notes of those lines.
-% Insertions left in the output routine's list go back to the head of the
-% page, so these head the next column's foot (after any page of floats that is
-% made in between), and \TeX\ may split them there, line by line, if they are
-% taller than that foot.
+% When a column is made, before its footnotes are attached, the notes at its
+% foot whose lines went to the next column after all are taken back (a later
+% special output on the page put them into |\footins| while their lines were
+% still on it): each is a box with its number in its width, numbered higher
+% than the last callout in the column.
+% They are inserted again, whole and in their order: insertions left in the
+% output routine's list go back to the head of the page, so these head the next
+% column's foot, after any page of floats that is made in between.
+% There they are looked for (|\@didactic@pullcheck|), by their numbers, when
+% that column is made; one that isn't there (a later special output put it back
+% after another line, with a footnote of \LaTeX's own at the foot, and it went
+% with that line) is warned about, in the words of a note set on another page.
+% Where \textsf{multicol} makes the page (|\col@number| above one), the check
+% says nothing: there the foot is \textsf{multicol}'s to read.
 % A note sent to the foot whose line went on to the next column is warned
 % about: \TeX\ ended the page before that line, which couldn't hold the lines
 % that stay with it, and the page is that much short.
@@ -6637,10 +6481,10 @@
 % |readfallback| of |test-noteplace| wraps it to change what it reads).
 %    \begin{macrocode}
 \newbox\@didactic@pullbox
-\newbox\@didactic@nowbox
-\newbox\@didactic@laterbox
 \newbox\@didactic@one
 \newcount\@didactic@colast
+\let\@didactic@expect\@empty
+\let\@didactic@expectnext\@empty
 \newcommand\@didactic@colfeet{%
   \begingroup
     \setbox\@outputbox\copy\@cclv
@@ -6649,32 +6493,21 @@
     \global\@didactic@colast\@didactic@pagelast
     \global\@didactic@pagelast\count@
   \endgroup
-  \@didactic@restcheck
+  \@didactic@pullcheck
   \global\setbox\@didactic@pullbox\box\voidb@x
-  \global\setbox\@didactic@nowbox\box\voidb@x
-  \global\setbox\@didactic@laterbox\box\voidb@x
   \ifvoid\footins\else
     \global\setbox\footins\vbox{\unvbox\footins\@didactic@pull}%
     \ifdim\dimexpr\ht\footins+\dp\footins\relax=\z@
       \global\setbox\footins\box\voidb@x
     \fi
   \fi
-  \ifvoid\@didactic@restins\else
-    \setbox\z@\vbox{\unvbox\@didactic@restins\@didactic@restsort}%
-  \fi
   \@didactic@movedwarn
   \@didactic@footnet
-  \setbox\z@\vbox{%
-    \unvbox\@didactic@nowbox\unvbox\@didactic@pullbox
-    \unvbox\@didactic@laterbox}%
-  \ifdim\dimexpr\ht\z@+\dp\z@\relax>\z@
+  \ifvoid\@didactic@pullbox\else
     \global\let\@didactic@expect\@didactic@expectnext
-    \insert\footins{\floatingpenalty\@MM
-      \@didactic@sentinel{999999}\nointerlineskip\unvbox\z@
-      \nointerlineskip\@didactic@sentinel{1000000}}%
+    \insert\footins{\floatingpenalty\@MM\unvbox\@didactic@pullbox}%
   \fi
   \global\let\@didactic@expectnext\@empty
-  \global\@didactic@restid\z@
   \global\let\@didactic@footids\@empty
   \global\@didactic@footfullfalse}
 \newcommand\@didactic@pull{%
@@ -6685,32 +6518,34 @@
     \ifnum\@tempcnta>\@didactic@colast
       \xdef\@didactic@expectnext{\@didactic@expectnext\the\@tempcnta/\thepage,}%
       \global\setbox\@didactic@pullbox
-        \vbox{\unvbox\@didactic@one\unvbox\@didactic@pullbox}%
+        \vbox{\box\@didactic@one\unvbox\@didactic@pullbox}%
       \let\@didactic@next\@didactic@pull
     \else
       \box\@didactic@one
     \fi
   \fi
   \@didactic@next}
-\newcommand\@didactic@restsort{%
-  \let\@didactic@next\relax
-  \ifnum\lastnodetype=\tw@
-    \setbox\@didactic@one\lastbox
-    \@tempcnta\numexpr\wd\@didactic@one-\columnwidth\relax
-    \xdef\@didactic@expectnext{\@didactic@expectnext\the\@tempcnta/\thepage,}%
-    \ifnum\@tempcnta>\@didactic@colast
-      \global\setbox\@didactic@laterbox
-        \vbox{\unvbox\@didactic@one\unvbox\@didactic@laterbox}%
-    \else
-      \global\setbox\@didactic@nowbox
-        \vbox{\unvbox\@didactic@one\unvbox\@didactic@nowbox}%
+\newcommand\@didactic@pullcheck{%
+  \ifx\@didactic@expect\@empty\else
+    \@didactic@scan\footins
+    \@tempswatrue
+    \ifdefined\col@number\ifnum\col@number>\@ne \@tempswafalse \fi\fi
+    \if@tempswa
+      \def\@didactic@pelt##1/##2,{\ifx\relax##1\relax\else
+        \edef\@tempa{\noexpand\in@{,##1,}{\@didactic@stamps}}\@tempa
+        \ifin@\else
+          \@didactic@warned{##1}%
+          \PackageWarningNoLine{didactic}{Margin note called out at
+            \csname @didactic@ln@##1\endcsname\MessageBreak
+            on page ##2 is set on a later page:\MessageBreak its footnote,
+            which went on with its line,\MessageBreak didn't reach the foot of
+            page \thepage}%
+        \fi
+        \expandafter\@didactic@pelt\fi}%
+      \expandafter\@didactic@pelt\@didactic@expect\relax/,%
     \fi
-    \let\@didactic@next\@didactic@restsort
-  \else\ifnum\lastnodetype>10
-    \unskip\unpenalty\unkern
-    \let\@didactic@next\@didactic@restsort
-  \fi\fi
-  \@didactic@next}
+    \global\let\@didactic@expect\@empty
+  \fi}
 \newcommand\@didactic@movedwarn{%
   \setbox\z@\vbox{\unvcopy\@cclv}%
   \dimen@\dimexpr\@colroom-\ht\z@-\dp\z@\relax
@@ -6741,10 +6576,6 @@
 % kernel's |\@reinserts| (a footnote of \LaTeX's own at the same foot), and it
 % went with that line to the next page: we warn, in the words of a note set
 % on another page than its callout.
-% If it is, and it was split, we say so here, where it is certain: the first
-% part is at this foot.
-% A note that waits is in its own class, which goes with its line, and isn't
-% looked for.
 % If the scan can't read the whole foot (an item \TeX\ can't take off a list,
 % in a footnote of \LaTeX's own), a note not found may be above that item: the
 % warning says it may be on a later page, since it can't say more.
@@ -6754,16 +6585,9 @@
     \@didactic@scan\footins
     \def\@didactic@nelt##1,{\ifx\relax##1\relax\else
       \ifnum##1>\@didactic@colast\else
-        \ifcsname @didactic@fw@##1\endcsname\else
-          \edef\@tempa{\noexpand\in@{,##1,}{\@didactic@stamps}}\@tempa
-          \ifin@
-            \ifcsname @didactic@sp@##1\endcsname
-              \PackageInfo{didactic}{Footnote called out at
-                \csname @didactic@ln@##1\endcsname\MessageBreak
-                on page \thepage\space is split:
-                \csname @didactic@sp@##1\endcsname}%
-            \fi
-          \else\if@didactic@scanfull
+        \edef\@tempa{\noexpand\in@{,##1,}{\@didactic@stamps}}\@tempa
+        \ifin@\else
+          \if@didactic@scanfull
             \@didactic@warned{##1}%
             \PackageWarningNoLine{didactic}{Margin note called out at
               \csname @didactic@ln@##1\endcsname\MessageBreak
@@ -6778,45 +6602,11 @@
               on page \thepage\space may be set on a later page:\MessageBreak
               it was sent to the foot, and the foot of the page\MessageBreak
               holds what can't be read to find it there}%
-          \fi\fi
+          \fi
         \fi
       \fi
       \expandafter\@didactic@nelt\fi}%
     \expandafter\@didactic@nelt\@didactic@footids\relax,%
-  \fi}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\@didactic@restcheck}
-% The rests and waiting notes a column's build sent on to the next column's
-% foot must be at it when that column is made: they head its foot.
-% If they aren't (a later special output put them back after another line,
-% with a footnote of \LaTeX's own at the foot, and they went with that line),
-% we warn for each, in the words of a note set on another page.
-% A page of floats between the two columns makes no column, and they wait for
-% the next one with text.
-% Where \textsf{multicol} makes the page (|\col@number| above one), it has
-% taken the foot into boxes of its own, where the check can't look, and says
-% nothing.
-%    \begin{macrocode}
-\newcommand\@didactic@restcheck{%
-  \ifx\@didactic@expect\@empty\else
-    \@didactic@scan\footins
-    \ifdefined\col@number\ifnum\col@number>\@ne
-      \global\@didactic@sawreststrue
-    \fi\fi
-    \if@didactic@sawrests\else
-      \def\@didactic@relt##1/##2,{\ifx\relax##1\relax\else
-        \@didactic@warned{##1}%
-        \PackageWarningNoLine{didactic}{Margin note called out at
-          \csname @didactic@ln@##1\endcsname\MessageBreak
-          on page ##2 is set on a later page:\MessageBreak its rest, or the
-          footnote waiting, didn't reach the foot\MessageBreak of page
-          \thepage}%
-        \expandafter\@didactic@relt\fi}%
-      \expandafter\@didactic@relt\@didactic@expect\relax/,%
-    \fi
-    \global\let\@didactic@expect\@empty
   \fi}
 %    \end{macrocode}
 % \end{macro}

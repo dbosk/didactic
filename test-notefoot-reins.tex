@@ -5,10 +5,10 @@
 %             page a margin note's line goes to the next page (widow): the
 %             kernel puts the foot back after that line;
 %   reinsmix  the same with a footnote of LaTeX's own at the foot first;
-%   wait      a footnote split at the foot and a second one in the same line,
-%             which runs past the margin's foot or waits;
-%   mcol3x    a footnote split at the foot and one that waits, then a paragraph:
-%             the foot is counted, the text doesn't run over it;
+%   wait      a footnote too long for the foot whole (carried) and a second one
+%             in the same line, which goes to the foot with its line;
+%   mcol3x    a footnote too long for the foot whole and one that goes there,
+%             then a paragraph: the foot is counted, the text doesn't run over it;
 %   mcol3     the same with multicols after them, with two footnotes in them: no
 %             line of the columns over the foot;
 %   mcol3n    the same as mcol3x with the two footnotes later on, in the margin
@@ -17,9 +17,9 @@
 %             page so far, review P2): the second footnote of the line stays
 %             beside its line;
 %   waitsh    the same with a \vspace{0pt minus 2pt} instead of the heading;
-%   rest2     a footnote split at the foot, its rest heading the next page's
-%             foot, where a footnote of LaTeX's own and a later margin note
-%             whose line goes on (widow) follow, \testK lines down (review P1);
+%             with \testshortA the first footnote is short enough for the foot
+%             whole, and the second goes there too (a footnote too long for the
+%             foot whole is carried, and the second with it, in order);
 %   local     a footnote in a passage with \marginnoteoverflow{carry}, ending
 %             before the paragraph does, where the margin is full: carried, as
 %             the passage asks, though the mode is foot where the paragraph ends
@@ -48,6 +48,8 @@
 %             keeps the notes in order, so it goes with the tall one, and it isn't
 %             warned as running past the foot of the margin of a page it isn't on
 %             (both are carried, each with its reason).
+% (The footnotes' texts, \enquote{waits} among them, are those of the rows' first
+% version, when such notes waited; the lines the rows count depend on them.)
 \makeatletter
 \newcommand\fnt[1]{%
   \stepcounter{mk}\edef\mkv{\arabic{mk}}%
@@ -60,7 +62,7 @@
   \loop\ifnum\testli<\testN \noindent line \the\testli\par\advance\testli\@ne\repeat}
 \def\testreins{reins}\def\testreinsmix{reinsmix}\def\testwait{wait}
 \def\testmcolx{mcol3x}\def\testmcol{mcol3}\def\testmcoln{mcol3n}
-\def\testwaitsec{waitsec}\def\testrestb{rest2}\def\testwaitsh{waitsh}
+\def\testwaitsec{waitsec}\def\testwaitsh{waitsh}
 \def\testlocal{local}\def\testdefercarry{defercarry}\def\testwarnclaim{warnclaim}
 \def\testqueue{queue}\def\testcant{cant}\def\testovermove{overmove}
 \ifx\testcase\testmcolx\def\testfm#1{}\else\def\testfm#1{\fnt{#1}}\fi
@@ -70,20 +72,9 @@
   \testlines
   \ifx\testcase\testwaitsh\vspace{0pt minus 2pt}\else\section{SECX}\fi
   SECLINE one.\par
-  CALLA\fnt{FOOTA \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ ENDA}
+  CALLA\fnt{FOOTA \filler\ \filler\ \ifdefined\testshortA\else\filler\ \filler\ \filler\ \filler\ \fi ENDA}
   CALLW\fnt{FOOTW a second note, which waits for the next page.}
   \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ ENDTEXT\par
-\else\ifx\testcase\testrestb
-  \widowpenalty=10000
-  \noindent x\marginpar{\rule{1pt}{\dimexpr\textheight-8pt}} text.\par
-  \testlines
-  CALLA\fnt{FOOTA \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ ENDA}
-  \filler\ ENDTEXT\par
-  {\footnotesatfoot \noindent PLAINCALL\footnote{FOOTPLAIN an ordinary footnote.}\par}
-  \testli=0
-  \loop\ifnum\testli<\testK \noindent pline \the\testli\par\advance\testli\@ne\repeat
-  LINEONE\\ LINETWO\\ LINETHREE\testmp{NOTEB}\\ LINEFOUR\par
-  After.
 \else\ifx\testcase\testlocal
   \noindent x\marginpar{\rule{1pt}{\dimexpr\textheight-8pt}} text.\par
   \testlines
@@ -169,5 +160,5 @@
   \ifx\testcase\testmcol\end{multicols}\fi
   \ifx\testcase\testmcolx\else\ifdefined\testmulticols\end{multicols}\fi\fi
   AFTER.
-\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi
+\fi\fi\fi\fi\fi\fi\fi\fi\fi
 \makeatother

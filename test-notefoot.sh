@@ -100,10 +100,14 @@ job minroom 4 "$C{minroom}" nofoot floatsonly
 job fnrule 4 "$C{fnrule}" foot rules beside
 job fnrule10 4 "$C{fnrule}\\def\\testfnrulelines{10}" foot rules beside
 job fnedge 4 "$C{fnedge}" rules beside
-job tall 8 "$C{tall}" foot beside nofalse
-# gen: three notes off their pages, each said with its reason (with the floats'
-# rule; before it, three more that a float took the room of, without one).
-job gen 4 "$C{gen}" away=3 reasons nofalse nofootwhy \
+# tall: every note beside its mark or carried with its reason (never split, #104).
+job tall 8 "$C{tall}" foot nofalse reasons
+# gen: notes off their pages, each said with its reason (with the floats' rule;
+# before it, three more that a float took the room of, without one): four plain
+# margin notes on full margins (15, 18, 68, 70), a footnote too long for the foot
+# whole (48; split before #104) and one called out after a footnote that runs
+# one line past the foot, the foot being full (94).
+job gen 4 "$C{gen}" away=6 reasons nofalse \
   'works=only a footnote can go to the foot'
 job ownout 8 "$C{ownout}"
 # Two notes taller than the room left, and a footnote: settled within the floor
@@ -118,19 +122,23 @@ ENGINE=xelatex job twotall-xe 8 "$C{twotall}"
 R='\def\testclassopt{letterpaper}\def\testN'
 job reins 4 "$C{reins}${R}{40}" beside nofalse nooverfull nooverlap
 job reinsmix 4 "$C{reinsmix}${R}{39}" nofalse nooverfull nooverlap
-job wait 4 "$C{wait}${R}{40}" nofalse nooverfull nooverlap
-job mcol3x 4 "$C{mcol3x}${R}{34}" nofalse nooverfull nooverlap
-job mcol3 4 "$C{mcol3}${R}{34}" nofalse nooverfull nooverlap
+# wait: a footnote too long for the foot whole is carried, and the second footnote
+# of its line with it, though it would fit at the foot: the footnotes keep their
+# order.
+job wait 4 "$C{wait}${R}{40}" away=2 reasons nofalse nooverfull nooverlap \
+  "works=where it doesn't fit whole" "works=the footnotes keep their order"
+job mcol3x 4 "$C{mcol3x}${R}{34}" reasons nofalse nooverfull nooverlap
+job mcol3 4 "$C{mcol3}${R}{34}" reasons nofalse nooverfull nooverlap
 job mcol3n 4 "$C{mcol3n}${R}{34}" nofalse nooverfull nooverlap
 job mcol3nm 4 "$C{mcol3n}${R}{34}\\def\\testmulticols{}" nofalse nooverfull nooverlap
 # The second note of a line after a heading or a shrinkable space (review P2):
-# beside its line (the page so far can shrink, and the break after the line is
-# found all the same).  A rest put back after a later line (P1) is still placed
-# wrong, said when the next column is made: that row stays with its expectation
-# until its layout is fixed.
-job waitsec 4 "$C{waitsec}${R}{36}" beside nofalse nooverfull nooverlap
-job waitsh 4 "$C{waitsh}${R}{37}" beside nofalse nooverfull nooverlap
-job rest2 4 "$C{rest2}${R}{40}\\def\\testK{39}" nooverfull nooverlap 'works=reach the foot'
+# beside its line, at the foot after the first (the page so far can shrink, and
+# the break after the line is found all the same); \testshortA makes the first
+# short enough for the foot whole, so that both go there.  (rest2, a rest put
+# back after a later line, review P1, is gone with the split.)
+S='\def\testshortA{}'
+job waitsec 4 "$C{waitsec}${R}{36}$S" foot beside nofalse nooverfull nooverlap
+job waitsh 4 "$C{waitsh}${R}{37}$S" foot beside nofalse nooverfull nooverlap
 # A passage's mode is the one where its notes are called out (review S3): a
 # footnote in {\marginnoteoverflow{carry}...} is carried, though the paragraph
 # ends after the group, where the mode is foot; and one in

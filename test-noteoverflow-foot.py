@@ -23,8 +23,7 @@ calls this):
   footnotereuse=off writes no labels); carried: at least one isn't (the case of
   a note that fits nowhere);
 - every note away from its mark is named by a warning (that a margin note is set
-  on another page than its callout, or that a footnote waits for the foot of the
-  next page), at least as many warnings as notes away,
+  on another page than its callout), at least as many warnings as notes away,
   and no more (each margin note here is a footnote with labels, except the tall
   one of testnowhere, which fits beside its line);
 - no page is less than half full, except the last and one whose text ends with
@@ -134,7 +133,6 @@ def check(job, want, spill, away_ok, warn, nolabels):
     if spill == "carried":
         report(f"{job} carried", nolabels or bool(away), f"({len(away)} away)")
     said = len(re.findall(r"[Mm]argin note called out at.{0,160}? on page \d+ is set on (?:page|a later page)|Margin note from .{0,160}? moved from page|"
-                          r"Footnote called out at.{0,160}? on page \d+ waits for the foot of the next page|"
                           r"A margin note from page", joined))
     report(f"{job} away named", nolabels or said >= len(away),
            f"({len(away)} away, {said} warnings)")

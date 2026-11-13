@@ -55,15 +55,12 @@ job cross '\def\testcase{cross}'
 job cross-memoir '\def\testcase{cross}\def\testclass{memoir}'
 # Only at the foot does the tall note take its line along to page 4.
 job parted '\def\testcase{parted}' last=4
-# A note counts as on the page where it starts: split over pages 3 and 4, it is
-# reused on page 3 and set again on page 4.
-job splitreuse '\def\testcase{splitreuse}\def\testclass{memoir}'
-job splitrest '\def\testcase{splitrest}\def\testclass{memoir}' last=4
 # A note that runs past the foot of the margin is on its page: reused there.
 job overreuse '\def\testcase{overreuse}\def\testclass{memoir}'
-# A note that waits for the next page or is carried there is reused by a
-# second citation on its mark's page: both marks before the note, in order.
-job waitreuse '\def\testcase{waitreuse}\def\testclass{memoir}' 'next shared warned reusenamed'
+# A note carried to the next page is reused by a second citation on its mark's
+# page: both marks before the note, in order.  (splitreuse, splitrest and
+# waitreuse, a note split over two pages or waiting for the next foot, are gone
+# with the split, #104.)
 job carryreuse '\def\testcase{carryreuse}\def\testclass{memoir}' 'next shared warned reusenamed'
 # Numbers restart in each chapter: a carried note names no mark of another
 # chapter's note with its number (review S2).
@@ -95,7 +92,6 @@ warm() { # warm <from> <name> <definitions>
 }
 warm parted same '\def\testcase{same}'
 warm same parted '\def\testcase{parted}'
-warm splitrest splitreuse '\def\testcase{splitreuse}\def\testclass{memoir}'
-warm splitreuse splitrest '\def\testcase{splitrest}\def\testclass{memoir}'
-warm carryreuse waitreuse '\def\testcase{waitreuse}\def\testclass{memoir}'
+warm carryreuse overreuse '\def\testcase{overreuse}\def\testclass{memoir}'
+warm overreuse carryreuse '\def\testcase{carryreuse}\def\testclass{memoir}'
 exit $status

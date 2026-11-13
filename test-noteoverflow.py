@@ -7,9 +7,8 @@ From the labels each footnote has at its mark (fm-N) and in its note (fn-N), see
 test-noteoverflow-contents.tex, and from the warnings of the log; no log line of
 marginfix's counts.  Always: every note has both labels, none is multiply
 defined, and every note set on another page than its mark is named by a warning
-(that a margin note is set on another page than its callout, or that a
-footnote waits for the foot of the next page: at least as many warnings as notes
-away), and no more warnings than notes away (the documents have no margin notes
+(that a margin note is set on another page than its callout): at least as
+many warnings as notes away, and no more warnings than notes away (the documents have no margin notes
 but the footnotes, so a warning more names a note that is on its page, or one
 twice), and no footnote found not plain (didactic's information).  Then:
   beside   no note is set on another page than its mark but those declared:
@@ -32,7 +31,6 @@ marks = {k[3:]: v for k, v in page.items() if k.startswith("fm-")}
 notes = {k[3:]: v for k, v in page.items() if k.startswith("fn-")}
 away = sorted((int(n) for n in marks if n in notes and notes[n] != marks[n]))
 said = len(re.findall(r"[Mm]argin note called out at.{0,160}? on page \d+ is set on (?:page|a later page)|Margin note from .{0,160}? moved from page|"
-                      r"Footnote called out at.{0,160}? on page \d+ waits for the foot of the next page|"
                       r"A margin note from page", joined))
 twice = len(re.findall(r"Label `f[mn]-\d+' multiply defined", joined))
 fails = []

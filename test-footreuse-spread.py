@@ -19,10 +19,10 @@ Checks:
 - reused: some mark has its note on the other page of its spread only (the
   footnote was reused, not set again);
 - last=N: the last mark is on page N (the case parts what it means to part);
-- next: a mark's note may also be on the next spread (a note carried or waiting
-  for the next page, its marks before it, in order), instead of on its own;
+- next: a mark's note may also be on the next spread (a note carried to the
+  next page, its marks before it, in order), instead of on its own;
 - shared: some number has two marks (the second reuses the note);
-- warned: the log has a warning that a note is set on a later page or waits;
+- warned: the log has a warning that a note is set on a later page;
 - reusenamed: such a warning names a mark that reuses the note's number;
 - noreusenamed: no warning names one (nothing reuses the note: numbers that
   restart in each chapter are other notes').
@@ -90,8 +90,8 @@ if "shared" in sys.argv[2:] and not any(sum(1 for p, k in marks if k == j) > 1
     fails.append("no number has two marks")
 if "warned" in sys.argv[2:]:
     log = re.sub(r"\n\(didactic\) *", " ", open(f"{job}.log", errors="replace").read())
-    if not re.search(r"is set on page \d+|waits for the foot", log.replace("\n", "")):
-        fails.append("no warning that a note is set on a later page or waits")
+    if not re.search(r"is set on page \d+", log.replace("\n", "")):
+        fails.append("no warning that a note is set on a later page")
 if "reusenamed" in sys.argv[2:]:
     log = re.sub(r"\n\(didactic\) *", " ", open(f"{job}.log", errors="replace").read())
     if "its number is reused at" not in log.replace("\n", ""):

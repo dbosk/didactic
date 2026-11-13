@@ -24,9 +24,6 @@
 %   parbox    a \parbox{\linewidth}: not plain;
 %   vspace    \vspace between two paragraphs: not plain;
 %   huge      a paragraph too long for one line: not plain;
-%   split     a long sentence near the foot, \testN lines down, split over two
-%             pages;
-%   wait      the same and a second footnote in the same line, which waits;
 %   bs        a footnote with \\ that stays in the margin (no tall note): the
 %             line after \\ starts at the margin's edge, as in a margin note
 %             without didactic (review P4);
@@ -64,15 +61,13 @@
 \ifdefined\testhyper\usepackage{hyperref}\else
   \ifx\testcase\testurl\usepackage[colorlinks]{hyperref}\fi\fi
 \newcounter{once}
-\newcount\li
 \newcount\runs
-\ifdefined\testN\else\def\testN{42}\fi
 \newcommand\once{\stepcounter{once}\global\advance\runs1 ONCE\arabic{once} RUNS\the\runs}
 \newcommand\filler{Some words to fill up the rest of this line of the text and
   also quite a few of the next one, as the words of a paragraph do.}
 \newcommand\longnote{\filler\ \filler\ \filler\ \filler\ \filler\ \filler\ ENDA}
 \def\testplain{plain}\def\testtwopar{twopar}\def\testlist{list}
-\def\testdisplay{display}\def\testsplit{split}\def\testwait{wait}
+\def\testdisplay{display}
 \def\testmixed{mixed}\def\testcolor{color}\def\testlinewidth{linewidth}
 \def\testparbox{parbox}\def\testvspace{vspace}\def\testhuge{huge}
 \def\testbs{bs}\def\testfnmark{fnmark}
@@ -81,17 +76,6 @@
 \begin{document}
 \noindent x\ifdefined\testnotall\else\marginpar{TALL\par\rule{1pt}{.97\textheight}}\fi
   \filler\ \filler
-\ifx\testcase\testsplit\def\testlate{}\fi
-\ifx\testcase\testwait\def\testlate{}\fi
-\ifdefined\testlate
-  \li=0
-  \loop\ifnum\li<\testN \par\noindent line \the\li\advance\li 1 \repeat
-  \par CALLA\footnote{NOTEA \longnote\ \once}%
-  \ifx\testcase\testwait CALLB\footnote{NOTEB a second note, of five lines or
-    more in the margin, which can't run past its foot by two lines of the text
-    or less, so that it waits for the foot of the next page. \once}\fi
-  \ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\par
-\else
   \par\filler\ CALLA%
   \ifx\testcase\testplain\footnote{NOTEA \filler\ \once}\fi
   \ifx\testcase\testcite\autocite[NOTEA][\filler\ \filler]{A}\fi
@@ -129,6 +113,5 @@
     \longnote\ \longnote\ \longnote\ \longnote\ \longnote\ \once}\fi
   \ \filler\ \filler\par
   \filler\ \filler\ \filler\par
-\fi
 \iftestbib\printbibliography\fi
 \end{document}

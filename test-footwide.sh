@@ -7,7 +7,7 @@
 # first on TEXINPUTS; unset, the one found.  $CASES: only these.
 src=test-footwide
 status=0
-ALL='plain cite url prepost reuse twopar mixed color linewidth list display parbox vspace huge split wait bs fnmark lang'
+ALL='plain cite url prepost reuse twopar mixed color linewidth list display parbox vspace huge bs fnmark lang'
 [ -n "$MARGINFIX" ] && export TEXINPUTS="$(cd "$MARGINFIX" && pwd)//:$TEXINPUTS"
 job() { # <engine> <case> [<definitions>]
   local eng=$1 c=$2 defs=$3 j=$src-$1-$2${3:+-h}

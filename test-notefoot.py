@@ -9,9 +9,8 @@ INSIDE/MK line) and JOB.pdf (pages); nothing the mechanism logs.  Always:
 
 - every note has its labels, once each (a note set twice writes them twice);
 - every note away from its mark's page is named by a warning (that a margin note
-  is set on another page than its callout, that a footnote waits for the foot
-  of the next page, or that multicol set a footnote at the foot of another page
-  than its mark's), at least as many as notes away.
+  is set on another page than its callout, or that multicol set a footnote at
+  the foot of another page than its mark's), at least as many as notes away.
 
 CHECKs:
   foot        some notes are at the foot: their saved position is in the text
@@ -108,7 +107,6 @@ def atfoot(n):
 
 feet = [n for n in notes if atfoot(n)]
 said = len(re.findall(r"[Mm]argin note called out at.{0,160}? on page \d+ is set on (?:page|a later page)|Margin note from .{0,160}? moved from page|"
-                      r"Footnote called out at.{0,160}? on page \d+ waits for the foot of the next page|"
                       r"A margin note from page|Footnote \d+ in multicols is called out on page \d+", joined))
 fails = []
 if OLDMC:

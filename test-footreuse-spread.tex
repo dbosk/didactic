@@ -13,21 +13,12 @@
 %           page 4, another spread: it ends with a new number and its own note
 %           there (a repeat of the old number exists only in the run that finds
 %           the parting).
-% With memoir, a note counts as on the page where it starts (the margin of page 3
-% is full, so the notes go to its foot):
-%   splitreuse  page 3 cites A twice on one line near its foot; the note is split
-%           over pages 3 and 4 (spreads 2--3 and 4--5): the second mark reuses
-%           it, since it starts on page 3;
-%   splitrest   page 3 cites A, its note split over pages 3 and 4; page 4 cites A
-%           again, beside the rest: a new spread, so a new number and a note;
+% With memoir (the margin of page 3 is full, so the notes go to its foot):
 %   overreuse   page 3 cites B, whose note runs past the foot of the margin, and
 %           again lower on the page: the second mark reuses it;
-%   waitreuse   on page 3 a long footnote is split at the foot, and B is cited
-%           twice on its line: B's note waits for the foot of page 4, and the
-%           second mark reuses it (both marks on page 3, the note on 4, in order);
 %   carryreuse  page 3 cites B twice on its last line, where the foot has no
 %           room: the note is carried to page 4, and the second mark reuses it.
-% (In these two the margin's tall note runs past its foot itself, so that B's
+% (Here the margin's tall note runs past its foot itself, so that B's
 % note can't: it goes to the foot.)
 %   chapreuse  memoir restarts footnote numbers in each chapter: chapter One
 %           cites B twice on a page, the second mark reusing note 1; in chapter
@@ -45,18 +36,11 @@
 \usepackage{didactic}
 \addbibresource{test-footcite.bib}
 \def\same{same}\def\cross{cross}\def\parted{parted}
-\def\splitreuse{splitreuse}\def\splitrest{splitrest}\def\overreuse{overreuse}
-\def\waitreuse{waitreuse}\def\carryreuse{carryreuse}\def\chapreuse{chapreuse}
-\newcommand\longpost{with a long postnote that makes the note run over several
-  lines of the foot, as a note with a quotation in it may well do, and then some
-  more words, so that it can't fit the room left at the foot of its page, nor
-  the room and a line, and has to be split over two pages: \filler\ \filler\
-  \filler\ \filler}
+\def\overreuse{overreuse}
+\def\carryreuse{carryreuse}\def\chapreuse{chapreuse}
 \newcommand\filler{Some words to fill up the rest of this line of the text and
   also quite a few of the next one, as the words of a paragraph do.}
 \begin{document}
-\ifx\testcase\splitreuse\def\testsplit{}\fi
-\ifx\testcase\splitrest\def\testsplit{}\fi
 Page~1 (recto), intentionally left without citations.
 \newpage
 \ifx\testcase\cross\def\testnotwo{}\fi
@@ -76,28 +60,11 @@ Page~1 (recto), intentionally left without citations.
   \newpage
   Page~4 (verso): a new spread, so this\footcite{B} has a new number.
 \fi
-\ifdefined\testsplit
-  \noindent x\marginpar{\rule{1pt}{.99\textheight}}%
-  \par\noindent\rule{1cm}{\dimexpr\textheight-6\baselineskip\relax}\par
-  Page~3, near its foot: A\footcite[\longpost]{A}%
-  \ifx\testcase\splitreuse\ and A again\footcite[\longpost]{A}\fi
-  \ some more words here.
-  \ifx\testcase\splitrest
-    \newpage
-    Page~4: A again\footcite[\longpost]{A}, beside the rest of its note.
-  \fi
-\fi
 \ifx\testcase\overreuse
   \noindent x\marginpar{\rule{1pt}{.98\textheight}}%
   \par\noindent\rule{1cm}{\dimexpr\textheight-12\baselineskip\relax}\par
   Page~3, near its foot: B\footcite{B}, and then again B\footcite{B} on the
   same page.
-\fi
-\ifx\testcase\waitreuse
-  \noindent x\marginpar{\rule{1pt}{1.01\textheight}}%
-  \par\noindent\rule{1cm}{\dimexpr\textheight-6\baselineskip\relax}\par
-  Page~3, near its foot: a long note\footnote{LONGNOTE \longpost}, then
-  B\footcite{B} and B again\footcite{B}, all on this line.
 \fi
 \ifx\testcase\carryreuse
   \noindent x\marginpar{\rule{1pt}{1.01\textheight}}%

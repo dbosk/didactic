@@ -10,6 +10,10 @@ test-noteplace.tex writes to the log.  Always: no footnote found not plain
 (didactic's information) unless notplain=N declares N.  EXPECT is one of:
 
   kept        NOTEY is set on the page of its callout.
+  carried     NOTEY is set on a later page than its callout, and a warning
+              names a margin note set on another page than its callout.
+  reason=T    a warning that a note is set on another page says T (spaces as
+              in one line), its reason.
   warned      NOTEY is on the page of its callout, or a warning names a margin
               note set on another page than its callout.
   together    the heading HEADINGX is on the page of FIRSTLINE.
@@ -58,8 +62,7 @@ test-noteplace.tex writes to the log.  Always: no footnote found not plain
               that had gone to its foot.
   pullok      if the callout went to a later page than page 1 (TeX's own break),
               LINEA is on the callout's page and every LINE word on it or the
-              next (the note goes with its line, split as it was), and
-              movedwarn.
+              next (the note goes with its line), and movedwarn.
   has=W       W is in the text.
   footwarnpast  a warning says that a footnote runs past the foot of the page.
   label=N:P   the label N is on page P.
@@ -195,6 +198,12 @@ line12 = 12 * 72 / 72.27
 for e in expect:
     if e == "kept" and off:
         fails.append("note-y on page %s, its callout on %s" % (facts["note"], facts["callout"]))
+    elif e == "carried" and not (facts["note"] and facts["callout"]
+                                 and int(facts["note"]) > int(facts["callout"]) and warned):
+        fails.append("note-y on page %s, its callout on %s: not carried with a warning"
+                     % (facts["note"], facts["callout"]))
+    elif e.startswith("reason=") and e[7:] not in re.sub(r"\s+", " ", joined):
+        fails.append("no warning with the reason '%s'" % e[7:])
     elif e == "warned" and off and not warned:
         fails.append("note-y off its callout's page (%s, %s) without a warning" % (facts["note"], facts["callout"]))
     elif e == "together" and page_of("HEADINGX") != page_of("FIRSTLINE"):

@@ -114,7 +114,7 @@ check() {
 W=warned,lonewarn
 # Cases that the early end of a page kept, before no page ended early: NOTEY is a
 # footnote there now ($YF), with the margin full (the tall note runs over), so
-# that it goes to the foot of the page, whole, split or one line past it.
+# that it goes to the foot of the page, whole or one line past it.
 YF='\def\testyieldfoot{}\def\testtall{.99}'
 # A heading must not be parted from its first line; the note goes on with a
 # warning if it can't stay.
@@ -330,11 +330,12 @@ check tallsplit x 3 '' "${NOT12:+kept,continued,recordless=1}${M12:+error=lost s
 # In two columns a note runs past the foot of its column's margin the same way.
 check overtwocol x 9 '' kept,overwarn '\def\testclass{article}\def\testclassopt{a4paper,twocolumn}\def\testtall{.95}\def\testbody{FIRSTLINE end\yieldnote[\par TWO\par THREE] \filler\par}'
 # A footnote that fits neither beside its line nor past the foot of the margin
-# (the tall note runs over and fills it) goes to the foot of the page: whole;
-# split, two lines at least on each side; whole and one line past the foot; split
-# with one line past the foot; or carried.  k is the room at the foot in lines of
-# the footnote, n its lines (one paragraph, broken by \break); with this text
-# k = room - 4 (room 4.5: k = 0, but some room).
+# (the tall note runs over and fills it) goes to the foot of the page whole, or
+# whole and one line past the foot; else it is carried, with a warning that
+# says it doesn't fit at the foot whole (never split over two pages, #104).  k
+# is the room at the foot in lines of the footnote, n its lines (one paragraph,
+# broken by \break); with this text k = room - 4 (room 4.5: k = 0, but some
+# room).
 fn() { # fn <n> [<label> <first word>]: a footnote of n lines LINEA, LINEB, ...
   local l=${2:-note-y} w=${3:-LINE} t='' c=0 i
   for i in A B C D E F G H I J; do
@@ -347,40 +348,33 @@ fn() { # fn <n> [<label> <first word>]: a footnote of n lines LINEA, LINEB, ...
 fsbody() { # fsbody <footnote> [<after>]: the callout on the third line
   printf '\\def\\testtall{.99}\\def\\testbody{FIRSTLINE \\filler\\ end\\label{callout-y}%s \\filler\\ \\filler\\par}' "$1"
 }
+WH="reason=where it doesn't fit whole"
 check fsk4n3 x 8 '' "kept,at=LINEA:1/LINEC:1,nobelow" "$(fsbody "$(fn 3)")"
-check fsk3n5 x 7 '' "kept,at=LINEA:1/LINEC:1/LINED:2/LINEE:2,nobelow,nocontinued" "$(fsbody "$(fn 5)")"
-check fsk3n4 x 7 '' "kept,at=LINEA:1/LINEB:1/LINEC:2/LINED:2,nobelow" "$(fsbody "$(fn 4)")"
-check fsk2n4 x 6 '' "kept,at=LINEA:1/LINEB:1/LINEC:2/LINED:2,nobelow" "$(fsbody "$(fn 4)")"
-check fsk2n3 x 6 '' "kept,at=LINEA:1/LINEC:1,below=LINEC" "$(fsbody "$(fn 3)")"
-check fsk1n2 x 5 '' "kept,at=LINEA:1/LINEB:1,below=LINEB" "$(fsbody "$(fn 2)")"
-check fsk1n3 x 5 '' "carried,nobelow" "$(fsbody "$(fn 3)")"
-check fsk1n4 x 5 '' "kept,at=LINEA:1/LINEB:1/LINEC:2/LINED:2,below=LINEB" "$(fsbody "$(fn 4)")"
-# A first part of two lines that fits the room plus one line by its height but
-# not with its last line's depth (the grid's cell 2-1-9-15): split there all
-# the same, by both, and runs past the foot by what is missing, with the
-# warning (footwarnpast).
-check fsk1n5 x 5.6 '' "kept,at=LINEA:1/LINEB:1/LINEC:2/LINEE:2,footwarnpast" "$(fsbody '\footnote{\label{note-y}LINEA gy\hfil\break LINEB gy\hfil\break LINEC gy\hfil\break LINED gy\hfil\break LINEE gy}')"
-check fsk0n1 x 4.5 '' "kept,at=LINEA:1,below=LINEA" "$(fsbody "$(fn 1)")"
-check fsk0n2 x 4.5 '' "carried,nobelow" "$(fsbody "$(fn 2)")"
-# A later footnote on the page of a split one waits for the next page's foot,
-# after the rest: called out on the same line (fstwo), or on the line the split
-# kept back (fsspare: five lines in four lines of room split three and two, which
-# leaves room for a line of the text).
-check fstwo x 6 '' "kept,at=LINEA:1/LINEB:1/LINEC:2/LINED:2/SECA:2,order=LINED<SECA" "$(fsbody "$(fn 4)$(fn 2 n-s SEC)")"
-check fsspare x 8 '' "kept,at=LINEA:1/LINEC:1/LINED:2/LINEE:2/SPAREA:2,order=LINEE<SPAREA" '\def\testtall{.99}\def\testbody{FIRSTLINE \filler\ end\label{callout-y}'"$(fn 5)"' and a few words more to fill this line, and then on the next one\footnote{SPAREA} we go on \filler\ \filler\par}'
-# TeX takes the callout's line to the next page after its footnote was split at
-# this foot (a paragraph that can't break, whose last lines don't fit): the whole footnote
-# goes with the line, nothing of it stays, the split as decided (first part on
-# the line's page, the rest on the next), and a warning says so (pullok; with
-# marginfix 1.2 the line stays, see overguard).
-check fspull x 5 '' "pullok${NOT12:+,label=callout-y:2}" '\def\testtall{.99}\def\testbody{{\interlinepenalty=10000 \noindent FIRSTLINE\newline SECOND\newline THIRD\label{callout-y}'"$(fn 4)"'\newline FOURTH\newline FIFTH\par}}'
-# The rest goes to the next page with text, after a page of floats.
-check fsfloat x 6 '' "kept,at=LINEA:1/FLOATPAGE:2/LINEC:3" "\\def\\testpre{\\renewcommand\\floatpagefraction{.1}}$(fsbody "\\begin{figure}[p]\\rule{1cm}{.8\\textheight}\\caption{FLOATPAGE}\\end{figure}$(fn 4)")"
-# A rest taller than the next page's foot: TeX splits it there, nothing is lost.
-# The note's paragraph is too long for one line of the measure: not plain.
-check fstall x 6 '' "kept,at=LINEA:1,has=LASTLINE,notplain=1" "$(fsbody "\\footnote{\\label{note-y}LINEA \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ \\filler\\ LASTLINE}")"
-# A label in the rest is on the next page.
-check fslabel x 6 '' "kept,label=n-rest:2" "$(fsbody '\footnote{\label{note-y}LINEA\hfil\break LINEB\hfil\break LINEC\label{n-rest}\hfil\break LINED}')"
+check fsk3n5 x 7 '' "carried,$WH,nobelow,nocontinued" "$(fsbody "$(fn 5)")"
+check fsk3n4 x 7 '' "kept,at=LINEA:1/LINED:1,below=LINED,footwarnpast" "$(fsbody "$(fn 4)")"
+check fsk2n4 x 6 '' "carried,$WH,nobelow" "$(fsbody "$(fn 4)")"
+check fsk2n3 x 6 '' "kept,at=LINEA:1/LINEC:1,below=LINEC,footwarnpast" "$(fsbody "$(fn 3)")"
+check fsk1n2 x 5 '' "kept,at=LINEA:1/LINEB:1,below=LINEB,footwarnpast" "$(fsbody "$(fn 2)")"
+check fsk1n3 x 5 '' "carried,$WH,nobelow" "$(fsbody "$(fn 3)")"
+check fsk1n4 x 5 '' "carried,$WH,nobelow" "$(fsbody "$(fn 4)")"
+# Five lines in 1.6 lines of room: carried, the reason counting the lines left.
+check fsk1n5 x 5.6 '' "carried,$WH,reason=lines left there,nobelow" "$(fsbody '\footnote{\label{note-y}LINEA gy\hfil\break LINEB gy\hfil\break LINEC gy\hfil\break LINED gy\hfil\break LINEE gy}')"
+check fsk0n1 x 4.5 '' "kept,at=LINEA:1,below=LINEA,footwarnpast" "$(fsbody "$(fn 1)")"
+check fsk0n2 x 4.5 '' "carried,$WH,nobelow" "$(fsbody "$(fn 2)")"
+# A later footnote on the page of one that was carried is carried too, after it,
+# though it would fit at the foot: the footnotes keep their order (fstwo: called
+# out on the same line); one after a footnote that runs past the foot is carried,
+# the foot being full (fsspare: five lines in four lines of room, then a
+# footnote of one line on the same line).
+check fstwo x 6 '' "carried,$WH,reason=the footnotes keep their order,at=LINEA:2/SECA:2,order=LINED<SECA,nobelow" "$(fsbody "$(fn 4)$(fn 2 n-s SEC)")"
+check fsspare x 8 '' "kept,at=LINEA:1/LINEE:1/SPAREA:2,below=LINEE,footwarnpast,reason=already runs past the foot" "$(fsbody "$(fn 5)$(fn 1 n-s SPARE)")"
+# TeX takes the callout's line to the next page after its footnote went to this
+# foot whole (a paragraph that can't break, whose last lines don't fit): the
+# footnote goes with the line, and a warning says so (pullok; with marginfix 1.2
+# the line stays, see overguard).
+check fspull x 5 '' "pullok${NOT12:+,label=callout-y:2}" '\def\testtall{.99}\def\testbody{{\interlinepenalty=10000 \noindent FIRSTLINE\newline SECOND\newline THIRD\label{callout-y}'"$(fn 1)"'\newline FOURTH\newline FIFTH\par}}'
+# fsfloat, fstall and fslabel are gone with the split (#104): a rest after a
+# page of floats, a rest taller than the next page's foot, a label in a rest.
 # In multicol's columns a margin footnote can't be set (the margin isn't beside
 # a column there): it becomes an ordinary footnote, at the foot of the page,
 # under the columns (mcolfoot).
