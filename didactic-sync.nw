@@ -2795,10 +2795,10 @@ def range_ends(root, revisions):
     if three_dots:
         start = git(root, "merge-base", start, end)
     else:
-        start = git(root, "rev-parse", "--verify", "-q", start)
+        start = git(root, "rev-parse", "--verify", "-q", start + "^{commit}")
     if start is None:
         return None
-    if git(root, "rev-parse", "--verify", "-q", end) is None:
+    if git(root, "rev-parse", "--verify", "-q", end + "^{commit}") is None:
         return None
     return start.strip(), end
 @
@@ -2849,6 +2849,9 @@ def check_branch(revisions):
     changed = git(
         root, "diff", "--name-only", "--no-renames", "-z", ends[0], ends[1]
     )
+    if changed is None:
+        print(f"{revisions}: git diff failed", file=sys.stderr)
+        return STATUS_ERROR
     names = [
         name
         for name in changed.split("\0")
@@ -3264,8 +3267,16 @@ A deliberate side of that: giving [[--stamp]] a second target is an error
 instead of a convenience, and [[allow_abbrev]] is off so that nothing else can
 be taken for a shorthand of it.
 
+The exit status is an interface: build scripts read 1 as \enquote{something is
+behind}.
+Python's own way of failing, a traceback and status 1, would read as just
+that, so a file that can't be read or written is an error of ours, with
+status~2 and one line saying why, and so is anything we didn't foresee, with
+the traceback for whoever has to fix it.
+
 <<imports>>=
 import argparse
+import traceback
 <<constants>>=
 STATUS_OK = 0
 STATUS_NOT_IN_SYNC = 1
@@ -3319,6 +3330,18 @@ def main(argv=None):
     args = parse_arguments(argv)
     sys.stdout.reconfigure(errors="surrogateescape")
     sys.stderr.reconfigure(errors="surrogateescape")
+    try:
+        return run_mode(args)
+    except OSError as error:
+        print(f"{error.filename}: {error.strerror}", file=sys.stderr)
+    except Exception:
+        traceback.print_exc()
+        print("internal error", file=sys.stderr)
+    return STATUS_ERROR
+
+
+def run_mode(args):
+    """Run the mode that the arguments ask for; return the exit status."""
     if args.stamp is not None:
         if args.targets or len(args.stamp) > 1:
             print("--stamp takes one pair and nothing else", file=sys.stderr)
@@ -3357,7 +3380,12 @@ def check_files(paths, verbose, list_only):
             print(f"{path}: no such file", file=sys.stderr)
             broken = True
             continue
-        count, errors = check_file(path, verbose)
+        try:
+            count, errors = check_file(path, verbose)
+        except OSError as error:
+            print(f"{path}: {error.strerror}", file=sys.stderr)
+            broken = True
+            continue
         not_in_sync += count
         broken = broken or errors
     if broken:
@@ -3445,4 +3473,39 @@ def test_a_file_name_that_is_not_utf8_is_kept_in_a_message(repo):
 
 def test_no_arguments_is_an_error(repo):
   assert run(repo).returncode == 2
+
+
+def test_a_file_that_cannot_be_read_is_an_error(repo):
+  path = repo / "contents.nw"
+  path.write_text(blocks("en", "sv"))
+  path.chmod(0)
+  try:
+    result = run(repo, "contents.nw")
+  finally:
+    path.chmod(0o644)
+  assert result.returncode == 2
+  assert "contents.nw:" in result.stderr
+  assert "Traceback" not in result.stderr
+
+
+def test_a_file_that_cannot_be_written_is_an_error(repo):
+  path = repo / "contents.nw"
+  path.write_text(blocks("en", "sv"))
+  path.chmod(0o444)
+  try:
+    result = run(repo, "--stamp", "contents.nw:1")
+  finally:
+    path.chmod(0o644)
+  assert result.returncode == 2
+  assert "contents.nw" in result.stderr
+  assert "Traceback" not in result.stderr
+
+
+def test_a_range_that_ends_in_a_file_is_an_error(repo):
+  base_of_three(repo)
+  (repo / "notes.md").write_text("x\n")
+  commit(repo, "a file")
+  result = run(repo, "master..HEAD:notes.md")
+  assert result.returncode == 2
+  assert "Traceback" not in result.stderr
 @
