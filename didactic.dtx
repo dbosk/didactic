@@ -40,6 +40,13 @@
 %
 %<*driver>
 \documentclass{article}
+\usepackage{iftex}
+\ifpdftex
+  % as under XeLaTeX and LuaLaTeX: Latin Modern, with a bold typewriter, and
+  % the braces in code from the typewriter font, not Computer Modern's symbols
+  \usepackage[T1]{fontenc}
+  \usepackage{lmodern}
+\fi
 \usepackage{doc}
 \NewDocElement[printtype={opt.}]{Opt}{option}
 \usepackage[utf8]{inputenc}
