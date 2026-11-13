@@ -819,10 +819,11 @@ something that isn't a brace.
 What makes this a reader of \LaTeX\ and not of \TeX\ is a short table of the
 commands that read their argument verbatim, where a [[%]] or a brace is a
 character like any other.
-Each is read whole, as one token: [[\verb]] and [[\Verb]] up to the next
-delimiter; [[\lstinline]], [[\mintinline]] and [[\path]], with a delimiter or
-in braces; the address of [[\url]], [[\nolinkurl]] and [[\href]], in which
-[[%20]] is a space and no comment; PythonTeX's inline code; and noweb's
+Each is read whole, as one token: [[\verb]], [[\Verb]] and
+[[\SaveVerb]] up to the next delimiter; [[\lstinline]], [[\mintinline]],
+[[\mint]] and [[\path]], with a delimiter or in braces; the address of
+[[\url]], [[\nolinkurl]] and [[\href]], in which [[%20]] is a space and no
+comment; PythonTeX's inline code; and noweb's
 quoting of code in double brackets, which isn't \LaTeX\ but is in every
 literate source.
 A command that isn't in the table is read as \TeX, so a [[%]] in the argument
@@ -839,10 +840,12 @@ comment inside a long [[\ensv]], and leaves the exit status alone.
 
 <<constants>>=
 VERBATIM_COMMANDS = {
-    "verb", "Verb", "lstinline", "mintinline", "path", "url", "nolinkurl",
-    "py", "pyc", "pys", "pyv", "pyb",
+    "verb", "Verb", "SaveVerb", "lstinline", "mint", "mintinline", "path",
+    "url", "nolinkurl", "py", "pyc", "pys", "pyv", "pyb",
 }
-OPTIONS_FIRST = {"Verb", "lstinline", "mintinline", "href"}
+STARRED = {"verb", "Verb"}
+OPTIONS_FIRST = {"Verb", "SaveVerb", "lstinline", "mint", "mintinline", "href"}
+GROUP_FIRST = {"SaveVerb", "mint", "mintinline"}
 LETTER = re.compile(r"[A-Za-z@]")
 <<functions>>=
 def tokens_of_line(line, offset):
@@ -904,14 +907,14 @@ as far as any of these can reach.
 <<functions>>=
 def end_of_verbatim_argument(line, index, name):
     """Return where the verbatim argument of command `name` at `index` ends."""
-    if name == "verb" and line.startswith("*", index):
+    if name in STARRED and line.startswith("*", index):
         index += 1
     if name != "verb":
         index = skip_spaces(line, index)
     if name in OPTIONS_FIRST and line.startswith("[", index):
         close = line.find("]", index)
         index = skip_spaces(line, close + 1 if close != -1 else len(line))
-    if name == "mintinline" and line.startswith("{", index):
+    if name in GROUP_FIRST and line.startswith("{", index):
         index = skip_spaces(line, end_of_braces(line, index))
     if index >= len(line):
         return index
@@ -1428,12 +1431,13 @@ def ensv_pairs(reading):
     return pairs, unused
 @
 
-Now it comes together, for a text from wherever it comes.
+Now it comes together, for a text from wherever it comes, with the name of
+its file, which says whether noweb's quoting is quoting there.
 The stamp lines that no pair used are returned too, and the notes for the
 report.
 
 <<functions>>=
-def read_pairs(text):
+def read_pairs(text, name=""):
     """Return a source's pairs, in order, unused stamp lines, errors, notes."""
     reading = read_source(text)
     pairs, unused_by_blocks = block_pairs(reading)
@@ -1863,6 +1867,23 @@ def test_a_definition_that_is_only_shown_defines_nothing(repo, shown):
   assert "new pair" in result.stdout
 
 
+@pytest.mark.parametrize(
+  "source",
+  [
+    "\\mint{latex}|\\ensv{a}{b}| and \\mint[linenos]{latex}|\\ensv{x}|\n",
+    "\\mint{latex}{\\ensv{x}}\n",
+    "\\Verb*|%| \\ensv{a}{b}\n",
+    "\\SaveVerb{name}|%\\ensv{x}| \\ensv{a}{b}\n",
+  ],
+)
+def test_more_verbatim_commands_are_read_whole(repo, source):
+  (repo / "contents.nw").write_text(source)
+  result = run(repo, "-v", "contents.nw")
+  assert result.returncode in (0, 1), result.stderr
+  pairs = 1 if "\\ensv{a}{b}\n" in source else 0
+  assert f"{pairs} pairs" in result.stdout
+
+
 def test_a_percent_sign_in_an_unknown_command_gets_a_note(repo):
   (repo / "contents.nw").write_text(
     "\\mylink{https://example.org/a%20b}{\\ensv{broken}}\n"
@@ -1992,7 +2013,7 @@ can use, so it goes to standard error and gives a status of its own.
 <<functions>>=
 def check_file(path, verbose=False):
     """Report on the pairs of one file; return how many aren't in sync."""
-    pairs, leftover, errors, notes = read_pairs(read_text(path))
+    pairs, leftover, errors, notes = read_pairs(read_text(path), path)
     for line, message in errors:
         print(f"{path}:{line + 1}: {message}", file=sys.stderr)
     for line, note in notes:
@@ -2300,7 +2321,7 @@ def top_of(directory):
 def pairs_in_commit(root, commit, name):
     """Return the pairs of a file as it is at a commit, read once."""
     text = git(root, "show", f"{commit}:{name}")
-    return read_pairs(text)[0] if text else []
+    return read_pairs(text, name)[0] if text else []
 @
 
 The report then gives the diff of each side that has changed, and the current
@@ -2622,7 +2643,7 @@ def stamp_pair(target):
         return f"{path}: no such file"
     text = read_text(path)
     mark = BYTE_ORDER_MARK if text.startswith(BYTE_ORDER_MARK) else ""
-    pairs, leftover, errors, _ = read_pairs(text)
+    pairs, leftover, errors, _ = read_pairs(text, path)
     if errors:
         return f"{path}:{errors[0][0] + 1}: {errors[0][1]}"
     lines = text.removeprefix(mark).split("\n")
@@ -3206,7 +3227,7 @@ def pairs_at(root, commit, names):
     for name in names:
         text = git(root, "show", f"{commit}:{name}")
         if text is not None:
-            pairs, _, problems, _ = read_pairs(text)
+            pairs, _, problems, _ = read_pairs(text, name)
             found += [(name, pair) for pair in pairs]
             errors += [
                 f"{name}:{line + 1}: {message}" for line, message in problems
