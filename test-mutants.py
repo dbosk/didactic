@@ -50,11 +50,12 @@ GROUPS = {
     "rules": (RULES, ["test-keep-once", "test-keep-enumitem"], ["m", "s", "k", "m3", "c", "k3", "a"]),
     "biburl": (["test-biburl"], [], []),
     "footcite": (["test-noteoverflow-foot"], [], []),
+    "noteplace": (["test-noteplace"], [], []),
 }
 # targets that are no PDF of their own; they choose their engines themselves
-PHONY = {"test-biburl", "test-noteoverflow-foot"}
+PHONY = {"test-biburl", "test-noteoverflow-foot", "test-noteplace"}
 # the job of a phony target that the group runs ($CASES of its script)
-CASES = {"footcite": "default"}
+CASES = {"footcite": "default", "noteplace": "rsvsidecap rsvblock mcolblock rsvsidebefore"}
 # All with pdflatex, for speed, but the frame titles with the Makefile's xelatex:
 # test-frametitle-boxes reads a letter inside a picture, whose box in pdftotext's output
 # depends on the engine.
@@ -153,7 +154,7 @@ def tests(group, d, timeout):
     for t in docs:
         engine = "" if group == "title" or t in PHONY else "PDFLATEX=pdflatex"
         target = t if t in PHONY else f"{t}.pdf"
-        cases = f"CASES={CASES[group]} " if group in CASES else ""
+        cases = f"CASES='{CASES[group]}' " if group in CASES else ""
         status, out = sh(f'{cases}make -o didactic.sty {target} "{FLAGS}" {engine}', d, timeout)
         if BROKEN.search(out):
             return ["ERROR: disk"]

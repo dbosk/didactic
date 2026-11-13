@@ -399,6 +399,10 @@ check mcolblock x 20 '' "nomcolwarn" "$MC"'\def\testbody{\begin{multicols}{2}FIR
 NOTEL='NOTEY notea noteb notec noted notee notef noteg noteh notei notej notek notel notem noten noteo notep noteq noter notes'
 check rsvsidecap x 30 '' "warned,apart=cap:note" "\\def\\testtall{.1}\\def\\testbody{\\begin{figure}[h]\\begin{sidecaption}{capa capb capc capd cape capf capg caph capi capj capk capl capm capn capo capp capq}\\rule{6cm}{5cm}\\end{sidecaption}\\end{figure}After the figure.\\label{callout-y}\\marginpar{\\label{note-y}$NOTEL} \\filler\\par}"
 check rsvblock x 30 '' "warned,apart=WIDE:note" "\\def\\testtall{.1}\\def\\testbody{\\blockmargin\\begin{adjustwidth}{0pt}{-4cm}WIDEA \\filler\\ WIDEB \\filler\\ WIDEC \\filler\\end{adjustwidth}\\unblockmargin Then the note.\\label{callout-y}\\marginpar{\\label{note-y}$NOTEL} \\filler\\par}"
+# A float with a side caption after a tall note called out before it on the page:
+# the float gives way, so that the note stays beside its line (the float's rule,
+# \@didactic@floatroom); without it the float took the margin and the note went on.
+check rsvsidebefore x 30 '' "kept,apart=cap:note" "\\def\\testtall{.1}\\def\\testbody{\\noindent FIRSTLINE\\yieldnote[\\par\\rule{1pt}{.7\\textheight}] text.\\par\\filler\\par\\begin{figure}[h]\\begin{sidecaption}{capa capb capc capd cape capf capg caph capi capj capk capl capm capn capo capp}\\rule{6cm}{.35\\textheight}\\end{sidecaption}\\end{figure}After the figure. \\filler\\par}"
 # What leads into a list isn't tied by a penalty of 10000: the keep rules warn.
 check leadlist x 5 '' "$W,leadwarn" \
   "\\def\\testbody{Lead LEADIN:\\begin{itemize}\\item FIRSTLINE$B\\end{itemize}}"

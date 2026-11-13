@@ -41,6 +41,8 @@
 #            with the Makefile's engines, as the target chooses them
 #   footcite test-noteoverflow-foot, its job default only (CASES=default), against the
 #            marginfix found or $MARGINFIX (about 1 minute)
+#   noteplace test-noteplace, its rows rsvsidecap, rsvblock, mcolblock and
+#            rsvsidebefore only, against the marginfix found or $MARGINFIX (1 minute)
 # All with pdflatex, for speed, where make tests uses xelatex, but title with xelatex: its
 # check reads a letter inside a picture, whose box depends on the engine.
 #
@@ -1550,10 +1552,10 @@ u_counters didactic.dtx
 #: biburl
 #= killed test-biburl
 u_textwidth didactic.dtx
--   \dimen@\linewidth
--   \ifdim\hsize<\dimen@ \dimen@\hsize \fi
-+   \dimen@\textwidth
-+   \relax
+-     \dimen@\linewidth
+-     \ifdim\hsize<\dimen@ \dimen@\hsize \fi
++     \dimen@\textwidth
++     \relax
 
 # the document's own \UrlLeft not called (review of round 1)
 #: biburl
@@ -1642,3 +1644,26 @@ Mblxmeasure didactic.dtx
 -       \ifcsdef{etb@tgl@blx@footnote}{\toggletrue{blx@footnote}}{}%
 -       \noindent\ignorespaces#1\par
 +       \noindent\ignorespaces#1\par
+
+# The two breaks the review of the one-pass placement found that rsvsidecap and rsvblock
+# couldn't catch (first pass, test gaps): the wide float's rule taken out, which only a
+# note called out before the float on its page shows (rsvsidebefore: the note goes on to
+# the next page), and marginfix's injected box taken for a note, which mcolblock shows (a
+# warning that a note in multicols is lost).
+#: noteplace
+#= killed test-noteplace
+Mrsvroom didactic.dtx
+-   \expandafter\ifx\csname mfx@wide@\number\@currbox\endcsname\relax\else
+-     \ifdim\@pageht<\@didactic@stay \@pageht\@didactic@stay \fi
+-   \fi}
++   }
+
+#: noteplace
+#= killed test-noteplace
+Mrsvinj didactic.dtx
+-     \expandafter\ifx#1\Mfx@inject@insert
+-       \expandafter\expandafter\expandafter\@firstoftwo
+-     \else
+-       \expandafter\expandafter\expandafter\@secondoftwo
+-     \fi
++     \expandafter\@secondoftwo
