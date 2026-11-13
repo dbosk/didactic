@@ -5779,6 +5779,7 @@
     \let\\\@normalcr \let\@gnewline\@didactic@gnewline
     \hsize\maxdimen \linewidth.5\maxdimen
     \def\@didactic@url@fixed{\marginparwidth}%
+    \@didactic@keep@inboxtrue \clubpenalties\z@
     \leftskip\z@skip \rightskip\z@skip \parskip\z@skip
     \parindent\z@ \parfillskip\z@\@plus1fil
     \everypar{\setbox\z@\lastbox}%
@@ -11232,9 +11233,13 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % |\clubpenalties| we set globally at the start of a paragraph and clear at its 
 % end, so that nothing outlives the paragraph whatever groups there are.
 % Paragraphs in boxes don't count: a note, a float, a cell of a table, the 
-% head of a page in the output routine.
+% head of a page in the output routine, the text of a margin footnote as it is
+% first set (|\@didactic@measure|).
 % They all come through |\@arrayparboxrestore|, or the output routine, or start 
 % directly in a |\vbox|, where we set |\if@didactic@keep@inbox|, locally.
+% (The measure's box comes through none of them, so it sets the flag itself;
+% else the footnote's paragraph ended the heading's first paragraph, and the
+% lines it kept with the heading were let go.)
 % They get no |\clubpenalties| from around them either.
 % A display in the first paragraph is lines enough, and what follows it in the
 % same paragraph would count its lines from the start: the penalties end there.
