@@ -170,6 +170,12 @@ MOVED='\def\testtall{.1}\def\testbody{{\interlinepenalty=10000 \noindent FIRSTLI
 check linemoves x 3 '' kept "$MOVED"
 ALONE='\def\testfirst{\noindent x text\par\noindent\rule{1cm}{\dimexpr\textheight-\testroom\baselineskip-1\baselineskip}\par}'
 check linemovesalone x 3 '' kept "$ALONE${MOVED#\\def\\testtall{.1\}}"
+# The note of a line that TeX takes to the top of the next page waits there for
+# it, and is set as marginfix sets a note carried to a page: its first line on
+# the text's first line (\topskip), here its callout's (heldtop; with marginfix's
+# own hold the note's top was at the margin's top, 4.2pt higher, v2.16).
+HT='\def\testpre{\usepackage{zref-savepos,zref-abspage}\csname zref@addprop\endcsname{savepos}{abspage}}\def\testbody{{\interlinepenalty=10000 \noindent FIRSTLINE\label{callout-y}\zsavepos{cl}\marginpar{\zsavepos{nt}\label{note-y}NOTEY}\newline SECOND\newline THIRD\newline FOURTH\par}}'
+check heldtop x 3 '' kept,align=cl:nt "$ALONE$HT"
 # Two callouts in the paragraph that moves: the special output for the second
 # reads a page so far that holds the mark of the first.
 TWO='\def\testbody{{\interlinepenalty=10000 \noindent FIRSTLINE\newline SECOND\yieldnote{}\newline THIRD\marginpar{\label{n-b}OTHER}\label{c-b}\newline FOURTH\par}}'

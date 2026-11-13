@@ -158,7 +158,10 @@
 %   any more; it no longer needs \textsf{marginfix} 1.6 or records in
 %   the \texttt{.aux} file.  A footnote goes to the foot whole, or whole and one
 %   line past it, never split; one too long for that is carried, with a
-%   warning that says so.  A footnote at the foot is set in the width of the
+%   warning that says so.  A margin note whose line \TeX\ takes to the next
+%   page waits there for it with its first line on the text's first, as
+%   \textsf{marginfix} sets a note carried to a page (it was set at the
+%   margin's top, some points higher).  A footnote at the foot is set in the width of the
 %   text, and its text runs once (twice more, quietly, for a footnote with
 %   more than paragraphs).  \textsf{didactic}
 %   checks the names of \textsf{marginfix} and the kernel it relies on and
@@ -5327,6 +5330,11 @@
 % numbered higher than that out of its list, and after it we put them back 
 % at the end, where what the page couldn't hold waits too, at the top of the 
 % next page (|\MFX@minus@inf|).
+% \textsf{marginfix} sets a note so marked at the top of a margin with its first
+% line on the text's first (at |\topskip|), as a note carried to the page; its
+% own hold of a note whose line went on puts it back at 0\,pt, the margin's
+% very top, a few points above that line (the row |heldtop| of
+% |test-noteplace| pins ours).
 % A skip goes with the note before it.
 % The rest of a note \textsf{marginfix} has split carries the number of its 
 % note (|\MFX@copyclass| makes the rest, from 1.5 on): it goes with its note's 

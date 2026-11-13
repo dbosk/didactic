@@ -66,6 +66,8 @@ test-noteplace.tex writes to the log.  Always: no footnote found not plain
   has=W       W is in the text.
   footwarnpast  a warning says that a footnote runs past the foot of the page.
   label=N:P   the label N is on page P.
+  align=A:B   the positions A and B (zsavepos) are on one page and one baseline,
+              within half a point (a note's first line beside its callout's).
   incol=W     W is in the text column (at the foot, not in a margin).
   lostwarn=F  a warning says that a margin note called out in file F (with its
               line and page) wasn't printed (TeX Live's 1.2, which loses a note
@@ -311,6 +313,18 @@ for e in expect:
         fails.append("a warning that a margin note in multicols is lost, where none is")
     elif e == "mcolwarn" and "margin note in multicols is lost" not in joined:
         fails.append("no warning that a margin note in multicols is lost")
+    elif e.startswith("align="):
+        a, b = e[6:].split(":")
+        pos = {k: dict(re.findall(r"\\(posy|abspage)\{(-?\d+)\}", v)) for k, v in
+               re.findall(r"\\zref@newlabel\{([^}]*)\}\{(.*)\}$", aux, re.M)}
+        pa, pb = pos.get(a, {}), pos.get(b, {})
+        if "posy" not in pa or "posy" not in pb:
+            fails.append("no saved positions %s and %s" % (a, b))
+        elif pa.get("abspage") != pb.get("abspage") or \
+                abs(int(pa["posy"]) - int(pb["posy"])) > 32768:
+            fails.append("%s and %s not on one baseline: page %s y %.2fpt, page %s y %.2fpt"
+                         % (a, b, pa.get("abspage"), int(pa["posy"]) / 65536,
+                            pb.get("abspage"), int(pb["posy"]) / 65536))
     elif e.startswith("label="):
         n, p = e[6:].split(":")
         if label(n) != p:
