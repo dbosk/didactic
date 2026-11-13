@@ -963,8 +963,14 @@
 % overwrite it and the document would break somewhere else, so that's an error; 
 % an environment |comment|, as \textsf{verbatim} and \textsf{memoir} have, works 
 % just like the one that replaces it.
-% If the document defines one of them, or loads such a package, afterwards, 
-% \LaTeX\ says so itself.
+% If the document defines one of them afterwards with |\newcommand|, or
+% loads a package that does, \LaTeX\ says so itself.
+% A package may replace a command without asking, though, as \textsf{physics}
+% does with |\tr| when it's loaded after this package; then |\tr{...}{...}|
+% is the trace, and this package warns at the start of the document and names
+% |\didactictr|.
+% For |\en|, |\sv| and |\comment| it can't tell: \textsf{comment} redefines
+% |\en| and |\sv| itself whenever the language changes.
 % In all these cases, or if the document doesn't want any of this, the option 
 % |nobilingual| leaves the names, and \textsf{comment}, alone.
 %
@@ -2394,10 +2400,24 @@
 % That's why it isn't robust and only expands to one of its arguments.
 % We don't overwrite a |\tr| that's there already, it's likely a package's, 
 % and overwriting it would break the document at some unrelated place.
+% The other order needs a look at the start of the document: a package loaded
+% after us may replace our |\tr| without a word, as \textsf{physics} does with
+% |\DeclareDocumentCommand|, and then each |\tr{...}{...}| is that package's,
+% with an error about math mode as the only hint, or none at all in math.
 %    \begin{macrocode}
 \newcommand\didactictr[2]{\@didactic@tr{#1}{#2}}
 \@ifundefined{tr}{%
   \let\tr\didactictr
+  \AtBeginDocument{%
+    \ifx\tr\didactictr\else
+      \PackageWarningNoLine{didactic}{%
+        \string\tr\space was redefined after didactic was loaded, by a
+        package\MessageBreak such as physics, so it isn't for bilingual
+        strings.\MessageBreak
+        Use \string\didactictr\space for bilingual strings%
+      }%
+    \fi
+  }%
 }{%
   \PackageWarningNoLine{didactic}{%
     \string\tr\space is already defined, keeping that definition.\MessageBreak

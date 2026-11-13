@@ -4,7 +4,7 @@
 status=0
 
 fail() {
-  echo "FAIL $1: $2"
+  printf 'FAIL %s: %s\n' "$1" "$2"
   status=1
 }
 
@@ -109,6 +109,20 @@ for package in comment verbatim; do
     fail taken "$package loaded first"
   fi
 done
+
+# A package loaded later may replace \tr without a word, as physics does with
+# \DeclareDocumentCommand; then the document's \tr{...}{...} is that package's,
+# so didactic must say so and name \didactictr.
+taken "\\usepackage{didactic}\\usepackage{physics}"
+grep -q "Package didactic Warning.*\\\\tr" test-bilingual-taken.log \
+  || fail taken "no warning for a \\tr replaced after didactic"
+grep -q didactictr test-bilingual-taken.log \
+  || fail taken "the warning for a replaced \\tr does not name \\didactictr"
+taken "\\usepackage{physics}\\usepackage{didactic}\\usepackage{physics}"
+if [ "$(grep -c 'Package didactic Warning.*\\tr' test-bilingual-taken.log)" \
+  -gt 1 ]; then
+  fail taken "two warnings for a \\tr that was never didactic's"
+fi
 
 # A block's cut file is the job's own.  \subimport makes \input look in the
 # imported directory first, where a deck built on its own may have left a cut
