@@ -917,6 +917,8 @@ So the lines of a chunk or a verbatim environment in a block stay whole, with
 their indentation.
 Six hexadecimal digits are plenty: a hash only has to differ from the previous
 hash of the same paragraph.
+A change that happens to keep it goes unseen, but with 24 bits that's about
+one change in 17 million.
 
 <<imports>>=
 import hashlib
@@ -1926,6 +1928,7 @@ def stamp_pair(target):
     else:
         write_tr_stamp(lines, pair, pairs)
     write_text(path, mark + "\n".join(lines))
+    <<warn if the branch check can't see [[path]]>>
     return None
 @
 
@@ -2235,15 +2238,54 @@ happens to equal a side of another pair that also went away, the two look like
 one refresh, and the listing shows the wrong old text.
 A pair listed for no reason costs a look at it in the review, which is the
 cheap direction to be wrong in.
-Only one thing escapes the listing: two pairs that exchange a side with each
-other leave the same stamps behind, and then the file holds the same texts as
-before in another order.
+Pairs that exchange sides among themselves, two or three of them, are listed,
+for instance: each new stamp shares one hash with a stamp that went away.
+
+What escapes the listing is what the stamps can't show, and what the check
+doesn't read.
+\begin{description}
+  \item[A stamp that was there already] isn't new, so a pair that a branch
+  makes equal to another stamped pair, and re-stamps, isn't listed if that
+  other pair goes away in the same range: [[\tr{Yes}{Ja}]] and
+  [[\tr{Yeah}{Ja}]], both stamped, of which only [[\tr{Yeah}{Ja}]] is left.
+  The same goes for two pairs that exchange a side when their other sides are
+  equal, [[\tr{Yes}{Ja}]] and [[\tr{Yeah}{Ja}]] becoming each other: the file
+  then holds the same pairs as before in another order.
+  Nothing is lost by either: the two sides of each pair were stamped as saying
+  the same thing before.
+  \item[A change to both sides] isn't a one-side re-stamp, however small the
+  second change is: a fix in one language with a comment edited in the other is
+  stamped like a translation and isn't listed.
+  The check trusts that whoever changed both sides read both; it shows where
+  one side was accepted as it stood, not whether anybody read with care.
+  \item[Other files] aren't read: the check reads only sources, the files
+  whose names end in [[.nw]] or [[.tex]], although the state check and
+  [[--stamp]] work on any file; [[--stamp]] warns when it stamps another one.
+  \item[A file that can't be read at the start] hides the pairs after the place
+  where reading fails, so a re-stamp of one of them isn't listed; see below.
+  \item[A change that keeps the hash] goes unseen by the state check as well;
+  the chance is about one in 17 million for each change
+  (\cref{sec:sync-pairs}).
+\end{description}
 
 The range is either [[A...B]], meaning what's on [[B]] since it left [[A]], or
 [[A..B]], and what we need of it is the two commits.
 All the files the range changed are read at both ends, deleted ones too, so a
 pair that has moved between files is still matched.
-The suffixes keep us out of files that can't hold a stamp.
+The suffixes keep us out of files that aren't sources: a program or a data
+file may well hold [[\begin{en}]] or [[\tr]] as text, and reading it as blocks
+would give errors, which would fail the check.
+A stamp that [[--stamp]] writes into such a file is one that the check won't
+list, so it says so.
+
+<<warn if the branch check can't see [[path]]>>=
+if not path.endswith(STAMPED_SUFFIXES):
+    print(
+        f"{path}: the branch check reads only files named "
+        f"{' or '.join(STAMPED_SUFFIXES)}, so it won't list this stamp",
+        file=sys.stderr,
+    )
+@
 
 <<functions>>=
 def range_ends(root, revisions):
@@ -2267,7 +2309,16 @@ end of the range it's an error like any other, instead of a listing that looks
 complete.
 At the start of the range it's only worth a warning: the branch may be what
 repairs the file, and it would otherwise never get a listing.
+That listing is short of the pairs that couldn't be read at the start, though,
+and the warning goes to the standard error, which a pull request's description
+doesn't get.
+So the listing itself says that it may be incomplete.
 
+<<constants>>=
+UNREAD_START = (
+    "Part of the start of the range can't be read (see the warnings), "
+    "so a pair re-stamped after such a place isn't listed."
+)
 <<functions>>=
 def pairs_at(root, commit, names):
     """Return (file, pair) for the pairs in files at a commit, and errors."""
@@ -2313,6 +2364,8 @@ def check_branch(revisions):
     if new_errors:
         return STATUS_ERROR
     print_restamped(restamped_one_side(old_pairs, new_pairs))
+    if old_errors:
+        print(UNREAD_START)
     return STATUS_OK
 
 
@@ -2527,9 +2580,54 @@ def test_branch_check_only_reads_sources(repo):
   git(repo, "checkout", "-q", "-b", "topic")
   path.write_text(path.read_text().replace("cat", "dog"))
   assert run(repo, "--list", "notes.txt").returncode == 0
-  assert run(repo, "--stamp", "notes.txt:2").returncode == 0
+  stamped = run(repo, "--stamp", "notes.txt:2")
+  assert stamped.returncode == 0
+  assert "the branch check" in stamped.stderr
   commit(repo, "a stamped pair in a file that isn't a source")
   assert_nothing_listed(run(repo, "master...HEAD"))
+
+
+def test_branch_check_lists_pairs_that_exchange_sides(repo):
+  path = repo / "contents.nw"
+  path.write_text("\\tr{A}{X}\nx\n\\tr{B}{Y}\nx\n\\tr{C}{Z}\n")
+  for line in (1, 3, 5):
+    assert run(repo, "--stamp", f"contents.nw:{line}").returncode == 0
+  commit(repo, "base")
+  git(repo, "checkout", "-q", "-b", "topic")
+  path.write_text("\\tr{B}{X}\nx\n\\tr{C}{Y}\nx\n\\tr{A}{Z}\n")
+  for line in (1, 3, 5):
+    assert run(repo, "--stamp", f"contents.nw:{line}").returncode == 0
+  commit(repo, "a three-way cycle of the en sides")
+  result = run(repo, "master...HEAD")
+  assert result.stdout.count("only en changed") == 3
+
+
+def test_stamping_a_source_says_nothing(repo):
+  for name in ("part.tex", "contents.nw"):
+    (repo / name).write_text(blocks("en", "sv"))
+    stamped = run(repo, "--stamp", f"{name}:1")
+    assert stamped.returncode == 0
+    assert stamped.stderr == ""
+
+
+def test_branch_check_says_what_a_malformed_start_hides(repo):
+  path = repo / "contents.nw"
+  path.write_text("\\tr{Yes}{Ja}\n")
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  path.write_text("\\begin{en}\nNever ended.\n\n" + path.read_text())
+  commit(repo, "broken from the start, with a stamped pair after it")
+  git(repo, "checkout", "-q", "-b", "topic")
+  path.write_text(
+    path.read_text()
+    .replace("ended.\n", "ended.\n\\end{en}\n")
+    .replace("Yes", "Yeah")
+  )
+  assert run(repo, "--stamp", "contents.nw:5").returncode == 0
+  commit(repo, "repaired, and a one-side re-stamp after the repair")
+  result = run(repo, "master...HEAD")
+  assert result.returncode == 0
+  assert "re-stamped, only" not in result.stdout
+  assert "can't be read" in result.stdout
 
 
 def test_branch_check_matches_a_stamp_that_went_away_only_once(repo):
