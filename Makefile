@@ -101,7 +101,9 @@ didactic.sty: didactic.ins didactic.dtx
 # didactic.pdf.  black only tidies the spacing between chunks, so it's optional.
 BLACK?=	$(if $(shell command -v black),black -q -,cat)
 # No pipe: make sees only the status of a pipe's last command, so a failing
-# notangle piped into black made an empty script and make went on.
+# notangle piped into black made an empty script and make went on.  If black
+# fails, make stops, and .DELETE_ON_ERROR (at the top) removes the partial
+# script.
 didactic-sync.py: didactic-sync.nw
 	notangle -R"[[$@]]" $< > $@.tangled
 	${BLACK} < $@.tangled > $@
