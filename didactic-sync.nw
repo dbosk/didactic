@@ -3789,6 +3789,11 @@ Python's own way of failing, a traceback and status 1, would read as just
 that, so a file that can't be read or written is an error of ours, with
 status~2 and one line saying why, and so is anything we didn't foresee, with
 the traceback for whoever has to fix it.
+A reader that stops reading, as [[head]] does, leaves the report unfinished,
+so its status can't be told either: that's status~2 too, but quietly, since
+the reader asked for no more, and with the standard output pointed at nothing
+so that Python doesn't complain about it on the way out.
+Status~0 would be wrong there: it says that everything is in sync.
 
 <<imports>>=
 import argparse
@@ -3848,7 +3853,12 @@ def main(argv=None):
     sys.stdout.reconfigure(errors="surrogateescape")
     sys.stderr.reconfigure(errors="surrogateescape")
     try:
-        return run_mode(args)
+        status = run_mode(args)
+        sys.stdout.flush()
+        return status
+    except BrokenPipeError:
+        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        return STATUS_ERROR
     except OSError as error:
         print(f"{error.filename}: {error.strerror}", file=sys.stderr)
     except Exception:
@@ -3899,6 +3909,8 @@ def check_files(paths, verbose, list_only):
             continue
         try:
             count, errors = check_file(path, verbose)
+        except BrokenPipeError:
+            raise
         except OSError as error:
             print(f"{path}: {error.strerror}", file=sys.stderr)
             broken = True
@@ -3990,6 +4002,19 @@ def test_a_file_name_that_is_not_utf8_is_kept_in_a_message(repo):
 
 def test_no_arguments_is_an_error(repo):
   assert run(repo).returncode == 2
+
+
+def test_a_reader_that_stops_early_gets_no_noise(repo):
+  (repo / "contents.nw").write_text("\\ensv{a}{b}\n" * 5000)
+  process = subprocess.Popen(
+    [sys.executable, str(SCRIPT), "contents.nw"],
+    cwd=repo, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+  )
+  process.stdout.readline()
+  process.stdout.close()
+  stderr = process.stderr.read()
+  assert process.wait() == 2
+  assert stderr == b""
 
 
 def test_a_file_that_cannot_be_read_is_an_error(repo):
