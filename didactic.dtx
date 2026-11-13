@@ -1932,10 +1932,11 @@
 % \enquote{Exempel}.
 % The lines need \textsf{translator}: a document with neither \textsf{beamer} 
 % nor \textsf{beamerarticle} leaves them out.
-% Giving the class the language, |\documentclass[swedish]{beamer}|, works 
-% too, but it takes a driver per edition, and a class option reaches every 
-% package, \textsf{cleveref} too, whose names depend on the order of its 
-% languages, as follows.
+% Giving the class the language, |\documentclass[swedish]{beamer}|, also 
+% makes \textsf{translator} Swedish, but a class option reaches every 
+% package, and it turns \textsf{cleveref}'s order, which the next paragraph 
+% is about, round: with it, the Swedish edition's |\cref| says 
+% \enquote{section} and the English one \enquote{avsnitt}.
 % The names of |\cref| don't: \textsf{cleveref} takes them from the 
 % \emph{last} language among its options.
 % Giving it both languages isn't enough, since \textsf{cleveref} adds a 
