@@ -137,6 +137,7 @@ Each test makes its own repository, so they can run in any order.
 
 <<[[test_didactic_sync.py]]>>=
 """Tests of didactic-sync.py: real git repositories in tmp_path, no mocks."""
+import os
 import re
 import subprocess
 import sys
@@ -2140,8 +2141,19 @@ If nothing is found, the stamp stands outside of history: it isn't committed
 yet, or it has been made up, or this isn't a git repository at all.
 It's still as stale as it was, so the report is given anyway without the diff.
 
+After a large edit, a book has many pairs behind in the same few files, and
+the commits that wrote their stamps are mostly the same few too.
+Reading such a file at such a commit again for every pair made the report take
+minutes on a large file, so what a file holds at a commit is read once and
+kept, and so is the top of the repository.
+Both are only ever read, never changed, within a run.
+The variable [[DIDACTIC_SYNC_NO_CACHE]] turns the keeping off, which is how
+the tests show that it changes nothing in the report.
+
 <<imports>>=
 import subprocess
+import functools
+import os
 <<constants>>=
 COMMIT_MARK = "%x01"
 <<functions>>=
@@ -2161,11 +2173,9 @@ def git(directory, *args):
 
 def text_at_stamp(path, pair):
     """Return the commit that wrote a pair's stamp, and the pair there."""
-    directory = Path(path).resolve().parent
-    root = git(directory, "rev-parse", "--show-toplevel")
+    root = top_of(Path(path).resolve().parent)
     if root is None:
         return None
-    root = root.strip()
     log = git(
         root,
         "log",
@@ -2183,19 +2193,39 @@ def text_at_stamp(path, pair):
         if name.startswith("\x01"):
             commit = name[1:]
         elif name:
-            old = git(root, "show", f"{commit}:{name}")
-            found = old and stamped_pair(old, pair.stamp)
+            found = stamped_pair(pairs_in_commit(root, commit, name), pair.stamp)
             if found:
                 return commit, found
     return None
 
 
-def stamped_pair(text, stamp):
-    """Return the pair in `text` whose sides have the hashes of `stamp`."""
-    for pair in read_pairs(text)[0]:
+def stamped_pair(pairs, stamp):
+    """Return the pair whose sides have the hashes of `stamp`."""
+    for pair in pairs:
         if pair.stamp == stamp and pair.current() == stamp:
             return pair
     return None
+
+
+def kept(function):
+    """Return `function` with its results kept, unless that's turned off."""
+    if os.environ.get("DIDACTIC_SYNC_NO_CACHE"):
+        return function
+    return functools.cache(function)
+
+
+@kept
+def top_of(directory):
+    """Return the top of the repository that holds `directory`, or `None`."""
+    root = git(directory, "rev-parse", "--show-toplevel")
+    return root.strip() if root is not None else None
+
+
+@kept
+def pairs_in_commit(root, commit, name):
+    """Return the pairs of a file as it is at a commit, read once."""
+    text = git(root, "show", f"{commit}:{name}")
+    return read_pairs(text)[0] if text else []
 @
 
 The report then gives the diff of each side that has changed, and the current
@@ -2271,6 +2301,35 @@ def test_the_diff_follows_a_pair_into_another_file(repo):
   result = run(repo, "other.nw")
   assert "sv is behind" in result.stdout
   assert "[-cat-]{+dog+}" in result.stdout
+
+
+def test_keeping_what_a_file_holds_at_a_commit_changes_no_report(repo):
+  path = repo / "contents.nw"
+  path.write_text(
+    "".join(blocks("en", "sv", en=f"One {i}.", sv=f"Ett {i}.") + "x\n"
+            for i in range(4))
+    + "\\ensv{Two}{Två} \\ensv{Three}{Tre}\n"
+  )
+  for name in ("1", "8", "15", "22", "29.1", "29.2"):
+    assert run(repo, "--stamp", f"contents.nw:{name}").returncode == 0
+  commit(repo, "stamps")
+  path.write_text(path.read_text().replace("One 3", "Uno 3"))
+  assert run(repo, "--stamp", "contents.nw:22").returncode == 0
+  commit(repo, "a later stamp")
+  text = path.read_text()
+  for old, new in (("One", "Uno"), ("Ett 1", "Etta 1"), ("{Två}", "{Tvåa}")):
+    text = text.replace(old, new)
+  path.write_text(text)
+  reports = []
+  for keep in ({}, {"DIDACTIC_SYNC_NO_CACHE": "1"}):
+    reports.append(subprocess.run(
+      [sys.executable, str(SCRIPT), "contents.nw"],
+      cwd=repo, capture_output=True, text=True,
+      env={**os.environ, **keep},
+    ))
+  assert reports[0].returncode == reports[1].returncode == 1
+  assert reports[0].stdout == reports[1].stdout
+  assert reports[0].stdout.count("since the stamp") >= 5
 
 
 def test_the_commit_named_is_the_one_that_wrote_the_stamp(repo):
