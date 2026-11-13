@@ -3135,6 +3135,15 @@
 % |\@didactic@url@out| what \textsf{url} gets to set instead.
 % The width of the line is |\linewidth|, which is narrower than |\hsize| in
 % a list such as the bibliography, and the same in a margin note.
+% A margin footnote's text is set once, at no width, and its lines broken
+% later from that list, for the margin and for the foot
+% (|\@didactic@measure|); there the width is the margin's,
+% |\@didactic@url@fixed|, the narrower of the two.
+% A piece wider than the margin but narrower than the text then has letter
+% breaks in the foot's version too, at the penalty |biburlpenalty|, which
+% \TeX\ takes only where every other break there costs more.
+% At the measure's own width no piece would be wide, and the margin's version
+% couldn't break a long URL.
 % A mark that the URL can't contain ends the characters, and |://| after it
 % makes sure the scheme's pattern below matches once.
 %    \begin{macrocode}
@@ -3145,8 +3154,12 @@
   \let\@didactic@url@piece\@empty
   \def\@didactic@url@esc{0}%
   \def\@didactic@url@prev{2}%
-  \dimen@\linewidth
-  \ifdim\hsize<\dimen@ \dimen@\hsize \fi
+  \ifdefined\@didactic@url@fixed
+    \dimen@\@didactic@url@fixed
+  \else
+    \dimen@\linewidth
+    \ifdim\hsize<\dimen@ \dimen@\hsize \fi
+  \fi
   \edef\@didactic@url@width{\the\dimen@}%
   \@didactic@url@scheme#1\@didactic@url@mark://\@nil
   \@didactic@url@out
@@ -5765,6 +5778,7 @@
     \reset@font\foottextfont
     \let\\\@normalcr \let\@gnewline\@didactic@gnewline
     \hsize\maxdimen \linewidth.5\maxdimen
+    \def\@didactic@url@fixed{\marginparwidth}%
     \leftskip\z@skip \rightskip\z@skip \parskip\z@skip
     \parindent\z@ \parfillskip\z@\@plus1fil
     \everypar{\setbox\z@\lastbox}%
