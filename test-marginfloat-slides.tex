@@ -1,0 +1,26 @@
+% Test of margin floats (didactic) on the slides: the source in
+% test-marginfloat-contents.tex, shared with test-marginfloat.tex, in
+% beamer.
+%
+% Build: see the Makefile (twice, for the references).
+%
+% Expected in the resulting PDF:
+%   1  Frame 1: PENDINGANCHOR and the ordinary figure PENDINGCAP under it.
+%   2  Frame 2: the margin figure (example-image-a, 3cm high) as an
+%      ordinary figure, centred, its caption "Figure: A picture beside its
+%      text." under it, then the sentence, all within the frame.
+%   3  Frame 3: the margin table as an ordinary table, centred, caption
+%      above TABCELL; as beamer's tables don't float, it stands between
+%      SPACEA and SPACEB, which start and end the lines around it.
+%   4  Frame 4: REFS with three references, none undefined.
+%   No errors; the optional argument and the notes leave no trace.
+\documentclass{beamer}
+\usepackage[british]{babel}
+\usepackage{lipsum}
+\usepackage[capitalise,noabbrev]{cleveref}
+\usepackage{didactic}
+\begin{document}
+\mode<all>
+\input{test-marginfloat-contents.tex}
+\mode*
+\end{document}

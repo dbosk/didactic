@@ -1,0 +1,8 @@
+# Query: pagination AND typesetting AND ("white space" OR "short page" OR "facing pages")
+# Provider: ieee
+# Timestamp: 2026-11-03T20:04:12.557020
+# Results: 1
+
+title	authors	year	doi	venue	url
+iTestLayout: An Automatic Pagination Algorithm for Print-Ready Examination Papers	Thanh Le Dinh	2025	10.1109/KSE68178.2025.11309526	2025 17th International Conference on Knowledge and System Engineering (KSE)	https://ieeexplore.ieee.org/document/11309526/
+

@@ -1,0 +1,66 @@
+# Query: (LaTeX OR TeX OR noweb OR CWEB OR "literate programming") AND ("code listing" OR listings OR verbatim OR "code chunk") AND ("page break" OR "across pages") AND (criticism OR limitations OR empirical OR evaluation OR reading)
+# Provider: openalex
+# Timestamp: 2026-11-04T10:00:43.100298
+# Results: 59
+
+title	authors	year	doi	venue	url
+The Computer Science Of Tex And Latex	Victor L. Eijkhout	2004	10.5281/zenodo.49901	Zenodo (CERN European Organization for Nuclear Research)	https://openalex.org/W2470989218
+Inconsistencies in TeX-Produced Documents	J. Tan; Manuel Rigger	2024	10.1145/3650212.3680370	ACM SIGSOFT International Symposium on Software Testing and Analysis (ISSTA)	https://openalex.org/W4402457502
+Preparing Horizon Europe proposals in LaTeX with heria	Tristan Miller	2024	10.47397/tb/45-1/tb139miller-horizon	TUGboat	https://openalex.org/W4396691338
+LaTeX news, issue 40, November 2024	LaTeX Project Team	2025	10.47397/tb/46-1/tb142ltnews40	TUGboat	https://openalex.org/W4410154456
+Zvýraznění bloků textu s možností stránkového zlomu	Vít Zýka	1999	10.5300/1999-3/146	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2314023370
+TeX in a Nutshell	Petr Olšák	2021	10.5300/2021-1-4/9	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W4288479161
+TeX and graphics : The State of the Problem	Nelson H. F. Beebe	1989	10.5802/cg.22	Cahiers GUTenberg	https://openalex.org/W1976662275
+Markup to generate markup to generate markup	Peter Flynn	2013	10.4242/balisagevol10.flynn01	Balisage series on markup technologies	https://openalex.org/W2422102396
+Blender Add-on for Typesetting of 3D Text Using LaTeX Code	Katarína Strenková	2026		Brno University of Technology Digital Library (Brno University of Technology)	https://openalex.org/W7166502107
+Modular Multimodal Machine Learning for Extraction of Theorems and Proofs in Long Scientific Documents (Extended Version)	Shrey Mishra; Antoine Gauquier; Pierre P. Senellart	2023	10.48550/arxiv.2307.09047	HAL	https://openalex.org/W4384807976
+T sub E Xnical typesetting: A guide through the TEX typesetting program	Stan Ketterer	1989	10.2172/5291546		https://openalex.org/W4232509801
+tabular: Render Tables, Listings, and Figures for Clinical Submissions	Vignesh Thanikachalam	2026	10.32614/cran.package.tabular		https://openalex.org/W7164354677
+Creating LaTeX Documents from within Stata using Texdoc	Ben Jann	2016	10.1177/1536867x1601600201	The Stata Journal Promoting communications on statistics and Stata	https://openalex.org/W2210440641
+Formatting information: A beginner's introduction to typesetting with LATEX	Peter Flynn	2002		Cork Open Research Archive (University College Cork, Ireland)	https://openalex.org/W2231431194
+Axessibility: creating PDF documents with accessible formulae	Dragan Ahmetovic; Tiziana Armano; Michele Berra; Cristian Bernareggi; Anna Capietto; Sandro Coriasco; Nadir Murru; Alice Ruighi	2018		Institutional Research Information System University of Turin (University of Turin)	https://openalex.org/W2911778149
+Sazba zdrojových kódů	Petra Čačková	2012	10.5300/2012-2/97	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2322345640
+Selected Problems from the Book Typesetting: The Case of Stageplay Typesetting	Pavel Stříž	2009	10.5300/2009-1-2/37	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2327264113
+A generic comparison process for documentation files	Michelle Timmons	1997		Dublin City University Open Access Institutional Repository (Dublin City University)	https://openalex.org/W124632626
+A document manipulation system based on natural semantics	Dennis S. Arnon; Isabelle Attali; Paul Franchi-Zannettacci	1997	10.1016/s0895-7177(97)00023-x	Mathematical and Computer Modelling	https://openalex.org/W2084293120
+PaperFit: Vision-in-the-Loop Typesetting Optimization for Scientific Documents	Bihui Yu; Xinglong Xu; Junjie Jiang; Jiabei Cheng; Caijun Jia; Siyuan Li; Conghui He; Jingxuan Wei; Cheng Tan	2026	10.48550/arxiv.2605.10341	arXiv (Cornell University)	https://openalex.org/W7160958579
+Development of a database for managing social service students using MATLAB	Edgar Alfredo González-Galindo; Héctor Nathán Luna-Alanís; Alberto González-Ledesma; Joseph Kevin Castro-Pérez	2024	10.35429/ejs.2024.21.11.8.20	ECORFAN Journal Spain	https://openalex.org/W4403158506
+Substituting outline fonts for bitmap fonts in archived PDF files	Steve Probets; David F. Brailsford	2003		Repository@Nottingham (University of Nottingham)	https://openalex.org/W7222386146
+Institutional Membership		1985	10.1111/j.1467-8659.1985.tb00233.x	Computer Graphics Forum	https://openalex.org/W4205308725
+Reflections on \globaldefs	Udo Wermuth	2023	10.47397/tb/44-1/tb136wermuth-globaldefs	TUGboat	https://openalex.org/W4377000660
+MkIV Hybrid Technology	Hans Hagen	2011	10.5300/2011-2-4/182	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W4239090026
+TrueType-fonty v TeXu	Vladimír Koutný	1999	10.5300/1999-3/159	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2334932064
+Digital archiving of Malayalam content II	CV Radhakrishnan; KV Rajeesh	2026	10.47397/tb/47-2/tb146radhakrishnan-malayalam-archiving	TUGboat	https://openalex.org/W7204693043
+Some NTS thoughts	Hans Hagen	1999	10.5300/1999-3/109	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2314187929
+Verbatim Revisited–the fancyvrb Package	Denis Girou; Sebastian Rahtz	1998	10.5802/cg.229	Cahiers GUTenberg	https://openalex.org/W2335129408
+bib2gls: selection, cross-references and locations	Nicola L. C. Talbot	2020	10.47397/tb/41-3/tb129talbot-bib2gls-more	TUGboat	https://openalex.org/W3127924702
+The glossaries package: Getting started	Nicola L. C. Talbot	2025	10.47397/tb/46-1/tb142talbot-glossaries-intro	TUGboat	https://openalex.org/W4410155363
+Nový štandard textových editorov pre Windows? – II	Igor Podlubný; Katarina Kassayova	1999	10.5300/1999-3/132	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2334100110
+AI-Friendly LaTeX: Using LaTeX Code as a Knowledge Source for Retrieval-Augmented Generation	T Tom Verhoeff	2026	10.48550/arxiv.2605.22923	arXiv (Cornell University)	https://openalex.org/W7162299471
+Fast regression testing of TeX packages: Multiprocessing and batching	Vít Starý Novotný; Marei Peischl	2024	10.47397/tb/45-1/tb139starynovotny-testing	TUGboat	https://openalex.org/W4396691334
+SciKGTeX - A LATEX Package to Semantically Annotate Contributions in Scientific Publications	Bless, Christof; Baimuratov, Ildar; Karras, Oliver	2023	10.15488/16372	Institutional Repository of Leibniz Universität Hannover (Leibniz Universität Hannover)	https://openalex.org/W6924963272
+Boxenv.sty : a LATEX style file for formatting BOX expressions	Jonge, Merijn	1999		Centrum Wiskunde & Informatica (CWI), the national research institute for mathematics and computer science in the Netherlands	https://openalex.org/W2508496830
+Instructions for S&P authors using LATEX 2ε	Kai von Fintel; Christopher Potts; Chung-chieh Shan	2007	10.3765/sp.0.2	Semantics and Pragmatics	https://openalex.org/W2147741537
+simPDF: Fast Multi-Page PDF Report Layout on the Graphics Device	Kyun‐Seop Bae	2026	10.32614/cran.package.simpdf		https://openalex.org/W7171773862
+KTBox: A Modular LaTeX Framework for Semantic Color, Structured Highlighting, and Scholarly Communication	Bhaskar Mangal; Ashutosh Bhatia; Yashvardhan Sharma; Kamlesh Tiwari; Rashmi Verma	2025	10.48550/arxiv.2510.01961	arXiv (Cornell University)	https://openalex.org/W4414819823
+tinytable: Simple and Configurable Tables in 'HTML', 'LaTeX', 'Markdown', 'Word', 'PNG', 'PDF', and 'Typst' Formats	Vincent Arel‐Bundock	2024	10.32614/cran.package.tinytable		https://openalex.org/W4399636886
+6.2 Text-critical analysis	Marina Buzzoni	2020	10.1515/9783110684384-007	ARCA (Università Ca' Foscari Venezia)	https://openalex.org/W3113722980
+OCR dataset och modell fine-tuning för det svenska språket : En allsidig OCR-modell för svenska dokument	Berg, William	2025		KTH Publication Database DiVA (KTH Royal Institute of Technology)	https://openalex.org/W7113565550
+Cookbook for Open Access books	Sebastian Nordhoff	2018	10.17169/refubium-836	Refubium (Universitätsbibliothek der Freien Universität Berlin)	https://openalex.org/W2899872573
+Improvement of Analysis Codes for Nuclear Structure and Decay Data Evaluations (Summary Report of 2nd Technical Meeting)	IAEA Nuclear Data Section; P. Dimitriou; T. Kibédi	2015	10.61092/iaea.2gnp-67v6		https://openalex.org/W4404252408
+OCRBench v2: An Improved Benchmark for Evaluating Large Multimodal Models on Visual Text Localization and Reasoning	Ling Fu; Zhebin Kuang; Jiajun Song; Mingxin Huang; Biao Yang; Yuzhe Li; Linghao Zhu; Qidi Luo; Xinyu Wang; Hao Feng Lu; Zhang Li; Guozhi Tang; Bin Shan; Chunhui Lin; Qi Liu; Binghong Wu; Hao Feng; Hao Liu; Can Huang; Jingqun Tang; Wei Chen; Lianwen Jin; Yuliang Liu; Xiang Bai	2025	10.52202/085713-3253	neural information processing systems	https://openalex.org/W4406031111
+Histories of Content Reuse in the Periodical Press	Jimmy Engren; Johan Jarlbrink; Patrik Lundell	2026	10.1515/9783111639420	De Gruyter eBooks	https://openalex.org/W7167509274
+Evaluating Progressive Web App Accessibility for People with Disabilities	Konstantinos I. Roumeliotis; Nikolaos D. Tselikas	2022	10.3390/network2020022	Network	https://openalex.org/W4282828313
+tables: Formula-Driven Table Generation	Duncan Murdoch	2011	10.32614/cran.package.tables		https://openalex.org/W4399635911
+Lilypond Music-Notation Software in the Digital-Humanities Toolbox	Andrew A. Cashner	2024	10.63744/rfcvh3zcuxby	Digital humanities quarterly	https://openalex.org/W7139954996
+SkillForgeBench: Evaluating Agent Reliability Grounded in Agent Skill Specifications	Zhengxi Li; Junyi Zhou; Qiyuan Zhang; Chuhan Wu; Fuyuan Lyu; Le Tian; Xiao Zhou; Chen Ma; Yufei Wang	2026	10.48550/arxiv.2610.14918	arXiv (Cornell University)	https://openalex.org/W7221758385
+Typst: A Modern Typesetting Engine for Science	Andrey Voynov; Alberto Corbí; Pau López-Oliver; David Gil	2026	10.9781/ijimai.2026.2269	International Journal of Interactive Multimedia and Artificial Intelligence	https://openalex.org/W7130368314
+FilingLoop: Evaluating and Evolving LLM Agents for Corporate Disclosure Review and Revision	Wentao Zhang; Yilei Zhao; Guangyan Gan; Shuo Sun; Lin William Cong	2026	10.48550/arxiv.2610.37905	arXiv (Cornell University)	https://openalex.org/W7224857091
+The HINT Project: Status and open questions	Martin Ruckert; Gudrun Socher	2020	10.47397/tb/41-2/tb128ruckert-hint	TUGboat	https://openalex.org/W4410156750
+News from the HINT project: 2023	Martin Ruckert	2023	10.47397/tb/44-2/tb137ruckert-hint23	TUGboat	https://openalex.org/W4386739759
+Comparative evaluation of vision language models for table extraction in scanned spanish public tenders	Amine Mbarek	2026		UVaDOC UVaDOC University of Valladolid Documentary Repository (University of Valladolid)	https://openalex.org/W7160970890
+The evaluation of three approaches to implementing an OGC Web Map Service client application.	Hao Ding	2003	10.26021/1781	UC Research Repository  (University of Canterbury)	https://openalex.org/W2283806422
+Improving the Accessibility of Scientific Documents: Current State, User Needs, and a System Solution to Enhance Scientific PDF Accessibility for Blind and Low Vision Users	Lucy Lu Wang; Isabel Alyssa Cachola; Jonathan Bragg; Evie Yu-Yen Cheng; Chelsea Haupt; Matt Latzke; Bailey Kuehl; Madeleine van Zuylen; L Wagner; Daniel S. Weld	2021	10.48550/arxiv.2105.00076	arXiv (Cornell University)	https://openalex.org/W3159933103
+TEI Critical Apparatus Toolbox : web-based tools for ongoing XML-TEI editions	Bastien Dumont	2022	10.18716/ride.a.15.4	HAL	https://openalex.org/W4313506430
+Beyond the space of painting and poetry: Mallarmé and the embodied gesture	Bernadette O'Toole	2020	10.7190/shu-thesis-00422	Sheffield Hallam University	https://openalex.org/W4220929708
+

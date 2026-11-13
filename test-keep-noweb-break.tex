@@ -1,0 +1,11 @@
+% As test-keep-noweb.tex, with \noweboptions{breakcode}, which changes what comes
+% between chunks.
+\documentclass[a4paper,oneside]{memoir}
+\usepackage[british]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\usepackage{noweb}
+\usepackage{multicol}
+\noweboptions{breakcode}
+\input{test-keep-noweb-body.tex}

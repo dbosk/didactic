@@ -1,0 +1,10 @@
+% Test that didactic loads and runs on a kernel from before \fpeval (added
+% 2021-11-30, in LaTeX 2022-06; \AddToHook came in 2020-10): rolled back with
+% latexrelease.  The Makefile fails on any LaTeX error and on a missing
+% didactic-margin line in the log.
+\RequirePackage[2021-06-01]{latexrelease}
+\documentclass{article}
+\usepackage{didactic}
+\begin{document}
+Text.
+\end{document}

@@ -1,0 +1,10 @@
+# Query: TITLE-ABS-KEY(("code listing" OR "program listing" OR "source code listing") AND ("page break" OR "across pages" OR pagination OR typesetting OR typography))
+# Provider: scopus
+# Timestamp: 2026-11-04T09:51:43.017969
+# Results: 3
+
+title	authors	year	doi	venue	url
+Rapid Evaluation using Multiple Choice Tests and TEX	P. Sojka	2003	10.1145/961626.961628	Proceedings of the Annual SIGCSE Conference on Innovation and Technology in Computer Science Education Itisce	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=1542287535&origin=inward
+Proceedings of the 15th annual ACM symposium on user interface software and technology		2002		UIST User Interface Software and Technology Proceedings of the ACM Symposium	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=0037967559&origin=inward
+Design principles for the enhanced presentation of computer program source text	R. Baecker	1986	10.1145/22627.22348	Conference on Human Factors in Computing Systems Proceedings	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=85038080906&origin=inward
+

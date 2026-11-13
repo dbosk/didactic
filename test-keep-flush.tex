@@ -1,0 +1,21 @@
+% Test of a heading that ends a page under \flushbottom (didactic): the space
+% stays at the foot of the page, no glue stretched and no Underfull \vbox.
+%
+% Build: see the Makefile, which fails on an Underfull \vbox in the log.  The
+% section is at a place where the estimate before a heading ends the page, in
+% a document with \flushbottom, the default of book with twoside.
+\documentclass[a4paper,twoside]{book}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{didactic}
+\newcommand\roomfor[1]{%
+  \clearpage
+  \noindent\rule{\linewidth}{0.4pt}\par
+  \vspace*{\dimexpr\textheight-\topskip-#1\baselineskip-\baselineskip\relax}%
+  \par}
+\begin{document}
+\roomfor{2}
+\section{HEADING}
+Text after the heading, and more of it, and more of it, and more of it, and
+more of it, and more of it, and more of it, and more of it, and more of it, and
+more of it, and more of it, and more of it, and more of it, and more of it.
+\end{document}

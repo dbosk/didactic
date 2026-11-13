@@ -1,0 +1,8 @@
+# Query: TITLE-ABS-KEY(("program typography" OR "typographic style" OR "pretty printing" OR "pretty-printing" OR "code layout") AND (criticism OR "no effect" OR "no significant" OR replication OR limitations) AND (comprehension OR readability))
+# Provider: scopus
+# Timestamp: 2026-11-04T10:00:12.846821
+# Results: 1
+
+title	authors	year	doi	venue	url
+Constructing format-preserving printing from syntax-directed definitions	L.C. Wang	2015	10.1007/s11432-015-5368-9	Science China Information Sciences	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=84946532226&origin=inward
+

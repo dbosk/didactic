@@ -1,0 +1,15 @@
+# Query: TITLE-ABS-KEY(("program comprehension" OR "code comprehension" OR "code readability") AND ("page break" OR "page boundary" OR "page turn" OR "across pages" OR pagination OR scrolling OR "screen size" OR "display size"))
+# Provider: scopus
+# Timestamp: 2026-11-04T09:59:12.460490
+# Results: 8
+
+title	authors	year	doi	venue	url
+An Analysis of Program Comprehension Process by Eye Movement Mapping to Syntax Trees	H. Yoshioka	2024	10.1007/978-3-031-53274-0_10	Studies in Computational Intelligence	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=85192725244&origin=inward
+Annotation Visualizer: A software visualization tool for code annotations [Formula presented]	P. Lima	2023	10.1016/j.simpa.2023.100491	Software Impacts	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=85150796709&origin=inward
+Deja Vu: semantics-aware recording and replay of high-speed eye tracking and interaction data to support cognitive studies of software engineering tasks—methodology and analyses	V. Zyrianov	2022	10.1007/s10664-022-10209-3	Empirical Software Engineering	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=85138389019&origin=inward
+IDEvelopAR: A Programming Interface to enhance Code Understanding in Augmented Reality	L. Kreber	2022	10.1109/VISSOFT55257.2022.00017	Proceedings 2022 Working Conference on Software Visualization Vissoft 2022	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=85146232527&origin=inward
+Gazel: Supporting Source Code Edits in Eye-Tracking Studies	S. Fakhoury	2021	10.1109/ICSE-Companion52605.2021.00038	Proceedings International Conference on Software Engineering	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=85115728537&origin=inward
+Automated Recording and Semantics-Aware Replaying of High-Speed Eye Tracking and Interaction Data to Support Cognitive Studies of Software Engineering Tasks	V. Zyrianov	2020	10.1109/ICSME46990.2020.00051	Proceedings 2020 IEEE International Conference on Software Maintenance and Evolution Icsme 2020	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=85096656702&origin=inward
+Developer Reading Behavior while Summarizing Java Methods: Size and Context Matters	N. Abid	2019	10.1109/ICSE.2019.00052	Proceedings International Conference on Software Engineering	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=85069452233&origin=inward
+Semantic navigation strategies for scenario-based programming	M. Gordon	2010	10.1109/VLHCC.2010.38	Proceedings 2010 IEEE Symposium on Visual Languages and Human Centric Computing Vl Hcc 2010	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=79952061750&origin=inward
+

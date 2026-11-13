@@ -1,0 +1,50 @@
+% Test of margin floats (didactic) in a frame that is only on the slides.  In the
+% notes beamer typesets such a frame into a box that it throws away, so a
+% \marginpar in it is lost, and then the margin notes after it.
+%
+% Build: see the Makefile (twice, for marginfix's anchors).
+%
+% Expected in the resulting PDF and log:
+%   1  No errors (no "Float(s) lost", no undefined \@marbox).
+%   2  HIDDENPAR and HIDDENV nowhere, and neither is their text.
+%   3  VISIBLE in the margin beside VISTEXT, as Figure 1: the hidden floats
+%      take no numbers.  TABVISIBLE likewise, as Table 1.
+\documentclass[a4paper]{memoir}
+\usepackage{beamerarticle}
+\usepackage{didactic}
+\counterwithout{figure}{chapter}
+\counterwithout{table}{chapter}
+\begin{document}
+\begin{frame}<presentation>
+  HIDDENTEXT, with a float in the paragraph
+  \begin{marginfigure}
+    \rule{2cm}{1cm}
+    \caption{HIDDENPAR}
+  \end{marginfigure}
+  and on.
+\end{frame}
+\begin{frame}<presentation>
+  \begin{marginfigure}
+    \rule{2cm}{1cm}
+    \caption{HIDDENV}
+  \end{marginfigure}
+  \begin{margintable}
+    \caption{HIDDENTAB}
+    \rule{2cm}{1cm}
+  \end{margintable}
+  HIDDENTEXT, with floats before the paragraph.
+\end{frame}
+\begin{frame}
+  VISTEXT with a float
+  \begin{marginfigure}
+    \rule{2cm}{1cm}
+    \caption{VISIBLE}
+  \end{marginfigure}
+  and a table
+  \begin{margintable}
+    \caption{TABVISIBLE}
+    \rule{2cm}{1cm}
+  \end{margintable}
+  in the paragraph.
+\end{frame}
+\end{document}

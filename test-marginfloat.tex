@@ -1,0 +1,37 @@
+% Test of margin floats (didactic) in the notes: memoir + beamerarticle,
+% the source in test-marginfloat-contents.tex shared with
+% test-marginfloat-slides.tex.
+%
+% Build: see the Makefile (twice, for the references and
+% marginfix's anchors).
+%
+% Expected in the resulting PDF, all on page 1:
+%   1  The ordinary figure PENDINGCAP (Figure 1) at the bottom of the page.
+%      It is waiting when the margin floats come, so memoir's own
+%      environments would start a new page there (\FloatBlock); ours
+%      don't, so the whole text is on page 1 and the PDF has one page.
+%   2  The margin figure (example-image-a, 3cm high, "A picture beside its
+%      text.", Figure 2) in the right margin, beside the paragraph that
+%      starts "Figure 2 is in the margin", not in the text block.  It is
+%      pushed down by the note NOTEABOVE just above it and doesn't touch
+%      it: a gap of \marginparpush between the note's last line and the
+%      image.
+%   3  The margin table (MTABCAP, Table 1) in the right margin, as close
+%      to its line (SPACEA SPACEB) as the figure above lets it, set ragged
+%      right; TABCELL is not indented, but flush with the caption.
+%   4  One space between SPACEA and SPACEB, as between other words.
+%   5  REFS: "Figure 1, Figure 2 and Table 1", with no undefined
+%      references in the log.
+\documentclass[a4paper]{memoir}
+\usepackage[british]{babel}
+\usepackage{beamerarticle}
+\usepackage{graphicx}
+\usepackage{lipsum}
+\usepackage{hyperref}
+\usepackage[capitalise,noabbrev]{cleveref}
+\usepackage{didactic}
+\counterwithout{figure}{chapter}
+\counterwithout{table}{chapter}
+\begin{document}
+\input{test-marginfloat-contents.tex}
+\end{document}

@@ -1,0 +1,8 @@
+# Query: TITLE-ABS-KEY(list AND "page break" AND (typography OR typesetting OR pagination))
+# Provider: scopus
+# Timestamp: 2026-11-03T20:05:22.605078
+# Results: 1
+
+title	authors	year	doi	venue	url
+A total-fit page-breaking algorithm with user-defined adjustment strategies	A. Di Iorio	2006	10.1117/12.643449	Proceedings of SPIE the International Society for Optical Engineering	https://www.scopus.com/inward/record.uri?partnerID=HzOxMe3b&scp=33645983177&origin=inward
+

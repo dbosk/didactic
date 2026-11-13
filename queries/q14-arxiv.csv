@@ -1,0 +1,19 @@
+# Query: "short page" OR "ragged bottom" OR "running short" OR "flush bottom" OR "bottom balancing"
+# Provider: arxiv
+# Timestamp: 2026-11-03T20:14:54.929580
+# Results: 12
+
+title	authors	year	doi	venue	url
+Constraints on the Solar $Δm^2$ using Daya Bay & RENO	Seon-Hee Seo; Stephen Parke	2018	10.1103/PhysRevD.99.033012	hep-ex	http://arxiv.org/abs/1808.09150v3
+Pigeonhole Stochastic Gradient Langevin Dynamics for Large Crossed Mixed Effects Models	Xinyu Zhang; Cheng Li	2022	10.48550/arXiv.2212.09126	stat.CO	http://arxiv.org/abs/2212.09126v2
+Accelerating Uncertainty Quantification of Groundwater Flow Modelling Using a Deep Neural Network Proxy	Mikkel B. Lykkegaard; Tim J. Dodwell; David Moxey	2020	10.1016/j.cma.2021.113895	stat.CO	http://arxiv.org/abs/2007.00400v2
+Constraint on the solar $Δm^2$ using 4,000 days of short baseline reactor neutrino data	Alvaro Hernandez Cabezudo; Stephen J. Parke; Seon-Hee Seo	2019	10.1103/PhysRevD.100.113008	hep-ex	http://arxiv.org/abs/1905.09479v2
+DocSeeker: Structured Visual Reasoning with Evidence Grounding for Long Document Understanding	Hao Yan; Yuliang Liu; Xingchen Liu; Yuyi Zhang; Minghui Liao; Jihao Wu; Wei Chen; Xiang Bai	2026	10.48550/arXiv.2604.12812	cs.AI	http://arxiv.org/abs/2604.12812v5
+On the Statistical Challenges of Echo State Networks and Some Potential Remedies	Qiuyi Wu; Ernest Fokoue; Dhireesha Kudithipudi	2018	10.48550/arXiv.1802.07369	stat.ML	http://arxiv.org/abs/1802.07369v1
+LaSS: Running Latency Sensitive Serverless Computations at the Edge	Bin Wang; Ahmed Ali-Eldin; Prashant Shenoy	2021	10.1145/3431379.3460646	cs.DC	http://arxiv.org/abs/2104.14087v1
+Kinship Identification through Joint Learning Using Kinship Verification Ensembles	Wei Wang; Shaodi You; Sezer Karaoglu; Theo Gevers	2020	10.48550/arXiv.2004.06382	cs.CV	http://arxiv.org/abs/2004.06382v4
+Beyond Task Reward: A Controller-Restriction Protocol for Evaluating Embodiment-Dependent Competence	Siyuan Zhang	2026	10.48550/arXiv.2610.07629	cs.RO	http://arxiv.org/abs/2610.07629v1
+Derived Langlands VII: The PSH Algebra of Products of General Linear Groups	Victor P Snaith	2022	10.48550/arXiv.2201.01238	math.NT	http://arxiv.org/abs/2201.01238v1
+AI Trading's Alpha Singularity: Emergent Market Reasoning through Agent-to-Agent Self-Evolution	Yuqi Li; Siyuan Liu; Bingjun Liu	2026	10.48550/arXiv.2606.29194	cs.AI	http://arxiv.org/abs/2606.29194v1
+Explore or Confirm? LLM Agents Misallocate Measurements Under Noise	Abdul Karim; Matt Keon	2026	10.48550/arXiv.2610.25111	cs.AI	http://arxiv.org/abs/2610.25111v1
+

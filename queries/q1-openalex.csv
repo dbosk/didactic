@@ -1,0 +1,64 @@
+# Query: "widows and orphans" AND (typography OR typesetting OR "page layout")
+# Provider: openalex
+# Timestamp: 2026-11-03T20:03:15.212078
+# Results: 57
+
+title	authors	year	doi	venue	url
+Updates to “Automatically removing widows and orphans with lua-widow-control”, TUGboat 43:1	Max Chernoff	2022	10.47397/tb/43-3/tb135chernoff-lwc	TUGboat	https://openalex.org/W4312431848
+Output routines extending \plainoutput	Udo Wermuth	2025	10.47397/tb/46-1/tb142wermuth-widow	TUGboat	https://openalex.org/W4410155527
+Automatically removing widows and orphans with lua-widow-control	Max Chernoff	2022	10.47397/tb/43-1/tb133chernoff-widows	TUGboat	https://openalex.org/W4285120367
+Automatically Removing Widows and Orphans with lua-widow-control	Max Chernoff	2022	10.5300/2022-1-4/49	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W4312367526
+The Mac is not a typewriter: A style manual for creating professional-level type on your Macintosh	Robin Williams	1989			https://openalex.org/W1574290698
+PaperFit: Vision-in-the-Loop Typesetting Optimization for Scientific Documents	Bihui Yu; Xinglong Xu; Junjie Jiang; Jiabei Cheng; Caijun Jia; Siyuan Li; Conghui He; Jingxuan Wei; Cheng Tan	2026	10.48550/arxiv.2605.10341	arXiv (Cornell University)	https://openalex.org/W7160958579
+Extensible Stylesheet Language Requirements, Version 2.0, Working Draft 26 March 2008	Klaas Bals; Tony Graham	2010	10.5300/2010-1-2/79	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2051524055
+Type Rules!: The Designer's Guide to Professional Typography	Ilene Strizver	2001			https://openalex.org/W1577808359
+Page Makeup by Postprocessing Text Formatter Output	Brian W. Kernighan; Christopher J. Van Wyk	1989			https://openalex.org/W2097132731
+Young men have always wanted to rush into print: a note on Denis Glover's writings on typography	Lindsay Rollo	2013	10.26686/knznq.v0i0.2003	Kōtare New Zealand Notes & Queries	https://openalex.org/W369539873
+Definitive XSL-FO	G. Ken Holman	2003			https://openalex.org/W410072180
+A Personal Note on Open Access in Linguistics	Stefan Müller	2012	10.15398/jlm.v0i1.52	Journal of Language Modelling	https://openalex.org/W2073150288
+Anais Nin: Diarist as Letterpress Printer	Emily Larned	2016		Openings: Studies in Book Art	https://openalex.org/W7219920372
+The Creation of typographic specifications for desktop publishing software	M. Hill	2000		RIT Scholar Works (Rochester Institute of Technology)	https://openalex.org/W827400432
+The boundary between "us" and "them": readers and the non-English word in the fiction of Canadian Mennonite writers	Beth E. Janzen	2008	10.14288/1.0086406	cIRcle (University of British Columbia)	https://openalex.org/W2309556397
+Towards the automation of book typesetting	Sérgio M. Rebelo; Tiago Martins; Diogo Ferreira; Artur Rebelo	2023	10.1016/j.visinf.2023.01.003	Visual Informatics	https://openalex.org/W4317939411
+Ten simple rules for typographically appealing scientific texts	Lars Ole Schwen	2020	10.1371/journal.pcbi.1008458	PLoS Computational Biology	https://openalex.org/W3113659071
+Responsive Design and Automatic Typesetting with LuaLaTeX	Michal Hoftich	2024	10.5300/2024-1-4/28	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W4405500217
+Developing an Arabic Typography Course for Visual Communication Design Students in the Middle East and North African Region	Basma Almusallam	2014		OhioLink ETD Center (Ohio Library and Information Network)	https://openalex.org/W2215560213
+Desktop Publishing Choices: Making an Appropriate Decision	Walt Crawford	1991		Information Technology and Libraries	https://openalex.org/W322478641
+Komputerisasi sebagai Media Karya Tipografi Eksperimental	Dria Setiautami	2010	10.21512/humaniora.v1i2.2886	Humaniora	https://openalex.org/W2278278287
+The Bible Against American Slavery: Anglophone Transatlantic Evangelical Abolitionists' Use of Biblical Arguments, 1776-1865	Richard Rodríguez	2017	10.25148/etd.fidc004052		https://openalex.org/W2801808409
+Evaluation of three electronic report processing systems for preparing hydrologic reports of the U.S Geological Survey, Water Resources Division	Gloria J. Stiltner	1990	10.3133/ofr89576	Antarctica A Keystone in a Changing World	https://openalex.org/W2267806055
+Fundraising for Christian non-profit organizations	Eleanor A. Weideman	1999		SUNScholar (Stellenbosch University)	https://openalex.org/W2124588704
+A Nonprofit's guide to internally-planned successful print communications	Joseph Wilson	1996		RIT Scholar Works (Rochester Institute of Technology)	https://openalex.org/W804883748
+Technology and design: Vancouver Magazine before and after desktop publishing	Tatiana MacNeill	2005		Summit (Simon Fraser University)	https://openalex.org/W189181732
+Electronic Publishing - a Journal and its Production	David F. Brailsford; R. J. Beach	1989	10.1093/comjnl/32.6.482	The Computer Journal	https://openalex.org/W2131782283
+Programming pearls	Jon Louis Bentley	1986	10.1145/6592.315696	Communications of the ACM	https://openalex.org/W1504247039
+Adobe's Acrobat -- the Electronic Journal Catalyst?	David F. Brailsford	1993		Repository@Nottingham (University of Nottingham)	https://openalex.org/W7222375284
+Enhancing Natural Resource Programs: Designing Effective Brochures	Martha C. Monroe; Ludovica Weaver	2007	10.32473/edis-fr081-2007	EDIS	https://openalex.org/W2993797079
+Separate compilation of structured documents	Michael J. Groves; David F. Brailsford	1993		Nottingham ePrints (University of Nottingham)	https://openalex.org/W2108674962
+The Search for an Alternative Workflow at UBC Press: Support- and Service-Based Models	Alexander Sutcliffe	2014		Summit (Simon Fraser University)	https://openalex.org/W434218189
+RFC Format Framework	Heather Flanagan	2016	10.17487/rfc7990		https://openalex.org/W2501426289
+THE PLACE OF INFORMATION, COMMUNICATION AND TECHNOLOGY (ICT) IN BOOK PUBLISHING OPERATIONS IN NIGERIA	Lambert A. Ihebuzor Ph. D; Adejare Samuel Odu	2015		Singaporean Journal of Business Economics and Management	https://openalex.org/W7221287739
+Electronic Publishing : the evolution and economics of a hybrid journal.	David F. Brailsford	1997		Repository@Nottingham (University of Nottingham)	https://openalex.org/W7222375877
+The design considerations for display oriented proportional text editors using bit-mapped graphics display systems /	Nitu. Ganguli	1987	10.82308/49743	eScholarship@McGill (McGill)	https://openalex.org/W7161998018
+How to Create a Language Center Newsletter	Robin McClanahan	1994	10.17161/iallt.v27i2.9547	IALLT Journal of Language Learning Technologies	https://openalex.org/W303738885
+The Origin of Christian Charity	A.A. Bykov	2015	10.1016/j.sbspro.2014.12.582	Procedia - Social and Behavioral Sciences	https://openalex.org/W2034689184
+The Structural Information Potential and its Application to Document Triage	Vlad Atanasiu	2021	10.1109/access.2021.3133654	IEEE Access	https://openalex.org/W4205089548
+Requirements for Plain-Text RFCs	Heather Flanagan	2016	10.17487/rfc7994		https://openalex.org/W2557765958
+Institutional Membership		1985	10.1111/j.1467-8659.1985.tb00233.x	Computer Graphics Forum	https://openalex.org/W4205308725
+Moral Wisdom and Good Lives	W. Jay Wood; The Society of Christian Philosophers	1999	10.5840/faithphil199916114	Faith and Philosophy	https://openalex.org/W2006481073
+Revising theory: a universal framework for the comprehensive editing of technical communications	Natalie L. Peterson	2017		Minds at UW (University of Wisconsin)	https://openalex.org/W3165951229
+REJOICE MY HEART: THE MAKING OF H.R. MILL'S ‘THE LIFE OF SIR ERNEST SHACKLETON’ – THE PRIVATE CORRESPONDENCE OF DR HUGH ROBERT MILL AND LADY SHACKLETON, 1922–33. Michael H. Rosove (Editor). 2007. Santa Monica, CA: Adélie Books. xxi + 142p, illustrated, hard cover. ISBN 978-0-9705386-2-8. £18.95; $US34.95.	Robert B. Stephenson	2008	10.1017/s003224740800733x	Polar Record	https://openalex.org/W2011190943
+The Social Doctrine of Zeev Jabotinsky, from the Fathers of Zionism	David Schwartz	2016	10.4236/ojps.2016.64034	Open Journal of Political Science	https://openalex.org/W2524679780
+PDF Format for RFCs	Larry M. Masinter; M. Hardy	2016	10.17487/rfc7995		https://openalex.org/W2574776489
+Giving in the United States	Ayako Kamei	2013		Institutional Repositories DataBase (IRDB)	https://openalex.org/W2707821873
+X-Pro Milestone: Comparative Evaluation against Similar Software Tools, Current Status, and Planned Future Directions	Sulieman Bani‐Ahmad	2017	10.4236/ce.2017.84048	Creative Education	https://openalex.org/W2610721992
+Best practice of Rendering CDA in a Cross Enterprise Document Sharing Environment	Stefan Sabutsch; Peter Seifter	2016	10.24105/ejbi.2016.12.1.12	European Journal for Biomedical Informatics	https://openalex.org/W2765417201
+Formation of legislation on pension insurance in France, Great Britain, and Russia. A retrospective	Anna V. Aleksandrova; Angelina Vyacheslavovna Lapaeva; Anastasia Andreevna Ryzhova; Elena Serebryakova	2021	10.17981/juridcuc.18.1.2022.06	Jurídicas CUC	https://openalex.org/W3208455911
+LaT/sub E/X memos and letters	S. J. Sydoriak	1989		University of North Texas Digital Library (University of North Texas)	https://openalex.org/W2037399087
+Laws and Lithographs: Seeing Imperial Russia Through Illustrations of Civil Uniforms inPolnoe sobranie zakonov Rossiiskoi Imperii	Irina Tarsis	2010	10.1080/15228886.2010.506630	Slavic & East European Information Resources	https://openalex.org/W2021985486
+The Evolution of Pastoral Care Ministry through the Ages	Xolisa Jibiliza	2021	10.46222/pharosjot.10211	Pharos Journal of Theology	https://openalex.org/W3131726785
+Dropping the Captain: the short but eventful editorship of Louis McRedmond at the Irish Independent, 1968-70.	John Horgan	2014		Arrow@dit (Dublin Institute of Technology)	https://openalex.org/W2625208390
+Review of current newsletter literature with today's novice publisher in mind	Tobias Bruhn	1999		Rowan Digitals Works (Rowan University)	https://openalex.org/W2602045953
+THE CURRENT RESTORATION IN NAUVOO, ILLINOIS	T. Edgar Lyon	1970	10.2307/45224149	Dialogue A Journal of Mormon Thought	https://openalex.org/W4312687540
+Dropping the Captain: Louis McRedmond at the Irish Independent 1968-70	John Horgan	2014	10.21427/d7jh8c	Arrow - TU Dublin (Technological University Dublin)	https://openalex.org/W2563679440
+

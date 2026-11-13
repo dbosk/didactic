@@ -1,0 +1,34 @@
+% Test of the order of float numbers (didactic): a margin figure that marginfix
+% moves on to the next page, since notes fill the margin, and an ordinary figure
+% with a higher number that stays on the first page.  With hyperref and cleveref,
+% which change how captions are made.
+%
+% Build: see the Makefile.
+%
+% Expected in the resulting PDF and log:
+%   MOVED (Figure 0.1) on page 2, STAYS (Figure 0.2) on page 1, and one warning
+%   from didactic that names both numbers and both pages.
+\documentclass[a4paper]{memoir}
+\usepackage{lipsum}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{hyperref}
+\usepackage[capitalise]{cleveref}
+\usepackage{didactic}
+\begin{document}
+FIRSTPAGE \marginpar{\rule{2cm}{6cm}}\marginpar{\rule{2cm}{6cm}}%
+\marginpar{\rule{2cm}{6cm}} \lipsum[1][1-3]
+\begin{marginfigure}
+  \rule{2cm}{3cm}
+  \caption{MOVED}
+\end{marginfigure}
+\lipsum[2][1-3]
+
+\begin{figure}[h]
+  \centering
+  \rule{3cm}{1cm}
+  \caption{STAYS}
+\end{figure}
+\lipsum[3][1-3]
+\clearpage
+SECONDPAGE is here.
+\end{document}

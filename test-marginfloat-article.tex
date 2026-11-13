@@ -1,0 +1,47 @@
+% Test of the order of float numbers (didactic) in the class article, with a float
+% type from the package float, which makes its captions itself.
+%
+% Build: see the Makefile.
+%
+% Expected in the log, one warning per counter, naming both numbers and pages:
+%   1  figure: LATEFIG (Figure 1) after HEREFIG (Figure 2), which is [H].
+%   2  floatone: LATEONE (Floatone 1) after HEREONE (Floatone 2), which is [H].
+%   3  table: LATETAB (Table 1) after LONGTAB (Table 2), a longtable.
+\documentclass[a4paper]{article}
+\usepackage{float}
+\usepackage{longtable}
+\usepackage{lipsum}
+\usepackage{didactic}
+\newfloat{floatone}{tbp}{lof}
+\floatname{floatone}{Floatone}
+\begin{document}
+\begin{figure}[p]
+  \centering\rule{4cm}{4cm}\caption{LATEFIG}
+\end{figure}
+Figures. \lipsum[1][1-3]
+
+\begin{figure}[H]
+  \centering\rule{2cm}{5mm}\caption{HEREFIG}
+\end{figure}
+\clearpage
+\begin{floatone}[p]
+  \centering\rule{4cm}{4cm}\caption{LATEONE}
+\end{floatone}
+Others. \lipsum[2][1-3]
+
+\begin{floatone}[H]
+  \centering\rule{2cm}{5mm}\caption{HEREONE}
+\end{floatone}
+\clearpage
+\begin{table}[p]
+  \centering\rule{4cm}{4cm}\caption{LATETAB}
+\end{table}
+Tables. \lipsum[3][1-3]
+
+\begin{longtable}{l}
+  \caption{LONGTAB}\\
+  cell\\
+\end{longtable}
+\clearpage
+End.
+\end{document}

@@ -1,0 +1,46 @@
+# Query: ("widow penalty" OR "orphan penalty" OR "club penalty" OR clubpenalty OR widowpenalty OR "widow control" OR "orphan control") AND (typesetting OR pagination OR TeX OR LaTeX)
+# Provider: openalex
+# Timestamp: 2026-11-03T21:10:31.156777
+# Results: 39
+
+title	authors	year	doi	venue	url
+The Computer Science Of Tex And Latex	Victor L. Eijkhout	2004	10.5281/zenodo.49901	Zenodo (CERN European Organization for Nuclear Research)	https://openalex.org/W2470989218
+Typesetting SGML documents using TeX	Andrew E. Dobrowolski	1991	10.5802/cg.97	Cahiers GUTenberg	https://openalex.org/W2329159205
+TeX in a Nutshell	Petr Olšák	2021	10.5300/2021-1-4/9	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W4288479161
+Guide TeX it: Uneasy beginnings of typesetters from the perspective of non-typesetters	Libor Sarga	2011	10.5802/cg.364	Cahiers GUTenberg	https://openalex.org/W2318024664
+Guide TeX it: Uneasy beginnings of typesetters from the perspective of non-typesetters	Libor Sarga	2022	10.60028/cahiers.v2011i56.44	Cahiers GUTenberg	https://openalex.org/W4403229259
+E-TeX: Sprievodca budúcimi rozšíreniami TeXu	Frank G. Mittelbach	1994	10.5300/1994-1/1	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2314897171
+Typesetting chemical formulas in TeX	Ondřej Jakubčík	2006	10.5300/2006-1/2	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2316068852
+Introduction à Latex.	Cathérine Charles; Loïc Lecharlier; Frédéric Renaud	2008		ORBi (University of Liège)	https://openalex.org/W2248051162
+Some tips and tricks for TeX typesetting	Petr Březina	2006	10.5300/2006-1/10	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2316439169
+Automatically removing widows and orphans with lua-widow-control	Max Chernoff	2022	10.47397/tb/43-1/tb133chernoff-widows	TUGboat	https://openalex.org/W4285120367
+Automatically Removing Widows and Orphans with lua-widow-control	Max Chernoff	2022	10.5300/2022-1-4/49	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W4312367526
+Updates to “Automatically removing widows and orphans with lua-widow-control”, TUGboat 43:1	Max Chernoff	2022	10.47397/tb/43-3/tb135chernoff-lwc	TUGboat	https://openalex.org/W4312431848
+Co-operation of a Database with LaTeX	Zdeněk Wagner	2000	10.5300/2000-1-3/49	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2327746476
+Lua(La)TeX : comment avoir accès à la fabrication d’un paragraphe ?	Maxime Chupin	2024	10.60028/lettre.vi53.169	La Lettre GUTenberg	https://openalex.org/W4404077303
+Et maintenant, une bonne vieille veille technologique !	Denis Bitouzé; Maxime Chupin; Patrick Bideault; Céline Chevalier	2022	10.60028/lettre.vi45.5	La Lettre GUTenberg	https://openalex.org/W4383651061
+Responsive Design and Automatic Typesetting with LuaLaTeX	Michal Hoftich	2024	10.5300/2024-1-4/28	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W4405500217
+LuaTeX 0.63 short reference	Taco Hoekwater	2022	10.60028/cahiers.v2011i56.41	Cahiers GUTenberg	https://openalex.org/W4403229009
+Output routines extending \plainoutput	Udo Wermuth	2025	10.47397/tb/46-1/tb142wermuth-widow	TUGboat	https://openalex.org/W4410155527
+Support for a Thesis Preparation	Jiří Rybička	2009	10.5300/2009-3/144	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2312315157
+ConTeXt for 'Zines	Timothy Eyre	2011	10.5300/2011-2-4/170	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W4245845413
+Ending the Widow Penalty: Why Are Surviving Alien Spouses of Deceased Citizens Being Deported?	Jayme Alyse Feldheim	2009		FLASH - Fordham Law Archive of Scholarship & History (Fordham University)	https://openalex.org/W1497592159
+kevinkawchak/single-prompt-bill: v1.0.0 - The Single-Prompt Gray-Scale Mermaid Amendment (H. R. 9510 Bill v4.0)	Kevin Kawchak; Claude	2026	10.5281/zenodo.20576648	Zenodo (CERN European Organization for Nuclear Research)	https://openalex.org/W7163810023
+Creating macros in OpTeX	Petr Olšák	2023	10.47397/tb/44-1/tb136olsak-optexmac	TUGboat	https://openalex.org/W4377000617
+Grafika v TeXu (2)	Petr Sojka	1994	10.5300/1994-1/20	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2916622875
+Open Source Tools for Text Processing	Jiří Rybička	2022	10.11118/978-80-7509-880-1		https://openalex.org/W4313262812
+An Experiment to Determine the Mass of the Electron Antineutrino	B. Sur	1987		OhioLink ETD Center (Ohio Library and Information Network)	https://openalex.org/W1634634299
+INTELLIGENT LAYOUT AND ILLUSTRATION SYSTEMS FOR PUBLICATIONS AS PART OF AN AUTOMATED PUBLISHING ECOSYSTEM	T. Yu. Andriushchenko	2025	10.32782/2663-5941/2025.6.2/02	Scientific notes of Taurida National V I Vernadsky University Series Technical Sciences	https://openalex.org/W7130578179
+The Creation of typographic specifications for desktop publishing software	M. Hill	2000		RIT Scholar Works (Rochester Institute of Technology)	https://openalex.org/W827400432
+Evaluation of three electronic report processing systems for preparing hydrologic reports of the U.S Geological Survey, Water Resources Division	Gloria J. Stiltner	1990	10.3133/ofr89576	Antarctica A Keystone in a Changing World	https://openalex.org/W2267806055
+Out of Sight, Out of Mind: Detecting Orphaned Web Pages at Internet-Scale	Stijn Pletinckx; Kevin Borgolte; Tobias Fiebig	2021	10.1145/3460120.3485367	ACM SIGSAC Conference on Computer and Communications Security (CCS)	https://openalex.org/W3200003394
+What to Format and How: A Benchmark and Workflow Approach for Document Formatting	Shihao Rao; Liang Li; Jiapeng Liu; Tong Lin; Bing Li; Xiyan Gao; Peng Fu; Jing Huang; Can Ma	2026	10.48550/arxiv.2606.01936	arXiv (Cornell University)	https://openalex.org/W7163218947
+Decreasing Sports Violence Equals Increasing Officials' Liability	Alfred Carpenter	1983		bepress Legal Repository	https://openalex.org/W1500874496
+Primary Motor Area Activity in Phantom Limb Imagery of Traumatic Unilateral Lower Limb Amputees With Phantom Limb Pain	André Tadeu Sugawara; Lucas Ramos De Pretto; Marcel Simis; Felipe Fregni; Linamara Rizzo Battistella	2024	10.1177/27536351241261023	Advances in Rehabilitation Science and Practice	https://openalex.org/W4399975204
+Basics of word processing for thesis writing	Attila Imre	2026	10.47745/sapvol.2026.29	Scientia eBooks	https://openalex.org/W7164921693
+Research Methods and Survey Applications: Outlines and Activities from a Christian Perspective, 3rd Edition	David Robert Dunaetz	2020	10.31219/osf.io/g2pmw		https://openalex.org/W4242300961
+Carbon border adjustments or climate clubs: Impacts on African agricultural sectors under different cooperative scenarios	Andrea Marcello Bassi; Francesco Calciolari; Valeria Costantini; Mariagrazia D’Angeli; Elena Paglialunga	2024	10.1111/twec.13643	World Economy	https://openalex.org/W4403442350
+ტექსტური რედაქტორი Microsoft Office Word 2007	ა. ასაბაშვილი; თეიმურაზ სტურუა	2009		Iverieli (National Parliamentary Library of Georgia)	https://openalex.org/W1906058297
+		2025	10.32782/2663-5941/2025.6.2	Scientific notes of Taurida National V I Vernadsky University Series Technical Sciences	https://openalex.org/W7130552922
+Family Unity Revisited: Divorce, Separation, and Death in Immigration Law	Albertina Antognini	2014		Scholar Commons (University of South Carolina)	https://openalex.org/W1840968552
+

@@ -1,0 +1,27 @@
+% Test of the block titles in the notes (didactic): a block that starts with
+% another block keeps its own title, which is on a line of its own, since a
+% run-in title waits for the next paragraph and that is in the other block.
+%
+% Build: see the Makefile; test-check.py checks the words of the PDF.
+%   OUTERONE on a line of its own, then INNERONE and TEXTONE on one line.
+%   FRAMETWO on a line of its own, then ALERTTWO and TEXTTWO on one line.
+\documentclass[a4paper]{memoir}
+\usepackage[british]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\begin{document}
+\begin{frame}
+  \begin{block}{OUTERONE}
+    \begin{block}{INNERONE}
+      TEXTONE in the inner block.
+    \end{block}
+    Text in the outer block.
+  \end{block}
+\end{frame}
+\begin{frame}{FRAMETWO}
+  \begin{alertblock}{ALERTTWO}
+    TEXTTWO in a block under a frame title.
+  \end{alertblock}
+\end{frame}
+\end{document}

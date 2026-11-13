@@ -1,0 +1,9 @@
+# Query: ("page breaking" OR pagination) AND (TeX OR LaTeX) AND (criticism OR limitations OR empirical OR evaluation OR "white space")
+# Provider: arxiv
+# Timestamp: 2026-11-03T21:08:17.324515
+# Results: 2
+
+title	authors	year	doi	venue	url
+Adapting the LodView RDF Browser for Navigation over the Multilingual Linguistic Linked Open Data Cloud	Alexander Kirillovich; Konstantin Nikolaev	2022	10.1109/SETIT54465.2022.9875628	cs.CL	http://arxiv.org/abs/2208.13295v3
+Canonical General Relativity on a Null Surface with Coordinate and Gauge Fixing	J. N. Goldberg; C. Soteriou	1995	10.1088/0264-9381/12/11/010	gr-qc	http://arxiv.org/abs/gr-qc/9504043v2
+

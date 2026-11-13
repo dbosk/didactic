@@ -1,0 +1,66 @@
+# Query: ("code listing" OR "program listing" OR "source code listing") AND ("page break" OR "across pages" OR pagination OR typesetting OR typography)
+# Provider: openalex
+# Timestamp: 2026-11-04T09:50:41.549848
+# Results: 59
+
+title	authors	year	doi	venue	url
+Expert systems in typography	David B. Fisher	1990		RIT Scholar Works (Rochester Institute of Technology)	https://openalex.org/W777777139
+Edit-insertion programs for automatic typesetting of computer printout	Carla G. Messina	1970	10.6028/nbs.tn.500		https://openalex.org/W210793765
+High-Quality Computer Typesetting for Text, Formulas, and Listings	F. C. Corley	1969	10.1109/tews.1969.4322391	IEEE Transactions on Engineering Writing and Speech	https://openalex.org/W2067231738
+Formatting information: A beginner's introduction to typesetting with LATEX	Peter Flynn	2002		Cork Open Research Archive (University College Cork, Ireland)	https://openalex.org/W2231431194
+From ASCII Art to Comic Sans	Karin Wagner	2023	10.7551/mitpress/14624.001.0001	The MIT Press eBooks	https://openalex.org/W4382601990
+Algorithms and Listings	Marc R. C. van Dongen	2011	10.1007/978-3-642-23816-1_10	X.media.publishing	https://openalex.org/W201934191
+SETAB :	Robert C Thompson	1973	10.6028/nbs.tn.740		https://openalex.org/W2790949990
+datatool v3: Performance, localisation, databases and more	Nicola L. C. Talbot	2025	10.47397/tb/46-1/tb142talbot-datatool3	TUGboat	https://openalex.org/W4410155752
+ICAM software documentation standards		1980	10.6028/nbs.ir.79-1940		https://openalex.org/W4250496642
+Guidelines for Writing a High-Quality Thesis with the PSIThesis Template	Dominik Herrmann	2020	10.20378/irb-48428		https://openalex.org/W3085915418
+Příprava a tisk jednoduché brožury s případným využitím stylu fancyheadings	Josef Barák	1997	10.5300/1997-1-2/99	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2333658061
+4TeX — LaTeX — Slovenčina	Igor Podlubný	1997	10.5300/1997-1-2/20	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2332103496
+Plain TeX's \ooalign	Udo Wermuth	2023	10.47397/tb/44-3/tb138wermuth-ooalign	TUGboat	https://openalex.org/W4389027744
+LaTeX: redacción de documentos científicos	Universidad Pablo de Olavide. Biblioteca/CRAI	2025	10.46661/rio.20250305_28	Universidad Pablo de Olavide eBooks	https://openalex.org/W4409116544
+A dialogue of forms : letter and digital font design	Debra Anne Adams	1986		DSpace@MIT (Massachusetts Institute of Technology)	https://openalex.org/W2234378598
+Abstracts; Other Publications	American Library Association	1985	10.5860/crl_46_06_recent_publications	College & Research Libraries	https://openalex.org/W4241684917
+Typographers' Inn	Peter Flynn	2020	10.47397/tb/41-3/tb129inn	TUGboat	https://openalex.org/W4243320358
+L A T E X tips for the academic	Andrew Mertz; William A. Slough; Nancy Van Cleave	2016		The Keep (Eastern Illinois University)	https://openalex.org/W2627087988
+Generative Sans A Generative Typography Project Creating a Complex Future Narrative that Opens the Oossibilities of Type with a Versatility to be used Across a Wide Variety of Mediums	Leon H. Butler	2016		Arrow - TU Dublin (Technological University Dublin)	https://openalex.org/W2748768844
+Should I Install LaTeX , MiKTeX or TexStudio?	Abiodun Christian Ibiloye	2024	10.31730/osf.io/43xmw		https://openalex.org/W4391573638
+LaTeX tutorial for the standardization and automation of population analysis reports	Thomas Frank; Silke Gastine; Klaus Lindauer; Heiner Speth; Ashley Strougo; Andreas Kovar	2021	10.1002/psp4.12705	CPT Pharmacometrics & Systems Pharmacology	https://openalex.org/W3198176887
+Prediction of neutron induced activation. Volume I - NAP code manual Final report, May 14, 1964 - Jan. 31, 1966	D. A. Klopp	1966		NASA Technical Reports Server (NASA)	https://openalex.org/W2749432016
+Digital archiving of Malayalam content II	CV Radhakrishnan; KV Rajeesh	2026	10.47397/tb/47-2/tb146radhakrishnan-malayalam-archiving	TUGboat	https://openalex.org/W7204693043
+A Computational Model of Music Composition	Josiah Wolf Oberholtzer	2015		Digital Access to Scholarship at Harvard (DASH) (Harvard University)	https://openalex.org/W1872692174
+Manhattan: End-User Programming For Music	Chris Nash	2014	10.13140/2.1.2565.1206	UWE Research Repository (UWE Bristol)	https://openalex.org/W1891558776
+PL-1 program system for generalized Patterson superpositions. [PL1GEN, SYMPL1, and ALSPL1, in PL/1 for IBM 360/65 computer]	Camden Richards Hubbard; M.W. Babich; Robert A. Jacobson	1977	10.2172/7300023		https://openalex.org/W259095471
+Gap Scaling Across Domains The 400/11 Formula Connecting Geometric and Chaotic Residues	B.D.	2026	10.17605/osf.io/c4gk5		https://openalex.org/W7127626019
+Development of a pH-responsive liposomal drug carrier using poly(phosphazenes)	David Ghattas	2008	10.71781/4649		https://openalex.org/W1177423923
+A Study of PostScript as a graphics programming language	R Miller	1988		RIT Scholar Works (Rochester Institute of Technology)	https://openalex.org/W826310263
+A computer program designed to produce tables from alphanumeric data	Jennie L. Ridgley; R.W. Schnabel	1978	10.3133/ofr78875	Antarctica A Keystone in a Changing World	https://openalex.org/W87571410
+Postmodernist Pedagogy's Effect on Doctoral Level Political Theory Instruction and Curriculum	Brian Marshall Erskine; Karen Marie Hult; Charles Eliot Walcott; Craig Leonard Brians	2009		VTechWorks (Virginia Tech)	https://openalex.org/W2157955725
+IMPLEMENTATION OF NANJING SWANSOFT-BASED CNC MILLING SIMULATION IN THE MANUFACTURE OF UMSB BRAND GRAVIS PRODUCT	Desmarita Leni; Muchlisinalahuddin Muchlisinalahuddin; Eka Nur Usni; Lim Hooi Peng; Habib Putra Fadel	2026		International Journal of Multidisciplinary Research and Literature	https://openalex.org/W7218096740
+Thermoelastic Fracture Mechanics using Boundary Elements. Topics in Engineering, Vol 39	D. N. dell'Erba; Marc Bonnet C	2003	10.1115/1.1523362	Applied Mechanics Reviews	https://openalex.org/W1988044678
+Learning state-action features for general game playing	Dennis J. N. J. Soemers	2023	10.26481/dis.20230425ds		https://openalex.org/W4361279087
+No need to justify your choice	Alexander J. Pinkney; Steven R. Bagley; David F. Brailsford	2013	10.1145/2494266.2494310	ACM Symposium on Document Engineering (DocEng)	https://openalex.org/W1999712982
+Mathematical Formulas in Text to Speech System	Peter Čaky; Juraj Boroň; Martin Klimo; Katarína Bachratá	2009	10.26552/com.c.2009.3.49-53	Communications - Scientific letters of the University of Zilina	https://openalex.org/W3204635501
+MarkHub Cloud Online Editor as a modern web-based book creation tool	Vitalina Babenko; Roman M. Yatsenko; Pavel D. Migunov; Abdel-Badeeh M. Salem	2020	10.55056/cte.342	CTE Workshop Proceedings	https://openalex.org/W4294376234
+MarkHub Cloud Online Editor as a modern web-based book creation tool	Vitalina Babenko; Roman M. Yatsenko; Pavel D. Migunov; Abdel-Badeeh M. Salem	2020	10.31812/123456789/3858		https://openalex.org/W4285664737
+Basics of word processing for thesis writing	Attila Imre	2026	10.47745/sapvol.2026.29	Scientia eBooks	https://openalex.org/W7164921693
+Four paradigms of information systems development	Rudy Hirschheim; Heinz Karl Klein	1989	10.1145/67933.67937	Communications of the ACM	https://openalex.org/W2073849932
+Parametric type design in the era of variable and color fonts	Santhosh Thottingal	2026	10.36824/2024-graf-thot	Grapholinguistics and its applications	https://openalex.org/W4407424835
+Proč nerad používám LaTeX	Petr Olšák	1997	10.5300/1997-1-2/89	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W2312733481
+Hiring Practices for Graphic Designers In Utah County, Utah	Landon T. Densley	2004		ScholarsArchive  (Brigham Young University)	https://openalex.org/W791199914
+Iniciály	Josef Barák	1997	10.5300/1997-1-2/18	Zpravodaj Československého sdružení uživatelů TeXu	https://openalex.org/W4230123927
+Point‐of‐care testing of HbA1c , renal function and lipids in remote or disadvantaged regions	Lena Handrinos; Andrzej S. Januszewski; Elisabeth R. Trimble; Neil Donelan; Paul Ford Williams; Alicia Josephine Jenkins	2020	10.1111/imj.15114	Internal Medicine Journal	https://openalex.org/W3116076356
+Mutations in the gene PDE6C encoding the catalytic subunit of the cone photoreceptor phosphodiesterase in patients with achromatopsia	Nicole Weisschuh; Katarína Štingl; Isabelle S. Audo; Saskia Biskup; Béatrice Bocquet; Kari E. H. Branham; Marie S. I. Burstedt; Elfride De Baere; Meindert Jan De Vries; Irina Golovleva; Andrew Green; John R. Heckenlively; Bart Peter Leroy; Isabelle Meunier; Elias I. Traboulsi; Bernd Wissinger; Susanne Kohl	2018	10.1002/humu.23606	Human Mutation	https://openalex.org/W2885039444
+Guideline for software documentation management	United States	1984	10.6028/nbs.fips.105		https://openalex.org/W4206181263
+Protection for Typeface Designs: A Copyright Proposal	Terrence J. Carroll	1994		Santa Clara Law Digital Commons (Santa Clara University)	https://openalex.org/W1480519032
+CD-ROM Acrobat Journals Using Networks	David F. Brailsford; Leon Harrison	1994		Nottingham ePrints (University of Nottingham)	https://openalex.org/W1914232822
+Information architecture: Audiences & artifacts	Nathan Curtis	2008	10.1002/bult.2008.1720340609	Bulletin of the American Society for Information Science and Technology	https://openalex.org/W2008461355
+Using TWID Service For Creating Websites	Khang Le Thanh	2016		Theseus (Ammattikorkeakoulujen)	https://openalex.org/W2559080189
+Transparent file I/O using the original TeX program and the plain TeX format	Udo Wermuth	2022	10.47397/tb/43-1/tb133wermuth-trio	TUGboat	https://openalex.org/W4285237646
+WOLF; automatic typing program	Gerald Ian Evenden	1982	10.3133/ofr82379	Antarctica A Keystone in a Changing World	https://openalex.org/W63426104
+The Relationship between Desired Results and the Marketing Tools Used in Recreation Programming	Barbara Anne Skipper	1992		University of North Texas Digital Library (University of North Texas)	https://openalex.org/W1541947933
+"Chronosite" - application for the timetable slots assigning	Yaroslav Borovyk	2023		Czech Technical University Digital Library (Czech Technical University in Prague)	https://openalex.org/W7199559291
+Web Application for management and analysis of Cadastre Data: Data Extraction and Management	Ismael Prieto Sánchez	2023		Rovira & Virgili repository	https://openalex.org/W7219534745
+The design of the MathSpad editor	Richard Verhoeven	2000	10.6100/ir534418	TU/e Research Portal	https://openalex.org/W1539842797
+Digital/analog video : an investigation into the theory, practice and potential uses of digital and analog video combined	Tyler Peppel	1984		DSpace@MIT (Massachusetts Institute of Technology)	https://openalex.org/W1544599058
+Development of LaTeX Book Template for Submitting Assignments to Support Paperless Movement	Joko Saefan; Nur Widya Rini; Aditya Marianti; Margareta Rahayuningsih	2024	10.24815/jipi.v8i3.39393	Jurnal IPA & Pembelajaran IPA	https://openalex.org/W4404013622
+

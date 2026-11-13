@@ -1,0 +1,18 @@
+# Query: TS=(("program typography" OR "typographic style" OR "pretty printing" OR "pretty-printing" OR "code layout") AND (program OR code) AND (comprehension OR readability OR page))
+# Provider: wos
+# Timestamp: 2026-11-04T09:53:04.118943
+# Results: 11
+
+title	authors	year	doi	venue	url
+Code Layout Optimization Guided by Temporal Profiling Information	Spasic, Marko; Joksimovic, Miloje; Hofer, Peter; Janicic, Milena Vujosevic	2026	10.1145/3801119.3801124	COMPANION PROCEEDINGS OF THE 10TH INTERNATIONAL CONFERENCE ON THE ART, SCIENCE, AND ENGINEERING OF PROGRAMMING, PROGRAMMING COMPANION 2026	https://www.webofscience.com/wos/woscc/full-record/WOS:001792767200004
+The Effect Of Crowding On The Reading Of Program Code For Programmers With Dyslexia	McChesney, Ian; Bond, Raymond	2021	10.1109/ICPC52881.2021.00036	2021 IEEE/ACM 29TH INTERNATIONAL CONFERENCE ON PROGRAM COMPREHENSION (ICPC 2021)	https://www.webofscience.com/wos/woscc/full-record/WOS:000693398800029
+Eye Tracking Analysis of Code Layout, Crowding and Dyslexia - An Open Data Set	McChesney, Ian; Bond, Raymond	2021	10.1145/3448018.3457420	ACM SYMPOSIUM ON EYE TRACKING RESEARCH AND APPLICATIONS, ETRA 2021	https://www.webofscience.com/wos/woscc/full-record/WOS:001476924800001
+Obfuscated integration of software protections	van den Broeck, Jens; Coppens, Bart; De Sutter, Bjorn	2021	10.1007/s10207-020-00494-8	INTERNATIONAL JOURNAL OF INFORMATION SECURITY	https://www.webofscience.com/wos/woscc/full-record/WOS:000520788800001
+Eye tracking analysis of computer program comprehension in programmers with dyslexia	McChesney, Ian; Bond, Raymond	2019	10.1007/s10664-018-9649-y	EMPIRICAL SOFTWARE ENGINEERING	https://www.webofscience.com/wos/woscc/full-record/WOS:000472043800003
+Optimizing Function Placement for Large-Scale Data-Center Applications	Ottoni, Guilherme; Maher, Bertrand	2017		CGO'17: PROCEEDINGS OF THE 2017 INTERNATIONAL SYMPOSIUM ON CODE GENERATION AND OPTIMIZATION	https://www.webofscience.com/wos/woscc/full-record/WOS:000402548700020
+Readactor: Practical Code Randomization Resilient to Memory Disclosure	Crane, Stephen; Liebchen, Christopher; Homescu, Andrei; Davi, Lucas; Larsen, Per; Sadeghi, Ahmad-Reza; Brunthaler, Stefan; Franz, Michael	2015	10.1109/SP.2015.52	2015 IEEE SYMPOSIUM ON SECURITY AND PRIVACY SP 2015	https://www.webofscience.com/wos/woscc/full-record/WOS:000380537900045
+Constructing format-preserving printing from syntax-directed definitions	Wang LiChao; Li GuoQiang; Hu ZhenJiang	2015	10.1007/s11432-015-5368-9	SCIENCE CHINA-INFORMATION SCIENCES	https://www.webofscience.com/wos/woscc/full-record/WOS:000365129500011
+A Pretty Good Formatting Pipeline	Bagge, Anya Helene; Hasu, Tero	2013		SOFTWARE LANGUAGE ENGINEERING (SLE 2013)	https://www.webofscience.com/wos/woscc/full-record/WOS:000341011900010
+Grammatical Aspects: Coping with Duplication and Tangling in Language Specifications	Breslav, Andrey	2011	10.3233/978-1-60750-688-1-197	DATABASES AND INFORMATION SYSTEMS VI: SELECTED PAPERS FROM THE NINTH INTERNATIONAL BALTIC CONFERENCE (DB&IS 2010)	https://www.webofscience.com/wos/woscc/full-record/WOS:000325431100014
+Grammatical Aspects for Language Descriptions	Breslav, Andrey	2010		DATABASES AND INFORMATION SYSTEMS	https://www.webofscience.com/wos/woscc/full-record/WOS:000396178700006
+

@@ -1,0 +1,104 @@
+% Test of listings in multicols (didactic): its columns are set later, from what
+% it has collected, so what keeps listings together can't know their height.
+% The listings are left alone, and each one says so, with its line, once: a listing in
+% a box (MP, a minipage, and MQ with a pair) has nothing to say, and a pair is
+% one warning, whatever is in its cells (PL).  The same in multicols* (S).  A listing
+% taller than \textheight (TL) says nothing about that, which isn't the limit here.
+% A listing of four lines (SH), at most keeplines, that comes at the foot of a column:
+% it breaks there as fancyvrb lets it, and isn't moved whole to the next column.
+%
+% Build: see the Makefile; test-check.py checks that there is no Overfull \vbox,
+% that the lead-in stays near its listing (not stretched away from it), and that
+% each listing and pair warns.
+\documentclass[a4paper,oneside]{memoir}
+\usepackage[british]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{didactic}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\usepackage{multicol}
+\makeatletter
+\newwrite\@mcol@out
+\newcount\@mcol@i
+\newcommand\testlisting[1]{%
+  \immediate\openout\@mcol@out=\jobname-#1.txt
+  \@mcol@i\z@
+  \@whilenum\@mcol@i<20\do{\advance\@mcol@i\@ne
+    \immediate\write\@mcol@out{#1 \the\@mcol@i}}%
+  \immediate\closeout\@mcol@out
+  \VerbatimInput{\jobname-#1.txt}}
+\newcommand\testshort[1]{%
+  \immediate\openout\@mcol@out=\jobname-#1.txt
+  \@mcol@i\z@
+  \@whilenum\@mcol@i<4\do{\advance\@mcol@i\@ne
+    \immediate\write\@mcol@out{#1 \the\@mcol@i}}%
+  \immediate\closeout\@mcol@out
+  \VerbatimInput{\jobname-#1.txt}}
+\newcommand\case[1]{\typeout{multicol case #1 line \the\inputlineno}}
+\makeatother
+\begin{document}
+\begin{multicols}{2}
+\rule{1pt}{0.8\textheight}
+
+LEADA in.
+\case{a}\testlisting{alpha}
+Text after.
+
+\rule{1pt}{0.7\textheight}
+
+LEADB in.
+\case{b}\testlisting{beta}
+Text after.
+
+\case{p}\begin{didacticpair}{2}
+  \rule{1pt}{2\baselineskip} & right
+\end{didacticpair}
+
+\case{pl}\begin{didacticpair}{2}
+  \VerbatimInput{\jobname-alpha.txt} & right
+\end{didacticpair}
+
+\case{mp}\begin{minipage}{\linewidth}
+\VerbatimInput{\jobname-alpha.txt}
+\end{minipage}
+
+\case{mq}\begin{minipage}{\linewidth}
+\begin{didacticpair}{2}
+  \rule{1pt}{2\baselineskip} & right
+\end{didacticpair}
+\end{minipage}
+\end{multicols}
+\clearpage
+\begin{multicols}{2}
+\makeatletter
+\immediate\openout\@mcol@out=\jobname-tall.txt
+\@mcol@i\z@
+\@whilenum\@mcol@i<3\do{\advance\@mcol@i\@ne
+  \immediate\write\@mcol@out{tall tall tall tall tall tall tall tall tall tall tall tall
+    tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+    tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+    tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+    tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+    tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+    tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+    tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+    tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+    tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+    tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+    tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+    tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall
+    tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall tall}}
+\immediate\closeout\@mcol@out
+\makeatother
+\case{tl}\VerbatimInput[breaklines]{\jobname-tall.txt}
+\end{multicols}
+\begin{multicols*}{2}
+\case{s}\testlisting{star}
+\end{multicols*}
+\clearpage
+\begin{multicols*}{2}
+\noindent\rule{1pt}{\dimexpr\textheight-2.5\baselineskip\relax}\par
+\case{sh}\testshort{short}
+\end{multicols*}
+After the columns, a listing is kept again.
+\testlisting{gamma}
+\end{document}

@@ -1,0 +1,8 @@
+# Query: TS=("widows and orphans" AND (typography OR typesetting OR "page layout"))
+# Provider: wos
+# Timestamp: 2026-11-03T20:03:33.995009
+# Results: 1
+
+title	authors	year	doi	venue	url
+Globally optimal page breaking with column balancing - a case study	Wolinski, Marcin	2019	10.1145/3342558.3345405	DOCENG'19: PROCEEDINGS OF THE ACM SYMPOSIUM ON DOCUMENT ENGINEERING 2019	https://www.webofscience.com/wos/woscc/full-record/WOS:000558062400033
+

@@ -1,0 +1,43 @@
+% Test of the option marginfloatorder (didactic), by default beside; the
+% test-marginfloat-inorder.tex runs this with inorder.
+%
+% An ordinary figure that can only go on a page of its own waits when a margin
+% figure with a higher number comes.  A [b] table on the page of its text stays
+% there.
+%
+% Build: see the Makefile (twice, for marginfix's anchors).
+%
+% Expected in the resulting PDF and log:
+%   1  beside: MARGINAFTER (Figure 0.3) on page 1, beside its text; ORDINARY
+%      (Figure 0.2) on page 2.  One warning from didactic, at the end of the
+%      run, that names both numbers and both pages; none for MARGINBOTTOM, on
+%      the page of the [b] table.
+%   2  inorder: ORDINARY on a page before that of MARGINAFTER, no such warning.
+\documentclass[a4paper]{memoir}
+\usepackage{lipsum}
+\usepackage{didactic}
+\begin{document}
+\begin{table}[b]
+  \centering
+  \caption{BOTTOMTABLE, on the page of its text.}
+  \rule{4cm}{1cm}
+\end{table}
+TEXTBOTTOM \lipsum[1][1-3]
+\begin{marginfigure}
+  \rule{2cm}{1cm}
+  \caption{MARGINBOTTOM}
+\end{marginfigure}
+\lipsum[1][4-6]
+
+\begin{figure}[p]
+  \centering
+  \rule{4cm}{4cm}
+  \caption{ORDINARY}
+\end{figure}
+TEXTWAIT \lipsum[2][1-3]
+\begin{marginfigure}
+  \rule{2cm}{1cm}
+  \caption{MARGINAFTER}
+\end{marginfigure}
+TEXTAFTER \lipsum[3][1-3]
+\end{document}
