@@ -216,7 +216,8 @@ def hbox(foot, ref):
                                  rf"{re.escape(src)}:{line}, {where} of page (\d+)", log))
     f, r = unwrapped(f"{foot}.log"), unwrapped(f"{ref}.log")
     notplain = len(re.findall(r"isn't plain", f))
-    report(f"{foot} every footnote plain", notplain == 0, f"({notplain} not plain)")
+    report(f"{foot} every footnote plain but F and G (lines 33, 34)", notplain == 2,
+           f"({notplain} not plain)")
     for line in (20, 22):
         want = [(w, "1") for w in tex(r, line)]
         got = ours(f, line, "in the margin")
@@ -236,6 +237,19 @@ def hbox(foot, ref):
         n = len(ours(f, line, "in the margin"))
         report(f"{foot} note at the foot at line {line}: nothing from its margin version",
                n == 0, f"({n})")
+    # note E (line 32): a box of its own too narrow for its words; TeX says so when
+    # the box is made, once, as with carry, whose note runs its text once too
+    def detected(log, line):
+        return re.findall(rf"(?:Over|Under)full \\hbox \([^)]*\) detected at line {line}", log)
+    for line in (32, 33):
+        report(f"{foot} note at line {line}: its box's warning, once, as with carry",
+               len(detected(f, line)) == 1 and len(detected(r, line)) == 1,
+               f"({len(detected(f, line))} with foot, {len(detected(r, line))} with carry)")
+    # note G (line 34): a list, so not plain; the measure's own lines, of \maxdimen,
+    # say nothing (a forced break leaves one short, badness 10000 at that width)
+    wide = re.findall(r"Underfull \\hbox \(badness 10000\) in paragraph at lines 34--34", f)
+    report(f"{foot} note at line 34: nothing from the measure's lines", not wide,
+           f"({len(wide)})")
     out = subprocess.run(["pdftotext", "-bbox", "-f", "2", "-l", "2", f"{foot}.pdf", "-"],
                          capture_output=True, text=True, check=True).stdout
     ws = [(float(x0), float(x1), html.unescape(w)) for x0, x1, w in

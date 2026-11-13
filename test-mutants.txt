@@ -41,6 +41,8 @@
 #            with the Makefile's engines, as the target chooses them
 #   footcite test-noteoverflow-foot, its job default only (CASES=default), against the
 #            marginfix found or $MARGINFIX (about 1 minute)
+#   hbox     test-noteoverflow-foot, its job hbox only (CASES=hbox): the warnings of
+#            boxes in footnotes, against the marginfix found or $MARGINFIX (about 30 s)
 #   noteplace test-noteplace, its rows rsvsidecap, rsvblock, mcolblock,
 #            rsvsidebefore, heldtop and heldsecond only, against the marginfix found or $MARGINFIX (1 minute)
 # All with pdflatex, the Makefile's default since #72.  The title group's check reads a
@@ -1691,3 +1693,22 @@ Bstretchown didactic.dtx
 -         \setlength\emergencystretch{\@didactic@bibemergencystretch}%
 -       \fi}%
 +         \setlength\emergencystretch{\@didactic@bibemergencystretch}}%
+
+# The measure's own lines, as wide as TeX allows, end quietly by the kernel's para/end hook;
+# without it, a note with a list and a forced break says an Underfull \hbox of badness 10000
+# that no printed line has (hbox's note G).  And the fallback's copy for the foot is quiet
+# again after memoir's \@preamfntext, whose \@parboxrestore sets \sloppy; without that, a box
+# in a note that isn't plain says its warning twice, from the measure and from that copy
+# (hbox's note F).
+#: hbox
+#= killed test-noteoverflow-foot
+Hmeasureend didactic.dtx
+- \AddToHook{para/end}{\if@didactic@inmeasure\ifdim\hsize=\maxdimen
+-   \@didactic@quiet\fi\fi}
++ \AddToHook{para/end}{}
+
+#: hbox
+#= killed test-noteoverflow-foot
+Hfootcopy didactic.dtx
+-           \rule\z@\footnotesep\ignorespaces\foottextfont\@didactic@quiet #1%
++           \rule\z@\footnotesep\ignorespaces\foottextfont #1%

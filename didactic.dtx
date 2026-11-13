@@ -5836,9 +5836,24 @@
 % where a |\write| between their lines would stop the reading of the foot,
 % |\@didactic@scan|, and the justification is the same on either side)
 % and with its label, but in a |\vbox| as wide as \TeX\ allows, with no
-% indent (|\everypar| takes the indent's box off), no glue at the sides, and
-% quietly: each paragraph is one line, ended by its |\parfillskip|, or more
-% than one where the text breaks a line itself (|\\|, |\linebreak|).
+% indent (|\everypar| takes the indent's box off), no glue at the sides:
+% each paragraph is one line, ended by its |\parfillskip|, or more than one
+% where the text breaks a line itself (|\\|, |\linebreak|).
+% Its paragraphs end quietly: \TeX\ packs a paragraph's lines at its end, and a
+% line of the measure's width that a list's item or a |\linebreak| leaves short,
+% or a paragraph too long for one line, would be said of from a version that
+% isn't printed.  The kernel's hooks |para/end| and |para/after| set
+% |\@didactic@quiet| for the end and the document's values back after it,
+% whatever the text makes |\par| (a list redefines it), for the paragraphs of
+% the measure's width only (|\hsize| is |\maxdimen|): a paragraph in a box of
+% the text, a column of a |tabular| or a |minipage|, says what it would without
+% \textsf{didactic}.  So do boxes the text makes itself (an |\hbox to|, a
+% |\makebox|), packed here, where the text runs once, with the document's
+% |\hfuzz| and |\hbadness|: the versions made from the measured lines copy those
+% boxes and never pack them again, and the fallback's two copies of a note that
+% isn't plain are quiet throughout (in the copy for the foot after
+% \textsf{memoir}'s |\@preamfntext|, whose |\@parboxrestore| sets |\sloppy|,
+% and with it the default |\hfuzz|).
 % This is where the text runs, once, as at the callout: counters step, labels
 % and citations are recorded, \textsf{biblatex}'s trackers too; and as in a
 % footnote, which \textsf{biblatex} marks in \textsf{memoir}'s |\@footnotetext|
@@ -5866,6 +5881,10 @@
 % \textsf{didactic}, with the counters as that leaves them.
 %    \begin{macrocode}
 \newif\if@didactic@inmeasure
+\AddToHook{para/end}{\if@didactic@inmeasure\ifdim\hsize=\maxdimen
+  \@didactic@quiet\fi\fi}
+\AddToHook{para/after}{\if@didactic@inmeasure\ifdim\hsize=\maxdimen
+  \@didactic@mloud\fi\fi}
 \def\@didactic@gnewline#1{\ifvmode\@nolnerr\else
   \unskip\reserved@e{\reserved@f#1}\nobreak\hfil\break\fi}
 \long\def\@didactic@gobbleopt[#1]#2{}
@@ -5894,7 +5913,7 @@
     \everypar{\setbox\z@\lastbox}%
     \def\marginpar{\global\@didactic@nestedtrue
       \@ifnextchar[\@didactic@gobbleopt\@gobble}%
-    \@didactic@quiet
+    \edef\@didactic@mloud{\hfuzz\the\hfuzz\relax\hbadness\the\hbadness\relax}%
     \def\@currentcounter{footnote}%
     \protected@edef\@currentlabel{%
       \csname p@footnote\endcsname\@thefnmark}%
@@ -6126,7 +6145,7 @@
       \color@begingroup
         \@didactic@blxfootnote
         \@makefntext{%
-          \rule\z@\footnotesep\ignorespaces\foottextfont #1%
+          \rule\z@\footnotesep\ignorespaces\foottextfont\@didactic@quiet #1%
           \@finalstrut\strutbox\@didactic@quiet}%
       \color@endgroup}%
   \endgroup
