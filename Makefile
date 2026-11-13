@@ -100,9 +100,13 @@ didactic.sty: didactic.ins didactic.dtx
 # that builds find it with kpsewhich, and its explanation is woven into
 # didactic.pdf.  black only tidies the spacing between chunks, so it's optional.
 BLACK?=	$(if $(shell command -v black),black -q -,cat)
+# No pipe: make sees only the status of a pipe's last command, so a failing
+# notangle piped into black made an empty script and make went on.
 didactic-sync.py: didactic-sync.nw
-	notangle -R"[[$@]]" $< | ${BLACK} > $@
+	notangle -R"[[$@]]" $< > $@.tangled
+	${BLACK} < $@.tangled > $@
 	chmod +x $@
+	${RM} $@.tangled
 
 test_didactic_sync.py: didactic-sync.nw
 	notangle -R"[[$@]]" $< > $@
@@ -636,6 +640,7 @@ clean:
 	${RM} -R pythontex-files-test-pair pythontex-files-test-pair-slides
 	${RM} test-footcite-memoir.pdf test-footcite-memoir.unq
 	${RM} didactic-sync.py didactic-sync.tex test_didactic_sync.py
+	${RM} didactic-sync.py.tangled
 	${RM} *.cut
 	${RM} $(addsuffix .pdf,${TEST_BILINGUAL}) test-bilingual-off.pdf
 	${RM} test-bilingual-nested.pdf test-bilingual-nested.unq
