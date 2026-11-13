@@ -181,6 +181,8 @@ clean:
 	${RM} $(addsuffix .pdf,${TEST_BILINGUAL}) test-bilingual-off.pdf
 	${RM} test-bilingual-nested.pdf test-bilingual-nested.unq
 	${RM} test-bilingual-taken.pdf test-bilingual-taken.unq
+	${RM} -R test-bilingual-import.d
+	${RM} test-bilingual-import.pdf test-bilingual-import.unq
 	${RM} $(addsuffix .unq,${TEST_BILINGUAL}) test-bilingual-off.unq
 	${RM} $(addsuffix .pytxcode,${TEST_BILINGUAL})
 	${RM} $(addsuffix .pytxmcr,${TEST_BILINGUAL})

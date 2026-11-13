@@ -110,5 +110,20 @@ for package in comment verbatim; do
   fi
 done
 
+# A block's cut file is the job's own.  \subimport makes \input look in the
+# imported directory first, where a deck built on its own may have left a cut
+# file of the same name; the block must not read that one.
+mkdir -p test-bilingual-import.d
+printf '\\begin{en}\nFRESHCUT\n\\end{en}\n' > test-bilingual-import.d/inner.tex
+echo STALECUT > test-bilingual-import.d/test-bilingual-import.cut
+${PDFLATEX:-pdflatex} -shell-escape -interaction=nonstopmode \
+  -jobname=test-bilingual-import \
+  "\\documentclass{article}\\usepackage[british]{babel}\\usepackage{import}\\usepackage{didactic}\\begin{document}\\subimport{test-bilingual-import.d/}{inner}\\end{document}" \
+  >/dev/null 2>&1
+case "$(pdftotext test-bilingual-import.pdf - 2>/dev/null)" in
+  *FRESHCUT*) ;;
+  *) fail import "a stale cut file in the imported directory was read" ;;
+esac
+
 [ "$status" = 0 ] && echo "bilingual: all as expected"
 exit $status

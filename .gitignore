@@ -9,6 +9,7 @@ test_didactic_sync.py
 *.vrb
 test-bilingual*.pdf
 test-bilingual*.unq
+test-bilingual-import.d
 ltxobj
 test.pdf
 test.unq

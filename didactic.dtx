@@ -2318,7 +2318,16 @@
 % instead of the book's.
 % With the name of the job, the file belongs to the document being built.
 %
-% One file isn't enough, though.
+% The name alone isn't enough under \textsf{import}, though: \LaTeX's
+% |\input| searches |\input@path|, which |\subimport| puts first, so a cut
+% file of the same name in the deck's directory, left there when the deck was
+% built on its own under the book's job name, would still win.
+% The file we want is the one we've just written, and |\openout| writes in
+% the current directory, or in the output directory if there is one.
+% That is where \TeX's own |\input|, \LaTeX's |\@@input|, looks first, and
+% it never looks at |\input@path|, so we read the cut file with that.
+%
+% Nor is one file enough.
 % A block may input a file that holds a block, and that block's lines go to a 
 % file too; if it's the same file, it's truncated while \TeX\ is still reading 
 % the outer block from it.
@@ -2337,7 +2346,7 @@
 \DefaultCutFileName
 \def\ProcessCutFile{%
   \global\advance\@didactic@cutdepth\@ne
-  \input{\CommentCutFile}\relax
+  \@@input\CommentCutFile\relax
   \global\advance\@didactic@cutdepth\m@ne
 }
 %    \end{macrocode}
