@@ -172,10 +172,18 @@ ALONE='\def\testfirst{\noindent x text\par\noindent\rule{1cm}{\dimexpr\textheigh
 check linemovesalone x 3 '' kept "$ALONE${MOVED#\\def\\testtall{.1\}}"
 # The note of a line that TeX takes to the top of the next page waits there for
 # it, and is set as marginfix sets a note carried to a page: its first line on
-# the text's first line (\topskip), here its callout's (heldtop; with marginfix's
-# own hold the note's top was at the margin's top, 4.2pt higher, v2.16).
-HT='\def\testpre{\usepackage{zref-savepos,zref-abspage}\csname zref@addprop\endcsname{savepos}{abspage}}\def\testbody{{\interlinepenalty=10000 \noindent FIRSTLINE\label{callout-y}\zsavepos{cl}\marginpar{\zsavepos{nt}\label{note-y}NOTEY}\newline SECOND\newline THIRD\newline FOURTH\par}}'
-check heldtop x 3 '' kept,align=cl:nt "$ALONE$HT"
+# the text's first line (\topskip less the first line's height), here its
+# callout's (heldtop; with marginfix's own hold the note's top was at the
+# margin's top, \topskip less that height higher, v2.16).  Where the line is the
+# page's second, the note still stands on the first text line, a line above its
+# callout: a limit, pinned as it is (heldsecond).  The positions are saved in
+# the lines themselves (zsavepos after a word), and the note's label after its
+# first word, so that the note's box starts with its first line.
+HP='\def\testpre{\usepackage{zref-savepos,zref-abspage}\csname zref@addprop\endcsname{savepos}{abspage}}'
+HT='\def\testbody{{\interlinepenalty=10000 \noindent FIRSTLINE\zsavepos{fl}\label{callout-y}\zsavepos{cl}\marginpar{NOTEY\zsavepos{nt}\label{note-y}}\newline SECOND\newline THIRD\newline FOURTH\par}}'
+check heldtop x 3 '' kept,align=cl:nt "$ALONE$HP$HT"
+HS='\def\testbody{{\interlinepenalty=10000 \noindent FIRSTLINE\zsavepos{fl}\newline SECOND\label{callout-y}\zsavepos{cl}\marginpar{NOTEY\zsavepos{nt}\label{note-y}}\newline THIRD\newline FOURTH\par}}'
+check heldsecond x 3 '' kept,align=fl:nt "$ALONE$HP$HS"
 # Two callouts in the paragraph that moves: the special output for the second
 # reads a page so far that holds the mark of the first.
 TWO='\def\testbody{{\interlinepenalty=10000 \noindent FIRSTLINE\newline SECOND\yieldnote{}\newline THIRD\marginpar{\label{n-b}OTHER}\label{c-b}\newline FOURTH\par}}'

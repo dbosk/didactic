@@ -41,8 +41,8 @@
 #            with the Makefile's engines, as the target chooses them
 #   footcite test-noteoverflow-foot, its job default only (CASES=default), against the
 #            marginfix found or $MARGINFIX (about 1 minute)
-#   noteplace test-noteplace, its rows rsvsidecap, rsvblock, mcolblock and
-#            rsvsidebefore only, against the marginfix found or $MARGINFIX (1 minute)
+#   noteplace test-noteplace, its rows rsvsidecap, rsvblock, mcolblock,
+#            rsvsidebefore, heldtop and heldsecond only, against the marginfix found or $MARGINFIX (1 minute)
 # All with pdflatex, for speed, where make tests uses xelatex, but title with xelatex: its
 # check reads a letter inside a picture, whose box depends on the engine.
 #
@@ -1667,3 +1667,14 @@ Mrsvinj didactic.dtx
 -       \expandafter\expandafter\expandafter\@secondoftwo
 -     \fi
 +     \expandafter\@secondoftwo
+
+# A note held for its line on the next page is set as marginfix sets a note carried to a
+# page, at \MFX@minus@inf: its first line on the text's first.  Held at 0pt, as marginfix's
+# own hold releases its notes, its top is at the margin's top instead, \topskip less its
+# first line's height higher (the row heldtop; the branch's code had it right from step 2,
+# so the row was never red on it).
+#: noteplace
+#= killed test-noteplace
+Mheldtop didactic.dtx
+-          \noexpand\mfx@build@note\noexpand##1\noexpand##2{\MFX@minus@inf}}%
++          \noexpand\mfx@build@note\noexpand##1\noexpand##2{0pt}}%

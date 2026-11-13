@@ -55,7 +55,7 @@ GROUPS = {
 # targets that are no PDF of their own; they choose their engines themselves
 PHONY = {"test-biburl", "test-noteoverflow-foot", "test-noteplace"}
 # the job of a phony target that the group runs ($CASES of its script)
-CASES = {"footcite": "default", "noteplace": "rsvsidecap rsvblock mcolblock rsvsidebefore"}
+CASES = {"footcite": "default", "noteplace": "rsvsidecap rsvblock mcolblock rsvsidebefore heldtop heldsecond"}
 # All with pdflatex, for speed, but the frame titles with the Makefile's xelatex:
 # test-frametitle-boxes reads a letter inside a picture, whose box in pdftotext's output
 # depends on the engine.
