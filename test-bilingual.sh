@@ -64,6 +64,20 @@ for job in test-bilingual-slides test-bilingual-slides-sv; do
   esac
 done
 
+# The test documents are examples too, so the script must find nothing wrong
+# with them: no error, and no stamp in a form that it no longer reads.
+for source in test-bilingual.tex test-bilingual-sv.tex \
+  test-bilingual-slides.tex test-bilingual-slides-sv.tex \
+  test-bilingual-contents.tex test-bilingual-preamble.tex \
+  test-bilingual-nested.tex test-bilingual-nested-inner.tex \
+  test-bilingual-nested-innermost.tex test-bilingual-off.tex; do
+  report=$(./didactic-sync.py --list "$source" 2>&1) \
+    || fail "$source" "didactic-sync.py finds it malformed: $report"
+  case "$report" in
+    *"no pair here"*) fail "$source" "a stamp with no pair: $report" ;;
+  esac
+done
+
 # beamer's own block titles, such as Example, come from translator, which
 # follows babel only with the two lines that the documentation gives; this
 # package's titles, such as Exercise, follow babel by themselves.

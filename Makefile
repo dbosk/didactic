@@ -269,7 +269,7 @@ test-bilingual-nested.pdf: test-bilingual-nested.tex \
 
 .PHONY: check-bilingual
 check-bilingual: $(addsuffix .pdf,${TEST_BILINGUAL}) test-bilingual-off.pdf \
-		test-bilingual-nested.pdf
+		test-bilingual-nested.pdf didactic-sync.py
 	./test-bilingual.sh
 
 # Run LaTeX on $< until the references settle.  Without a cache minted sets its
