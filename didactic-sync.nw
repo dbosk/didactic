@@ -1900,6 +1900,49 @@ def test_double_brackets_that_never_close_hide_nothing(repo):
   assert run(repo, "contents.nw").returncode == 2
 
 
+@pytest.mark.parametrize(
+  "source",
+  [
+    "\\href[pdfnewwindow]{https://example.org/a%20b}{\\ensv{broken}}\n",
+    "\\lstinline[style=x]|%| \\ensv{broken}\n",
+    "\\url {https://example.org/%7E} \\ensv{broken}\n",
+  ],
+)
+def test_options_and_spaces_before_a_verbatim_argument(repo, source):
+  (repo / "contents.nw").write_text(source)
+  assert run(repo, "contents.nw").returncode == 2
+
+
+def test_a_comment_may_stand_between_the_arguments(repo):
+  (repo / "contents.nw").write_text("\\ensv{a}%\n{b}\n")
+  assert "contents.nw:2: new pair" in run(repo, "contents.nw").stdout
+
+
+@pytest.mark.parametrize(
+  "between", ["\\begin{en}\nx\n\\end{en}\n", "@<<x>>=\ny\n@\n"]
+)
+def test_an_argument_cannot_run_across_a_block_or_chunk(repo, between):
+  (repo / "contents.nw").write_text("\\ensv{a\n" + between + "b}{c}\n")
+  assert run(repo, "contents.nw").returncode == 2
+
+
+@pytest.mark.parametrize(
+  "source", ["\\ifx\\relax\\ensv \\fi\n", "\\makeatletter\\ensv@x{a}\n"]
+)
+def test_more_names_that_are_no_use(repo, source):
+  (repo / "contents.nw").write_text(source)
+  result = run(repo, "-v", "contents.nw")
+  assert result.returncode == 0, result.stderr
+  assert "0 pairs" in result.stdout
+
+
+def test_a_starred_newcommand_defines_ensv(repo):
+  (repo / "contents.nw").write_text("\\newcommand*\\ensv[2]{#1}\n\\ensv{x}\n")
+  result = run(repo, "contents.nw")
+  assert result.returncode == 0
+  assert "defines \\ensv" in result.stderr
+
+
 def test_a_percent_sign_in_an_unknown_command_gets_a_note(repo):
   (repo / "contents.nw").write_text(
     "\\mylink{https://example.org/a%20b}{\\ensv{broken}}\n"
@@ -3002,6 +3045,19 @@ def test_a_surplus_entry_is_a_leftover_that_a_stamp_clears(repo):
   assert run(repo, "contents.nw").returncode == 0
 
 
+def test_a_stamp_on_both_begin_lines_is_one_too_many(repo):
+  path = stamped_file(repo, ("en", "sv"))
+  stamp = path.read_text().splitlines()[0].split(" % ")[1]
+  path.write_text(
+    path.read_text().replace("\\begin{sv}\n", "\\begin{sv} % " + stamp + "\n")
+  )
+  result = run(repo, "contents.nw")
+  assert result.returncode == 1
+  assert "contents.nw:4: a stamp with no pair here" in result.stdout
+  assert run(repo, "--stamp", "contents.nw:4").returncode == 0
+  assert run(repo, "contents.nw").returncode == 0
+
+
 def test_removing_a_surplus_entry_keeps_the_others(repo):
   path = repo / "contents.nw"
   path.write_text("\\ensv{Yes}{Ja} and \\ensv{No}{Nej}\n")
@@ -3506,7 +3562,12 @@ def test_branch_check_lists_a_fix_that_makes_two_pairs_equal(repo):
 
 
 def test_branch_check_reads_tex_files_and_follows_renames(repo):
-  path = stamped_file(repo, ("en", "sv"), "part.tex")
+  path = repo / "part.tex"
+  path.write_text(blocks("en", "sv") + "".join(
+    f"Shared line {number}.\n" for number in range(30)
+  ))
+  assert run(repo, "--stamp", "part.tex:1").returncode == 0
+  commit(repo, "stamp")
   git(repo, "checkout", "-q", "-b", "topic")
   git(repo, "mv", "part.tex", "whole.tex")
   path = repo / "whole.tex"
