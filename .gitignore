@@ -12,6 +12,7 @@ test-bilingual*.unq
 test-bilingual-import.d
 test-bilingual-stamp.d
 test-bilingual-stamp.tex
+test-bilingual-woven.tex
 ltxobj
 test.pdf
 test.unq

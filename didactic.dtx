@@ -1985,6 +1985,16 @@
 %   name, then the tangled file gets both.
 %   Tangling doesn't know about languages: |notangle| tangles what's in an 
 %   excluded block as well, so a program per language tangles to two files.
+%   Two more rules come from how \texttt{noweave} writes the woven file.
+%   It writes the index of the chunks right after the file's \emph{last} 
+%   code chunk, so that chunk stands outside any block: if it's in a block, 
+%   the other edition loses the whole index, without a word unless 
+%   |\nowebchunks| or |\nowebindex| prints it.
+%   And it puts the text after a chunk's closing |@| on the same line, so 
+%   the |@| that closes a chunk in a block stands alone on its line, with 
+%   |\end{en}| on the next: |@ \end{en}| becomes a line that doesn't end 
+%   the block.
+%   \texttt{didactic-sync.py} reports both.
 % \item[Labels] A label in a block doesn't exist in the other edition, so 
 %   text outside the block can only refer to it if the partner defines the 
 %   same label, which is fine since only one of them is read.

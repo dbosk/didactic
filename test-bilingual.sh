@@ -49,7 +49,7 @@ check() {
 }
 
 NOTES="TITLE CHAPTER SECTION PROSE FRAMETITLE FRAME VERBATIM EXERCISE ITEM \
-  BLOCKED NOTE WHOLEFRAME CAPTION STRING"
+  BLOCKED NOTE WHOLEFRAME CAPTION STRING CHUNK"
 SLIDES="TITLE SECTION FRAMETITLE FRAME VERBATIM EXERCISE ITEM BLOCKED \
   WHOLEFRAME STRING"
 
@@ -64,13 +64,26 @@ for job in test-bilingual-slides test-bilingual-slides-sv; do
   esac
 done
 
+# A woven chunk in a block: each edition has its own, and the chunk index,
+# which noweave writes after the file's last chunk, reaches both.
+for job in test-bilingual test-bilingual-sv; do
+  case "$(pdftotext "$job.pdf" -)" in
+    *SHAREDCHUNK*) ;;
+    *) fail "$job" "the shared chunk is missing" ;;
+  esac
+  entries=$(grep -c 'nwixadds' "$job.aux")
+  [ "$entries" -ge 3 ] \
+    || fail "$job" "the chunk index has $entries entries, not 3"
+done
+
 # The test documents are examples too, so the script must find nothing wrong
 # with them: no error, and no stamp in a form that it no longer reads.
 for source in test-bilingual.tex test-bilingual-sv.tex \
   test-bilingual-slides.tex test-bilingual-slides-sv.tex \
   test-bilingual-contents.tex test-bilingual-preamble.tex \
   test-bilingual-nested.tex test-bilingual-nested-inner.tex \
-  test-bilingual-nested-innermost.tex test-bilingual-off.tex; do
+  test-bilingual-nested-innermost.tex test-bilingual-off.tex \
+  test-bilingual-woven.nw; do
   report=$(./didactic-sync.py --list "$source" 2>&1) \
     || fail "$source" "didactic-sync.py finds it malformed: $report"
   case "$report" in

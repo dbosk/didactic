@@ -356,6 +356,7 @@ def read_source(text, noweb=True):
         else:
             <<note a line of text>>
         number += 1
+    <<note a last chunk that is in a block>>
     return reading
 @
 
@@ -416,6 +417,25 @@ elif line in ("\\end{en}", "\\end{sv}"):
     reading.errors.append((number, f"{line} with no block to end"))
 @
 
+\texttt{noweave} writes the index of the chunks right after a file's last code
+chunk, so if that chunk is in a block, the other edition has no index at all.
+Nothing shows it unless the document prints the index, and the build is fine,
+so that's a note on the standard error and not an error; it's about the woven
+file, so it's only for a literate source.
+
+<<note a last chunk that is in a block>>=
+starts = [index for index, text in enumerate(lines) if CHUNK_START.match(text)]
+if reading.noweb and starts:
+    for item in reading.items:
+        if item is not OTHER and item.first < starts[-1] < item.last:
+            reading.notes.append((starts[-1], LAST_CHUNK_IN_BLOCK))
+<<constants>>=
+LAST_CHUNK_IN_BLOCK = (
+    "the last code chunk is in a block, so the other edition gets no chunk "
+    "index: end the file with a chunk outside the blocks"
+)
+@
+
 Reading a block means reading as \textsf{comment} does, and keeping track of
 the chunks inside only so that we can say what's wrong if one of them ends the
 block.
@@ -467,10 +487,21 @@ def end_of_block(lines, number, language, errors):
             return index
         if shown is None:
             <<check a line of a block>>
+        elif shown == "chunk" and CHUNK_END.match(line) and closer in line:
+            errors.append(
+                (index, f"this {closer} after the @ of a chunk doesn't end its "
+                 "block: put it on a line of its own")
+            )
         shown = next_shown(line, shown)
     errors.append((number, f"this block has no {closer}"))
     return len(lines) - 1
 @
+
+One mistake inside a block gets a message of its own, since it looks right in
+the source: [[@ \end{en}]], the end of a chunk and of the block on one line.
+\texttt{noweave} writes the text after the [[@]] on the same line as its own
+markup, so the [[\end{en}]] isn't alone on its line in the woven file, and
+the block doesn't end there.
 
 The three checks on a line of a block only make sense for what \LaTeX\ would
 read as text if it got that far.
@@ -639,6 +670,32 @@ def test_a_chunk_that_shows_the_end_of_its_own_block_is_an_error(repo):
     "\\begin{en}\n@<<[[a.tex]]>>=\n\\end{en}\n@\n\\end{en}\n"
   )
   assert run(repo, "contents.nw").returncode == 2
+
+
+def test_the_at_of_a_chunk_with_the_end_on_its_line_is_named(repo):
+  (repo / "contents.nw").write_text(
+    "\\begin{en}\n@<<[[a.py]]>>=\nx\n@ \\end{en}\n\\begin{sv}\nB\n\\end{sv}\n"
+  )
+  result = run(repo, "contents.nw")
+  assert result.returncode == 2
+  assert "contents.nw:4: this \\end{en} after the @ of a chunk" in result.stderr
+
+
+@pytest.mark.parametrize("last_in_block", [True, False])
+def test_a_last_chunk_in_a_block_gets_a_note(repo, last_in_block):
+  source = (
+    "@<<[[a.py]]>>=\nx\n@\n"
+    "\\begin{en}\n@<<[[en.py]]>>=\ny\n@\n\\end{en}\n"
+    "\\begin{sv}\n@<<[[sv.py]]>>=\nz\n@\n\\end{sv}\n"
+  )
+  if not last_in_block:
+    source += "@<<[[a.py]]>>=\nw\n@\n"
+  (repo / "contents.nw").write_text(source)
+  result = run(repo, "contents.nw")
+  assert result.returncode == 1
+  note = "the last code chunk is in a block"
+  assert (note in result.stderr) == last_in_block
+  assert run(repo, "--list", "contents.nw").returncode == 0
 
 
 def test_nothing_is_read_after_a_verbatim_environment_without_an_end(repo):
