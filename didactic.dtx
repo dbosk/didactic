@@ -1915,8 +1915,27 @@
 % So does the command |\didacticlanguage| with the same argument, which can 
 % also be used in the document, between blocks.
 %
-% The names that \textsf{babel} sets follow by themselves: captions, 
-% \textsf{beamer}'s and this package's block titles.
+% The names that \textsf{babel} sets follow by themselves: captions, and this 
+% package's block titles, such as \enquote{Exercise}.
+% \textsf{beamer}'s own block titles, such as \enquote{Example} and 
+% \enquote{Theorem}, don't: they come from \textsf{translator}, which 
+% \textsf{beamer} and \textsf{beamerarticle} load, and which takes its 
+% languages from the options of the class, not from \textsf{babel}'s, so 
+% that the Swedish slides say \enquote{Example}.
+% The shared preamble therefore tells it, once, for both editions:
+% \begin{verbatim}
+% \uselanguage{Swedish}
+% \languagealias{swedish}{Swedish}
+% \end{verbatim}
+% Then \textsf{translator} follows \textsf{babel}'s language, so the English 
+% edition still says \enquote{Example}, and the Swedish one 
+% \enquote{Exempel}.
+% The lines need \textsf{translator}: a document with neither \textsf{beamer} 
+% nor \textsf{beamerarticle} leaves them out.
+% Giving the class the language, |\documentclass[swedish]{beamer}|, works 
+% too, but it takes a driver per edition, and a class option reaches every 
+% package, \textsf{cleveref} too, whose names depend on the order of its 
+% languages, as follows.
 % The names of |\cref| don't: \textsf{cleveref} takes them from the 
 % \emph{last} language among its options.
 % Giving it both languages isn't enough, since \textsf{cleveref} adds a 

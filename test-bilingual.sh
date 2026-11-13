@@ -64,6 +64,30 @@ for job in test-bilingual-slides test-bilingual-slides-sv; do
   esac
 done
 
+# beamer's own block titles, such as Example, come from translator, which
+# follows babel only with the two lines that the documentation gives; this
+# package's titles, such as Exercise, follow babel by themselves.
+for job in test-bilingual test-bilingual-slides; do
+  text=$(pdftotext "$job.pdf" -)
+  case "$text" in
+    *Example*) ;;
+    *) fail "$job" "beamer's block title is not English" ;;
+  esac
+  case "$text" in
+    *Exempel*) fail "$job" "a Swedish block title in the English edition" ;;
+  esac
+done
+for job in test-bilingual-sv test-bilingual-slides-sv; do
+  text=$(pdftotext "$job.pdf" -)
+  case "$text" in
+    *Exempel*) ;;
+    *) fail "$job" "beamer's block title is not Swedish" ;;
+  esac
+  case "$text" in
+    *Example*) fail "$job" "an English block title in the Swedish edition" ;;
+  esac
+done
+
 pdftotext test-bilingual.pdf - | grep -q 'see section' \
   || fail test-bilingual "\\cref does not say section"
 pdftotext test-bilingual-sv.pdf - | grep -q 'see avsnitt' \

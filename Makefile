@@ -249,6 +249,7 @@ test-pair.pdf test-pair-slides.pdf: %.pdf: %.tex didactic.sty ${TEST_PAIR_EXAMPL
 TEST_BILINGUAL=	test-bilingual test-bilingual-sv \
 		test-bilingual-slides test-bilingual-slides-sv
 $(addsuffix .pdf,${TEST_BILINGUAL}): %.pdf: %.tex test-bilingual-contents.tex \
+		test-bilingual-preamble.tex \
 		didactic.sty hello.py
 	@mkdir -p _minted
 	-${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
