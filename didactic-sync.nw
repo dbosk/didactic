@@ -333,10 +333,13 @@ class Reading:
     blank_lines: set = field(default_factory=set)
     comment_lines: set = field(default_factory=set)
     trailing_stamps: dict = field(default_factory=dict)
+    noweb: bool = True
 <<functions>>=
-def read_source(text):
+def read_source(text, noweb=True):
     """Read `text` as `LaTeX` will: find the blocks and the other lines."""
-    reading = Reading(lines=text.removeprefix(BYTE_ORDER_MARK).split("\n"))
+    reading = Reading(
+        lines=text.removeprefix(BYTE_ORDER_MARK).split("\n"), noweb=noweb
+    )
     lines = reading.lines
     number = 0
     frame = None
@@ -798,7 +801,7 @@ def tokens_of(reading):
     offset = 0
     for number, line in enumerate(reading.lines):
         if number in reading.text_lines:
-            tokens += tokens_of_line(line, offset)
+            tokens += tokens_of_line(line, offset, reading.noweb)
         elif number in reading.blank_lines:
             tokens.append(Token(PAR, "", offset, offset))
         elif number not in reading.comment_lines:
@@ -826,6 +829,10 @@ Each is read whole, as one token: [[\verb]], [[\Verb]] and
 comment; PythonTeX's inline code; and noweb's
 quoting of code in double brackets, which isn't \LaTeX\ but is in every
 literate source.
+Only in a literate source, though: in a [[.tex]] file, as [[$x[[0]$]], two
+brackets are two brackets, and in a [[.nw]] file a pair that never closes on
+its line is taken for two brackets too, rather than for quoting that would
+hide the rest of the line.
 A command that isn't in the table is read as \TeX, so a [[%]] in the argument
 of a verbatim command of somebody else's still looks like a comment to us.
 That's a limit to state, not a rule we could complete: any package may define
@@ -848,7 +855,7 @@ OPTIONS_FIRST = {"Verb", "SaveVerb", "lstinline", "mint", "mintinline", "href"}
 GROUP_FIRST = {"SaveVerb", "mint", "mintinline"}
 LETTER = re.compile(r"[A-Za-z@]")
 <<functions>>=
-def tokens_of_line(line, offset):
+def tokens_of_line(line, offset, noweb=True):
     """Return the tokens of one line of text, at `offset` in the source."""
     tokens = []
     index = 0
@@ -865,9 +872,8 @@ def tokens_of_line(line, offset):
                 tokens.append(
                     Token("verbatim", "", offset + verbatim, offset + index)
                 )
-        elif line.startswith("[[", index):
-            end = line.find("]]", index)
-            index = end + 2 if end != -1 else len(line)
+        elif noweb and line.startswith("[[", index) and "]]" in line[index:]:
+            index = line.find("]]", index) + 2
             tokens.append(Token("verbatim", "", offset + start, offset + index))
         elif char == "%":
             index = len(line)
@@ -1439,7 +1445,7 @@ report.
 <<functions>>=
 def read_pairs(text, name=""):
     """Return a source's pairs, in order, unused stamp lines, errors, notes."""
-    reading = read_source(text)
+    reading = read_source(text, noweb=not name.endswith(".tex"))
     pairs, unused_by_blocks = block_pairs(reading)
     more_pairs, unused_by_ensv = ensv_pairs(reading)
     pairs = sorted(pairs + more_pairs, key=lambda pair: pair.first)
@@ -1882,6 +1888,16 @@ def test_more_verbatim_commands_are_read_whole(repo, source):
   assert result.returncode in (0, 1), result.stderr
   pairs = 1 if "\\ensv{a}{b}\n" in source else 0
   assert f"{pairs} pairs" in result.stdout
+
+
+def test_double_brackets_are_text_in_a_tex_file(repo):
+  (repo / "contents.tex").write_text("$x[[0]$ \\ensv{broken}\n")
+  assert run(repo, "contents.tex").returncode == 2
+
+
+def test_double_brackets_that_never_close_hide_nothing(repo):
+  (repo / "contents.nw").write_text("Use [[x and \\ensv{broken}\n")
+  assert run(repo, "contents.nw").returncode == 2
 
 
 def test_a_percent_sign_in_an_unknown_command_gets_a_note(repo):
