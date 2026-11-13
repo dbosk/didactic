@@ -189,6 +189,15 @@ check linemovesfloat x 3 '' kept,pairs "$FP$ALONE${TWO/testbody\{/testbody\{$FIG
 # naming the page.
 SHRINKOUT='\def\testshrinkout{}'
 check readfallback x 3 '' "warned,callwarn" "$SHRINKOUT\\def\\testtall{.1}\\def\\testbody{FIRSTLINE\\yieldnote{} \\filler}"
+# longtable ends each page it makes with \vss, which shrinks without limit: the
+# column is read all the same (that glue is at its end, with no mark after it),
+# with no warning, and the notes before, between and after are beside their lines
+# (ltcallouts); a column that can't be read, but where no note's place depends on
+# the reading, says nothing either (ltnodoubt: the same table, no note on its
+# pages, the shrink at the column's top).
+LT='\begin{longtable}{l}\endhead '"$(python3 -c "print('row\\\\\\\\ '*150)")"'\end{longtable}'
+check ltcallouts x 3 '' "kept,nocallwarn,pairs" "\\def\\testpre{\\usepackage{longtable}}\\def\\testfirst{}\\def\\testbody{FIRSTLINE\\yieldnote{} \\filler\\par $LT AFTER\\label{c-a}\\marginpar{\\label{n-a}AFTERNOTE} \\filler\\par}"
+check ltnodoubt x 3 '' "nocallwarn" "$SHRINKOUT\\def\\testpre{\\usepackage{longtable}}\\def\\testfirst{}\\def\\testbody{FIRSTLINE \\filler\\par $LT AFTER \\filler\\par}"
 # Who gets the warning that a note is set on another page than its callout:
 # every such note once, whoever moved it, but the rest of a note marginfix
 # cut (it continues a note set on its page) and a deferrable note, which is

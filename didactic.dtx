@@ -5242,10 +5242,19 @@
 % into a page but code in the output routine could put there; we test for it 
 % first, as \textsf{marginfix} does: a box with such glue, set to no height, 
 % is not overfull.
-% Then we fall back to |\botmarks|, with a warning that a note called out 
-% near the foot of the page may be set there, a page before its line.
-% We warn once for the page, though it is read twice (|\@didactic@colfeet| and
-% |\MFX@combinefloats@before|).
+% Glue, kerns and penalties at the column's end hold no mark and are taken off
+% the copy before the test (|\@didactic@untail|): \textsf{longtable} ends each
+% page it makes with |\vss|, and its columns are read as any other (the row
+% |ltcallouts|).
+% If the test still finds such glue, we fall back to |\botmarks|, with a warning that a note called out 
+% near the foot of the page may be set there, a page before its line; but
+% only if a note's place can depend on it (|\@didactic@doubt|): a note of ours
+% in \textsf{marginfix}'s list, or sent to the foot, numbered above what the
+% last reading found, is one called out since, maybe on this page; without
+% one, the reading changes nothing, and nothing is said (the row
+% |ltnodoubt|).
+% We warn once for the page, though it may be read twice (|\@didactic@colfeet|
+% and |\MFX@combinefloats@before|, in two columns).
 % A column with no height, an empty page, isn't overfull at no height either,
 % shrink or not; it splits all the same, so the test is only for a column with
 % height.
@@ -5257,23 +5266,24 @@
   \begingroup
     \vbadness\@M \vfuzz\maxdimen
     \splittopskip\z@skip \splitmaxdepth\maxdimen
-    \setbox\z@\vbox{\unvcopy\@outputbox}%
+    \setbox\z@\vbox{\unvcopy\@outputbox\@didactic@untail}%
     \setbox\tw@\vbox to\z@{\unvcopy\z@}%
     \@tempswafalse
     \ifnum\badness<1000000
       \ifdim\dimexpr\ht\z@+\dp\z@\relax>\z@ \@tempswatrue \fi
     \fi
     \if@tempswa
+      \@didactic@doubt
       \edef\@didactic@tmp{\botmarks\@didactic@notemarks}%
       \ifx\@didactic@tmp\@empty\else
         \global\@didactic@pagelast\@didactic@tmp\relax
       \fi
-      \ifnum\c@page=\@didactic@cantpage\else
+      \if@didactic@indoubt\ifnum\c@page=\@didactic@cantpage\else
         \global\@didactic@cantpage\c@page
         \PackageWarningNoLine{didactic}{Can't read the callouts of page
           \thepage:\MessageBreak a margin note called out near its foot may
           be set there,\MessageBreak a page before its line}%
-      \fi
+      \fi\fi
     \else
       \let\@didactic@last\@empty
       \@didactic@splitall
@@ -5281,6 +5291,28 @@
         \global\@didactic@pagelast\@didactic@last\relax
       \fi
     \fi
+  \endgroup}
+\newcommand\@didactic@untail{%
+  \ifcase\numexpr\lastnodetype-10\relax
+  \or\unskip\expandafter\@didactic@untail
+  \or\unkern\expandafter\@didactic@untail
+  \or\unpenalty\expandafter\@didactic@untail
+  \fi}
+\newif\if@didactic@indoubt
+\newcommand\@didactic@doubt{%
+  \global\@didactic@indoubtfalse
+  \begingroup
+    \def\mfx@build@note##1##2##3{%
+      \ifnum\@didactic@noteof##1>\@didactic@pagelast
+        \global\@didactic@indoubttrue
+      \fi}%
+    \let\mfx@build@skip\@gobble
+    \let\mfx@build@clear\relax
+    \mfx@marginlist
+    \def\@didactic@delt##1,{\ifx\relax##1\relax\else
+      \ifnum##1>\@didactic@pagelast\global\@didactic@indoubttrue\fi
+      \expandafter\@didactic@delt\fi}%
+    \expandafter\@didactic@delt\@didactic@footids\relax,%
   \endgroup}
 \newcommand\@didactic@splitall{%
   \setbox\tw@\vsplit\z@ to\maxdimen
@@ -6479,6 +6511,14 @@
 % that whatever reads |\@outputbox| there, ourselves or a wrapper of
 % |\@didactic@readlast|, can't change or empty the column itself (the row
 % |readfallback| of |test-noteplace| wraps it to change what it reads).
+% The margin of the same column is built a moment later, in the same
+% |\@makecol|, and takes this reading (|\@didactic@readcol|, by the page
+% number it was made for) rather than reading the column again: by then
+% \textsf{memoir}'s |\@makecol| has put the footnotes after the text, and
+% glue at the text's end that shrinks without limit (\textsf{longtable}'s
+% |\vss|) is no longer at the end, where the reading takes it off.  Where no
+% such reading was made (two columns, where we don't make up the feet), the
+% margin's build reads the column itself.
 %    \begin{macrocode}
 \newbox\@didactic@pullbox
 \newbox\@didactic@one
@@ -6493,6 +6533,7 @@
     \global\@didactic@colast\@didactic@pagelast
     \global\@didactic@pagelast\count@
   \endgroup
+  \xdef\@didactic@colread{\the\c@page}%
   \@didactic@pullcheck
   \global\setbox\@didactic@pullbox\box\voidb@x
   \ifvoid\footins\else
@@ -6510,6 +6551,15 @@
   \global\let\@didactic@expectnext\@empty
   \global\let\@didactic@footids\@empty
   \global\@didactic@footfullfalse}
+\let\@didactic@colread\@empty
+\newcommand\@didactic@readcol{%
+  \edef\@tempa{\the\c@page}%
+  \ifx\@tempa\@didactic@colread
+    \global\@didactic@pagelast\@didactic@colast
+  \else
+    \@didactic@readlast
+  \fi
+  \global\let\@didactic@colread\@empty}
 \newcommand\@didactic@pull{%
   \let\@didactic@next\relax
   \ifnum\lastnodetype=\tw@
@@ -6827,7 +6877,7 @@
     {\pretocmd\@makecol{\if@twocolumn\else\@didactic@colfeet\fi}{}{}}%
   \let\@didactic@MFX@combinefloats@before\MFX@combinefloats@before
   \def\MFX@combinefloats@before{%
-    \@didactic@readlast\@didactic@sift
+    \@didactic@readcol\@didactic@sift
     \@didactic@overapply
     \@didactic@MFX@combinefloats@before
     \@didactic@overdone

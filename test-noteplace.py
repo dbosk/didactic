@@ -32,7 +32,7 @@ test-noteplace.tex writes to the log.  Always: no footnote found not plain
   footwarn    a warning says that noteoverflow=foot works as carry here;
   nofootwarn  no such warning.
   callwarn    a warning says that the callouts of a page can't be read, once for
-              each such page.
+              each such page; nocallwarn, no such warning.
   exactwarn   as many of didactic's warnings that a note is set on another page
               as notes set on another page than their callout, NOTEY and the
               notes labelled c-X/n-X; notes labelled c-dX (deferrable) apart.
@@ -337,6 +337,8 @@ for e in expect:
             r"didactic Warning: Can't read the callouts of page (\d+)", joined))) \
             != len(re.findall(r"didactic Warning: Can't read the callouts of page (\d+)", joined)):
         fails.append("a page whose callouts can't be read is warned about twice")
+    elif e == "nocallwarn" and re.search(r"Can't read the callouts of page \d+", joined):
+        fails.append("a warning that the callouts of a page can't be read")
     elif e == "callwarn" and not re.search(r"Can't read the callouts of page \d+", joined):
         fails.append("no warning that the callouts of a page can't be read")
     elif e == "exactwarn":

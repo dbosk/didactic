@@ -27,10 +27,12 @@
   \makeatletter
   \AddToHook{begindocument/end}{%
     \let\testreadlast\@didactic@readlast
+    \newbox\testsaved
     \def\@didactic@readlast{%
-      \setbox\@outputbox\vbox{\unvbox\@outputbox\vskip\z@ minus 1fil}%
+      \setbox\testsaved\copy\@outputbox
+      \setbox\@outputbox\vbox{\vskip\z@ minus 1fil\unvbox\@outputbox}%
       \testreadlast
-      \setbox\@outputbox\vbox{\unvbox\@outputbox\unskip}}}
+      \setbox\@outputbox\box\testsaved}}
   \makeatother
 \fi
 \newcommand\yieldnote[1][]{\label{callout-y}\marginpar{\label{note-y}NOTEY#1}}
