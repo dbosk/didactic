@@ -152,6 +152,22 @@ for order in "\\usepackage{physics}\\usepackage{didactic}" \
   esac
 done
 
+# A document's own \ensv, defined before didactic, stays the document's, with a
+# warning, and \didactictr gives the edition's text.
+taken "\\newcommand\\ensv[2]{OWN(#1,#2)}\\usepackage{didactic}" \
+  "\\ensv{a}{b} \\didactictr{ENWORD}{SVWORD}"
+grep -q 'Package didactic Warning: \\ensv is already defined' \
+  test-bilingual-taken.log || fail own "no warning for an own \\ensv"
+text=$(pdftotext test-bilingual-taken.pdf - 2>/dev/null)
+case "$text" in
+  *"OWN(a,b)"*) ;;
+  *) fail own "the document's own \\ensv was overwritten" ;;
+esac
+case "$text" in
+  *ENWORD*) ;;
+  *) fail own "\\didactictr missing beside an own \\ensv" ;;
+esac
+
 # A block's cut file is the job's own.  \subimport makes \input look in the
 # imported directory first, where a deck built on its own may have left a cut
 # file of the same name; the block must not read that one.
