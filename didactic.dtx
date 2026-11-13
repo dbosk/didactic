@@ -249,8 +249,9 @@
 %
 % \changes{v2.17}{2026/11/01}{%
 %   Adds bilingual documents: the environments \texttt{en} and \texttt{sv}, 
-%   \texttt{\textbackslash tr}, the option \texttt{language}, 
-%   \texttt{\textbackslash didacticlanguage} and the option 
+%   \texttt{\textbackslash ensv}, \texttt{\textbackslash didactictr}, 
+%   the option \texttt{language}, \texttt{\textbackslash didacticlanguage} 
+%   and the option 
 %   \texttt{nobilingual}; loads \textsf{comment}.
 %   Adds the script \texttt{didactic-sync.py}, a literate program, which 
 %   keeps the two languages of a pair in step.
@@ -865,9 +866,12 @@
 % \texttt{didactic-sync.py}, which is the subject of 
 % \cref{sec:didactic-sync}.
 %
-% \DescribeMacro{\tr}
-% Short strings use |\tr{English}{Svenska}|: frame titles, section titles, 
+% \DescribeMacro{\ensv}
+% \DescribeMacro{\didactictr}
+% Short strings use |\ensv{English}{Svenska}|: frame titles, section titles, 
 % captions, list items, the title of the document.
+% The name gives the order of the arguments, English first.
+% |\didactictr| is the same command under a name that no other package takes.
 % It's expandable, so it's safe in moving arguments: the table of contents, 
 % the bookmarks and the headline of the slides only ever see the edition's 
 % language.
@@ -902,7 +906,7 @@
 % Therefore the driver gives \textsf{cleveref} the edition's language last, 
 % as above, and the shared preamble loads it without a language.
 % Names set in the preamble with |\crefname| depend on the edition too, and 
-% can use |\tr|.
+% can use |\ensv|.
 %
 % The blocks are built on the \textsf{comment} package, which reads a block 
 % line by line and writes it to a file, or skips it, so a block can hold 
@@ -926,7 +930,7 @@
 %   a macro: not in |\ltnote{...}|, |\mode<article>{...}|, |\only<2>{...}| 
 %   or |\footnote{...}|.
 %   The errors are the ones above, or one that names |\xComment|.
-%   Put the block around the macro, or use |\tr| inside it.
+%   Put the block around the macro, or use |\ensv| inside it.
 % \item[Outside frames] On the slides, |\mode*| skips text between the 
 %   frames without seeing the blocks, so it stops at a frame or a |\section| 
 %   in an \emph{excluded} block too, and both languages come out.
@@ -953,12 +957,15 @@
 % and a block may even open an environment that it doesn't close.
 %
 % \DescribeOpt{nobilingual}
-% The names |en|, |sv|, |\tr| and, through \textsf{comment}, |\comment| are 
-% free in the packages that this package is used with, but a document might 
-% define them for itself, as might a package: \textsf{physics} has a |\tr| for 
-% the trace, and \textsf{changes} a |\comment|.
-% If |\tr| is taken when this package is loaded, it stays as it is, with a 
-% warning, and the command is available as |\didactictr|.
+% The names |en|, |sv|, |\ensv| and, through \textsf{comment}, |\comment| 
+% are free in the packages that this package is used with, but a document 
+% might define them for itself, as might a package: \textsf{changes} has a 
+% |\comment|.
+% (This package defines no |\tr|, which \textsf{physics} has for the trace.)
+% If |\ensv| is taken when this package is loaded, it stays as it is, with a 
+% warning, and the command is available as |\didactictr|; then 
+% \texttt{didactic-sync.py} sees only the strings written with 
+% |\didactictr|.
 % If |\en|, |\sv| or a command |\comment| is taken, then \textsf{comment} would 
 % overwrite it and the document would break somewhere else, so that's an error.
 % An environment |comment| is replaced by one that drops its contents.
@@ -966,9 +973,6 @@
 % other gets a warning, since its contents would be lost if it printed them.
 % If the document defines one of them afterwards with |\newcommand|, or
 % loads a package that does, \LaTeX\ says so itself.
-% A package may replace a command without asking, though, as \textsf{physics}
-% does with |\tr| when it's loaded after this package, and then nothing says 
-% so.
 % In all these cases, or if the document doesn't want any of this, the option 
 % |nobilingual| leaves the names, and \textsf{comment}, alone.
 %
@@ -2373,7 +2377,7 @@
 %
 % \begin{macro}{\didacticlanguage}
 % Choosing the edition is then a matter of which block is included, and 
-% which argument |\tr| returns.
+% which argument |\ensv| returns.
 %    \begin{macrocode}
 \newcommand\didacticlanguage[1]{%
   \IfStrEqCase{#1}{%
@@ -2406,21 +2410,26 @@
 }
 %    \end{macrocode}
 %
-% \begin{macro}{\tr}
+% \begin{macro}{\ensv}
 % \begin{macro}{\didactictr}
 % The command has to expand to the text itself and nothing else, so that it 
 % survives moving arguments: \textsf{hyperref} can't put anything but text in 
 % a bookmark.
 % That's why it isn't robust and only expands to one of its arguments.
-% We don't overwrite a |\tr| that's there already, it's likely a package's, 
-% and overwriting it would break the document at some unrelated place.
+% The short name was |\tr| at first, but \textsf{physics} has a |\tr| for 
+% the trace, and a physics teacher may want both; no package we know of has 
+% an |\ensv|.
+% We don't overwrite an |\ensv| that's there already, it's likely a 
+% package's, and overwriting it would break the document at some unrelated 
+% place.
 %    \begin{macrocode}
 \newcommand\didactictr[2]{\@didactic@tr{#1}{#2}}
-\@ifundefined{tr}{%
-  \let\tr\didactictr
+\@ifundefined{ensv}{%
+  \let\ensv\didactictr
 }{%
   \PackageWarningNoLine{didactic}{%
-    \string\tr\space is already defined, keeping that definition.\MessageBreak
+    \string\ensv\space is already defined, keeping that 
+    definition.\MessageBreak
     Use \string\didactictr\space for bilingual strings%
   }%
 }

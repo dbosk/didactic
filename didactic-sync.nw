@@ -100,7 +100,7 @@ A pair therefore has to be recognised in exactly one way, which is the reason
 for reading git's old versions of a file with the same functions as the file
 on disk.
 \begin{description}
-  \item[Reading] finds what \LaTeX\ will treat as blocks and as [[\tr]], and
+  \item[Reading] finds what \LaTeX\ will treat as blocks and as [[\ensv]], and
   ignores what it won't (\cref{sec:sync-reading,sec:sync-tr}).
   \item[Pairing] turns those into pairs with their stamps
   (\cref{sec:sync-pairs}).
@@ -275,7 +275,7 @@ for whatever separates two blocks.
 Blank lines and comments leave no trace there, and that's what makes the
 pairing rule of the next section so short.
 The comments that are stamps are kept apart, with the lines that can hold
-[[\tr]].
+[[\ensv]].
 
 <<imports>>=
 from dataclasses import dataclass, field
@@ -362,7 +362,7 @@ def end_of_verbatim(lines, number, name, errors):
     return len(lines) - 1
 @
 
-The lines of text also tell us about frames, and they're where a [[\tr]] can
+The lines of text also tell us about frames, and they're where an [[\ensv]] can
 be.
 An [[\end{en}]] is only stray here: the one that belongs to a block is
 consumed when the block is read.
@@ -523,7 +523,7 @@ def test_a_block_in_a_comment_is_not_a_block(repo):
 )
 def test_a_block_in_a_verbatim_environment_is_not_a_block(repo, name):
   (repo / "contents.nw").write_text(
-    f"\\begin{{{name}}}\n" + blocks("en", "sv") + "\\tr{a}{b}\n"
+    f"\\begin{{{name}}}\n" + blocks("en", "sv") + "\\ensv{a}{b}\n"
     f"\\end{{{name}}}\n"
   )
   result = run(repo, "-v", "contents.nw")
@@ -709,11 +709,11 @@ def test_a_block_after_a_frame_is_fine(repo):
 
 \subsection{Reading a source: what is a string}\label{sec:sync-tr}
 
-A [[\tr]] is a pair on a smaller scale, with the difference that its parts
+An [[\ensv]] is a pair on a smaller scale, with the difference that its parts
 aren't on lines of their own.
 To find where its two arguments end we have to balance the braces, since the
 arguments are \LaTeX\ and hold groups of their own:
-[[\tr{A \emph{big} cat}{En \emph{stor} katt}]].
+[[\ensv{A \emph{big} cat}{En \emph{stor} katt}]].
 Three things inside them must not count as braces: an escaped one, [[\{]];
 anything in noweb's quoting, which might hold one brace on its own; and
 anything after a comment sign.
@@ -782,12 +782,21 @@ def read_argument(text, position):
     return None
 @
 
-The command is named [[\tr]], or [[\didactictr]] in a document where [[\tr]]
-is taken, and nothing longer, and it isn't preceded by an odd number of
-backslashes: [[\\tr]] is a line break followed by the letters \enquote{tr}.
-A [[\tr]] that isn't followed by a group, such as the [[\newcommand\tr[2]]] of
-a definition, isn't a use of the command, but one with one group is a use with
-a missing argument.
+The command is named [[\ensv]], or [[\didactictr]] in a document where
+[[\ensv]] is taken, and nothing longer, and it isn't preceded by an odd number
+of backslashes: [[\\ensv]] is a line break followed by the letters
+\enquote{ensv}.
+A [[\tr]] is none of our business: the package defines none, and
+\textsf{physics} has one for the trace, so a [[\tr]] in a source is that or
+the document's own.
+Both of our names are only ours, though, so a use of one that isn't followed by
+two groups is an error, whatever follows: [[\ensv{a}]] alone, or
+[[\ensv\foo]].
+An alias such as [[\let\x\ensv]] is one too, since the script would never see
+the strings written with it.
+What isn't a use is a definition, in a document that has its own [[\ensv]]
+and the option [[nobilingual]]: the name right after a command that defines
+one, such as [[\newcommand]] or [[\def]].
 Nor is one that's shown as code, in noweb's quoting, [[\verb]] or
 [[\mintinline]]: a text about this package has plenty of those.
 So the search for the command looks at a copy of the text with those blanked
@@ -797,7 +806,12 @@ What we store is the line where it ends, as that's the line where a comment
 can stand without being in the way of the rest of the command.
 
 <<constants>>=
-TR = re.compile(r"(?<!\\)(?:\\\\)*\\(?:didactic)?tr(?![a-zA-Z@])")
+ENSV = re.compile(r"(?<!\\)(?:\\\\)*\\(?P<name>didactictr|ensv)(?![a-zA-Z@])")
+DEFINING = re.compile(
+    r"\\(?:[gex]?def|(?:renew|provide|new)command\*?|DeclareRobustCommand\*?"
+    r"|(?:New|Renew|Provide|Declare)DocumentCommand)\s*\{?\s*$"
+)
+DEFINING_REACH = 40
 QUOTED = re.compile(
     r"\[\[.*?\]\]"
     r"|\\verb\*?([^a-zA-Z\s]).*?\1"
@@ -805,34 +819,37 @@ QUOTED = re.compile(
 )
 <<classes>>=
 @dataclass
-class Tr:
-    """A use of `\\tr`, with the 0-based line where it starts and ends."""
+class Ensv:
+    """A use of `\\ensv`, with the 0-based line where it starts and ends."""
 
     first: int
     last: int
     en: str
     sv: str
 <<functions>>=
-def find_tr(reading):
-    """Return all uses of `\\tr` in a source, in order."""
+def find_ensv(reading):
+    """Return all uses of `\\ensv` in a source, in order."""
     raw = "\n".join(reading.lines)
     text = "\n".join(blank_non_text(reading))
     searchable = QUOTED.sub(lambda quoted: " " * len(quoted.group()), text)
     found = []
     position = 0
-    while match := TR.search(searchable, position):
+    while match := ENSV.search(searchable, position):
         position = match.end()
-        first = read_argument(text, position)
-        if first is None:
+        start = match.start()
+        before = searchable[max(0, start - DEFINING_REACH) : start]
+        if DEFINING.search(before):
             continue
-        second = read_argument(text, first[1] + 1)
+        first = read_argument(text, position)
+        second = first and read_argument(text, first[1] + 1)
         line = text.count("\n", 0, match.start())
         if second is None:
-            reading.errors.append((line, "this \\tr needs two arguments"))
-            position = first[1] + 1
+            name = match.group("name")
+            reading.errors.append((line, f"this \\{name} needs two arguments"))
+            position = first[1] + 1 if first else position
             continue
         found.append(
-            Tr(
+            Ensv(
                 line,
                 text.count("\n", 0, second[1]),
                 raw[first[0] : first[1]],
@@ -857,12 +874,12 @@ needs no stamp and it's never reported.
 
 A block's stamp is the nearest line above it that is a stamp, with only blank
 lines and comments between: the same rule as between the two blocks.
-A [[\tr]]'s stamp stands on the line where it ends, one entry per [[\tr]] that
-ends there, separated by semicolons, in the order they appear:
+An [[\ensv]]'s stamp stands on the line where it ends, one entry per
+[[\ensv]] that ends there, separated by semicolons, in the order they appear:
 \begin{minted}{text}
-\tr{one}{ett} \tr{three}{tre} % sync en=7692c3 sv=4e07d4; en=ad0234 sv=f4e6a1
+\ensv{one}{ett} \ensv{two}{två} % sync en=7692c3 sv=4e07d4; en=ad0234 sv=f4e6a1
 \end{minted}
-An entry of [[-]] marks a [[\tr]] on that line that hasn't been stamped yet,
+An entry of [[-]] marks an [[\ensv]] on that line that hasn't been stamped yet,
 so that the second can be stamped before the first, and they don't change
 places.
 
@@ -946,7 +963,7 @@ def normal_form(text):
 @
 
 A [[Pair]] then has all that the modes need, whichever way it came about.
-The [[target]] is how the report names it: the line, followed by which [[\tr]]
+The [[target]] is how the report names it: the line, followed by which [[\ensv]]
 on the line if there are several.
 
 <<classes>>=
@@ -1014,21 +1031,21 @@ def line_above(lines, number):
     return number
 @
 
-The pairs of [[\tr]] are simpler, since nothing can separate their sides.
+The pairs of [[\ensv]] are simpler, since nothing can separate their sides.
 Their stamps are grouped by the line where they end, so that the entries on a
-line go with the [[\tr]]s in order, however many there are.
+line go with the [[\ensv]]s in order, however many there are.
 
 <<functions>>=
-def tr_pairs(reading):
-    """Return the pairs that the uses of `\\tr` in a source make."""
+def ensv_pairs(reading):
+    """Return the pairs that the uses of `\\ensv` in a source make."""
     by_line = {}
-    for tr in find_tr(reading):
-        by_line.setdefault(tr.last, []).append(tr)
+    for use in find_ensv(reading):
+        by_line.setdefault(use.last, []).append(use)
     pairs = []
     for line, uses in by_line.items():
         match = STAMP_COMMENT.search(reading.lines[line].rstrip("\r"))
         stamps = parse_entries(match.group("entries")) if match else []
-        for position, tr in enumerate(uses):
+        for position, use in enumerate(uses):
             target = str(line + 1)
             if len(uses) > 1:
                 target += f".{position + 1}"
@@ -1036,10 +1053,10 @@ def tr_pairs(reading):
             pairs.append(
                 Pair(
                     target,
-                    tr.first,
+                    use.first,
                     line,
-                    tr.en,
-                    tr.sv,
+                    use.en,
+                    use.sv,
                     stamp,
                     position=position,
                 )
@@ -1055,7 +1072,7 @@ def read_pairs(text):
     """Return a source's pairs, in order, unused stamp lines and errors."""
     reading = read_source(text)
     pairs, used = block_pairs(reading)
-    pairs += tr_pairs(reading)
+    pairs += ensv_pairs(reading)
     pairs.sort(key=lambda pair: pair.first)
     leftover = sorted(set(reading.stamp_lines) - used)
     return pairs, leftover, reading.errors
@@ -1184,16 +1201,16 @@ def test_a_comment_in_a_block_counts_as_a_change(repo):
   assert "sv is behind" in run(repo, "contents.nw").stdout
 @
 
-The same for [[\tr]], where the difficulty is in the braces.
-Note that the tests of what isn't a [[\tr]] have to come out quietly, with
+The same for [[\ensv]], where the difficulty is in the braces.
+Note that the tests of what isn't an [[\ensv]] have to come out quietly, with
 status 0:
-a definition, a comment, a chunk, a line break.
+a definition, a comment, a chunk, a line break, and a [[\tr]].
 
 <<test functions>>=
-def test_tr_with_nested_braces_is_one_pair(repo):
+def test_ensv_with_nested_braces_is_one_pair(repo):
   path = repo / "contents.nw"
   path.write_text(
-    "\\section{\\tr{A \\emph{big {one}} cat}{En \\emph{stor} katt}}\n"
+    "\\section{\\ensv{A \\emph{big {one}} cat}{En \\emph{stor} katt}}\n"
   )
   assert "contents.nw:1: new pair" in run(repo, "contents.nw").stdout
   assert run(repo, "--stamp", "contents.nw:1").returncode == 0
@@ -1206,15 +1223,15 @@ def test_tr_with_nested_braces_is_one_pair(repo):
 
 def test_a_change_after_a_nested_brace_is_seen(repo):
   path = repo / "contents.nw"
-  path.write_text("\\tr{a {b} c}{d {e} f}\n")
+  path.write_text("\\ensv{a {b} c}{d {e} f}\n")
   assert run(repo, "--stamp", "contents.nw:1").returncode == 0
   path.write_text(path.read_text().replace("{b} c", "{b} x"))
   assert "sv is behind" in run(repo, "contents.nw").stdout
 
 
-def test_several_tr_on_a_line_are_separate(repo):
+def test_several_ensv_on_a_line_are_separate(repo):
   path = repo / "contents.nw"
-  path.write_text("\\tr{one}{ett} and \\tr{two}{två}\n")
+  path.write_text("\\ensv{one}{ett} and \\ensv{two}{två}\n")
   result = run(repo, "contents.nw")
   assert "contents.nw:1.1: new pair" in result.stdout
   assert "contents.nw:1.2: new pair" in result.stdout
@@ -1236,14 +1253,19 @@ def test_several_tr_on_a_line_are_separate(repo):
   assert "[-two-]{+too+}" in result.stdout
 
 
-def test_what_is_not_a_tr_is_quiet(repo):
+def test_what_is_not_an_ensv_is_quiet(repo):
   (repo / "contents.nw").write_text(
-    "% \\tr{a}{b}\n"
-    "Text. % \\tr{a}{b}\n"
-    "@<<[[a.tex]]>>=\n\\tr{a}{b}\n@\n"
-    "Two lines\\\\tr{a}{b}\n"
+    "% \\ensv{a}{b}\n"
+    "Text. % \\ensv{a}{b}\n"
+    "@<<[[a.tex]]>>=\n\\ensv{a}{b}\n@\n"
+    "Two lines\\\\ensv{a}{b}\n"
     "\\newcommand\\tr[2]{#1}\n"
+    "\\newcommand\\ensv[2]{#1}\n"
+    "\\renewcommand{\\ensv}[2]{#1}\n"
+    "\\NewDocumentCommand\\didactictr{mm}{#1}\n"
+    "\\def\\ensv#1#2{#1}\n"
     "\\translate{a}{b}\n"
+    "\\tr{a}{b} and $\\tr{a}$\n"
   )
   result = run(repo, "-v", "contents.nw")
   assert result.returncode == 0, result.stdout
@@ -1253,22 +1275,22 @@ def test_what_is_not_a_tr_is_quiet(repo):
 @pytest.mark.parametrize(
   "shown",
   [
-    "Use [[\\tr{en}{sv}]] here.",
-    "Use \\verb|\\tr{en}{sv}| here.",
-    "Use \\mintinline{latex}|\\tr{en}{sv}| here.",
-    "Use \\mintinline[breaklines]{latex}{\\tr} here{a}{b}.",
+    "Use [[\\ensv{en}{sv}]] here.",
+    "Use \\verb|\\ensv{en}{sv}| here.",
+    "Use \\mintinline{latex}|\\ensv{en}{sv}| here.",
+    "Use \\mintinline[breaklines]{latex}{\\ensv} here{a}{b}.",
   ],
 )
-def test_a_tr_shown_as_code_is_quiet(repo, shown):
+def test_an_ensv_shown_as_code_is_quiet(repo, shown):
   (repo / "contents.nw").write_text(shown + "\n")
   result = run(repo, "-v", "contents.nw")
   assert result.returncode == 0, result.stdout
   assert "0 pairs" in result.stdout
 
 
-def test_a_change_in_quoted_code_in_a_tr_is_a_change(repo):
+def test_a_change_in_quoted_code_in_an_ensv_is_a_change(repo):
   path = repo / "contents.nw"
-  path.write_text("\\tr{Use [[foo]]}{Ta [[foo]]}\n")
+  path.write_text("\\ensv{Use [[foo]]}{Ta [[foo]]}\n")
   assert run(repo, "--stamp", "contents.nw:1").returncode == 0
   path.write_text(path.read_text().replace("Use [[foo]]", "Use [[bar]]"))
   assert "sv is behind" in run(repo, "contents.nw").stdout
@@ -1277,12 +1299,12 @@ def test_a_change_in_quoted_code_in_a_tr_is_a_change(repo):
 @pytest.mark.parametrize(
   "source",
   [
-    "\\tr{100\\% [[a%b]] x}{100\\% [[a%b]] y}\n",
-    "\\tr {a} {b}\n",
-    "\\tr{a % a comment\n b}{c}\n",
+    "\\ensv{100\\% [[a%b]] x}{100\\% [[a%b]] y}\n",
+    "\\ensv {a} {b}\n",
+    "\\ensv{a % a comment\n b}{c}\n",
   ],
 )
-def test_tr_with_percent_signs_and_spaces_is_one_pair(repo, source):
+def test_ensv_with_percent_signs_and_spaces_is_one_pair(repo, source):
   path = repo / "contents.nw"
   path.write_text(source)
   assert "new pair" in run(repo, "contents.nw").stdout
@@ -1292,9 +1314,9 @@ def test_tr_with_percent_signs_and_spaces_is_one_pair(repo, source):
   assert path.read_text().count("% sync") == 1
 
 
-def test_stamping_a_tr_again_replaces_its_stamp(repo):
+def test_stamping_an_ensv_again_replaces_its_stamp(repo):
   path = repo / "contents.nw"
-  path.write_text("\\tr{a}{b}\n")
+  path.write_text("\\ensv{a}{b}\n")
   assert run(repo, "--stamp", "contents.nw:1").returncode == 0
   path.write_text(path.read_text().replace("{a}", "{x}"))
   assert "sv is behind" in run(repo, "contents.nw").stdout
@@ -1303,9 +1325,9 @@ def test_stamping_a_tr_again_replaces_its_stamp(repo):
   assert run(repo, "contents.nw").returncode == 0
 
 
-def test_crlf_on_a_tr_line_survives_a_stamp(repo):
+def test_crlf_on_an_ensv_line_survives_a_stamp(repo):
   path = repo / "contents.nw"
-  path.write_bytes(b"\\tr{a}{b}\r\nNext.\r\n")
+  path.write_bytes(b"\\ensv{a}{b}\r\nNext.\r\n")
   assert run(repo, "--stamp", "contents.nw:1").returncode == 0
   data = path.read_bytes()
   assert data.count(b"\r\n") == 2
@@ -1314,7 +1336,7 @@ def test_crlf_on_a_tr_line_survives_a_stamp(repo):
   assert run(repo, "contents.nw").returncode == 0
 
 
-def test_didactictr_is_a_tr_too(repo):
+def test_didactictr_is_an_ensv_too(repo):
   path = repo / "contents.nw"
   path.write_text("\\didactictr{Yes}{Ja}\n")
   assert "contents.nw:1: new pair" in run(repo, "contents.nw").stdout
@@ -1323,34 +1345,47 @@ def test_didactictr_is_a_tr_too(repo):
   assert "sv is behind" in run(repo, "contents.nw").stdout
 
 
-def test_a_comment_edit_in_a_tr_counts_as_a_change(repo):
+def test_a_comment_edit_in_an_ensv_counts_as_a_change(repo):
   path = repo / "contents.nw"
-  path.write_text("\\tr{a % one\n b}{c}\n")
+  path.write_text("\\ensv{a % one\n b}{c}\n")
   assert run(repo, "--stamp", "contents.nw:2").returncode == 0
   path.write_text(path.read_text().replace("% one", "% two"))
   assert "sv is behind" in run(repo, "contents.nw").stdout
 
 
-def test_tr_may_quote_code_and_escaped_braces(repo):
+def test_ensv_may_quote_code_and_escaped_braces(repo):
   (repo / "contents.nw").write_text(
-    "\\tr{a [[d{]] \\{ b}{c [[d{]] \\{ d}\n"
+    "\\ensv{a [[d{]] \\{ b}{c [[d{]] \\{ d}\n"
   )
   assert "contents.nw:1: new pair" in run(repo, "contents.nw").stdout
 
 
-def test_a_tr_over_several_lines_has_its_stamp_where_it_ends(repo):
+def test_an_ensv_over_several_lines_has_its_stamp_where_it_ends(repo):
   path = repo / "contents.nw"
-  path.write_text("\\tr{one\ntwo}{ett\ntvå}\nNext.\n")
+  path.write_text("\\ensv{one\ntwo}{ett\ntvå}\nNext.\n")
   assert run(repo, "--stamp", "contents.nw:3").returncode == 0
   assert path.read_text().splitlines()[2].startswith("två} % sync en=")
   assert run(repo, "contents.nw").returncode == 0
 
 
-def test_tr_without_a_second_argument_is_an_error(repo):
-  (repo / "contents.nw").write_text("\\tr{one}\n")
+@pytest.mark.parametrize(
+  "source",
+  ["\\ensv{one}\n", "\\ensv\\foo\n", "\\didactictr\\foo\n", "\\let\\x\\ensv\n"],
+)
+def test_our_names_without_two_arguments_are_an_error(repo, source):
+  (repo / "contents.nw").write_text(source)
   result = run(repo, "contents.nw")
   assert result.returncode == 2
   assert "contents.nw:1" in result.stderr
+
+
+def test_a_tr_is_somebody_elses(repo):
+  path = repo / "contents.nw"
+  path.write_text("$\\tr{A}$ and $\\tr{B}{C}$, \\ensv{Yes}{Ja}\n")
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  result = run(repo, "-v", "contents.nw")
+  assert result.returncode == 0, result.stderr
+  assert "1 pairs" in result.stdout
 @
 
 \subsection{The state of a pair}\label{sec:sync-state}
@@ -1881,13 +1916,14 @@ def test_an_uncommitted_stamp_still_reports_without_the_diff(repo):
 
 A stamp is a judgement about one pair, so the command takes one pair.
 The line can be any line of the pair, since the report and the reader's editor
-won't always be on the first one, but if several [[\tr]]s end on that line
+won't always be on the first one, but if several [[\ensv]]s end on that line
 then the report's way of saying which is required: [[contents.nw:12.2]].
 There's no form for a whole file and no way to give several targets, which is
 deliberate: see the start of this section.
-A [[\tr]] over several lines shares its first line with whatever ends there, so
-a line can lie in several pairs; the name that the report gives a pair is
-always the line where it ends, so a pair named exactly so is the one meant.
+An [[\ensv]] over several lines shares its first line with whatever ends
+there, so a line can lie in several pairs; the name that the report gives a
+pair is always the line where it ends, so a pair named exactly so is the one
+meant.
 
 <<constants>>=
 TARGET = re.compile(r"(?P<path>.+):(?P<line>[0-9]+)(?:\.(?P<which>[0-9]+))?$")
@@ -1977,14 +2013,14 @@ def write_block_stamp(lines, pair):
         lines.insert(pair.begin, stamp)
 @
 
-A stamp of a [[\tr]] rewrites the entries of its line: the new entry in its
-place, and those of the other [[\tr]]s on the line as they were, or as [[-]].
+A stamp of an [[\ensv]] rewrites the entries of its line: the new entry in its
+place, and those of the other [[\ensv]]s on the line as they were, or as [[-]].
 The text before the stamp is untouched except for the spaces between it and
 the comment.
 
 <<functions>>=
 def write_tr_stamp(lines, pair, pairs):
-    """Replace or append the stamp comment on the line where a `\\tr` ends."""
+    """Replace or append the stamp comment where an `\\ensv` ends."""
     line = lines[pair.last]
     ending = "\r" if line.endswith("\r") else ""
     body = line.rstrip("\r")
@@ -2016,7 +2052,7 @@ def test_stamping_one_pair_leaves_all_others_byte_identical(repo):
     + blocks("en", "sv", en="One", sv="Ett")
     + "\t\ttabs\n"
     + "  \\begin{en}\n  Two\n\\end{en}\n  \\begin{sv}\n  Två\n\\end{sv}\n"
-    + "\\tr{x}{y}\n"
+    + "\\ensv{x}{y}\n"
     + blocks("sv", "en", en="Three", sv="Tre")
     + "no newline at the end"
   )
@@ -2075,7 +2111,7 @@ def test_stamp_needs_one_pair(repo, target):
 
 def test_every_pair_a_report_names_can_be_stamped(repo):
   path = repo / "contents.nw"
-  path.write_text("\\tr{a}{b} \\tr{c\n  d}{e}\n")
+  path.write_text("\\ensv{a}{b} \\ensv{c\n  d}{e}\n")
   report = run(repo, "contents.nw").stdout
   targets = re.findall(r"contents\.nw:(\S+): new pair", report)
   assert targets == ["1", "2"]
@@ -2089,8 +2125,8 @@ def test_every_pair_a_report_names_can_be_stamped(repo):
   [
     "\\begin{en}\nA.\n\\end{en}\n\\begin{sv}\n\\end{sv}\n",
     "\\begin{en}\nA.\n\\end{en}\n\\begin{sv}\n% TODO translate\n\\end{sv}\n",
-    "\\tr{x}{}\n",
-    "\\tr{x}{% TODO translate\n}\n",
+    "\\ensv{x}{}\n",
+    "\\ensv{x}{% TODO translate\n}\n",
   ],
 )
 def test_a_pair_with_an_empty_side_cannot_be_stamped(repo, source):
@@ -2107,7 +2143,7 @@ def test_stamping_does_not_accept_a_stale_neighbour(repo):
     blocks("en", "sv", en="One.", sv="Ett.")
     + "Text.\n"
     + blocks("en", "sv", en="Two.", sv="Två.")
-    + "\\tr{a}{b} and \\tr{c}{d}\n"
+    + "\\ensv{a}{b} and \\ensv{c}{d}\n"
     + "Text.\n"
     + blocks("en", "sv", en="Three.", sv="Tre.")
   )
@@ -2155,28 +2191,28 @@ def test_removing_a_leftover_stamp_keeps_the_byte_order_mark(repo):
   assert path.read_bytes() == b"\xef\xbb\xbfText.\n"
 
 
-def test_a_stamp_above_a_tr_line_is_a_leftover_that_can_go(repo):
+def test_a_stamp_above_an_ensv_line_is_a_leftover_that_can_go(repo):
   path = repo / "contents.nw"
-  path.write_text("\\tr{a}{b}\n")
+  path.write_text("\\ensv{a}{b}\n")
   assert run(repo, "--stamp", "contents.nw:1").returncode == 0
   stamp = path.read_text().split(" % ")[1]
-  path.write_text("% " + stamp + "\\tr{a}{b}\n")
+  path.write_text("% " + stamp + "\\ensv{a}{b}\n")
   result = run(repo, "contents.nw")
   assert result.returncode == 1
   assert "contents.nw:1: a stamp with no pair below it" in result.stdout
   assert "contents.nw:2: new pair" in result.stdout
   assert run(repo, "--stamp", "contents.nw:1").returncode == 0
-  assert path.read_text() == "\\tr{a}{b}\n"
+  assert path.read_text() == "\\ensv{a}{b}\n"
 
 
-def test_a_stamp_in_a_tr_over_several_lines_is_a_leftover_that_can_go(repo):
+def test_a_stamp_in_an_ensv_over_several_lines_is_a_leftover_that_can_go(repo):
   path = repo / "contents.nw"
-  path.write_text("\\tr{a\n% sync en=aaaaaa sv=bbbbbb\nb}{c}\n")
+  path.write_text("\\ensv{a\n% sync en=aaaaaa sv=bbbbbb\nb}{c}\n")
   result = run(repo, "contents.nw")
   assert result.returncode == 1
   assert "contents.nw:2: a stamp with no pair below it" in result.stdout
   assert run(repo, "--stamp", "contents.nw:2").returncode == 0
-  assert path.read_text() == "\\tr{a\nb}{c}\n"
+  assert path.read_text() == "\\ensv{a\nb}{c}\n"
 
 
 def test_a_single_block_cannot_be_stamped(repo):
@@ -2286,11 +2322,12 @@ doesn't read.
 \begin{description}
   \item[A stamp that was there already] isn't new, so a pair that a branch
   makes equal to another stamped pair, and re-stamps, isn't listed if that
-  other pair goes away in the same range: [[\tr{Yes}{Ja}]] and
-  [[\tr{Yeah}{Ja}]], both stamped, of which only [[\tr{Yeah}{Ja}]] is left.
+  other pair goes away in the same range: [[\ensv{Yes}{Ja}]] and
+  [[\ensv{Yeah}{Ja}]], both stamped, of which only [[\ensv{Yeah}{Ja}]] is
+  left.
   The same goes for two pairs that exchange a side when their other sides are
-  equal, [[\tr{Yes}{Ja}]] and [[\tr{Yeah}{Ja}]] becoming each other: the file
-  then holds the same pairs as before in another order.
+  equal, [[\ensv{Yes}{Ja}]] and [[\ensv{Yeah}{Ja}]] becoming each other: the
+  file then holds the same pairs as before in another order.
   Nothing is lost by either: the two sides of each pair were stamped as saying
   the same thing before.
   \item[A change to both sides] isn't a one-side re-stamp, however small the
@@ -2313,7 +2350,7 @@ The range is either [[A...B]], meaning what's on [[B]] since it left [[A]], or
 All the files the range changed are read at both ends, deleted ones too, so a
 pair that has moved between files is still matched.
 The suffixes keep us out of files that aren't sources: a program or a data
-file may well hold [[\begin{en}]] or [[\tr]] as text, and reading it as blocks
+file may well hold [[\begin{en}]] or [[\ensv]] as text, and reading it as blocks
 would give errors, which would fail the check.
 A stamp that [[--stamp]] writes into such a file is one that the check won't
 list, so it says so.
@@ -2427,11 +2464,11 @@ def print_restamped(found):
 @
 
 Let's verify the three cases that the design separates, on one file with three
-stamped pairs and a [[\tr]].
+stamped pairs and an [[\ensv]].
 
 <<test helpers>>=
 def base_of_three(repo):
-  """On master: three stamped pairs and a `\\tr`. Then on a branch."""
+  """On master: three stamped pairs and an `\\ensv`. Then on a branch."""
   path = repo / "contents.nw"
   path.write_text(
     blocks("en", "sv", en="One.", sv="Ett.")
@@ -2439,7 +2476,7 @@ def base_of_three(repo):
     + blocks("en", "sv", en="Two.", sv="Två.")
     + "Text.\n"
     + blocks("en", "sv", en="Three.", sv="Tre.")
-    + "\\tr{Four}{Fyra}\n"
+    + "\\ensv{Four}{Fyra}\n"
   )
   for text in ("One.", "Two.", "Three.", "Four"):
     target = f"contents.nw:{line_of(path, text)}"
@@ -2535,11 +2572,13 @@ def test_branch_check_lists_a_new_pair_with_an_old_side_as_possible(repo):
 
 def test_branch_check_sees_a_restamp_hidden_by_a_new_equal_pair(repo):
   path = repo / "contents.nw"
-  path.write_text("\\tr{Exercise}{Övning}\n")
+  path.write_text("\\ensv{Exercise}{Övning}\n")
   assert run(repo, "--stamp", "contents.nw:1").returncode == 0
   commit(repo, "base")
   git(repo, "checkout", "-q", "-b", "topic")
-  path.write_text("\\tr{Exercise}{Övningar}\nText.\n\\tr{Exercise}{Övning}\n")
+  path.write_text(
+    "\\ensv{Exercise}{Övningar}\nText.\n\\ensv{Exercise}{Övning}\n"
+  )
   for line in (1, 3):
     assert run(repo, "--stamp", f"contents.nw:{line}").returncode == 0
   commit(repo, "one changed, and a new one like it was")
@@ -2573,7 +2612,7 @@ def test_branch_check_warns_of_a_malformed_file_at_the_start(repo):
 def test_branch_check_lists_one_of_two_equal_pairs(repo):
   path = repo / "contents.nw"
   path.write_text(
-    "\\tr{Exercise}{Övning}\nText.\n\\tr{Exercise}{Övning}\n"
+    "\\ensv{Exercise}{Övning}\nText.\n\\ensv{Exercise}{Övning}\n"
   )
   for line in (1, 3):
     assert run(repo, "--stamp", f"contents.nw:{line}").returncode == 0
@@ -2590,7 +2629,7 @@ def test_branch_check_lists_one_of_two_equal_pairs(repo):
 def test_branch_check_lists_a_fix_that_makes_two_pairs_equal(repo):
   path = repo / "contents.nw"
   path.write_text(
-    "\\tr{Exercise}{Övnng}\nText.\n\\tr{Exercise}{Övning}\n"
+    "\\ensv{Exercise}{Övnng}\nText.\n\\ensv{Exercise}{Övning}\n"
   )
   for line in (1, 3):
     assert run(repo, "--stamp", f"contents.nw:{line}").returncode == 0
@@ -2629,12 +2668,12 @@ def test_branch_check_only_reads_sources(repo):
 
 def test_branch_check_lists_pairs_that_exchange_sides(repo):
   path = repo / "contents.nw"
-  path.write_text("\\tr{A}{X}\nx\n\\tr{B}{Y}\nx\n\\tr{C}{Z}\n")
+  path.write_text("\\ensv{A}{X}\nx\n\\ensv{B}{Y}\nx\n\\ensv{C}{Z}\n")
   for line in (1, 3, 5):
     assert run(repo, "--stamp", f"contents.nw:{line}").returncode == 0
   commit(repo, "base")
   git(repo, "checkout", "-q", "-b", "topic")
-  path.write_text("\\tr{B}{X}\nx\n\\tr{C}{Y}\nx\n\\tr{A}{Z}\n")
+  path.write_text("\\ensv{B}{X}\nx\n\\ensv{C}{Y}\nx\n\\ensv{A}{Z}\n")
   for line in (1, 3, 5):
     assert run(repo, "--stamp", f"contents.nw:{line}").returncode == 0
   commit(repo, "a three-way cycle of the en sides")
@@ -2652,7 +2691,7 @@ def test_stamping_a_source_says_nothing(repo):
 
 def test_branch_check_says_what_a_malformed_start_hides(repo):
   path = repo / "contents.nw"
-  path.write_text("\\tr{Yes}{Ja}\n")
+  path.write_text("\\ensv{Yes}{Ja}\n")
   assert run(repo, "--stamp", "contents.nw:1").returncode == 0
   path.write_text("\\begin{en}\nNever ended.\n\n" + path.read_text())
   commit(repo, "broken from the start, with a stamped pair after it")
@@ -2672,11 +2711,11 @@ def test_branch_check_says_what_a_malformed_start_hides(repo):
 
 def test_branch_check_matches_a_stamp_that_went_away_only_once(repo):
   path = repo / "contents.nw"
-  path.write_text("\\tr{Yes}{Ja}\n")
+  path.write_text("\\ensv{Yes}{Ja}\n")
   assert run(repo, "--stamp", "contents.nw:1").returncode == 0
   commit(repo, "base")
   git(repo, "checkout", "-q", "-b", "topic")
-  path.write_text("\\tr{Yeah}{Ja}\nx\n\\tr{Yep}{Ja}\n")
+  path.write_text("\\ensv{Yeah}{Ja}\nx\n\\ensv{Yep}{Ja}\n")
   for line in (1, 3):
     assert run(repo, "--stamp", f"contents.nw:{line}").returncode == 0
   commit(repo, "one pair became two")
@@ -2739,7 +2778,7 @@ def test_branch_check_prefers_the_old_pair_in_the_same_file(repo):
   assert "First." not in result.stdout
 
 
-def test_branch_check_lists_a_one_side_restamp_of_tr(repo):
+def test_branch_check_lists_a_one_side_restamp_of_ensv(repo):
   path = base_of_three(repo)
   path.write_text(path.read_text().replace("Fyra", "Fyran"))
   stamp_at(repo, path, "Fyran")

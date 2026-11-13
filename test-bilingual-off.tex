@@ -1,16 +1,16 @@
-% Test the option nobilingual: a document can have its own \tr and its own
+% Test the option nobilingual: a document can have its own \ensv and its own
 % environment en.
 %
 % Build: make check-bilingual
 %
-% Expected: it builds, and the PDF says "own tr: x" and "own en".
+% Expected: it builds, and the PDF says "own ensv: x y" and "own en".
 \documentclass{article}
 \usepackage[british]{babel}
 \usepackage[nobilingual]{didactic}
-\newcommand\tr[1]{own tr: #1}
+\newcommand\ensv[2]{own ensv: #1 #2}
 \newenvironment{en}{own en}{}
 \begin{document}
-\tr{x}
+\ensv{x}{y}
 
 \begin{en}
 \end{en}

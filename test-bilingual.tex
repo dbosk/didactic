@@ -1,11 +1,11 @@
-% Test the bilingual environments en and sv, and \tr (didactic).
+% Test the bilingual environments en and sv, and \ensv (didactic).
 %
 % Build: make check-bilingual
 %
 % The four documents test-bilingual{,-sv,-slides,-slides-sv} share
 % test-bilingual-contents.tex, and differ only in the class and the language.
 % test-bilingual.sh reads the PDFs and the table of contents: each document
-% holds its own language's marker for every place where a block or a \tr can
+% holds its own language's marker for every place where a block or an \ensv can
 % stand, and none of the other language's.  The slides don't hold what's
 % outside the frames.  Each of them says "avsnitt" or "section" as its language
 % does, so \cref followed the driver.
@@ -15,10 +15,10 @@
 \usepackage[noamsthm,notheorems]{beamerarticle}
 \input{test-bilingual-preamble.tex}
 \begin{document}
-\title{\tr{ENTITLE}{SVTITLE}}
+\title{\ensv{ENTITLE}{SVTITLE}}
 \author{A}
 \maketitle
 \tableofcontents*
-\chapter{\tr{ENCHAPTER}{SVCHAPTER}}
+\chapter{\ensv{ENCHAPTER}{SVCHAPTER}}
 \input{test-bilingual-contents.tex}
 \end{document}

@@ -120,7 +120,7 @@ $(addsuffix .pdf,${TEST_BILINGUAL}): %.pdf: %.tex test-bilingual-contents.tex \
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
 
-# nobilingual leaves the names alone, for a document with its own \tr
+# nobilingual leaves the names alone, for a document with its own \ensv
 test-bilingual-off.pdf: test-bilingual-off.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} $<
 

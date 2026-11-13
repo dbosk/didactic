@@ -10,7 +10,7 @@ as "normal" text in handouts produced by `beamerarticle` (same style as
 It also provides macros for typesetting code listings and output side by side.
 
 For a bilingual source, it provides the environments `en` and `sv` and the 
-command `\tr`, with which one source yields an English and a Swedish edition. 
+command `\ensv`, with which one source yields an English and a Swedish edition. 
 The script `didactic-sync.py` keeps the two languages of each pair in step.
 
 Finally, it modifies the appearance of `beamer` (Berlin based theme) and 

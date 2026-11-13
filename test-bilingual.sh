@@ -10,7 +10,7 @@ fail() {
 
 # check JOB MINE OTHER WORDS...: each marker is there with MINE as its prefix,
 # and nothing at all has the prefix OTHER.  The text comes from the PDF, plus
-# the .toc and .nav where moving arguments end up.  (The .aux keeps \\tr as it
+# the .toc and .nav where moving arguments end up.  (The .aux keeps \\ensv as it
 # is in a label's title, which is unexpanded on purpose: hyperref's \\nameref
 # text expands when used.)
 check() {
@@ -33,8 +33,8 @@ check() {
   if sed 's/\\000//g' "$job.out" 2>/dev/null | grep -q "$other[A-Z][A-Z]"; then
     fail "$job" "the other language in the bookmarks"
   fi
-  if grep -q '\\tr\b' "$job.toc" 2>/dev/null; then
-    fail "$job" "an unexpanded \\tr in the .toc"
+  if grep -q '\\ensv\b' "$job.toc" 2>/dev/null; then
+    fail "$job" "an unexpanded \\ensv in the .toc"
   fi
   case "$text" in
     *SHARED*) ;;
@@ -67,8 +67,8 @@ pdftotext test-bilingual.pdf - | grep -q 'see section' \
 pdftotext test-bilingual-sv.pdf - | grep -q 'see avsnitt' \
   || fail test-bilingual-sv "\\cref does not say avsnitt"
 
-pdftotext test-bilingual-off.pdf - | grep -q 'own tr: x' \
-  || fail test-bilingual-off "own \\tr is gone"
+pdftotext test-bilingual-off.pdf - | grep -q 'own ensv: x y' \
+  || fail test-bilingual-off "own \\ensv is gone"
 pdftotext test-bilingual-off.pdf - | grep -q 'own en' \
   || fail test-bilingual-off "own en is gone"
 
@@ -89,7 +89,7 @@ esac
 taken() {
   ${PDFLATEX:-pdflatex} -shell-escape -interaction=nonstopmode \
     -jobname=test-bilingual-taken \
-    "\\documentclass{${CLASS:-article}}\\usepackage[british]{babel}$1\\begin{document}x\\end{document}" \
+    "\\documentclass{${CLASS:-article}}\\usepackage[british]{babel}$1\\begin{document}${2:-x}\\end{document}" \
     >/dev/null 2>&1
 }
 for name in comment en sv; do
@@ -125,6 +125,32 @@ grep -q "Package didactic Warning.*comment" test-bilingual-taken.log \
   || fail taken "no warning for an environment comment of the document's own"
 grep -q nobilingual test-bilingual-taken.log \
   || fail taken "the warning for an environment comment does not name nobilingual"
+
+# didactic defines no \tr: physics's \tr is the trace whichever of the two is
+# loaded first, didactic says nothing about it, and \ensv works beside it.
+for order in "\\usepackage{physics}\\usepackage{didactic}" \
+  "\\usepackage{didactic}\\usepackage{physics}"; do
+  taken "$order" "\$\\tr{4242}\$ \\ensv{ENWORD}{SVWORD}"
+  if grep -q '^!' test-bilingual-taken.log; then
+    fail physics "an error with $order"
+  fi
+  if grep -Eq 'Package didactic Warning.*\\tr([^a-z]|$)' \
+    test-bilingual-taken.log; then
+    fail physics "a warning about \\tr with $order"
+  fi
+  text=$(pdftotext test-bilingual-taken.pdf - 2>/dev/null)
+  case "$text" in
+    *ENWORD*) ;;
+    *) fail physics "\\ensv missing with $order" ;;
+  esac
+  case "$text" in
+    *SVWORD*) fail physics "\\ensv gave the other language with $order" ;;
+  esac
+  case "$text" in
+    *tr*4242*) ;;
+    *) fail physics "physics's \\tr is not the trace with $order" ;;
+  esac
+done
 
 # A block's cut file is the job's own.  \subimport makes \input look in the
 # imported directory first, where a deck built on its own may have left a cut
