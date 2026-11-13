@@ -1867,8 +1867,7 @@
 % \DescribeEnv{sv}
 % Prose comes in pairs of blocks, one paragraph or one list per block:
 % \begin{verbatim}
-% % sync en=3f9c1a sv=b20e7d
-% \begin{en}
+% \begin{en} % sync en=3f9c1a sv=b20e7d
 % The program prints one line.
 % \end{en}
 % \begin{sv}
@@ -1878,9 +1877,9 @@
 % Either language may come first.
 % Two blocks form a pair when only blank lines and comments lie between 
 % them; a block with no partner next to it belongs to one edition only.
-% The comment above the pair is written by the script 
-% \texttt{didactic-sync.py}, which is the subject of 
-% \cref{sec:didactic-sync}.
+% The comment on the first |\begin| line, which \textsf{comment} ignores, 
+% is written by the script \texttt{didactic-sync.py}, which is the subject 
+% of \cref{sec:didactic-sync}.
 %
 % \DescribeMacro{\ensv}
 % \DescribeMacro{\didactictr}

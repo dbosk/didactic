@@ -187,5 +187,62 @@ case "$(pdftotext test-bilingual-import.pdf - 2>/dev/null)" in
   *) fail import "a stale cut file in the imported directory was read" ;;
 esac
 
+# didactic-sync.py writes a block pair's stamp at the end of its first
+# \begin line.  That has to be a comment to LaTeX: the same text with and
+# without it, in both editions, in notes under \subimport and in a fragile
+# frame on the slides, under pdflatex and xelatex.
+mkdir -p test-bilingual-stamp.d
+for variant in plain stamped; do
+  case $variant in
+    plain) stamp= ;;
+    stamped) stamp=' % sync en=3f9c1a sv=b20e7d' ;;
+  esac
+  printf '\\begin{en}%s\nENSTAMPED\n\\end{en}\n\\begin{sv}\nSVSTAMPED\n\\end{sv}\nAFTER\n' \
+    "$stamp" > test-bilingual-stamp.d/$variant.tex
+done
+# A fragile frame ends at an \end{frame} on a line of its own, so the
+# document is a file.
+stamp_text() {
+  rm -f test-bilingual-stamp.pdf
+  printf '%s\n' "$2" > test-bilingual-stamp.tex
+  $1 -shell-escape -interaction=nonstopmode test-bilingual-stamp.tex \
+    >/dev/null 2>&1
+  pdftotext test-bilingual-stamp.pdf - 2>/dev/null | tr -s ' \n' '  '
+}
+for engine in pdflatex xelatex; do
+  for language in british:EN:SV swedish:SV:EN; do
+    babel=${language%%:*} mine=${language#*:} mine=${mine%%:*}
+    other=${language##*:}
+    for kind in notes slides; do
+      texts=
+      for variant in plain stamped; do
+        case $kind in
+          notes) document="\\documentclass{article}\\usepackage[$babel]{babel}\\usepackage{import}\\usepackage{didactic}\\begin{document}\\subimport{test-bilingual-stamp.d/}{$variant}\\end{document}" ;;
+          slides) document="\\documentclass{beamer}
+\\usepackage[$babel]{babel}\\usepackage{import}\\usepackage{didactic}
+\\begin{document}
+\\begin{frame}[fragile]
+\\subimport{test-bilingual-stamp.d/}{$variant}
+\\end{frame}
+\\end{document}" ;;
+        esac
+        text=$(stamp_text $engine "$document")
+        case "$text" in
+          *"${mine}STAMPED"*AFTER*) ;;
+          *) fail stamp "$engine $babel $kind $variant: ${mine}STAMPED or AFTER missing" ;;
+        esac
+        case "$text" in
+          *"${other}STAMPED"*) fail stamp "$engine $babel $kind $variant: ${other}STAMPED" ;;
+        esac
+        texts="$texts|$text"
+      done
+      plain_text=$(printf '%s' "$texts" | cut -d'|' -f2)
+      stamped_text=$(printf '%s' "$texts" | cut -d'|' -f3)
+      [ "$plain_text" = "$stamped_text" ] \
+        || fail stamp "$engine $babel $kind: the stamp changes the text"
+    done
+  done
+done
+
 [ "$status" = 0 ] && echo "bilingual: all as expected"
 exit $status
