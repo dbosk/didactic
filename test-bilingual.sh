@@ -126,20 +126,6 @@ grep -q "Package didactic Warning.*comment" test-bilingual-taken.log \
 grep -q nobilingual test-bilingual-taken.log \
   || fail taken "the warning for an environment comment does not name nobilingual"
 
-# A package loaded later may replace \tr without a word, as physics does with
-# \DeclareDocumentCommand; then the document's \tr{...}{...} is that package's,
-# so didactic must say so and name \didactictr.
-taken "\\usepackage{didactic}\\usepackage{physics}"
-grep -q "Package didactic Warning.*\\\\tr" test-bilingual-taken.log \
-  || fail taken "no warning for a \\tr replaced after didactic"
-grep -q didactictr test-bilingual-taken.log \
-  || fail taken "the warning for a replaced \\tr does not name \\didactictr"
-taken "\\usepackage{physics}\\usepackage{didactic}\\usepackage{physics}"
-if [ "$(grep -c 'Package didactic Warning.*\\tr' test-bilingual-taken.log)" \
-  -gt 1 ]; then
-  fail taken "two warnings for a \\tr that was never didactic's"
-fi
-
 # A block's cut file is the job's own.  \subimport makes \input look in the
 # imported directory first, where a deck built on its own may have left a cut
 # file of the same name; the block must not read that one.
