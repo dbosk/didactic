@@ -6172,7 +6172,9 @@
 %   \@didactic@freenote}
 % A margin note made for a footnote is marked when it is numbered:
 % |\@didactic@fnlastnote| holds its serial, for the reusers of the footnote's
-% number (|\@didactic@reuser|).
+% number (|\@didactic@reuser|), and |\@didactic@fn@|\meta{note} is defined, for
+% the reason a note is carried: a margin note that isn't a footnote can't go to
+% the foot, and its warning doesn't name it.
 % It may go to the foot if its list was kept, and in one column, where the
 % foot is the page's; the test keeps a flag of its own, since
 % |\@didactic@footplace| uses |\if@tempswa| for whether the note found a place.
@@ -6187,6 +6189,7 @@
 \newcommand\@didactic@markfn{%
   \if@didactic@isfn
     \xdef\@didactic@fnlastnote{\the\@didactic@noteid}%
+    \expandafter\gdef\csname @didactic@fn@\the\@didactic@noteid\endcsname{}%
   \fi}
 \newif\if@didactic@footok
 \newcommand\@didactic@iffootnote[1]{%
@@ -6363,7 +6366,12 @@
         \@tempswatrue
       \fi\fi
     \fi\fi}%
-   {\def\@didactic@footwhy{it fits neither beside its line nor at the foot}}}
+   {\ifcsname @didactic@fn@\the\@didactic@noteof\@didactic@head\endcsname
+      \def\@didactic@footwhy{it fits neither beside its line nor at the foot}%
+    \else
+      \def\@didactic@footwhy{it doesn't fit beside its line, and only a
+        footnote can go to the foot}%
+    \fi}}
 \newcommand\@didactic@lines[1]{%
   \number\numexpr(#1+\@didactic@fl/2)/\@didactic@fl\relax}
 \newcommand\@didactic@flines[1]{%

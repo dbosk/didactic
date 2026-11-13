@@ -102,7 +102,8 @@ job fnedge 4 "$C{fnedge}" rules beside
 job tall 8 "$C{tall}" foot beside nofalse
 # gen: three notes off their pages, each said with its reason (with the floats'
 # rule; before it, three more that a float took the room of, without one).
-job gen 4 "$C{gen}" away=3 reasons nofalse
+job gen 4 "$C{gen}" away=3 reasons nofalse nofootwhy \
+  'works=only a footnote can go to the foot'
 job ownout 8 "$C{ownout}"
 # Two notes taller than the room left, and a footnote: settled within the floor
 # and one run, each placed or warned about; under XeLaTeX too (review B-1).
