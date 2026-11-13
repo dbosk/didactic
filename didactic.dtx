@@ -801,6 +801,10 @@
 % line on the text's first line: beside its line when that line opens the
 % page, but above it, by a line or more, when the line comes lower: where the
 % line will stand on that page isn't known when the note is held for it.
+% Below a float that keeps the margin beside it clear, the same holds for the
+% stretch of margin under the float: a held note that opens it stands with its
+% first line as far below the stretch's top as the text's first line stands
+% below the page's (|\topskip|).
 % Each run also records in the |.aux| file the page each margin note's callout
 % and the note itself are printed on; a note printed on another page than its
 % callout that no warning of that run named is warned about in the next run,
