@@ -1862,15 +1862,21 @@ won't always be on the first one, but if several [[\tr]]s end on that line
 then the report's way of saying which is required: [[contents.nw:12.2]].
 There's no form for a whole file and no way to give several targets, which is
 deliberate: see the start of this section.
+A [[\tr]] over several lines shares its first line with whatever ends there, so
+a line can lie in several pairs; the name that the report gives a pair is
+always the line where it ends, so a pair named exactly so is the one meant.
 
 <<constants>>=
 TARGET = re.compile(r"(?P<path>.+):(?P<line>[0-9]+)(?:\.(?P<which>[0-9]+))?$")
 <<functions>>=
 def find_target(pairs, line, which):
     """Return the one pair at a 1-based line, or a message why there isn't."""
-    here = [pair for pair in pairs if pair.first <= line - 1 <= pair.last]
-    if which is not None:
-        here = [pair for pair in here if pair.target == f"{line}.{which}"]
+    named = f"{line}.{which}" if which is not None else str(line)
+    exact = [pair for pair in pairs if pair.target == named]
+    if exact or which is not None:
+        here = exact
+    else:
+        here = [pair for pair in pairs if pair.first <= line - 1 <= pair.last]
     if not here:
         return None, f"there is no pair at line {line}"
     if len(here) > 1:
@@ -2042,6 +2048,17 @@ def test_stamp_needs_one_pair(repo, target):
   before = (repo / "contents.nw").read_text()
   assert run(repo, "--stamp", target).returncode == 2
   assert (repo / "contents.nw").read_text() == before
+
+
+def test_every_pair_a_report_names_can_be_stamped(repo):
+  path = repo / "contents.nw"
+  path.write_text("\\tr{a}{b} \\tr{c\n  d}{e}\n")
+  report = run(repo, "contents.nw").stdout
+  targets = re.findall(r"contents\.nw:(\S+): new pair", report)
+  assert targets == ["1", "2"]
+  for target in targets:
+    assert run(repo, "--stamp", f"contents.nw:{target}").returncode == 0
+  assert run(repo, "contents.nw").returncode == 0
 
 
 @pytest.mark.parametrize(
