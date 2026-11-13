@@ -1562,13 +1562,20 @@ what the other side says now.
 In a paragraph that was re-wrapped on the way, a line diff would show the
 whole paragraph as changed, so it's a diff of words, printed in the notation
 of [[git diff --word-diff]].
+The words are those that the hash compares, from [[normal_form]]: in the prose
+a word, but in a chunk or a verbatim environment a whole line with its
+indentation.
+Splitting the code into words as well would make a re-indented or a joined
+line look the same before and after, and the report would say that a side is
+behind while showing no change in it.
 
 <<imports>>=
 import difflib
 <<functions>>=
 def word_diff(old, new):
     """Return a diff of two texts by words, as in `git diff --word-diff`."""
-    before, after = old.split(), new.split()
+    before = normal_form(old).split("\n")
+    after = normal_form(new).split("\n")
     matcher = difflib.SequenceMatcher(None, before, after, autojunk=False)
     parts = []
     for tag, i1, i2, j1, j2 in matcher.get_opcodes():
@@ -1710,6 +1717,22 @@ def test_the_diff_shows_the_other_side_now_as_it_is(repo):
   path.write_text(path.read_text().replace("The cat", "The dog"))
   result = run(repo, "contents.nw")
   assert "sv now: Katten satt." in result.stdout
+
+
+@pytest.mark.parametrize(
+  "change", [("z()", "    z()"), ("y()\nz()", "y() z()")]
+)
+def test_the_diff_shows_a_change_to_the_lines_of_a_chunk(repo, change):
+  path = repo / "contents.nw"
+  path.write_text(
+    "\\begin{en}\n@<<[[a.py]]>>=\nif x:\n    y()\nz()\n@\nText\n\\end{en}\n"
+    "\\begin{sv}\nB\n\\end{sv}\n"
+  )
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  commit(repo, "stamp")
+  path.write_text(path.read_text().replace(*change))
+  result = run(repo, "contents.nw").stdout
+  assert "[-" in result and "{+" in result
 
 
 def test_the_diff_follows_a_pair_into_another_file(repo):
