@@ -41,14 +41,14 @@
 #            with the Makefile's engines, as the target chooses them
 #   footcite test-noteoverflow-foot, its job default only (CASES=default), against the
 #            marginfix found or $MARGINFIX (about 1 minute)
-# All with pdflatex, for speed, where make all uses xelatex, but title with xelatex: its
+# All with pdflatex, for speed, where make tests uses xelatex, but title with xelatex: its
 # check reads a letter inside a picture, whose box depends on the engine.
 #
 # A kill needs a named reason: the targets are named, and a full disk is an ERROR.  A
 # mutant that breaks a build also fails, so these keep the document compiling.
 #
 # Not run against these mutants: the sweep's variants s3 and e, test-keep-stale,
-# test-keep-chapter, and the rest of make all.
+# test-keep-chapter, and the rest of make tests.
 #
 # Code that no test kills is marked survived below, with the reason.
 

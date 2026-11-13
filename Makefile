@@ -35,8 +35,11 @@ TEST_KEEPCHECK=		test-keep-leadin test-keep-leadin-off test-keep-overfull \
 			test-keep-noweb-break test-keep-once test-keep-enumitem test-keep-first \
 			test-keep-parted
 
-.PHONY: all
-all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-marginfix-interface test-footcite.pdf \
+.PHONY: all tests
+# all: the package and its documentation.  tests: every test, each failing make
+# by its checks (see the README for the time and for MARGINFIX).
+all: didactic.sty didactic.pdf
+tests: didactic.sty test.pdf test-marginfix-interface test-footcite.pdf \
 	test-footcite-twoside.pdf test-footcite-memoir.pdf test-run.pdf \
 	test-note-heading.pdf test-pair.pdf test-pair-slides.pdf \
 	test-sidecap.pdf test-sidecap-off.pdf \
@@ -54,7 +57,9 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-marginfix-interface
 	test-marginfloat-cases.pdf test-marginfloat-order.pdf \
 	test-marginfloat-inorder.pdf test-marginfloat-hidden.pdf \
 	${TEST_FLOATORDER:=.pdf} test-marginfloat-include.pdf \
-	test-format.pdf test-oldkernel-title.pdf test-biburl check
+	test-format.pdf test-oldkernel-title.pdf test-biburl check \
+	test-noteplace test-noteplace-tl12 test-footreuse-spread \
+	test-noteoverflow-foot test-notefoot test-notefoot-tl12 test-footwide
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -518,6 +523,11 @@ test-noteoverflow-old.pdf: test-noteoverflow-old.tex didactic.sty
 # Live's: MARGINFIX=$(kpsewhich -var-value TEXMFDIST)/tex/latex/marginfix;
 # another branch: the directory where its make marginfix.sty left it.
 export MARGINFIX
+# and the documents too: it goes first on TEXINPUTS for every target (but those
+# that set TEXINPUTS themselves, such as test-keep-multicol)
+ifneq ($(MARGINFIX),)
+export TEXINPUTS:=$(abspath $(MARGINFIX))//:$(TEXINPUTS)
+endif
 test-marginfix-interface: test-marginfix-interface.tex \
 		test-marginfix-interface.sh didactic.sty
 	./test-marginfix-interface.sh
@@ -525,7 +535,6 @@ test-marginfix-interface: test-marginfix-interface.tex \
 
 # where a margin note goes that doesn't fit beside its line, and what that does
 # to headings, ties and lone lines; checked by the outcome (test-noteplace.py).
-# Not in all yet: the rows are red until noteoverflow is placed in one pass.
 .PHONY: test-noteplace
 test-noteplace: test-noteplace.tex test-noteplace-slides.tex test-noteplace.sh \
 		test-noteplace.py didactic.sty
@@ -540,8 +549,7 @@ test-noteplace-tl12: test-noteplace.tex test-noteplace-slides.tex test-noteplace
 	MARGINFIX=$(TL12) ./test-noteplace.sh
 
 # footnote reuse across the pages of a spread, at the foot and in the margin,
-# checked by the outcome (test-footreuse-spread.py).  Not in all yet: it guards
-# what master does while notes move to being placed in one pass.
+# checked by the outcome (test-footreuse-spread.py).
 .PHONY: test-footreuse-spread
 test-footreuse-spread: test-footreuse-spread.tex test-footreuse-spread.sh \
 		test-footreuse-spread.py test-footcite.bib didactic.sty
@@ -550,7 +558,7 @@ test-footreuse-spread: test-footreuse-spread.tex test-footreuse-spread.sh \
 # noteoverflow=foot: footnotes that don't fit in the margin at the foot of their
 # page, with citations, a note set once whatever its place (test-noteoverflow-foot),
 # and in the situations of marginfix's footcheck (test-notefoot); checked by the
-# outcome.  Not in all yet: the rows are red until notes are placed in one pass.
+# outcome.
 .PHONY: test-noteoverflow-foot test-notefoot test-footwide
 # A footnote at the foot is set in the width of the text, its text run once
 # (test-footwide), under the three engines and with hyperref.

@@ -30,9 +30,9 @@ cd didactic
 make all
 ```
 
-That will build both `didactic.sty` and `didactic.pdf`, and run the tests (see
-below). The documentation is located in `didactic.pdf`. To build only the
-package, run `make didactic.sty`.
+That will build both `didactic.sty` and `didactic.pdf`; `make tests` runs the
+tests (see below). The documentation is located in `didactic.pdf`. To build only
+the package, run `make didactic.sty`.
 
 ## Requirements
 
@@ -84,10 +84,10 @@ The tests are run with TeX Live 2025 and, in `TEXMFHOME`, these on top of it:
 
 beamer and PythonTeX come from TeX Live 2025 (beamer 3.76, PythonTeX 0.18): a
 `make -k all` from a `git archive` with only marginfix and noweb in
-`TEXMFHOME` failed only on the minted error above (the sweep variants and the
-other tests passed), and rebuilding the eleven failed targets with the three
-minted packages added, and TeX Live's beamer and PythonTeX, built them all
-(2026-11-08; the rest of `make all` was not rerun with them).
+`TEXMFHOME`, when `all` still ran the tests, failed only on the minted error
+above (the sweep variants and the other tests passed), and rebuilding the eleven
+failed targets with the three minted packages added, and TeX Live's beamer and
+PythonTeX, built them all (2026-11-08; the rest was not rerun with them).
 
 Run `make` without `-j` in one directory: the documents share `_minted/` and
 the example files, and parallel builds there gave minted and TeX errors that
@@ -98,23 +98,32 @@ sequential builds of the same targets didn't.
 Run LaTeX non-interactively, or an error stops the build at its prompt:
 
 ```bash
-make all LATEXFLAGS="-shell-escape -interaction=nonstopmode"
+make tests LATEXFLAGS="-shell-escape -interaction=nonstopmode"
 ```
 
-- `make all` builds the package and its documentation, and runs every test:
-  the `test-*.tex` documents, each with the checks the Makefile states
-  (`pdfinfo` page counts, `pdftotext` greps, PASS/FAIL lines), `make check`,
-  and the sweep. About 17 to 20 minutes on one job.
+- `make all` builds the package and its documentation, nothing else.
+- `make tests` runs every test: the `test-*.tex` documents, each with the
+  checks the Makefile states (`pdfinfo` page counts, `pdftotext` greps,
+  PASS/FAIL lines), `make check`, the sweep, and the rows of where margin notes
+  go (`test-noteplace`, `test-notefoot`, `test-noteoverflow-foot`,
+  `test-footreuse-spread`, `test-footwide`; `test-noteplace-tl12` and
+  `test-notefoot-tl12` again with TeX Live's marginfix 1.2). A test fails
+  `make tests`; `make -k tests` runs them all and lists what failed. About an
+  hour and a half on one job, a third of it the documents and the sweep.
+- `MARGINFIX=<directory>` runs the tests against the `marginfix.sty` in that
+  directory, put first on `TEXINPUTS` (TeX Live's:
+  `MARGINFIX=$(kpsewhich -var-value TEXMFDIST)/tex/latex/marginfix`); unset,
+  the one found. The `-tl12` targets use TeX Live's 1.2 whatever `MARGINFIX` is.
 - `make check` runs `test-check.py`, which holds the documents named in the
   Makefile's `CHECKED_TESTS` to what their headers say, from the words and
   their positions in the PDF and from the log.
 - `make test-keep-sweep` builds `test-keep-sweep.py`'s documents: page breaks
   around headings, lists and listings, room by room, against plain LaTeX with
   the same fonts and margins, in several variants (see its docstring). About 6
-  minutes, part of `make all`.
+  minutes, part of `make tests`.
 - `make mutants` runs `test-mutants.py`: deliberate breaks of `didactic.dtx`,
   listed in `test-mutants.txt`, each of which some test must catch, or a
-  survivor recorded with its reason. It isn't part of `make all`: the whole
+  survivor recorded with its reason. It isn't part of `make tests`: the whole
   batch takes hours; see the header of `test-mutants.txt` for the groups and
   their times, and `make mutants MUTANTS="label ..."` runs some. Each mutant is
   built in a copy of the tracked files, up to about 100 MB at a time per job,

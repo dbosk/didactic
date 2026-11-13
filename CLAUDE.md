@@ -25,11 +25,15 @@ says what it needs and how to run the tests; this file is for working on it.
 
 ## Tests
 
-- `make all LATEXFLAGS=...` runs every test, `make check` among them; about 17
-  to 20 minutes on one job. The Makefile's default engine is xelatex; tests
-  that need pdflatex or lualatex name it.
+- `make all` builds `didactic.sty` and `didactic.pdf` only. `make tests
+  LATEXFLAGS=...` runs every test, `make check` and the note suites among them;
+  about an hour and a half on one job. `MARGINFIX=<dir>` chooses the marginfix.
+  The Makefile's default engine is xelatex; tests that need pdflatex or lualatex
+  name it.
 - A test fails `make`, by the Makefile's checks or `test-check.py`; a PDF that
-  merely builds checks nothing. New checks go into `all`.
+  merely builds checks nothing. New checks go into `tests`.
+- After a change to how notes are set, run the whole `make -k tests`, not only
+  the note suites.
 - `test-keep-parted.tex`: lead-ins and what they lead into, parted only with a
   warning. `test-keep-sweep.py`: page breaks room by room against plain LaTeX.
 - `make mutants` (`test-mutants.py`, `test-mutants.txt`): deliberate breaks
