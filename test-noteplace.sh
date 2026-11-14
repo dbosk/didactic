@@ -331,6 +331,11 @@ check overcarry x 9 'noteoverflow=carry' "carried,noover" "$OV"
 # penalty after the note, which margin-inrun takes away), so the line stays and
 # NOTEY runs over there, as it may, with its warning (over=2 with 1.2).
 check overguard x 4 '' "kept,noover-LOWZ${M12:+,over=2}" '\def\testtall{.9}\def\testbody{FIRSTLINE \filler\ more\marginpar{LOWX\par LOWY\par LOWZ} \oneline\ end\yieldnote[\par TWO\par THREE] \[ x = y \] after \filler\par}'
+# The note decided to run over (it misses by a little, under A's tall note) goes with
+# its line to the next page; there A and it don't fit together, and it is carried on:
+# the warning says why, that its line went on (no reason of its own, as it wasn't
+# carried where it was decided).
+check overmoved x 4 '' "carried,exactwarn,reason=its line went on to page 2 after the note was placed for page 1" '\def\testfirst{\noindent\rule{1cm}{\dimexpr\textheight-2\baselineskip\relax}\par\noindent FIRSTLINE A\marginpar{AAA\par\rule{1pt}{400pt}} end\yieldnote[\par\rule{1pt}{190pt}\par SIX] \[ \begin{matrix} a\\ b\\ c\\ d \end{matrix} \] after \filler\par}'
 # A small note after the one that runs over goes no lower: it is carried, not
 # set in what is left below the foot.
 check overlater x 9 '' "over=2,noover-SMALL" '\def\testtall{.95}\def\testbody{FIRSTLINE \filler\ end\yieldnote[\par TWO\par THREE]\marginpar{SMALL} \filler\par}'

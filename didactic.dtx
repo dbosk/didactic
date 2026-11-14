@@ -5446,6 +5446,9 @@
 % page).
 % A note carried gets its reason, by the number of its boxes, for the 
 % warning that it is set on another page (|\@didactic@whyof|).
+% Every note keeps the page it was decided for, by its number (|\@didactic@dn@|
+% and, as printed, |\@didactic@dt@|\meta{number}), for a note whose line \TeX's
+% break then takes to a later page (|\@didactic@carrywarn|).
 % Its mode is the one where it was called out (|\@didactic@ifcarry|, kept by
 % |\@didactic@tagnote|), not the one where the output fires, at the end of the
 % paragraph, say, after the group of a |\marginnoteoverflow| has ended.
@@ -5454,6 +5457,10 @@
 \newdimen\@didactic@stay
 \newdimen\@didactic@noteht
 \newcommand\@didactic@decide{%
+  \expandafter\xdef\csname @didactic@dn@\the\@didactic@noteof\@didactic@head
+    \endcsname{\the\c@page}%
+  \expandafter\xdef\csname @didactic@dt@\the\@didactic@noteof\@didactic@head
+    \endcsname{\thepage}%
   \@didactic@noteht\dimexpr\ht\@didactic@head+\dp\@didactic@head\relax
   \ifdim\dimexpr\ht\@didactic@pair+\dp\@didactic@pair\relax>\@didactic@noteht
     \@didactic@noteht\dimexpr\ht\@didactic@pair+\dp\@didactic@pair\relax
@@ -5680,8 +5687,15 @@
 % not for every one (not for the notes it sets on the pages it adds at the end 
 % of the document), and without our reason; so we silence it while we place 
 % notes, and give the one warning ourselves.
+% A note decided for one page (to stay, or to run past the foot of the
+% margin) whose line \TeX's break then takes to a later page goes with its
+% line, and is carried from there only if the margin of that page has no room
+% for it; it has no reason of its own, as it wasn't carried where it was
+% decided, so the warning says that (|\@didactic@dn@|, kept by
+% |\@didactic@decide|).
 %    \begin{macrocode}
 \let\@didactic@carried\@empty
+\let\@didactic@cwhy\@empty
 \newcommand\@didactic@carrywarn{%
   \begingroup
     \let\@didactic@left\@empty
@@ -5693,9 +5707,21 @@
         \ifcsname @didactic@cp@\the\@didactic@noteof##1\endcsname\else
           \expandafter\xdef
             \csname @didactic@cp@\the\@didactic@noteof##1\endcsname{\thepage}%
+          \edef\@didactic@cwhy{\@didactic@whyof##1}%
+          \ifx\@didactic@cwhy\@empty
+            \ifcsname @didactic@dn@\the\@didactic@noteof##1\endcsname
+              \ifnum\csname @didactic@dn@\the\@didactic@noteof##1\endcsname
+                  =\c@page\else
+                \edef\@didactic@cwhy{:\noexpand\MessageBreak its line went on
+                  to page \thepage\space after the note was placed for page
+                  \csname @didactic@dt@\the\@didactic@noteof##1\endcsname,
+                  and the margin there has no room for it}%
+              \fi
+            \fi
+          \fi
           \expandafter\xdef
             \csname @didactic@cw@\the\@didactic@noteof##1\endcsname{%
-              \@didactic@whyof##1}%
+              \@didactic@cwhy}%
           \xdef\@didactic@carried{%
             \unexpanded\expandafter{\@didactic@carried}%
             \noexpand\@didactic@set{\the\@didactic@noteof##1}}%

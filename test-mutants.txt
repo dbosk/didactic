@@ -44,7 +44,8 @@
 #   hbox     test-noteoverflow-foot, its job hbox only (CASES=hbox): the warnings of
 #            boxes in footnotes, against the marginfix found or $MARGINFIX (about 30 s)
 #   noteplace test-noteplace, its rows rsvsidecap, rsvblock, mcolblock,
-#            rsvsidebefore, heldtop and heldsecond only, against the marginfix found or $MARGINFIX (1 minute)
+#            rsvsidebefore, heldtop, heldsecond and overmoved only, against the marginfix
+#            found or $MARGINFIX (1 minute)
 #   footwide test-footwide, its cases rigid, oneline and beyond only (CASES), under its
 #            three engines and with hyperref, against the marginfix found or $MARGINFIX
 # All with pdflatex, the Makefile's default since #72.  The title group's check reads a
@@ -1775,3 +1776,12 @@ Hnatural didactic.dtx
 Hmorethan didactic.dtx
 -       (more than \the\dimexpr\maxdimen-\wd\tw@\relax\space too wide)}%
 +       (\the\dimexpr\maxdimen-\wd\tw@\relax\space too wide)}%
+
+# A note decided for one page whose line TeX's break takes to the next, and which is
+# carried from there (test-noteplace's overmoved): its warning says why, that its line
+# went on, as it has no reason of its own.
+#: noteplace
+#= killed test-noteplace
+Cmovedwhy didactic.dtx
+-             \ifcsname @didactic@dn@\the\@didactic@noteof##1\endcsname
++             \ifcsname @didactic@dn@none\endcsname
