@@ -42,7 +42,7 @@ export TEXINPUTS="$TOOLS:$TEXINPUTS"
 # line with a margin note end a page (see overguard): M12 is set there.
 M12=; case "$MARGINFIX" in *texmf-dist/tex/latex/marginfix*) M12=yes;; esac
 NOT12=yes; [ -n "$M12" ] && NOT12=
-NEEDS15='tallcut deferrable split'
+NEEDS15='tallcut deferrable split mvdefer mvdeferfn mvdefermn'
 ENGINE=${ENGINE:-pdflatex}
 MAXRUNS=${MAXRUNS:-8}
 TEXTIMEOUT=${TEXTIMEOUT:-120}
@@ -442,6 +442,40 @@ check mixfoot x 9 '' "carried,foundlast=1" '\def\testyieldfoot{}\def\testbody{FI
 # didactic sets \columnwidth to the text's width while it builds the margin, where
 # marginfix has no \MFX@columnwidth.
 check mcolmargin x 3 '' "inmargin=MCOLMARGIN" '\def\testpre{\usepackage{multicol,lipsum}}\def\testfirst{\noindent FIRSTLINE words\marginpar{MCOLMARGIN in the margin of page one.} \lipsum[1-3]\begin{multicols}{2}COLSTART \lipsum[4-12]\end{multicols}}'
+# The line-moves matrix (review 3, DESIGN-R3 section 5): a note decided for page 1
+# whose line TeX then takes to page 2 (a paragraph that can't break), by the
+# outcome of the decision, followed on page 2 by a later footnote (LATERFN) or a
+# later margin note (LATERMN).  Each note is on its callout's page or named with
+# its pages (pairs, exactwarn).  Outcomes: beside its line (MOVED), at the foot
+# whole (FSP, as fspull), past the foot of the margin (OMT, as overmovedtall),
+# carried by didactic (MOVED with the margin full), deferrable (DEFM), held at the
+# top of the next page (HT).
+LFN=' AFTER words\label{c-f}\footnote{\label{n-f}LATERFN a later footnote.} more.\par'
+LMN=' AFTER words\label{c-m}\marginpar{\label{n-m}LATERMN} more.\par'
+FSP='\def\testtall{.99}\def\testbody{{\interlinepenalty=10000 \noindent FIRSTLINE\newline SECOND\newline THIRD\label{callout-y}'"$(fn 1)"'\newline FOURTH\newline FIFTH\par}}'
+OMT='\def\testfirst{\noindent\rule{1cm}{\dimexpr\textheight-2\baselineskip\relax}\par\noindent FIRSTLINE end\yieldnote[\par\rule{1pt}{\dimexpr\textheight-.5\baselineskip\relax}\par SIX] \[ \begin{matrix} a\\ b\\ c\\ d \end{matrix} \] after \filler\par}'
+MVC="${MOVED#\\def\\testtall{.1\}}"; MVC="${MVC/\\yieldnote\{\}/\\yieldnote[\\par\\rule\{1pt\}\{6\\baselineskip\}]}"
+DEFM='\def\testbody{{\interlinepenalty=10000 \noindent FIRSTLINE\newline SECOND\newline THIRD\marginpar{\marginnotedeferrable DEFER\label{n-d1}}\label{c-d1}\newline FOURTH\par}}'
+check mvlaterfn x 3 '' "kept,pairs,exactwarn" "${MOVED%\}}$LFN}"
+check fspulllaterfn x 5 '' "pullok,pairs,exactwarn${NOT12:+,label=callout-y:2}" "${FSP%\}}$LFN}"
+check fspulllatermn x 5 '' "pullok,pairs,exactwarn${NOT12:+,label=callout-y:2}" "${FSP%\}}$LMN}"
+check omtlaterfn x 4 '' "${NOT12:+kept,nocontinued,tallwarn}${M12:+kept,over=2},pairs" "${OMT%\}}$LFN}"
+check mvcarried x 3 '' "warned,exactwarn" "$MVC"
+check mvcarriedfn x 3 '' "warned,pairs,exactwarn" "${MVC%\}}$LFN}"
+check mvcarriedmn x 3 '' "warned,pairs,exactwarn" "${MVC%\}}$LMN}"
+check mvdefer x 3 '' "exactwarn,has=DEFER" "$DEFM"
+check mvdeferfn x 3 '' "exactwarn,has=DEFER" "${DEFM%\}}$LFN}"
+check mvdefermn x 3 '' "exactwarn,has=DEFER" "${DEFM%\}}$LMN}"
+check heldtopfn x 3 '' "kept,align=cl:nt,pairs,exactwarn" "$ALONE$HP${HT%\}}$LFN}"
+check heldtopmn x 3 '' "kept,align=cl:nt,pairs,exactwarn" "$ALONE$HP${HT%\}}$LMN}"
+# A footnote of LaTeX's own that doesn't fit at the foot of its page, and can't be
+# split there, is held over by TeX to the next page's foot, where it makes a mixed
+# foot with one of didactic's (NOTEY, at the foot: the margin is full); a later
+# margin note's line there then goes to the page after, and LaTeX puts the foot
+# back after that line, so both footnotes go on with it.  Both are named a run
+# later: LaTeX's ("where LaTeX puts it") and didactic's ("found from the last run").
+HELD='\def\testfirst{\noindent\rule{1cm}{\dimexpr\textheight-4\baselineskip\relax}\par\noindent FIRSTLINE words{\footnotesatfoot\interfootnotelinepenalty=10000 \footnote{LATEXFN a long footnote of LaTeX'"'"'s own, \filler\ \filler\ \filler\ \filler}} more.\par\newpage\noindent x\marginpar{TALLB\par\rule{1pt}{.97\textheight}} text \yieldnote{} and words.\par\noindent\rule{1cm}{\dimexpr\textheight-\testroom\baselineskip\relax}\par{\interlinepenalty=10000 \noindent LATERA\marginpar{LATERNOTE}\newline LATERB\newline LATERC\newline LATERD\par}}\def\testyieldfoot{}'
+check heldover x 12 '' "foundlast=1,reason=where LaTeX puts it,at=LATEXFN:3/NOTEY:3/LATERA:3" "$HELD"
 # A footnote set at the foot as LaTeX sets it (\footnotesatfoot) is left to TeX; one
 # that doesn't fit at a foot that ours has filled is taken to the next page by TeX,
 # and named a run later (latexfoot); one that TeX splits over two pages, begun on its

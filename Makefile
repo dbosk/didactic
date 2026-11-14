@@ -645,11 +645,11 @@ test-noteoverflow-foot: test-noteoverflow-foot.tex test-noteoverflow-foot-hbox.t
 test-notefoot: test-notefoot.tex test-notefoot-dense.tex test-notefoot-tall.tex \
 		test-notefoot.sh test-notefoot.py testlog.py didactic.sty
 	./test-notefoot.sh
-# the floats' rows with TeX Live's marginfix 1.2 too (gen and the deferrable
-# rows need 1.5 or later)
+# the floats' rows and the kernel's put-back (reins, reinsmix) with TeX Live's
+# marginfix 1.2 too (gen and the deferrable rows need 1.5 or later)
 .PHONY: test-notefoot-tl12
 test-notefoot-tl12: test-notefoot.tex test-notefoot.sh test-notefoot.py testlog.py didactic.sty
-	MARGINFIX=$(TL12) CASES="botfloat botfloat-two topfloat clear dense" \
+	MARGINFIX=$(TL12) CASES="botfloat botfloat-two topfloat clear dense reins reinsmix" \
 	  ./test-notefoot.sh
 
 # random documents dense with margin notes and footnotes, with what moves a line
