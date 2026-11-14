@@ -15,8 +15,12 @@ differently, as measured (TeX Live 2025):
 
 A line that ends at 79 by itself gets an empty line after it, as TeX breaks
 when the 79th is out and then ends the line: so a line of exactly 79 is always
-a break, and is joined to the next.  The engine is read from the log's first
-line (pdfTeX's rule if none).  A package's message goes on, after
+a break, and is joined to the next.  Under LuaTeX a line shorter than 79 bytes
+is joined to the next when that starts with a character of several bytes that
+would have reached the 79th: a line that ends there by itself (75 to 78 bytes)
+and is followed by one that starts with such a character is joined too, a
+known limit (by reasoning, not seen in a log).  The engine is read from the
+log's first line (pdfTeX's rule if none).  A package's message goes on, after
 \\MessageBreak, on lines that start with the package's name in parentheses
 ("(didactic)" and the like).
 

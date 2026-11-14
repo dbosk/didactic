@@ -7,6 +7,8 @@ test.pdf
 test.unq
 test-footcite.pdf
 test-footcite.unq
+test-footonce*.pdf
+test-footonce*.unq
 test-footcite-twoside.pdf
 test-footcite-twoside.unq
 test-run.pdf

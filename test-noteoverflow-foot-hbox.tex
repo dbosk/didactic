@@ -4,9 +4,9 @@
 % wide for the margin or the text, and footnote D, with lines ended by \break, go in the
 % margin.  On page 2 a tall note fills the margin: footnotes B (too wide) and C (\break),
 % of four lines each, too many to run past the foot of the margin, go to the foot; E
-% (page 3, margin) has a box too narrow; G (page 3, margin), a list, isn't plain.
-% test-noteoverflow-foot.sh builds it with foot (the default) and with carry;
-% test-noteoverflow-foot.py hbox knows the notes by their input lines: keep them there.
+% (page 3, margin) has a box too narrow; G (page 3, margin), a list, isn't plain;
+% H (page 3, margin) and I (page 4, foot) aren't either, and set \fussy. The
+% check knows the notes by their input lines: keep them there.
 \documentclass[a4paper]{memoir}
 \ifdefined\testoptions\else\def\testoptions{}\fi
 \expandafter\PassOptionsToPackage\expandafter{\testoptions}{didactic}
@@ -32,4 +32,9 @@ in it.} \filler\ \filler
 \filler\footnote{Note E, with a box too narrow for its words: \hbox to 1cm{BOXEDWORDS TOO LONG FOR IT} in it.} \filler\ \filler
 \filler\footnote{Note F, not plain, a box too narrow: \hbox to 1cm{BOXEDWORDS TOO LONG FOR IT} and a list:\begin{itemize}\item one\end{itemize}} \filler
 \filler\footnote{Note G, a list:\begin{itemize}\item an item with a forced\linebreak break in it\item another\end{itemize}} \filler
+\filler\footnote{Note H, a list:\begin{itemize}\item one\end{itemize}\fussy then TOKENHTOOWIDEFORTHEMARGINXXXXXXXXXXXXXXXX ends.} \filler
+\clearpage
+\noindent x\marginpar{TALL\par\rule{1pt}{.97\textheight}} \filler\ \filler
+
+\filler\footnote{Note I, a list:\begin{itemize}\item one\end{itemize}\fussy then TOKENITOOWIDEFORTHEMARGINXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX ends.} \filler\ \filler
 \end{document}

@@ -42,12 +42,13 @@ hbox reads test-noteoverflow-foot-hbox.tex built with foot (FOOT) and with carry
 (REF): a margin footnote has a version for the margin and, at the foot, one for
 the foot, set quietly; the printed one says what TeX would of its lines, once,
 with the file, the line and its page.  Footnotes A (input line 20) and D (22) are
-in the margin of page 1 under foot, and G (34), a list, not plain, in that of page
-3: didactic says what TeX says in REF, and TeX nothing; nothing comes from a version
-for the foot.  B (28) and C (30) are at the
-foot of page 2 (in the text column there, from the PDF): no line of TeX's names
-them, didactic says that B has an overfull line and C an underfull one, on page 2,
-and nothing of their margin versions.
+in the margin of page 1 under foot, and G (34) and H (35), lists, not plain, in that
+of page 3 (H's text sets \fussy before its last paragraph ends): didactic says what
+TeX says in REF, and TeX nothing; nothing comes from a version for the foot.  B (28)
+and C (30) are at the foot of page 2, I (39, as H) at that of page 4 (in the text
+column there, from the PDF): no line of TeX's names them, didactic says that B and
+I have an overfull line and C an underfull one, on their page, and nothing of their
+margin versions.
 A line per check, PASS or FAIL; the exit status is 1 on any FAIL.
 """
 import collections
@@ -208,11 +209,14 @@ def hbox(foot, ref):
                                  rf"{re.escape(src)}:{line}, {where} of page (\d+)", log))
     f, r = testlog.joined(f"{foot}.log"), testlog.joined(f"{ref}.log")
     notplain = len(re.findall(r"isn't plain", f))
-    report(f"{foot} every footnote plain but F and G (lines 33, 34)", notplain == 2,
+    report(f"{foot} every footnote plain but F, G, H and I (lines 33, 34, 35, 39)",
+           notplain == 4,
            f"({notplain} not plain)")
     # A and D (lines 20, 22), plain, in the margin of page 1; G (line 34), not plain, in
-    # the margin of page 3: its words from the fallback's version for the margin
-    for line, page in ((20, "1"), (22, "1"), (34, "3")):
+    # the margin of page 3: its words from the fallback's version for the margin; H
+    # (line 35), not plain, whose text sets \fussy before its last paragraph ends:
+    # that version is still quiet, and didactic says its line once
+    for line, page in ((20, "1"), (22, "1"), (34, "3"), (35, "3")):
         want = [(w, page) for w in tex(r, line)]
         got = ours(f, line, "in the margin")
         report(f"{foot} margin note at line {line}: TeX's words, once, from the printed version",
@@ -221,13 +225,15 @@ def hbox(foot, ref):
         n = len(ours(f, line, "at the foot"))
         report(f"{foot} margin note at line {line}: nothing from a version for the foot",
                n == 0, f"({n})")
-    for line, kind in ((28, "Over"), (30, "Under")):
+    # I (line 39), as H but at the foot of page 4: its version for the margin, not
+    # printed, says nothing though its text sets \fussy
+    for line, kind, page in ((28, "Over", "2"), (30, "Under", "2"), (39, "Over", "4")):
         report(f"{foot} note at the foot at line {line}: no line of TeX's", not tex(f, line),
                " ".join(tex(f, line))[:120])
         got = ours(f, line, "at the foot")
-        report(f"{foot} note at the foot at line {line}: {kind.lower()}full lines said, page 2",
+        report(f"{foot} note at the foot at line {line}: {kind.lower()}full lines said, page {page}",
                bool(got) and any(w.startswith(kind) for w, _ in got)
-               and all(p == "2" for _, p in got), f"({got})")
+               and all(p == page for _, p in got), f"({got})")
         n = len(ours(f, line, "in the margin"))
         report(f"{foot} note at the foot at line {line}: nothing from its margin version",
                n == 0, f"({n})")
