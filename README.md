@@ -9,6 +9,10 @@ as "normal" text in handouts produced by `beamerarticle` (same style as
 
 It also provides macros for typesetting code listings and output side by side.
 
+For a bilingual source, it provides the environments `en` and `sv` and the 
+command `\ensv`, with which one source yields an English and a Swedish edition. 
+The script `didactic-sync.py` keeps the two languages of each pair in step.
+
 Finally, it modifies the appearance of `beamer` (Berlin based theme) and 
 `memoir` (Tufte style layout), if loaded. It's designed to be used with 
 `beamer` to produce slides and `beamerarticle` with `memoir` to produce notes, 
@@ -30,9 +34,9 @@ cd didactic
 make all
 ```
 
-That will build both `didactic.sty` and `didactic.pdf`; `make tests` runs the
-tests (see below). The documentation is located in `didactic.pdf`. To build only
-the package, run `make didactic.sty`.
+That will build `didactic.sty`, `didactic-sync.py` and `didactic.pdf`; `make
+tests` runs the tests (see below). The documentation is located in
+`didactic.pdf`. To build only the package, run `make didactic.sty`.
 
 ## Requirements
 
@@ -46,6 +50,12 @@ For the package:
   With an older one the package works, and says what it can't do.
 - `minted` 3 (with its `latexminted`) and `pythontex`, and LaTeX run with
   `-shell-escape`.
+- `comment`, for the bilingual blocks (in TeX Live), unless the option
+  `nobilingual` is given.
+- For `didactic-sync.py`: Python 3.10 or later, and `git` for the diffs and the
+  branch check. To build it, as `make all` does, `notangle` from noweb (without
+  it `make all` stops with "notangle: not found"); `black` tidies the tangled
+  script if it is there, and is left out if not.
 
 To build the documentation and run the tests, also:
 
@@ -63,10 +73,13 @@ To build the documentation and run the tests, also:
   need it; a few other tests (`test-keep`, `test-keep-leadin`) skip their noweb
   cases without `noweb.sty`.
 - `pdftotext` and `pdfinfo` (poppler), and `awk`, `sed`, `cmp`, Python 3.
+- For the sync script: `notangle` and `noweave` from the noweb above, `pytest`
+  and `git`; `black` is optional (it only tidies the tangled script).
 - The LaTeX packages the tests load: amsmath, amssymb, amsthm, babel,
   beamer (for `beamerarticle`), beramono, biblatex, cleveref, csquotes, enumitem,
   fancyvrb, float, fontenc, graphicx, helvet, hyperref, import, lipsum, longtable,
-  mathpazo, memoir, multicol, refcount, tabularx, tikz, xcolor; all in TeX Live.
+  mathpazo, memoir, multicol, physics, refcount, tabularx, tikz, xcolor; all in
+  TeX Live.
 - A `latexminted` that runs, and the `minted.sty` of its release (see below).
 
 The tests are run with TeX Live 2025 and, in `TEXMFHOME`, these on top of it:
@@ -105,21 +118,26 @@ Run LaTeX non-interactively, or an error stops the build at its prompt:
 make tests LATEXFLAGS="-shell-escape -interaction=nonstopmode"
 ```
 
-- `make all` builds the package and its documentation, nothing else.
+- `make all` builds the package, `didactic-sync.py` and the documentation,
+  nothing else.
 - `make tests` runs every test: the `test-*.tex` documents, each with the
   checks the Makefile states (`pdfinfo` page counts, `pdftotext` greps,
   PASS/FAIL lines), `make check`, the sweep, and the rows of where margin notes
   go (`test-noteplace`, `test-notefoot`, `test-noteoverflow-foot`,
   `test-footreuse-spread`, `test-footwide`; `test-noteplace-tl12` and
-  `test-notefoot-tl12` again with TeX Live's marginfix 1.2), and
-  `test-testlog`, of `testlog.py`, which the checks read the logs with. A
-  test fails `make tests`; `make -k tests` runs them all and lists what
-  failed. About two hours on one job, a third of it the documents and the
-  sweep.
+  `test-notefoot-tl12` again with TeX Live's marginfix 1.2), `test-testlog`,
+  of `testlog.py`, which the checks read the logs with, and the bilingual
+  checks below. A test fails `make tests`; `make -k tests` runs them all and
+  lists what failed. About two hours on one job, a third of it the documents
+  and the sweep.
 - `MARGINFIX=<directory>` runs the tests against the `marginfix.sty` in that
   directory, put first on `TEXINPUTS` (TeX Live's:
   `MARGINFIX=$(kpsewhich -var-value TEXMFDIST)/tex/latex/marginfix`); unset,
   the one found. The `-tl12` targets use TeX Live's 1.2 whatever `MARGINFIX` is.
+- `make test-sync` runs the tests of `didactic-sync.py` (pytest, with real git
+  repositories in temporary directories), and `make check-bilingual` builds the
+  bilingual test documents in both editions, as notes and as slides, and reads
+  them with `test-bilingual.sh`. Both are part of `make tests`.
 - `make check` runs `test-check.py`, which holds the documents named in the
   Makefile's `CHECKED_TESTS` to what their headers say, from the words and
   their positions in the PDF and from the log.

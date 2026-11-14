@@ -25,9 +25,9 @@ says what it needs and how to run the tests; this file is for working on it.
 
 ## Tests
 
-- `make all` builds `didactic.sty` and `didactic.pdf` only. `make tests
-  LATEXFLAGS=...` runs every test, `make check` and the note suites among them;
-  about two hours on one job. `MARGINFIX=<dir>` chooses the marginfix.
+- `make all` builds `didactic.sty`, `didactic-sync.py` and `didactic.pdf`
+  only. `make tests LATEXFLAGS=...` runs every test, `make check`, the note
+  suites and the bilingual checks among them; about two hours on one job. `MARGINFIX=<dir>` chooses the marginfix.
   The Makefile's default engine is pdflatex (#72); the tests about xelatex or
   lualatex name theirs, so `PDFLATEX=xelatex make tests` (in the environment,
   not on make's command line, which overrides the named ones) runs the rest
@@ -40,6 +40,12 @@ says what it needs and how to run the tests; this file is for working on it.
   the note suites.
 - `test-keep-parted.tex`: lead-ins and what they lead into, parted only with a
   warning. `test-keep-sweep.py`: page breaks room by room against plain LaTeX.
+- Bilingual documents: `didactic-sync.py` is a literate program,
+  `didactic-sync.nw` (tangled and woven by the Makefile, never edited as
+  `.py`); `make test-sync` runs its pytest tests, and `make check-bilingual`
+  builds the `test-bilingual*` documents and reads them with
+  `test-bilingual.sh`. The script's exit codes (0, 1, 2) are an interface that
+  other build scripts rely on.
 - `make mutants` (`test-mutants.py`, `test-mutants.txt`): deliberate breaks
   that a test must catch, or a survivor with its reason. Hours for the whole
   batch; groups and times are in the header of `test-mutants.txt`. Run single

@@ -38,9 +38,10 @@ TEST_KEEPCHECK=		test-keep-leadin test-keep-leadin-off test-keep-overfull \
 			test-keep-parted
 
 .PHONY: all tests
-# all: the package and its documentation.  tests: every test, each failing make
-# by its checks (see the README for the time and for MARGINFIX).
-all: didactic.sty didactic.pdf
+# all: the package, its script for bilingual documents and its documentation.
+# tests: every test, each failing make by its checks (see the README for the time
+# and for MARGINFIX).
+all: didactic.sty didactic-sync.py didactic.pdf
 tests: didactic.sty test.pdf test-marginfix-interface test-footcite.pdf \
 	test-footcite-twoside.pdf test-footcite-memoir.pdf test-run.pdf \
 	test-note-heading.pdf test-pair.pdf test-pair-slides.pdf \
@@ -62,7 +63,7 @@ tests: didactic.sty test.pdf test-marginfix-interface test-footcite.pdf \
 	test-format.pdf test-oldkernel-title.pdf test-biburl check \
 	test-noteplace test-noteplace-tl12 test-footreuse-spread \
 	test-noteoverflow-foot test-notefoot test-notefoot-tl12 test-footwide \
-	test-testlog
+	test-testlog test-sync check-bilingual
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -76,10 +77,14 @@ LIT_RECORD=	heading-foot-of-page.csv $(wildcard queries/*.csv) \
 		queries/pen-results.txt $(wildcard measure-flow/*.py measure-flow/*.sh measure-flow/*.md) \
 		$(wildcard measure-real/*.py) measure-real/README.md \
 		measure-real/measure-real.conf.example
+SRC+=	didactic-sync.nw didactic-sync.tex didactic-sync.py
 
 # The change history (\PrintChanges) needs makeindex on the .glo file; that
-# also checks that every \changes entry can be written and typeset.
+# also checks that every \changes entry can be written and typeset.  minted
+# takes a _minted found elsewhere on the search path, such as in an installed
+# copy of this package, for its own unless there is one here.
 didactic.pdf: ${SRC} didactic.sty
+	@mkdir -p _minted
 	-${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	${PYTHONTEX} didactic
 	biber didactic
@@ -87,6 +92,7 @@ didactic.pdf: ${SRC} didactic.sty
 	makeindex -s gglo.ist -o didactic.gls didactic.glo
 	grep -q 'work in a source shared' didactic.gls
 	grep -q 'a frame title is a run-in heading' didactic.gls
+	grep -q 'Adds bilingual documents' didactic.gls
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
 	! ${TESTLOG} grep 'Empty bibliography|Citation .*undefined|could not be found' didactic.log
@@ -98,6 +104,30 @@ didactic.pdf: ${SRC} didactic.sty
 didactic.sty: didactic.ins didactic.dtx
 	${RM} $@
 	${LATEX} ${LATEXFLAGS} $<
+
+# The sync script is a literate program.  It's tangled next to didactic.sty, so
+# that builds find it with kpsewhich, and its explanation is woven into
+# didactic.pdf.  black only tidies the spacing between chunks, so it's optional.
+BLACK?=	$(if $(shell command -v black),black -q -,cat)
+# No pipe: make sees only the status of a pipe's last command, so a failing
+# notangle piped into black made an empty script and make went on.  If black
+# fails, make stops, and .DELETE_ON_ERROR (at the top) removes the partial
+# script.
+didactic-sync.py: didactic-sync.nw
+	notangle -R"[[$@]]" $< > $@.tangled
+	${BLACK} < $@.tangled > $@
+	chmod +x $@
+	${RM} $@.tangled
+
+test_didactic_sync.py: didactic-sync.nw
+	notangle -R"[[$@]]" $< > $@
+
+didactic-sync.tex: didactic-sync.nw
+	noweave -n -delay -t2 -autolang -index -filter tominted $< > $@
+
+.PHONY: test-sync
+test-sync: didactic-sync.py test_didactic_sync.py
+	python3 -m pytest -q test_didactic_sync.py
 
 didactic.tar.gz: ${SRC} ${LIT_RECORD} didactic.ins LICENSE Makefile README.md didactic.pdf
 	tar -czf $@ --transform "s|^|didactic/|" $^
@@ -221,6 +251,34 @@ test-pair.pdf test-pair-slides.pdf: %.pdf: %.tex didactic.sty ${TEST_PAIR_EXAMPL
 	${PYTHONTEX} $*
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
+
+# bilingual documents: one contents file, both editions, as notes and slides.
+# The first pass fails on the missing pythontex output; check-bilingual reads
+# the PDFs for what should and shouldn't be there.
+TEST_BILINGUAL=	test-bilingual test-bilingual-sv \
+		test-bilingual-slides test-bilingual-slides-sv
+$(addsuffix .pdf,${TEST_BILINGUAL}): %.pdf: %.tex test-bilingual-contents.tex \
+		didactic.sty hello.py
+	@mkdir -p _minted
+	-${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	${PYTHONTEX} $*
+	${PDFLATEX} ${LATEXFLAGS} $<
+	${PDFLATEX} ${LATEXFLAGS} $<
+
+# nobilingual leaves the names alone, for a document with its own \ensv
+test-bilingual-off.pdf: test-bilingual-off.tex didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} $<
+
+# a block that inputs a file holding a block
+test-bilingual-nested.pdf: test-bilingual-nested.tex \
+		test-bilingual-nested-inner.tex test-bilingual-nested-innermost.tex \
+		didactic.sty
+	${PDFLATEX} ${LATEXFLAGS} $<
+
+.PHONY: check-bilingual
+check-bilingual: $(addsuffix .pdf,${TEST_BILINGUAL}) test-bilingual-off.pdf \
+		test-bilingual-nested.pdf
+	./test-bilingual.sh
 
 # Run LaTeX on $< until the references settle.  Without a cache minted sets its
 # listings as plain text in the first pass, with no labels, so on a fresh checkout
@@ -711,6 +769,21 @@ clean:
 	${RM} test-pair-slides.pytxpyg test-pair-slides.out test-pair-slides.unq
 	${RM} -R pythontex-files-test-pair pythontex-files-test-pair-slides
 	${RM} test-footcite-memoir.pdf test-footcite-memoir.unq
+	${RM} didactic-sync.py didactic-sync.tex test_didactic_sync.py
+	${RM} didactic-sync.py.tangled
+	${RM} *.cut
+	${RM} $(addsuffix .pdf,${TEST_BILINGUAL}) test-bilingual-off.pdf
+	${RM} test-bilingual-nested.pdf test-bilingual-nested.unq
+	${RM} test-bilingual-taken.pdf test-bilingual-taken.unq
+	${RM} -R test-bilingual-import.d
+	${RM} -R test-bilingual-stamp.d test-bilingual-stamp.tex
+	${RM} test-bilingual-stamp.pdf test-bilingual-stamp.unq
+	${RM} test-bilingual-import.pdf test-bilingual-import.unq
+	${RM} $(addsuffix .unq,${TEST_BILINGUAL}) test-bilingual-off.unq
+	${RM} $(addsuffix .pytxcode,${TEST_BILINGUAL})
+	${RM} $(addsuffix .pytxmcr,${TEST_BILINGUAL})
+	${RM} $(addsuffix .pytxpyg,${TEST_BILINGUAL})
+	${RM} -R $(addprefix pythontex-files-,${TEST_BILINGUAL})
 	${RM} test-marginfloat.pdf test-marginfloat.aux test-marginfloat.log
 	${RM} test-marginfloat.out test-marginfloat.unq
 	${RM} test-marginfloat-slides.pdf test-marginfloat-slides.aux
