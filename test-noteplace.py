@@ -50,6 +50,15 @@ test-noteplace.tex writes to the log.  Always: no footnote found not plain
               unasked); noover-WORD, no such word that
               starts with WORD.
   nocontinued no "(continued)" in the text: no note was split.
+  tallwarn    NOTEY is on its callout's page and its margin ends past the foot
+              of the text, and a warning says that the margin note called out at
+              test-noteplace.tex (with a line) is taller than the margin by an
+              amount and runs over the foot (marginfix's, for a note it sets
+              whole at the top of a margin); the amount is the note's height
+              less the margin's, so what the PDF shows past the foot is no less,
+              and more by less than half a line (the note's first line sits
+              about a point below the margin's top, and the last word's box
+              reaches below its baseline by the font's descent).
   at=W:P[/W:P...]  each word W is on page P (lines of a footnote at the foot).
   below=W     W is in the text column below the foot of the text block, by more
               than a third of a line and at most a line and a half: one line
@@ -331,6 +340,19 @@ for e in expect:
         n, p = e[6:].split(":")
         if label(n) != p:
             fails.append("label %s on page %s, not %s" % (n, label(n), p))
+    elif e == "tallwarn":
+        n = page_of("NOTEY")
+        below = [y for w, y in margin_words(n)] if n else []
+        past = (max(below) - foot) * 72.27 / 72 if below else 0
+        m = re.search(r"margin note called out at test-noteplace\.tex:\d+ is taller than the"
+                      r" margin by ([\d.]+)pt.{0,160}?runs over the foot", joined)
+        if off or n is None:
+            fails.append("NOTEY not on its callout's page")
+        elif not m:
+            fails.append("no warning that NOTEY is taller than the margin and runs over")
+        elif not float(m[1]) <= past < float(m[1]) + 6:
+            fails.append("NOTEY's margin ends %.2fpt past the foot, the warning says %spt"
+                         % (past, m[1]))
     elif e == "nocontinued" and "(continued)" in out:
         fails.append("a note was split (continued)")
     elif e.startswith("gap=") and pages:

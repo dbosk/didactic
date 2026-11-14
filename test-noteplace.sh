@@ -336,6 +336,13 @@ check overguard x 4 '' "kept,noover-LOWZ${M12:+,over=2}" '\def\testtall{.9}\def\
 # the warning says why, that its line went on (no reason of its own, as it wasn't
 # carried where it was decided).
 check overmoved x 4 '' "carried,exactwarn,reason=its line went on to page 2 after the note was placed for page 1" '\def\testfirst{\noindent\rule{1cm}{\dimexpr\textheight-2\baselineskip\relax}\par\noindent FIRSTLINE A\marginpar{AAA\par\rule{1pt}{400pt}} end\yieldnote[\par\rule{1pt}{190pt}\par SIX] \[ \begin{matrix} a\\ b\\ c\\ d \end{matrix} \] after \filler\par}'
+# The same with a note a little taller than the whole margin, alone: decided to run
+# over on page 1, it goes with its line to page 2, where it is set whole at the top of
+# the margin and runs past the foot, as marginfix sets a note taller than the margin
+# and says so (tallwarn).  With TeX Live's marginfix 1.2 the line stays (every line
+# with a margin note may end a page, see overguard) and the note runs over on page 1,
+# with didactic's warning (over=2).
+check overmovedtall x 4 '' "${NOT12:+kept,nocontinued,tallwarn}${M12:+kept,over=2}" '\def\testfirst{\noindent\rule{1cm}{\dimexpr\textheight-2\baselineskip\relax}\par\noindent FIRSTLINE end\yieldnote[\par\rule{1pt}{\dimexpr\textheight-.5\baselineskip\relax}\par SIX] \[ \begin{matrix} a\\ b\\ c\\ d \end{matrix} \] after \filler\par}'
 # A small note after the one that runs over goes no lower: it is carried, not
 # set in what is left below the foot.
 check overlater x 9 '' "over=2,noover-SMALL" '\def\testtall{.95}\def\testbody{FIRSTLINE \filler\ end\yieldnote[\par TWO\par THREE]\marginpar{SMALL} \filler\par}'
