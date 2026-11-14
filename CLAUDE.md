@@ -15,12 +15,14 @@ says what it needs and how to run the tests; this file is for working on it.
   `make didactic.pdf LATEXFLAGS="-shell-escape -interaction=nonstopmode"`.
 - `_minted/` must exist and may be empty; otherwise minted can find another
   tree's cache.
-- Requires marginfix 1.6, the `integration` branch of dbosk/marginfix (TeX
-  Live ships 1.2), and for the documentation and tests a noweb with `[minted]`
-  and `tominted` (dbosk/noweb, `integration`), and minted 3.8.0 with fvextra
-  1.14.0 and latex2pydata 0.7.0 to match latexminted 0.7.1 (TeX Live 2025's
-  latexminted fails under Python 3.14). beamer and PythonTeX from TeX Live
-  suffice. See the README.
+- Works with TeX Live's marginfix 1.2; deferrable notes and the split of a
+  note taller than the margin need the `integration` branch of dbosk/marginfix
+  (the README says what differs; `MARGINFIX=<dir>` chooses the one tested, and
+  the `-tl12` targets run 1.2). For the documentation and tests a noweb with
+  `[minted]` and `tominted` (dbosk/noweb, `integration`), and minted 3.8.0
+  with fvextra 1.14.0 and latex2pydata 0.7.0 to match latexminted 0.7.1 (TeX
+  Live 2025's latexminted fails under Python 3.14). beamer and PythonTeX from
+  TeX Live suffice. See the README.
 - Don't run `make -j` in one directory: the documents share `_minted/`.
 
 ## Tests

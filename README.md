@@ -44,10 +44,26 @@ For the package:
 
 - A recent LaTeX (the hooks need a format from 2021 or later; an older one gets
   a warning).
-- `marginfix` 1.6 or later, for `\marginnoteoverflow` and the margin fixes the
-  notes rely on. TeX Live 2025 ships 1.2; 1.6 is on the `integration` branch of
-  [dbosk/marginfix](https://github.com/dbosk/marginfix) until upstream has it.
-  With an older one the package works, and says what it can't do.
+- `marginfix`. TeX Live's 1.2 is enough for the notes as the documentation
+  describes them, with these differences, which the test targets ending in
+  `-tl12` check: every line with a margin note may end a page, so a line that
+  would move to the next page with its note stays on its page, with the note
+  (one the margin can't hold then runs past its foot, with a warning); a note
+  taller than the margin is lost, with marginfix's error "lost some margin
+  notes", and didactic names it a run later; and there are no deferrable notes (`notepriority`, `\ltnote` giving
+  way to the others) and no split of a note taller than the margin. Those come
+  with the `integration` branch of
+  [dbosk/marginfix](https://github.com/dbosk/marginfix), until upstream has
+  them. didactic checks the names it uses in marginfix, not a version: if one
+  it needs is missing, the notes are carried, as marginfix does alone, and a
+  warning names what is missing.
+
+  Install marginfix together with didactic. With the fork's `integration`
+  branch as it was before this version, a margin note taller than the margin
+  is lost with marginfix's error "lost some margin notes" (didactic names the
+  note a run later), and a note held for its line stands a few points above
+  it, as in v2.16.1; the other rows of `test-noteplace` pass, and the other
+  note suites were not run against it.
 - `minted` 3 (with its `latexminted`) and `pythontex`, and LaTeX run with
   `-shell-escape`.
 - `comment`, for the bilingual blocks (in TeX Live), unless the option
@@ -84,7 +100,7 @@ To build the documentation and run the tests, also:
 
 The tests are run with TeX Live 2025 and, in `TEXMFHOME`, these on top of it:
 
-- marginfix 1.6 and the noweb above;
+- marginfix from the `integration` branch above, and the noweb above;
 - minted 3.8.0 (2026/03/03), with fvextra 1.14.0 and latex2pydata 0.7.0
   (2026/02/25), which minted 3.8.0 requires; TeX Live 2025 ships minted 3.7.0,
   fvextra 1.13.2 and latex2pydata 0.6.0. They are needed because of

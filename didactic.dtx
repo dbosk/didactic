@@ -849,9 +849,18 @@
 % its mark's, a warning says so, one run late (from records of the run before),
 % and a settled build has it.
 % Any other margin note there is lost, as in \LaTeX, but with a warning.
-% With \TeX~Live's \textsf{marginfix} 1.2 all of this works, but for deferrable
-% notes and the split of a note taller than the margin, which come with later
-% versions of \textsf{marginfix}.
+% With \TeX~Live's \textsf{marginfix} 1.2 all of this works, with these
+% differences: every line with a margin note may end a page there, so a line
+% that would move to the next page with its note stays on its page, with the
+% note (one the margin can't hold then runs past its foot, with a warning); a
+% note taller than the margin is lost,
+% with \textsf{marginfix}'s error ``lost some margin notes'', and named a run
+% later; and there are no deferrable notes and no split of a note taller than
+% the margin, which come with the newer build of \textsf{marginfix} (the
+% |integration| branch of \texttt{dbosk/marginfix}).
+% With that fork's |integration| as it was before this version, a note taller
+% than the margin is lost the same way, and a note held for its line stands a
+% few points above it; so install the two together.
 % With |noteoverflow=carry|, the default with the option |draft|, every note 
 % that doesn't fit is carried, with a warning.
 % The mode is read where a note is called out, and obeys groups, so 
