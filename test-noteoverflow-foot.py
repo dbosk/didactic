@@ -42,8 +42,9 @@ hbox reads test-noteoverflow-foot-hbox.tex built with foot (FOOT) and with carry
 (REF): a margin footnote has a version for the margin and, at the foot, one for
 the foot, set quietly; the printed one says what TeX would of its lines, once,
 with the file, the line and its page.  Footnotes A (input line 20) and D (22) are
-in the margin of page 1 under foot: didactic says what TeX says in REF, and TeX
-nothing; nothing comes from a version for the foot.  B (28) and C (30) are at the
+in the margin of page 1 under foot, and G (34), a list, not plain, in that of page
+3: didactic says what TeX says in REF, and TeX nothing; nothing comes from a version
+for the foot.  B (28) and C (30) are at the
 foot of page 2 (in the text column there, from the PDF): no line of TeX's names
 them, didactic says that B has an overfull line and C an underfull one, on page 2,
 and nothing of their margin versions.
@@ -218,8 +219,10 @@ def hbox(foot, ref):
     notplain = len(re.findall(r"isn't plain", f))
     report(f"{foot} every footnote plain but F and G (lines 33, 34)", notplain == 2,
            f"({notplain} not plain)")
-    for line in (20, 22):
-        want = [(w, "1") for w in tex(r, line)]
+    # A and D (lines 20, 22), plain, in the margin of page 1; G (line 34), not plain, in
+    # the margin of page 3: its words from the fallback's version for the margin
+    for line, page in ((20, "1"), (22, "1"), (34, "3")):
+        want = [(w, page) for w in tex(r, line)]
         got = ours(f, line, "in the margin")
         report(f"{foot} margin note at line {line}: TeX's words, once, from the printed version",
                bool(want) and got == want and not tex(f, line),

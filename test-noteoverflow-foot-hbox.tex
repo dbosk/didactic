@@ -1,12 +1,12 @@
-% Test of noteoverflow=foot (didactic): of the versions of a footnote, for the
-% margin and for the foot, the one that isn't printed says nothing in the log,
-% and the printed one says what TeX would.  On page 1 the margin is free: footnote A, with a token
-% too wide for the margin or the text, and footnote D, with lines ended by \break,
-% go in the margin.  On page 2 a tall note fills the margin: footnotes B (too wide)
-% and C (\break), of four lines each, too many to run past the foot of the margin,
-% go to the foot; E (page 3, margin) has a box too narrow.  test-noteoverflow-foot.sh
-% builds it with foot (the default) and with carry; test-noteoverflow-foot.py hbox
-% knows the notes by their input lines: keep them where they are.
+% Test of noteoverflow=foot (didactic): of the versions of a footnote, for the margin
+% and for the foot, the one that isn't printed says nothing in the log, and the printed
+% one says what TeX would.  On page 1 the margin is free: footnote A, with a token too
+% wide for the margin or the text, and footnote D, with lines ended by \break, go in the
+% margin.  On page 2 a tall note fills the margin: footnotes B (too wide) and C (\break),
+% of four lines each, too many to run past the foot of the margin, go to the foot; E
+% (page 3, margin) has a box too narrow; G (page 3, margin), a list, isn't plain.
+% test-noteoverflow-foot.sh builds it with foot (the default) and with carry;
+% test-noteoverflow-foot.py hbox knows the notes by their input lines: keep them there.
 \documentclass[a4paper]{memoir}
 \ifdefined\testoptions\else\def\testoptions{}\fi
 \expandafter\PassOptionsToPackage\expandafter{\testoptions}{didactic}
