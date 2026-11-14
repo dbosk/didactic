@@ -28,7 +28,7 @@ export TEXINPUTS="$TOOLS:$TEXINPUTS"
 ENGINE=${ENGINE:-pdflatex}
 TEXTIMEOUT=${TEXTIMEOUT:-120}  # seconds: a run that takes longer never ends
 settle() { # <job> <maxruns> <definitions>; sets $settled and $runs
-  rm -f "$1.aux"; settled=no
+  rm -f "$1.aux" "$1.aux.old"; settled=no
   for runs in $(seq 1 "$2"); do
     [ -f "$1.aux" ] && cp "$1.aux" "$1.aux.old"
     timeout "$TEXTIMEOUT" $ENGINE -shell-escape -interaction=nonstopmode -jobname="$1" \

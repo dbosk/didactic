@@ -5333,13 +5333,26 @@
 % which have a split of their own but still lose such a note) loses it with
 % the error ``lost some margin notes'', which names no note, its labels and
 % index entries with it: there a callout's record with no note's record says
-% that the note wasn't printed (|\@didactic@lost|).
+% that the note wasn't printed (|\@didactic@lost|).  Why is said only when the
+% decision found the note taller than a whole empty margin of its column, the
+% column's height |\@colht| and |\marginheightadjustment| (the room
+% \textsf{marginfix} 1.2 gives a page's margin with no note in it, so that it
+% can't set such a note on any page: the note of the row |tallsplit| with 1.2):
+% the callout's record carries that as a fourth field, |t|
+% (|\@didactic@tallflag|, written when the page is shipped, after the decision).
+% A note lost otherwise, by an error that loses notes (a note nested in another,
+% ``Float(s) lost''), is said to be not printed, without a reason; a callout
+% whose place isn't known says so.
+% A note's record without its callout's is passed over, there being nothing to
+% compare it with: a note nested in another (an error without \textsf{didactic}
+% too, ``Float(s) lost'') leaves one.
 % The comparison is made when the |.aux| file has been read, at the start.
 %    \begin{macrocode}
 \newcommand\@didactic@record{%
   \if@filesw
     \@didactic@writepage{\string\@didactic@rc
-      {\the\@didactic@noteid}{\thepage}{\@didactic@here}}%
+      {\the\@didactic@noteid}{\thepage}{\@didactic@here}%
+      {\noexpand\@didactic@tallflag{\the\@didactic@noteid}}}%
     \@didactic@rnbox\@marbox
     \@didactic@rnbox\@currbox
     \@didactic@ifdeferrable\@marbox
@@ -5371,8 +5384,8 @@
   \if@filesw\immediate\write\@auxout{\string\@didactic@rw{#1}}\fi}
 \newcount\@didactic@rcmax
 \newcount\@didactic@rcmin
-\newcommand\@didactic@rc[3]{%
-  \expandafter\gdef\csname @didactic@rc@#1\endcsname{{#2}{#3}}%
+\newcommand\@didactic@rc[4]{%
+  \expandafter\gdef\csname @didactic@rc@#1\endcsname{{#2}{#3}{#4}}%
   \ifnum#1>\@didactic@rcmax\global\@didactic@rcmax#1\relax\fi
   \ifnum#1<\@didactic@rcmin\global\@didactic@rcmin#1\relax\fi}
 \newcommand\@didactic@rn[2]{%
@@ -5381,7 +5394,7 @@
   \expandafter\gdef\csname @didactic@rw@#1\endcsname{}}
 \let\@didactic@rd\@didactic@rw
 \AtBeginDocument{\if@filesw\immediate\write\@auxout{%
-  \string\providecommand\string\@didactic@rc[3]{}%
+  \string\providecommand\string\@didactic@rc[4]{}%
   \string\providecommand\string\@didactic@rn[2]{}%
   \string\providecommand\string\@didactic@rw[1]{}%
   \string\providecommand\string\@didactic@rd[1]{}}\fi}
@@ -5390,8 +5403,10 @@
   \loop\ifnum\@tempcnta>\@didactic@rcmax\else
     \ifcsname @didactic@rw@\the\@tempcnta\endcsname\else
       \ifcsname @didactic@rn@\the\@tempcnta\endcsname
-        \expandafter\expandafter\expandafter\@didactic@recheck@
-          \csname @didactic@rc@\the\@tempcnta\endcsname
+        \ifcsname @didactic@rc@\the\@tempcnta\endcsname
+          \expandafter\expandafter\expandafter\@didactic@recheck@
+            \csname @didactic@rc@\the\@tempcnta\endcsname
+        \fi
       \else\ifdefined\MFX@chop@tall\else
         \ifcsname @didactic@rc@\the\@tempcnta\endcsname
           \expandafter\expandafter\expandafter\@didactic@lost
@@ -5413,7 +5428,7 @@
     \advance\@tempcnta\m@ne
   \repeat
   \global\@didactic@rcmin\z@}
-\newcommand\@didactic@mccheck[2]{%
+\newcommand\@didactic@mccheck[3]{%
   \edef\@tempa{#1}%
   \edef\@tempb{\csname @didactic@rn@\the\@tempcnta\endcsname}%
   \ifx\@tempa\@tempb\else
@@ -5422,7 +5437,7 @@
       on page #1 is set at the foot of page \@tempb, where\MessageBreak
       LaTeX puts it (seen in the run before)}%
   \fi}
-\newcommand\@didactic@recheck@[2]{%
+\newcommand\@didactic@recheck@[3]{%
   \edef\@tempa{#1}%
   \edef\@tempb{\csname @didactic@rn@\the\@tempcnta\endcsname}%
   \ifx\@tempa\@tempb\else
@@ -5430,11 +5445,16 @@
       on page #1 is set on page \@tempb\space (found from the last
       run):\MessageBreak nothing said so in that run}%
   \fi}
-\newcommand\@didactic@lost[2]{%
-  \PackageWarningNoLine{didactic}{Margin note called out at #2\MessageBreak
-    on page #1 wasn't printed (found from the last run):\MessageBreak
-    this marginfix loses a note taller than the margin;\MessageBreak
-    the fork's newer build sets it whole or splits it}}
+\newcommand\@didactic@lost[3]{%
+  \PackageWarningNoLine{didactic}{Margin note called out
+    \ifx\relax#2\relax\else at #2\fi\MessageBreak
+    on page #1\ifx\relax#2\relax\space(no place known)\fi\space
+    wasn't printed (found from the last run)%
+    \ifx t#3:\MessageBreak
+      this marginfix loses a note taller than the margin;\MessageBreak
+      the fork's newer build sets it whole or splits it\fi}}
+\newcommand\@didactic@tallflag[1]{%
+  \ifcsname @didactic@tl@#1\endcsname t\fi}
 \AddToHook{begindocument/end}{\@didactic@recheck}
 %    \end{macrocode}
 % \end{macro}
@@ -5890,6 +5910,12 @@
   \@didactic@noteht\dimexpr\ht\@didactic@head+\dp\@didactic@head\relax
   \ifdim\dimexpr\ht\@didactic@pair+\dp\@didactic@pair\relax>\@didactic@noteht
     \@didactic@noteht\dimexpr\ht\@didactic@pair+\dp\@didactic@pair\relax
+  \fi
+  \ifdim\@didactic@noteht<\dimexpr\@colht
+      \ifdefined\marginheightadjustment+\marginheightadjustment\fi\relax
+  \else
+    \expandafter\gdef
+      \csname @didactic@tl@\the\@didactic@noteof\@didactic@head\endcsname{}%
   \fi
   \@didactic@setwhy{}%
   \@didactic@ifdeferrable\@didactic@head
@@ -6697,6 +6723,10 @@
 % whatever an expression does, where one that waited for the gap to close ran
 % on with an error each turn until \TeX\ gave up after a hundred, without a
 % PDF.
+% The line's width plus the document's |\hfuzz| is held at |\maxdimen|: in a
+% note nested in a footnote that is being measured the |\hfuzz| is the quiet
+% setting's, |\maxdimen|, and the sum would pass \TeX's limit (``Arithmetic
+% overflow'', review 3, M1).
 % What there is to say goes into the version as a |\write| that isn't
 % immediate, which \TeX\ carries out only when it ships the page the version
 % is printed on: so the printed one says it, once, on its page, with the file
@@ -6743,7 +6773,8 @@
     \@didactic@hboxsay{Overfull \string\hbox\space
       (more than \the\dimexpr\maxdimen-\wd\tw@\relax\space too wide)}%
   \else
-    \setbox4\hbox to\dimexpr\wd\tw@+\@didactic@hfz\relax{\unhcopy\tw@}%
+    \setbox4\hbox to\ifdim\wd\tw@>\dimexpr\maxdimen-\@didactic@hfz\relax
+      \maxdimen\else\dimexpr\wd\tw@+\@didactic@hfz\relax\fi{\unhcopy\tw@}%
     \ifnum\badness=1000000
       \@didactic@hboxlo\wd\tw@
       \@didactic@hboxhi\maxdimen
@@ -7344,7 +7375,7 @@
   \global\advance\@didactic@mcn\@ne
   \if@filesw
     \@didactic@writepage{\string\@didactic@rc
-      {\@didactic@mc@id}{\thepage}{\@didactic@here}}%
+      {\@didactic@mc@id}{\thepage}{\@didactic@here}{}}%
   \fi}
 \newcommand\@didactic@mc@markat{\ifm@mfnmargin\else\@didactic@mc@pair\fi}
 \newcommand\@didactic@mc@pair{%

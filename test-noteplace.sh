@@ -77,10 +77,10 @@ check() {
     echo "didactic noteplace test: $name SKIP (needs marginfix 1.5 or later)"; return;; esac; fi
   floor=-
   if [ -n "$RECHECK" ]; then settled=yes; runs=-; else
-    rm -f "$j-floor.aux"
+    rm -f "$j-floor.aux" "$j-floor.aux.old"
     settle "$j-floor" "$2" "$3" "$4" "\\def\\testfloor{}$6"
     floor=$runs
-    rm -f "$j.aux" "$j.pdf"
+    rm -f "$j.aux" "$j.aux.old" "$j.pdf"
     settle "$j" "$2" "$3" "$4" "$6"
   fi
   errors=$(grep -c '^!' "$j.log")
@@ -366,7 +366,7 @@ check overtall x 9 '' "warned,nocontinued" '\def\testtall{1.01}\def\testbody{FIR
 # from the last run" warning, and its first part on its callout's page.  (TeX Live's
 # 1.2 doesn't split: it loses such a note, its label with it, and stops with
 # "lost some margin notes", which names no note: the record net names it.)
-check tallsplit x 3 '' "${NOT12:+kept,continued,recordless=1}${M12:+error=lost some margin notes,lostwarn=test-noteplace.tex,foundlast=1,recordless=1}" '\def\testtall{.1}\def\testbody{FIRSTLINE\yieldnote[\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler] \filler\ \filler\par}'
+check tallsplit x 3 '' "${NOT12:+kept,continued,recordless=1}${M12:+error=lost some margin notes,lostwarn=test-noteplace.tex,reason=this marginfix loses a note taller than the margin,foundlast=1,recordless=1}" '\def\testtall{.1}\def\testbody{FIRSTLINE\yieldnote[\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler] \filler\ \filler\par}'
 # In two columns a note runs past the foot of its column's margin the same way.
 check overtwocol x 9 '' kept,overwarn '\def\testclass{article}\def\testclassopt{a4paper,twocolumn}\def\testtall{.95}\def\testbody{FIRSTLINE end\yieldnote[\par TWO\par THREE] \filler\par}'
 # A footnote that fits neither beside its line nor past the foot of the margin
@@ -499,6 +499,14 @@ check aftercarry x 9 '' "carried,pairs,exactwarn,allreasons" '\def\testtall{.8}\
 NPS='\def\testpre{\newcounter{lc}\newcount\tcount}\def\testbody{FIRSTLINE words\yieldnote[\refstepcounter{lc}\global\advance\tcount1 \par LCIN\arabic{lc}X TCIN\the\tcount X\begin{itemize}\item one\end{itemize}] more words. AFTERLC\arabic{lc}X AFTERTC\the\tcount X \filler\par}\def\testyieldfoot{}'
 check notplainm x 20 '' "kept,notplain=1,has=AFTERLC1X,has=AFTERTC3X,has=LCIN1X" "\\def\\testtall{.1}$NPS"
 check notplainf x 20 '' "kept,notplain=1,has=AFTERLC1X,has=AFTERTC3X,has=LCIN1X,incol=NOTEY" "$NPS"
+# A footnote or a \marginpar in a margin footnote is an error, as without didactic
+# ("Float(s) lost"), and no other (review 3, M1): no garbled warning from a note's
+# record without its callout's, no arithmetic overflow from the hbox check of a
+# note nested in one that is being measured.  With marginfix 1.2 the lost note is
+# named a run later as not printed, with no reason: it wasn't taller than the margin
+# (mcolnote, a margin note lost in multicols, likewise; tallsplit's is).
+check nestfn x 30 '' "error=Float(s) lost,notplain=1${M12:+,lostwarn=test-noteplace.tex,noreason=taller than the margin,foundlast=1}" '\def\testbody{FIRSTLINE text.\footnote{OUTER note with an inner\footnote{INNER note} one.} More text.\par}'
+check nestmp x 30 '' "error=Float(s) lost,notplain=1${M12:+,lostwarn=test-noteplace.tex,noreason=taller than the margin,foundlast=1}" '\def\testbody{FIRSTLINE text.\footnote{OUTER note with a\marginpar{INNERMP} margin note.} More text.\par}'
 # A footnote set at the foot as LaTeX sets it (\footnotesatfoot) is left to TeX; one
 # that doesn't fit at a foot that ours has filled is taken to the next page by TeX,
 # and named a run later (latexfoot); one that TeX splits over two pages, begun on its
@@ -523,7 +531,7 @@ check fnaparttwo x 30 '' "noreason=where LaTeX puts it,at=FNTA:2/PAIRFN:1,fnreco
 check fnapartart x 30 '' "noreason=where LaTeX puts it,at=FNTA:2/PAIRFN:1,fnrecords=0" "$ART"'\def\testclassopt{a4paper,twocolumn}'"$FNTWO"
 check fnhyper x 5 '' "kept,reason=where LaTeX puts it,fnrecords=1" '\def\testpre{\usepackage{hyperref}}\def\testyieldfoot{}\def\testbody{FIRSTLINE words\yieldnote[\par TWO\par THREE] more words, {\footnotesatfoot\footnote{LATEXFN at the foot of a page, a footnote of LaTeX'"'"'s own.}} and words. \filler\par}'
 # Any other margin note in multicols is lost, as in LaTeX, but with a warning.
-check mcolnote x 20 '' "mcolwarn" "$MC"'\def\testbody{\begin{multicols}{2}FIRSTLINE\marginpar{MCOLMARGIN} \filler\ \filler\end{multicols}}'
+check mcolnote x 20 '' "mcolwarn${M12:+,lostwarn=test-noteplace.tex,noreason=taller than the margin,foundlast=1}" "$MC"'\def\testbody{\begin{multicols}{2}FIRSTLINE\marginpar{MCOLMARGIN} \filler\ \filler\end{multicols}}'
 # What marginfix puts in the margin for itself (\blockmargin, \unblockmargin) is no
 # note of the user's: no warning there.
 check mcolblock x 20 '' "nomcolwarn" "$MC"'\def\testbody{\begin{multicols}{2}FIRSTLINE \blockmargin\filler\ \unblockmargin\filler\end{multicols}}'

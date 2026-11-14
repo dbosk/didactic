@@ -45,11 +45,13 @@
 #            boxes in footnotes, against the marginfix found or $MARGINFIX (about 30 s)
 #   noteplace test-noteplace, its rows rsvsidecap, rsvblock, mcolblock,
 #            rsvsidebefore, heldtop, heldsecond, overmoved, footback, overlimit, overtwo,
-#            aftercarry, carrymode, notplainm and notplainf only, against the marginfix
-#            found or $MARGINFIX
-#            (about 2 minutes a mutant, one at a time; 116 s; run on 2026-11-14)
+#            aftercarry, carrymode, notplainm, notplainf, nestfn and nestmp only, against
+#            the marginfix found or $MARGINFIX (about 2 minutes a mutant, one at a time;
+#            116 s; run on 2026-11-14, before nestfn and nestmp)
 #   notefoot test-notefoot, its jobs waitover, warnclaim, defercarry-warn and defercarry,
 #            against $MARGINFIX (30 to 50 s; 30 s)
+#   noteplace12 test-noteplace-tl12, its rows nestfn, nestmp and mcolnote only, with TeX
+#            Live's 1.2 whatever $MARGINFIX is (24 s; 44 s)
 #   footwide test-footwide, its cases rigid, oneline and beyond only (CASES), under its
 #            three engines and with hyperref, against the marginfix found or $MARGINFIX
 #   fuzz     test-fuzz, its documents inrun 16, tl12 16 and xe 9 only (CASES), against
@@ -1912,3 +1914,33 @@ Tctmargin didactic.dtx
 -   \@didactic@footmargin
 +   \global\let\@thefnmark\@didactic@markbefore
 +   \@didactic@footmargin
+
+# Review 3, M1: a note's record without its callout's (a note nested in another) read as if
+# it had one: a garbled warning and an extra error (nestfn, nestmp).
+#: noteplace
+#= killed test-noteplace
+M1rcguard didactic.dtx
+-         \ifcsname @didactic@rc@\the\@tempcnta\endcsname
+-           \expandafter\expandafter\expandafter\@didactic@recheck@
++         \ifcsname @didactic@rn@\the\@tempcnta\endcsname
++           \expandafter\expandafter\expandafter\@didactic@recheck@
+
+# M1: the hbox check's width plus \hfuzz not held at \maxdimen: in a note nested in a
+# footnote being measured \hfuzz is \maxdimen, and the sum overflows (nestfn).  It joins
+# the check's \maxdimen guards (Hmidlo, Hmidsum, Hnatural, Hmorethan; test-footwide's
+# rigid, oneline and beyond).
+#: noteplace
+#= killed test-noteplace
+M1clamp didactic.dtx
+-     \setbox4\hbox to\ifdim\wd\tw@>\dimexpr\maxdimen-\@didactic@hfz\relax
+-       \maxdimen\else\dimexpr\wd\tw@+\@didactic@hfz\relax\fi{\unhcopy\tw@}%
++     \setbox4\hbox to\dimexpr\wd\tw@+\@didactic@hfz\relax{\unhcopy\tw@}%
+
+# M1: the lost-note net says "taller than the margin" of every note it finds not printed
+# (nestfn, nestmp and mcolnote with TeX Live's 1.2: the net is 1.2's, group noteplace12).
+#: noteplace12
+#= killed test-noteplace-tl12
+M1tall didactic.dtx
+- \newcommand\@didactic@tallflag[1]{%
+-   \ifcsname @didactic@tl@#1\endcsname t\fi}
++ \newcommand\@didactic@tallflag[1]{t}
