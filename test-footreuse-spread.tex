@@ -25,6 +25,8 @@
 %           Two, note 1 (a plain footnote, no citation) is on its page's last
 %           line, where the foot has no room, and is carried: its warning names
 %           no mark, since nothing reuses chapter Two's note 1.
+% \testsatfoot (memoir): every footnote set at the foot as LaTeX sets it
+% (\footnotesatfoot), as in the case same-satfoot.
 \ifdefined\testclass\else\def\testclass{article}\fi
 \ifdefined\testcase\else\def\testcase{same}\fi
 \documentclass[twoside]{\testclass}
@@ -41,6 +43,7 @@
 \newcommand\filler{Some words to fill up the rest of this line of the text and
   also quite a few of the next one, as the words of a paragraph do.}
 \begin{document}
+\ifdefined\testsatfoot\footnotesatfoot\fi
 Page~1 (recto), intentionally left without citations.
 \newpage
 \ifx\testcase\cross\def\testnotwo{}\fi

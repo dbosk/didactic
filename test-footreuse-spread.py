@@ -3,9 +3,10 @@
 
 Usage: test-footreuse-spread.py JOB [oneside] [reused] [last=N] [next] [shared]
                                 [warned] [reusenamed] [noreusenamed]
-                                [notplain=N]
+                                [notplain=N] [fnrecords=N]
 
-Always: no footnote found not plain (didactic's information) but N declared.
+Always: no footnote found not plain (didactic's information) but N declared,
+and no warning that TeX set a footnote on another page ("where TeX puts it").
 
 A mark is a number set right after a word, with no space ("spread1"); a note's
 number is one set right before a word, with none after another (the folio and
@@ -26,6 +27,9 @@ Checks:
 - reusenamed: such a warning names a mark that reuses the note's number;
 - noreusenamed: no warning names one (nothing reuses the note: numbers that
   restart in each chapter are other notes').
+- fnrecords=N: N footnotes have didactic's records (negative ids in the .aux),
+  those whose mark and text \footnote makes together at the foot as LaTeX sets
+  them; a reusing mark is a \footnotemark and has none.
 Prints one line, PASS or FAIL with what failed; exit status 1 on FAIL.
 """
 import re
@@ -116,6 +120,15 @@ NOTPLAIN = len(re.findall(r"isn't plain", testlog.joined(f"{job}.log")))
 WANTPLAIN = int(next((a[9:] for a in sys.argv[2:] if a.startswith("notplain=")), 0))
 if NOTPLAIN != WANTPLAIN:
     fails.append(f"{NOTPLAIN} notes not plain, {WANTPLAIN} declared")
+if "where TeX puts it" in re.sub(r"\s+", " ", re.sub(r"\n\(didactic\) *", " ",
+                                                      testlog.joined(f"{job}.log"))):
+    fails.append("a warning that TeX set a footnote on another page")
+for a in sys.argv[2:]:
+    if a.startswith("fnrecords="):
+        aux = open(f"{job}.aux", errors="replace").read()
+        rc = set(re.findall(r"\\@didactic@rc\{(-\d+)\}", aux))
+        if len(rc) != int(a[10:]):
+            fails.append(f"{len(rc)} footnotes with records, not {a[10:]}")
 facts = f"marks {marks}, notes {notes}"
 print(("FAIL: " + "; ".join(fails) if fails else "PASS") + " (" + facts + ")")
 sys.exit(1 if fails else 0)

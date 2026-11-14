@@ -51,6 +51,9 @@ job() { # <name> <definitions> [<arguments of test-footreuse-spread.py>]
 }
 job same '\def\testcase{same}' reused
 job same-memoir '\def\testcase{same}\def\testclass{memoir}' reused
+# With memoir's footnotes at the foot as LaTeX sets them: the first citation's
+# footnote has didactic's records, the reusing mark (a \footnotemark) none.
+job same-satfoot '\def\testcase{same}\def\testclass{memoir}\def\testsatfoot{}' 'reused fnrecords=1'
 job cross '\def\testcase{cross}'
 job cross-memoir '\def\testcase{cross}\def\testclass{memoir}'
 # Only at the foot does the tall note take its line along to page 4.

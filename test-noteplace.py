@@ -15,6 +15,7 @@ called out somewhere names a place, not an internal name; no footnote found not 
               names a margin note set on another page than its callout.
   reason=T    a warning that a note is set on another page says T (spaces as
               in one line), its reason.
+  noreason=T  no warning says T.
   warned      NOTEY is on the page of its callout, or a warning names a margin
               note set on another page than its callout.
   together    the heading HEADINGX is on the page of FIRSTLINE.
@@ -224,6 +225,8 @@ for e in expect:
                      % (facts["note"], facts["callout"]))
     elif e.startswith("reason=") and e[7:] not in re.sub(r"\s+", " ", joined):
         fails.append("no warning with the reason '%s'" % e[7:])
+    elif e.startswith("noreason=") and e[9:] in re.sub(r"\s+", " ", joined):
+        fails.append("a warning says '%s'" % e[9:])
     elif e == "warned" and off and not warned:
         fails.append("note-y off its callout's page (%s, %s) without a warning" % (facts["note"], facts["callout"]))
     elif e == "together" and page_of("HEADINGX") != page_of("FIRSTLINE"):
@@ -316,6 +319,13 @@ for e in expect:
         if len(rc - rn) != int(e[11:]):
             fails.append(f"{len(rc - rn)} notes with a callout's record and none of their own, "
                          f"not {e[11:]}")
+    elif e.startswith("fnrecords="):
+        # footnotes with records (negative ids): those whose mark and text
+        # \footnote makes together, at the foot
+        aux = open(job + ".aux", errors="replace").read()
+        rc = set(re.findall(r"\\@didactic@rc\{(-\d+)\}", aux))
+        if len(rc) != int(e[10:]):
+            fails.append(f"{len(rc)} footnotes with records, not {e[10:]}")
     elif e.startswith("incol="):
         n = page_of(e[6:])
         left = geo["odd"] if (n or 1) % 2 else geo["even"]

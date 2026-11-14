@@ -165,6 +165,13 @@
 %   regardless of load order.
 % }
 % \changes{v2.18}{2026/11/14}{%
+%   A footnote set at the foot as \LaTeX\ sets it (in |\footnotesatfoot|) that
+%   \TeX\ sets at the foot of another page than its mark's is named a run
+%   later, as one in \textsf{multicol}'s columns was: only a footnote whose
+%   mark and text |\footnote| makes together, and whose text can reach the
+%   foot.
+% }
+% \changes{v2.18}{2026/11/14}{%
 %   With \TeX~Live's \textsf{marginfix} 1.2, a margin note on a page that also
 %   holds \textsf{multicol}'s columns is set in the margin: 1.2 draws a page's
 %   margin at |\columnwidth|, a column's width there, and so into the text;
@@ -846,18 +853,30 @@
 % a run late (a settled build has it).  Two cases are known to be said that
 % way: a foot that holds a footnote of \LaTeX's own as well as \textsf{didactic}'s,
 % where a later line with a margin note takes them all to the next page with
-% it; and footnotes in \textsf{multicol}'s columns that it sets at the foot of
-% another page (below).  Any other is one the placement didn't foresee, which
-% we'd like to hear about.  Deferrable notes (|\ltnote| and the like) are
-% left out: \textsf{marginfix} moves them on by design, as its mode says.
+% it, so that ours can come after footnotes with later numbers; and, with
+% \textsf{memoir}, footnotes in \textsf{multicol}'s columns that it sets at the
+% foot of another page (below).
+% A foot is mixed so by a footnote set at the foot as \LaTeX\ sets it (one in
+% |\footnotesatfoot|, one in \textsf{multicol}'s columns), also by one that
+% didn't fit at the foot of its own page, which \TeX\ takes to the next page's.
+% Any other is one the placement didn't foresee, which we'd like to hear about.
+% A footnote set at the foot as \LaTeX\ sets it is left to \TeX: it takes no
+% part in keeping the footnotes in order.  With \textsf{memoir}, where
+% \textsf{didactic}'s footnotes use the foot too, one that \TeX\ sets at the
+% foot of another page than its mark's (as when the foot is full) is named a
+% run late too, ``where TeX puts it''; a footnote split over two pages, begun
+% on its mark's page, is not.  With another class \textsf{didactic} sets no
+% footnote, and names none that \TeX\ or \textsf{multicol} moves.
+% Deferrable notes (|\ltnote| and the like) are left out: \textsf{marginfix}
+% moves them on by design, as its mode says.
 % |noteoverflow=break| is gone: no page ends early for a note.
 % In two columns a note runs past the foot of its column's margin the same way,
 % but there is no foot beside a column for a footnote, so it is carried.
 % Inside \textsf{multicol}'s |multicols|, where no margin note can be set, a
 % footnote goes to the foot of the page under the columns, where
 % \textsf{multicol} sets it; when it sets one at the foot of another page than
-% its mark's, a warning says so, one run late (from records of the run before),
-% and a settled build has it.
+% its mark's, a warning says so with \textsf{memoir}, one run late (from
+% records of the run before), and a settled build has it.
 % Such a footnote is printed after footnotes that are called out after it, so
 % the numbers are out of sequence on the two pages.
 % Any other margin note there is lost, as in \LaTeX, but with a warning.
@@ -5386,9 +5405,15 @@
   \edef\@tempa{#1}%
   \edef\@tempb{\csname @didactic@rn@\the\@tempcnta\endcsname}%
   \ifx\@tempa\@tempb\else
-    \PackageWarningNoLine{didactic}{Footnote called out at #2 in multicols\MessageBreak
-      on page #1 is set at the foot of page \@tempb, where\MessageBreak
-      multicol puts it (seen in the run before)}%
+    \ifodd\@tempcnta
+      \PackageWarningNoLine{didactic}{Footnote called out at #2 in multicols\MessageBreak
+        on page #1 is set at the foot of page \@tempb, where\MessageBreak
+        multicol puts it (seen in the run before)}%
+    \else
+      \PackageWarningNoLine{didactic}{Footnote called out at #2\MessageBreak
+        on page #1 is set at the foot of page \@tempb, where TeX\MessageBreak
+        puts it (seen in the run before)}%
+    \fi
   \fi}
 \newcommand\@didactic@recheck@[2]{%
   \edef\@tempa{#1}%
@@ -6218,6 +6243,7 @@
 \long\def\@didactic@footwrap#1{%
   \if@didactic@inmeasure
     \global\@didactic@nestedtrue
+    \global\@didactic@fnpairfalse
   \else
     \@didactic@footwrap@{#1}%
   \fi}
@@ -6240,7 +6266,10 @@
     \@didactic@hboxmargin
     \@didactic@keep
     \global\let\@thefnmark\@didactic@markafter}%
-   {\@didactic@footmargin{\interlinepenalty\interfootnotelinepenalty#1}}%
+   {\@didactic@footmargin{\ifm@mfnmargin\else\if@didactic@fnpair
+      \global\@didactic@fnpairfalse\@didactic@mc@note\fi\fi
+      \interlinepenalty\interfootnotelinepenalty#1}}%
+  \global\@didactic@fnpairfalse
   \global\@didactic@isfnfalse}
 \newcommand\@didactic@ifcopies{%
   \@tempswafalse
@@ -7260,12 +7289,30 @@
 % There \textsf{multicol} decides where it goes: it collects the columns'
 % material and breaks the page after, so a note can end up at the foot of the
 % page before its mark's.
-% We can't see that when it happens; so, in |multicols| only, the footnote gets
-% the records a margin note gets (|\@didactic@record|): one at the mark, one at
-% the start of the note, numbered $-1$, $-2$, \ldots\ apart from the margin
-% notes, and the run after warns where their pages differ
-% (|\@didactic@recheck|): records for the warning only, which a settled build
-% has too.
+% We can't see that when it happens; so, with \textsf{memoir}, the footnote
+% gets the records a margin note gets (|\@didactic@record|): one at the mark, one at the start of the
+% note (so a footnote split over two pages counts on its first), numbered
+% apart from the margin notes, $-2k-1$ in |multicols| and $-2k$ for any other
+% footnote set at the foot as \LaTeX\ sets it (\TeX\ takes one that doesn't
+% fit to the next page), and the run after warns where their pages differ
+% (|\@didactic@recheck|), saying which of the two set it there: records for the
+% warning only, which a settled build has too.  Only a footnote whose mark and
+% text |\footnote| makes together gets them (|\if@didactic@fnpair|, set by
+% |\footnote|, cleared when its text is set): a |\footnotemark| and a
+% |\footnotetext| the author places apart are where the author put them; and
+% none for a footnote whose text can't reach the foot: in a |minipage| (|\@mpfn|
+% not |footnote|), where the text is set in the minipage; in a box, a tabular's
+% cell say (|\ifinner|), or in a float (|\@captype| defined), where \LaTeX\
+% loses it.  (A float's paragraph is no inner mode; a footnote in any other box
+% made of paragraphs, a |\parbox|, is lost too and keeps the record at its
+% mark, which the check reads only with the record at its note, so it says
+% nothing.)  The record at the mark comes from
+% |\@footnotemark|, wrapped where the footnote wrapper is set, the one at the
+% note from the wrapper (|\@didactic@footwrap|), whenever the footnote goes to
+% the foot.  The mark's test of \textsf{memoir}'s |\ifm@mfnmargin| is a macro of
+% its own (|\@didactic@mc@markat|): written where the hooks are set, inside
+% |\if@didactic@memoir|, it would be skipped with another class, where \TeX\
+% doesn't know the name as a conditional, and its |\fi| would end that branch.
 % The record at the mark is a |\write| right after the mark's box, where no
 % place to break is and the next word starts after the space as before.
 % A margin note other than a footnote has nowhere to go there, as in \LaTeX\
@@ -7275,19 +7322,28 @@
 % \textsf{didactic}'s code side by side uses too), which is no note.
 %    \begin{macrocode}
 \newcommand\@didactic@mcolfoot{%
-  \ifdefined\footnotesatfoot\footnotesatfoot\fi
-  \let\@didactic@mc@fnmark\@footnotemark
-  \def\@footnotemark{\@didactic@mc@fnmark\@didactic@mc@mark}%
-  \let\@didactic@mc@fntext\@footnotetext
-  \long\def\@footnotetext##1{\@didactic@mc@fntext{\@didactic@mc@note##1}}}
+  \ifdefined\footnotesatfoot\footnotesatfoot\fi}
 \newcount\@didactic@mcn
+\newif\if@didactic@fnpair
+\def\@didactic@fnname{footnote}
+\newcommand\@didactic@mc@id{-\the\numexpr2*\@didactic@mcn
+  \ifdefined\col@number\ifnum\col@number>\if@twocolumn\tw@\else\@ne\fi
+  +1\fi\fi\relax}
 \newcommand\@didactic@mc@mark{%
   \global\advance\@didactic@mcn\@ne
   \if@filesw
     \@didactic@writepage{\string\@didactic@rc
-      {-\the\@didactic@mcn}{\thepage}{\@didactic@here}}%
+      {\@didactic@mc@id}{\thepage}{\@didactic@here}}%
   \fi}
-\newcommand\@didactic@mc@note{\@didactic@rnwrite{-\the\@didactic@mcn}}
+\newcommand\@didactic@mc@markat{\ifm@mfnmargin\else\@didactic@mc@pair\fi}
+\newcommand\@didactic@mc@pair{%
+  \if@didactic@fnpair
+    \global\@didactic@fnpairfalse
+    \ifinner\else\ifx\@mpfn\@didactic@fnname\ifx\@captype\@undefined
+      \global\@didactic@fnpairtrue\@didactic@mc@mark
+    \fi\fi\fi
+  \fi}
+\newcommand\@didactic@mc@note{\@didactic@rnwrite{\@didactic@mc@id}}
 \newcommand\@didactic@mcolwarn{%
   \ifdefined\col@number
     \ifnum\col@number>\if@twocolumn\tw@\else\@ne\fi
@@ -7354,6 +7410,10 @@
       \let\@didactic@footmargin\@footnotetext
       \let\@footnotetext\@didactic@footwrap
     \fi
+    \let\@didactic@footnote\footnote
+    \def\footnote{\global\@didactic@fnpairtrue\@didactic@footnote}%
+    \let\@didactic@fnmark\@footnotemark
+    \def\@footnotemark{\@didactic@fnmark\@didactic@mc@markat}%
   \fi
   \ifdefined\MFX@copyclass
     \apptocmd\MFX@copyclass{%
