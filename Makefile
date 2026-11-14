@@ -63,7 +63,7 @@ tests: didactic.sty test.pdf test-marginfix-interface test-footcite.pdf \
 	test-format.pdf test-oldkernel-title.pdf test-biburl check \
 	test-noteplace test-noteplace-tl12 test-footreuse-spread \
 	test-noteoverflow-foot test-notefoot test-notefoot-tl12 test-footwide \
-	test-testlog test-sync check-bilingual
+	test-testlog test-sync check-bilingual test-fuzz
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -652,6 +652,18 @@ test-notefoot-tl12: test-notefoot.tex test-notefoot.sh test-notefoot.py testlog.
 	MARGINFIX=$(TL12) CASES="botfloat botfloat-two topfloat clear dense" \
 	  ./test-notefoot.sh
 
+# random documents dense with margin notes and footnotes, with what moves a line
+# after its note was placed (a paragraph that can't break, a display, a heading's
+# keep, a passage in the mode carry, multicol's columns, LaTeX's own footnotes),
+# built until they settle and checked by their outcome (test-fuzz.py): margin-inrun
+# or $(MARGINFIX), TeX Live's 1.2, xelatex, lualatex, a stale .aux; first the
+# checker's own rules on made-up documents (selftest, no TeX).  About
+# 9 minutes on one job.
+.PHONY: test-fuzz
+test-fuzz: test-fuzz.py testlog.py didactic.sty
+	python3 test-fuzz.py selftest
+	python3 test-fuzz.py run
+
 # the place of the margin column in the log against where a note is printed.
 test-margin-log.pdf test-margin-log-article.pdf: %.pdf: %.tex test-margin-log.tex \
 		test-margin-log.sh didactic.sty
@@ -737,6 +749,7 @@ release: didactic.tar.gz didactic.pdf didactic.sty
 .PHONY: clean
 clean:
 	${RM} didactic.sty didactic.pdf
+	${RM} -R test-fuzz.d
 	${RM} didactic.log
 	${RM} didactic.aux didactic.glo didactic.idx didactic.log
 	${RM} didactic.gls didactic.glg

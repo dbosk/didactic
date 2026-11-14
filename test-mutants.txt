@@ -48,6 +48,11 @@
 #            found or $MARGINFIX (1 minute)
 #   footwide test-footwide, its cases rigid, oneline and beyond only (CASES), under its
 #            three engines and with hyperref, against the marginfix found or $MARGINFIX
+#   fuzz     test-fuzz, its documents inrun 16, tl12 16 and xe 9 only (CASES), against
+#            $MARGINFIX and TeX Live's 1.2 (15 s; 16 s, run alone on 2026-11-14).  MARGINFIX
+#            must be the marginfix this version needs: with the fork's integration as it
+#            was before (v1.6 of 2026/10/22), the baseline is red, inrun 16 and xe 9 with
+#            margin notes out of order
 # All with pdflatex, the Makefile's default since #72.  The title group's check reads a
 # letter inside a picture by its vertical centre, not by its box, which depends on the
 # engine: its three mutants are killed under xelatex too (PDFLATEX=xelatex make mutants).
@@ -1785,3 +1790,15 @@ Hmorethan didactic.dtx
 Cmovedwhy didactic.dtx
 -             \ifcsname @didactic@dn@\the\@didactic@noteof##1\endcsname
 +             \ifcsname @didactic@dn@none\endcsname
+
+# S1: a footnote carried bars the foot to didactic's later footnotes on its page, in
+# every carrying branch (\@didactic@carry); without it a later footnote goes to the foot
+# of the page and is printed before the carried one (test-fuzz: inrun 16, tl12 16, xe 9,
+# each "footnotes out of order across pages", ours after ours).
+#: fuzz
+#= killed test-fuzz
+S1fncarried didactic.dtx
+-   \ifcsname @didactic@fn@\the\@didactic@noteof\@didactic@head\endcsname
+-     \global\@didactic@fncarriedtrue
+-   \fi}
++   }
