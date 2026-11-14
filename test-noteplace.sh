@@ -417,6 +417,15 @@ check fspull x 5 '' "pullok${NOT12:+,label=callout-y:2}" '\def\testtall{.99}\def
 # under the columns (mcolfoot).
 MC='\def\testpre{\usepackage{multicol}}\def\testtall{.1}'
 check mcolfoot x 20 '' "kept,at=MCOLNOTE:1,incol=MCOLNOTE" "$MC"'\def\testbody{\begin{multicols}{2}FIRSTLINE\label{callout-y}\footnote{\label{note-y}MCOLNOTE} \filler\ \filler\end{multicols}}'
+# A footnote sent to the foot, and multicol's columns later on the same page with a
+# footnote of their own: the note stays at the foot of its callout's page.  The note's
+# number is read from its box, not from its width against \columnwidth, which is
+# another in the columns (review 3, S3: there it was misread, the note went to the
+# next page, and a warning named no place).  With TeX Live's marginfix 1.2 the tall
+# note at the top of page 1 is set on page 2 here, where marginfix 1.2 puts it
+# (didactic decided that it fits), and the warning that says so is true; it has no
+# labels, so it isn't counted (no exactwarn).
+check mcolafter x 20 '' "kept,incol=NOTEY${NOT12:+,exactwarn}" '\def\testpre{\usepackage{multicol,lipsum}}\def\testyieldfoot{}\def\testbody{FIRSTLINE words before the columns.\yieldnote{} Words.\begin{multicols}{2}COLSTART \lipsum[1-3]\footnote{MCOLFN in the columns.} \lipsum[4-6]\end{multicols}}'
 # Any other margin note in multicols is lost, as in LaTeX, but with a warning.
 check mcolnote x 20 '' "mcolwarn" "$MC"'\def\testbody{\begin{multicols}{2}FIRSTLINE\marginpar{MCOLMARGIN} \filler\ \filler\end{multicols}}'
 # What marginfix puts in the margin for itself (\blockmargin, \unblockmargin) is no

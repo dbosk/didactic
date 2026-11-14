@@ -5544,9 +5544,15 @@
 %
 % \begin{macro}{\@didactic@scan}
 % |\@didactic@scan|\meta{box} reads the boxes at a foot from the end: ours are
-% boxes of a column's width and more, the note's number in sp above it
-% (|\@didactic@tofoot|), listed in |\@didactic@stamps|; anything else is
-% \LaTeX's (the lines of a footnote of its own), and the foot isn't all ours.
+% the vertical boxes that end with a penalty of $-1000000$ less the note's
+% number (|\@didactic@tofoot|, read by |\@didactic@idof|), listed in
+% |\@didactic@stamps|; anything else is \LaTeX's (the lines of a footnote of
+% its own), and the foot isn't all ours.
+% The number is read from no dimension of the box or the page: a box keeps it
+% whatever the column's width is where it is read (in \textsf{multicol}'s
+% columns, in two columns, after a change of the text's width), and a
+% penalty at the end of a vertical box changes neither its height nor its
+% depth.
 % Glue, kerns and penalties are passed; any other item ends the scan (\TeX\
 % can't take it off a list), and the scan isn't complete: what is above it is
 % unknown, and the foot isn't taken as all ours.
@@ -5554,6 +5560,17 @@
 \newif\if@didactic@allours
 \newif\if@didactic@scanfull
 \let\@didactic@stamps\@empty
+\newcount\@didactic@boxid
+\newcommand\@didactic@idof[1]{%
+  \global\@didactic@boxid\z@
+  \ifvbox#1%
+    \begingroup
+      \setbox\@tempboxa\vbox{\unvcopy#1%
+        \ifnum\lastpenalty<-1000000
+          \global\@didactic@boxid\numexpr-1000000-\lastpenalty\relax
+        \fi}%
+    \endgroup
+  \fi}
 \newcommand\@didactic@scan[1]{%
   \global\@didactic@alloursfalse
   \global\@didactic@scanfulltrue
@@ -5570,7 +5587,8 @@
   \let\@didactic@next\relax
   \ifnum\lastnodetype=\tw@
     \setbox\z@\lastbox
-    \@tempcnta\numexpr\wd\z@-\columnwidth\relax
+    \@didactic@idof\z@
+    \@tempcnta\@didactic@boxid
     \ifnum\@tempcnta>\z@
       \xdef\@didactic@stamps{\@didactic@stamps\the\@tempcnta,}%
     \else
@@ -6920,8 +6938,8 @@
 % A note that goes to the foot leaves \textsf{marginfix} out: its two boxes
 % come off the head of |\@currlist|, back to the free list, so that it takes no
 % room in the margin, and the note is inserted after its line, where it
-% travels with the line; it carries the note's number in its width, above the
-% column's, for |\@didactic@colfeet| (below).
+% travels with the line; it carries the note's number in a penalty at its end
+% (|\@didactic@scan|, above), for |\@didactic@colfeet| (below).
 % \textsf{marginfix} 1.5 and later number the notes it is handed
 % (|\mfx@placeid|) in the order of their callouts, which it reads from marks of
 % its own; a note it never sees must still advance the number, or every later
@@ -6940,7 +6958,8 @@
   \ifdefined\mfx@placeid\global\advance\mfx@placeid\@ne\fi
   \let\@didactic@skip\@didactic@skipnext}
 \newcommand\@didactic@tofoot[1]{%
-  \global\wd#1\dimexpr\columnwidth+\@didactic@noteof\@didactic@head sp\relax
+  \global\setbox#1\vbox{\box#1%
+    \penalty-\numexpr1000000+\@didactic@noteof\@didactic@head\relax}%
   \@didactic@footid
   \global\let\@didactic@fbx#1%
   \@didactic@offmargin
@@ -6960,7 +6979,7 @@
 % When a column is made, before its footnotes are attached, the notes at its
 % foot whose lines went to the next column after all are taken back (a later
 % special output on the page put them into |\footins| while their lines were
-% still on it): each is a box with its number in its width, numbered higher
+% still on it): each is a box of ours (|\@didactic@idof|), numbered higher
 % than the last callout in the column.
 % They are inserted again, whole and in their order: insertions left in the
 % output routine's list go back to the head of the page, so these head the next
@@ -7031,7 +7050,8 @@
   \let\@didactic@next\relax
   \ifnum\lastnodetype=\tw@
     \setbox\@didactic@one\lastbox
-    \@tempcnta\numexpr\wd\@didactic@one-\columnwidth\relax
+    \@didactic@idof\@didactic@one
+    \@tempcnta\@didactic@boxid
     \ifnum\@tempcnta>\@didactic@colast
       \xdef\@didactic@expectnext{\@didactic@expectnext\the\@tempcnta/\thepage,}%
       \global\setbox\@didactic@pullbox

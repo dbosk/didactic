@@ -6,7 +6,8 @@ Usage: test-noteplace.py JOB EXPECT[,EXPECT...]
 The checks read the PDF (pdftotext -bbox), the labels of the .aux file and the
 warnings of the log, never a mechanism's own log lines, so that they hold for any
 implementation.  The text column comes from the line "noteplace geometry:" that
-test-noteplace.tex writes to the log.  Always: no footnote found not plain
+test-noteplace.tex writes to the log.  Always: every warning that a note is
+called out somewhere names a place, not an internal name; no footnote found not plain
 (didactic's information) unless notplain=N declares N.  EXPECT is one of:
 
   kept        NOTEY is set on the page of its callout.
@@ -198,6 +199,11 @@ joined = re.sub(r"\n\((?:marginfix|didactic)\) *", " ", log).replace("\n", "")
 warned = bool(re.search(r"[Mm]argin note called out at.{0,160}? on page \d+ is set on (?:page|a later page)|Margin note from .{0,160}? moved from page|"
                         r"A margin note from page", joined))
 logged = bool(re.search(r"^marginfix-spill: .*unresolved", log, re.M))
+# A warning of didactic's names the place of the note it is about, never an
+# internal name that didn't expand to one.
+unnamed = re.findall(r"called out at\s*(\\@didactic@\S*|on page)", joined)
+if unnamed:
+    fails.append("a warning that names no place: %s" % unnamed[:2])
 def margin_words(n):
     """Words of page n outside the text column, the notes in the margins, with
     the foot of each word's box."""
