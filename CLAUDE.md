@@ -34,6 +34,8 @@ says what it needs and how to run the tests; this file is for working on it.
   under xelatex.
 - A test fails `make`, by the Makefile's checks or `test-check.py`; a PDF that
   merely builds checks nothing. New checks go into `tests`.
+- A check reads a log through `testlog.py` (`${TESTLOG}` in the Makefile), which
+  joins TeX's line breaks as each engine makes them (`make test-testlog`).
 - After a change to how notes are set, run the whole `make -k tests`, not only
   the note suites.
 - `test-keep-parted.tex`: lead-ins and what they lead into, parted only with a

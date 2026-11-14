@@ -111,9 +111,11 @@ make tests LATEXFLAGS="-shell-escape -interaction=nonstopmode"
   PASS/FAIL lines), `make check`, the sweep, and the rows of where margin notes
   go (`test-noteplace`, `test-notefoot`, `test-noteoverflow-foot`,
   `test-footreuse-spread`, `test-footwide`; `test-noteplace-tl12` and
-  `test-notefoot-tl12` again with TeX Live's marginfix 1.2). A test fails
-  `make tests`; `make -k tests` runs them all and lists what failed. About two
-  hours on one job, a third of it the documents and the sweep.
+  `test-notefoot-tl12` again with TeX Live's marginfix 1.2), and
+  `test-testlog`, of `testlog.py`, which the checks read the logs with. A
+  test fails `make tests`; `make -k tests` runs them all and lists what
+  failed. About two hours on one job, a third of it the documents and the
+  sweep.
 - `MARGINFIX=<directory>` runs the tests against the `marginfix.sty` in that
   directory, put first on `TEXINPUTS` (TeX Live's:
   `MARGINFIX=$(kpsewhich -var-value TEXMFDIST)/tex/latex/marginfix`); unset,

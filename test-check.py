@@ -17,6 +17,8 @@ import re
 import subprocess
 import sys
 
+import testlog
+
 
 class Check:
     """One test: its PDF, its log and the checks that have run on them."""
@@ -36,9 +38,8 @@ class Check:
                 for a, b, c, d, t in re.findall(
                     r'<word xMin="([\d.]+)" yMin="([\d.]+)" '
                     r'xMax="([\d.]+)" yMax="([\d.]+)">(.*?)</word>', page)])
-        with open(name + ".log", encoding="latin-1") as log:
-            # TeX folds log lines at 79 columns; unfold them for greps.
-            self.log = re.sub(r"(?m)^(.{79})\n", r"\1", log.read())
+        # TeX breaks the log's lines; joined for the greps (testlog.py)
+        self.log = testlog.lines(name + ".log")
 
     def ok(self, condition, what):
         self.checks += 1

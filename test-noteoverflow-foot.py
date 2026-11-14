@@ -56,6 +56,8 @@ import re
 import subprocess
 import sys
 
+import testlog
+
 failed = False
 
 
@@ -98,9 +100,9 @@ def check(job, want, spill, away_ok, warn, nolabels):
     joined = re.sub(r"\n\((?:didactic|marginfix)\) *", " ", log).replace("\n", "")
     errors = re.findall(r"^! .*", log, re.M)
     report(f"{job} errors", not errors, " ".join(errors[:2]))
-    notplain = len(re.findall(r"isn't plain", re.sub(r"\n\(didactic\) *", " ", log)))
+    notplain = len(re.findall(r"isn't plain", testlog.joined(f"{job}.log")))
     report(f"{job} every footnote plain", notplain == 0, f"({notplain} not plain)")
-    foundlast = len(re.findall(r"found from the last\s+run", re.sub(r"\n\(didactic\) *", " ", log)))
+    foundlast = len(re.findall(r"found from the last\s+run", testlog.joined(f"{job}.log")))
     report(f"{job} nothing found from the last run", foundlast == 0, f"({foundlast})")
     dest = re.findall(r"warning \(dest\)|same identifier|has been referenced but"
                       r" does not exist", log)
@@ -195,17 +197,6 @@ def records(job, other):
            " ".join(f"{k}:{w}" for (k, w) in sorted(diff))[:200])
 
 
-def unwrapped(path):
-    """A log, with the lines TeX broke at 79 characters joined."""
-    out = []
-    for line in open(path, errors="replace").read().split("\n"):
-        if out and len(out[-1]) == 79 and not line.startswith("("):
-            out[-1] += line
-        else:
-            out.append(line)
-    return re.sub(r"\n\((?:didactic|marginfix)\) *", " ", "\n".join(out))
-
-
 def hbox(foot, ref):
     src = "test-noteoverflow-foot-hbox.tex"
     def tex(log, line):
@@ -215,7 +206,7 @@ def hbox(foot, ref):
         return sorted(re.findall(r"Package didactic Warning: ((?:Over|Under)full \\hbox "
                                  r"\([^)]*\)) in the footnote called out at "
                                  rf"{re.escape(src)}:{line}, {where} of page (\d+)", log))
-    f, r = unwrapped(f"{foot}.log"), unwrapped(f"{ref}.log")
+    f, r = testlog.joined(f"{foot}.log"), testlog.joined(f"{ref}.log")
     notplain = len(re.findall(r"isn't plain", f))
     report(f"{foot} every footnote plain but F and G (lines 33, 34)", notplain == 2,
            f"({notplain} not plain)")

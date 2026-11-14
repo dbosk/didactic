@@ -48,6 +48,8 @@ What the rules are, and why, is in the documentation of didactic, the subsection
 import re
 import sys
 
+import testlog
+
 LIMIT = 5.0     # keepmaxgap, default
 ROOMS = [q / 2 for q in range(2, 29)]
 FINEROOMS = [q / 4 for q in range(4, 57)]  # where a heading's own spaces decide
@@ -458,17 +460,8 @@ def pages(base):
 
 
 def log_text(base):
-    """The log, with the lines that TeX wraps at 79 characters joined."""
-    out = []
-    with open(base + ".log", errors="replace") as f:
-        for line in f:
-            line = line.rstrip("\n")
-            if out and len(out[-1]) % 79 == 0 and out[-1] \
-                    and not line.startswith("(didactic)"):
-                out[-1] = out[-1] + line
-                continue
-            out.append(line)
-    return "\n".join(out)
+    """The log, with the lines that TeX breaks joined (testlog.py)."""
+    return testlog.lines(base + ".log")
 
 
 def case_lines(base):

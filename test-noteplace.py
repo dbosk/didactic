@@ -88,6 +88,8 @@ import re
 import subprocess
 import sys
 
+import testlog
+
 job, expect = sys.argv[1], [e for e in sys.argv[2].split(",") if e]
 log = open(job + ".log", errors="replace").read()
 # a multicol from outside TeX Live's tools (an old copy in a texmf tree) tests
@@ -374,14 +376,14 @@ for e in expect:
 # notes the last run placed on another page than their callout without a
 # warning, found from its records ("found from the last run"): as many as
 # the test declares, foundlast=N, else none; each is a silent case
-FOUNDLAST = len(re.findall(r"found from the last\s+run", re.sub(r"\n\(didactic\) *", " ", log)))
+FOUNDLAST = len(re.findall(r"found from the last\s+run", testlog.joined(job + ".log")))
 WANTLAST = int(next((a[10:] for a in expect if a.startswith("foundlast=")), 0))
 if FOUNDLAST != WANTLAST:
     fails.append(f"{FOUNDLAST} notes found from the last run, {WANTLAST} declared")
 # notes found not plain (didactic's info): as many as the test declares,
 # notplain=N, else none; a note found not plain by mistake runs its text
 # three times without a warning
-NOTPLAIN = len(re.findall(r"isn't plain", re.sub(r"\n\(didactic\) *", " ", log)))
+NOTPLAIN = len(re.findall(r"isn't plain", testlog.joined(job + ".log")))
 WANTPLAIN = int(next((a[9:] for a in expect if a.startswith("notplain=")), 0))
 if NOTPLAIN != WANTPLAIN:
     fails.append(f"{NOTPLAIN} notes not plain, {WANTPLAIN} declared")
