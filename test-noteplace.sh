@@ -404,6 +404,10 @@ check fsk0n2 x 4.5 '' "carried,$WH,nobelow" "$(fsbody "$(fn 2)")"
 # the foot being full (fsspare: five lines in four lines of room, then a
 # footnote of one line on the same line).
 check fstwo x 6 '' "carried,$WH,reason=the footnotes keep their order,at=LINEA:2/SECA:2,order=LINED<SECA,nobelow" "$(fsbody "$(fn 4)$(fn 2 n-s SEC)")"
+# A footnote carried because its passage is in the mode carry closes the foot to the
+# footnotes after it on the page as one carried for want of room does: the later one,
+# in the mode foot, is carried too, after it (review 3, S1).
+check carrymode x 10 '' "carried,reason=noteoverflow is carry,reason=the footnotes keep their order,at=SECA:2,order=NOTEY<SECA" '\def\testyieldfoot{}\def\testbody{{\marginnoteoverflow{carry}FIRSTLINE words\yieldnote{}} more words.\par More words\footnote{SECA a short footnote at the foot.} \filler\par}'
 check fsspare x 8 '' "kept,at=LINEA:1/LINEE:1/SPAREA:2,below=LINEE,footwarnpast,reason=already runs past the foot" "$(fsbody "$(fn 5)$(fn 1 n-s SPARE)")"
 # TeX takes the callout's line to the next page after its footnote went to this
 # foot whole (a paragraph that can't break, whose last lines don't fit): the

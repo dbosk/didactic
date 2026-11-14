@@ -5833,7 +5833,7 @@
 % |\@didactic@tagnote|), not the one where the output fires, at the end of the
 % paragraph, say, after the group of a |\marginnoteoverflow| has ended.
 %    \begin{macrocode}
-\newdimen\@didactic@used
+\newif\if@didactic@closed
 \newdimen\@didactic@stay
 \newdimen\@didactic@noteht
 \newcommand\@didactic@decide{%
@@ -5847,37 +5847,37 @@
   \fi
   \@didactic@setwhy{}%
   \@didactic@ifdeferrable\@didactic@head
-    {\global\advance\@didactic@used
-       \dimexpr\@didactic@deferclaim+\marginparpush\relax
-     \global\advance\@didactic@stay
+    {\global\advance\@didactic@stay
        \dimexpr\@didactic@deferclaim+\marginparpush\relax}
     {\@didactic@decide@}}
 \newcommand\@didactic@decide@{%
-  \ifdim\dimexpr\@didactic@used+\@didactic@noteht\relax<\@didactic@room
-    \global\advance\@didactic@used
-      \dimexpr\@didactic@noteht+\marginparpush\relax
+  \@tempswafalse
+  \if@didactic@closed\else
+    \ifdim\dimexpr\@didactic@stay+\@didactic@noteht\relax<\@didactic@room
+      \@tempswatrue
+    \fi
+  \fi
+  \if@tempswa
     \global\advance\@didactic@stay
       \dimexpr\@didactic@noteht+\marginparpush\relax
   \else
     \@didactic@ifcarry
-      {\@didactic@setwhy{noteoverflow is carry}%
-       \global\@didactic@used\@didactic@room
-       \global\@didactic@carriedtrue}
+      {\@didactic@carry{noteoverflow is carry}}
       {\@didactic@footplace\@ne
        \if@tempswa\else
          \@didactic@ifover
            {\@didactic@over}
            {\@didactic@footplace\z@
             \if@tempswa\else
-              \expandafter\@didactic@setwhy\expandafter{\@didactic@footwhy}%
-              \global\@didactic@used\@didactic@room
-              \global\@didactic@carriedtrue
-              \ifcsname @didactic@fn@\the\@didactic@noteof\@didactic@head
-                  \endcsname
-                \global\@didactic@fncarriedtrue
-              \fi
+              \expandafter\@didactic@carry\expandafter{\@didactic@footwhy}%
             \fi}%
        \fi}%
+  \fi}
+\newcommand\@didactic@carry[1]{%
+  \@didactic@setwhy{#1}%
+  \global\@didactic@closedtrue
+  \ifcsname @didactic@fn@\the\@didactic@noteof\@didactic@head\endcsname
+    \global\@didactic@fncarriedtrue
   \fi}
 % A deferrable note gives way to the notes after it, in \textsf{marginfix}'s 
 % mode |defer| whole, in |split| down to what is worth splitting 
@@ -5926,10 +5926,17 @@
 % shorter than the room, so that nothing is left for a note after it.
 % The cause goes into the warning: what the notes above it take of the margin,
 % and what floats on the page take of the column.
-% Not after a note carried from the page (|\if@didactic@carried|, until the next
-% page): \textsf{marginfix} keeps the notes in order, so every note after one
-% carried goes with it, and room past the foot can't keep it on the page; it was
-% warned as running past the foot here and then set on the next page.
+% Not after a note carried from the page, nor after one that runs over
+% (|\if@didactic@closed|, until the next page): \textsf{marginfix} keeps the
+% notes in order, so every note after one carried goes with it, and room past
+% the foot can't keep it on the page; it was warned as running past the foot
+% here and then set on the next page.
+% The margin is closed by a note carried or run over (|\@didactic@carry|,
+% |\@didactic@over|); what the notes so far take is |\@didactic@stay| either
+% way, the notes that stay on the page.
+% A footnote carried also bars the foot to the footnotes after it on the page
+% (|\if@didactic@fncarried|), whatever carried it: by the mode |carry| of its
+% passage as by a foot without room (review 3, S1).
 %    \begin{macrocode}
 \newcount\@didactic@ovid
 \newcount\@didactic@ovnote
@@ -5943,13 +5950,12 @@
   \else
     \expandafter\@didactic@ifover@
   \fi}
-\newif\if@didactic@carried
 \newcommand\@didactic@ifover@{%
-  \if@didactic@carried\expandafter\@secondoftwo\else
+  \if@didactic@closed\expandafter\@secondoftwo\else
     \expandafter\@didactic@ifover@@\fi}
 \newcommand\@didactic@ifover@@{%
   \ifdefined\marginheightadjustment
-    \ifdim\dimexpr\@didactic@used+\@didactic@noteht\relax
+    \ifdim\dimexpr\@didactic@stay+\@didactic@noteht\relax
         <\dimexpr\@didactic@room+\@didactic@overmax\relax
       \expandafter\expandafter\expandafter\@firstoftwo
     \else
@@ -5961,16 +5967,15 @@
 \newcommand\@didactic@over{%
   \global\@didactic@ovid\@didactic@noteof\@didactic@head
   \global\@didactic@ovd
-    \dimexpr\@didactic@used+\@didactic@noteht-\@didactic@room+1sp\relax
-  \xdef\@didactic@ovwhy{the notes above it take \the\@didactic@used\space of
+    \dimexpr\@didactic@stay+\@didactic@noteht-\@didactic@room+1sp\relax
+  \xdef\@didactic@ovwhy{the notes above it take \the\@didactic@stay\space of
     the margin's \the\@didactic@room
     \ifdim\@colroom<\textheight\space(floats on the page take
       \the\dimexpr\textheight-\@colroom\relax)\fi}%
   \@didactic@setwhy{}%
   \global\advance\@didactic@stay
     \dimexpr\@didactic@noteht+\marginparpush\relax
-  \global\@didactic@used
-    \dimexpr\@didactic@room+\@didactic@overmax+1sp\relax}
+  \global\@didactic@closedtrue}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -6038,20 +6043,19 @@
 % on where \textsf{marginfix} makes room.
 %    \begin{macrocode}
 \newcommand\@didactic@newpage{%
-  \global\@didactic@used\z@
-  \global\@didactic@carriedfalse
+  \global\@didactic@stay\z@
+  \global\@didactic@closedfalse
   \global\@didactic@fncarriedfalse
   \begingroup
     \def\mfx@build@note##1##2##3{%
       \@didactic@noteht\dimexpr\ht##1+\dp##1\relax
       \@didactic@ifdeferrable##1
-        {\global\advance\@didactic@used\@didactic@deferclaim}
-        {\global\advance\@didactic@used\@didactic@noteht}}%
-    \def\mfx@build@skip##1{\global\advance\@didactic@used##1\relax}%
+        {\global\advance\@didactic@stay\@didactic@deferclaim}
+        {\global\advance\@didactic@stay\@didactic@noteht}}%
+    \def\mfx@build@skip##1{\global\advance\@didactic@stay##1\relax}%
     \let\mfx@build@clear\relax
     \mfx@marginlist
-  \endgroup
-  \global\@didactic@stay\@didactic@used}
+  \endgroup}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -6948,7 +6952,7 @@
     on page \thepage\space runs
     \the\dimexpr\ht#2+\dp#2-\@didactic@footroom\relax\space past the foot of
     the page:\MessageBreak
-    the margin is full (the notes above it take \the\@didactic@used\space
+    the margin is full (the notes above it take \the\@didactic@stay\space
     of \the\@didactic@room) and the foot has \@didactic@flines
     \@didactic@footroom\space lines left}}
 %    \end{macrocode}
@@ -7135,8 +7139,8 @@
 % The notes so far are those that stay on the page (|\@didactic@stay|): the
 % ones decided to fit, a note that runs past the foot of the margin at its
 % height, and those carried to the page, which come first in its margin; not a
-% note carried on from the page, which |\@didactic@used| counts as filling the
-% margin, so that the notes after it keep their order.
+% note carried on from the page, after which the margin is closed
+% (|\if@didactic@closed|), so that the notes after it keep their order.
 % And only while they can stay, in the room and what a note may run past it:
 % where the notes carried to a page are more than its margin holds, some go on
 % whatever the float does, and holding it back would only send it further.
@@ -7152,7 +7156,7 @@
 % A float held back so is said in the log, with where it ends in the input,
 % as \LaTeX\ says nothing when it moves a float on
 % (|\@didactic@floatheld|; |\@didactic@floatat| keeps the place by the box).
-% The rule doesn't apply in two columns, where |\@didactic@used| counts the
+% The rule doesn't apply in two columns, where |\@didactic@stay| counts the
 % page and not the column, nor to a bottom float with
 % |\marginnotebesidefloats{use}|, beside which \textsf{marginfix} sets notes,
 % unless it reaches into the margin.
