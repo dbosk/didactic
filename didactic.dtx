@@ -5034,6 +5034,10 @@
 % \item[\texttt{\textbackslash MFX@copyclass}] (optional) where 
 %   \textsf{marginfix} makes the rest of a note it splits, |#1| from |#2|: the 
 %   rest gets the number of its note.
+% \item[\texttt{\textbackslash MFX@chop@tall}] (optional) where
+%   \textsf{marginfix} sets whole, or splits, a note taller than the margin;
+%   without it a marginfix loses such a note, and the records name it a run
+%   later (|\@didactic@lost|).
 % \item[\texttt{\textbackslash marginheightadjustment}] (optional, public)
 %   what \textsf{marginfix} adds to the height of every margin: we add to it
 %   for the one column where a note runs past the foot of the margin, and put
@@ -5104,6 +5108,7 @@
   \@didactic@wish\MFX@check@page@
   \@didactic@wish\Mfx@inject@insert
   \@didactic@wish\MFX@copyclass
+  \@didactic@wish\MFX@chop@tall
   \@didactic@wish\marginheightadjustment
   \ifx\@didactic@missing\@empty
     \global\@didactic@noteplacetrue
@@ -5263,10 +5268,12 @@
 % its paragraph's box, and loses the record at the top of the outer one: the
 % check can't see such a note, whose first part is on its callout's page by
 % the split's own making.
-% A \textsf{marginfix} that doesn't split (\TeX~Live's 1.2, without
-% |\MFX@split|) loses such a note without a word, its labels and index entries
-% with it: there a callout's record with no note's record says that the note
-% wasn't printed (|\@didactic@lost|).
+% A \textsf{marginfix} that doesn't set or split a note taller than the margin
+% (without |\MFX@chop@tall|: \TeX~Live's 1.2, and the fork's builds before it,
+% which have a split of their own but still lose such a note) loses it with
+% the error ``lost some margin notes'', which names no note, its labels and
+% index entries with it: there a callout's record with no note's record says
+% that the note wasn't printed (|\@didactic@lost|).
 % The comparison is made when the |.aux| file has been read, at the start.
 %    \begin{macrocode}
 \newcommand\@didactic@record{%
@@ -5323,7 +5330,7 @@
       \ifcsname @didactic@rn@\the\@tempcnta\endcsname
         \expandafter\expandafter\expandafter\@didactic@recheck@
           \csname @didactic@rc@\the\@tempcnta\endcsname
-      \else\ifdefined\MFX@split\else
+      \else\ifdefined\MFX@chop@tall\else
         \ifcsname @didactic@rc@\the\@tempcnta\endcsname
           \expandafter\expandafter\expandafter\@didactic@lost
             \csname @didactic@rc@\the\@tempcnta\endcsname
@@ -5346,7 +5353,7 @@
   \PackageWarningNoLine{didactic}{Margin note called out at #2\MessageBreak
     on page #1 wasn't printed (found from the last run):\MessageBreak
     this marginfix loses a note taller than the margin;\MessageBreak
-    its version 1.5 and later split it}}
+    the fork's newer build sets it whole or splits it}}
 \AddToHook{begindocument/end}{\@didactic@recheck}
 %    \end{macrocode}
 % \end{macro}

@@ -591,7 +591,7 @@ ifneq ($(MARGINFIX),)
 export TEXINPUTS:=$(abspath $(MARGINFIX))//:$(TEXINPUTS)
 endif
 test-marginfix-interface: test-marginfix-interface.tex \
-		test-marginfix-interface.sh didactic.sty
+		test-marginfix-interface.sh testlog.py didactic.sty
 	./test-marginfix-interface.sh
 .PHONY: test-marginfix-interface
 

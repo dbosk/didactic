@@ -6,7 +6,8 @@
 #           a length and \mfx@build@clear (didactic's check at the start of the
 #           document sees names only)
 #   xelatex, lualatex  the same under those engines: ok, and the list's shape
-#   tl12    TeX Live's marginfix 1.2: ok as well (its missing names are optional),
+#   tl12    TeX Live's marginfix 1.2: ok as well (its missing names are optional,
+#           \MFX@chop@tall among them, for which the records name a lost note),
 #           and the list's shape
 #   changed the marginfix found with its entries in another form (the boxes in
 #           a group): the check of the list's shape fails on it, so that the
@@ -30,7 +31,7 @@ say() { # <name> <ok?> <detail>
   if [ "$2" = 0 ]; then echo "didactic interface test: $1 PASS $3"
   else echo "didactic interface test: $1 FAIL $3"; status=1; fi
 }
-line() { grep -o '^didactic-interface: .*' "$1.log" | head -1; }
+line() { python3 testlog.py grep '^didactic-interface: ' "$1.log" | head -1; }
 # the list after one note, as didactic parses it (\@didactic@sift and the
 # others): one or more entries, each one of three forms, and nothing else
 list() { tr -d '\n' < "$1.log" | grep -o 'interface-list: macro:->.* :end' | head -1; }
@@ -49,7 +50,8 @@ for e in xelatex lualatex; do
 done
 build $src-tl12 '' "$TL12//:"
 l=$(line $src-tl12) ls=$(list $src-tl12)
-echo "$l" | grep -q '^didactic-interface: ok' && shape "$ls"
+echo "$l" | grep -q '^didactic-interface: ok' && shape "$ls" \
+  && echo "$l" | grep -q 'MFX@chop@tall'
 say tl12 $? "($l; $ls)"
 mf=$(kpsewhich marginfix.sty)
 rm -rf $src-changed.d && mkdir $src-changed.d
