@@ -54,13 +54,16 @@ GROUPS = {
     "hbox": (["test-noteoverflow-foot"], [], []),
     "footwide": (["test-footwide"], [], []),
     "fuzz": (["test-fuzz"], [], []),
+    "notefoot": (["test-notefoot"], [], []),
 }
 # targets that are no PDF of their own; they choose their engines themselves
 PHONY = {"test-biburl", "test-noteoverflow-foot", "test-noteplace", "test-footwide",
-         "test-fuzz"}
+         "test-fuzz", "test-notefoot"}
 # the job of a phony target that the group runs ($CASES of its script)
 CASES = {"footcite": "default", "hbox": "hbox", "footwide": "rigid oneline beyond",
-         "fuzz": "inrun:16 tl12:16 xe:9", "noteplace": "rsvsidecap rsvblock mcolblock rsvsidebefore heldtop heldsecond overmoved"}
+         "fuzz": "inrun:16 tl12:16 xe:9", "noteplace": "rsvsidecap rsvblock mcolblock rsvsidebefore heldtop heldsecond overmoved"
+         " footback overlimit overtwo aftercarry carrymode notplainm notplainf",
+         "notefoot": "waitover warnclaim defercarry-warn defercarry"}
 # All with pdflatex, for speed; the frame titles with the Makefile's default engine,
 # pdflatex too since #72 (test-frametitle-boxes reads a letter inside a picture by its
 # vertical centre, which doesn't depend on the engine as its box does).

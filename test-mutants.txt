@@ -44,8 +44,12 @@
 #   hbox     test-noteoverflow-foot, its job hbox only (CASES=hbox): the warnings of
 #            boxes in footnotes, against the marginfix found or $MARGINFIX (about 30 s)
 #   noteplace test-noteplace, its rows rsvsidecap, rsvblock, mcolblock,
-#            rsvsidebefore, heldtop, heldsecond and overmoved only, against the marginfix
-#            found or $MARGINFIX (1 minute)
+#            rsvsidebefore, heldtop, heldsecond, overmoved, footback, overlimit, overtwo,
+#            aftercarry, carrymode, notplainm and notplainf only, against the marginfix
+#            found or $MARGINFIX
+#            (about 2 minutes a mutant, one at a time; 116 s; run on 2026-11-14)
+#   notefoot test-notefoot, its jobs waitover, warnclaim, defercarry-warn and defercarry,
+#            against $MARGINFIX (30 to 50 s; 30 s)
 #   footwide test-footwide, its cases rigid, oneline and beyond only (CASES), under its
 #            three engines and with hyperref, against the marginfix found or $MARGINFIX
 #   fuzz     test-fuzz, its documents inrun 16, tl12 16 and xe 9 only (CASES), against
@@ -1802,3 +1806,109 @@ S1fncarried didactic.dtx
 -     \global\@didactic@fncarriedtrue
 -   \fi}
 +   }
+
+# Review 3, T1: five things no row pinned, each with a row now.
+# footback: our foot left to the kernel's \@reinserts goes on with a later margin note's
+# line to the next page (test-noteplace's footback).
+#: noteplace
+#= killed test-noteplace
+Tfootback didactic.dtx
+-     \if@didactic@allours
+-       \insert\footins{\floatingpenalty\@MM\unvcopy\footins}%
++     \iffalse
++       \insert\footins{\floatingpenalty\@MM\unvcopy\footins}%
+
+# sameline: the place to break after the first note's special output stays before our mark
+# of the second note in the line, and the page ends there: the second is set on the next
+# page, its line staying (test-notefoot's waitover).
+#: notefoot
+#= killed test-notefoot
+Tsameline didactic.dtx
+- \newcommand\@didactic@sameline{%
+-   \global\@didactic@samelinedfalse
+-   \begingroup
++ \newcommand\@didactic@sameline{\global\@didactic@samelinedfalse}
++ \newcommand\@didactic@samelineoff{%
++   \global\@didactic@samelinedfalse
++   \begingroup
+
+# The overhang's limit, three lines: a note that misses by two lines and a half runs over
+# (test-noteplace's overlimit).
+#: noteplace
+#= killed test-noteplace
+Tover3 didactic.dtx
+- \newcommand\@didactic@overmax{2\@didactic@keep@L}
++ \newcommand\@didactic@overmax{3\@didactic@keep@L}
+
+# The overhang's limit, one line: a note that misses by two is carried (overtwo).
+#: noteplace
+#= killed test-noteplace
+Tover1 didactic.dtx
+- \newcommand\@didactic@overmax{2\@didactic@keep@L}
++ \newcommand\@didactic@overmax{1\@didactic@keep@L}
+
+# The after-carry guard of the decision: a short note after a carried one is decided to
+# stay, and marginfix carries it with a warning of its own, without a reason (aftercarry).
+#: noteplace
+#= killed test-noteplace
+Tguard didactic.dtx
+- \newcommand\@didactic@decide@{%
+-   \@tempswafalse
+-   \if@didactic@closed\else
++ \newcommand\@didactic@decide@{%
++   \@tempswafalse
++   \iffalse\else
+
+# The after-carry guard of the overhang: a note after a carried one runs over
+# (carrymode, aftercarry).
+#: noteplace
+#= killed test-noteplace
+Toverguard didactic.dtx
+- \newcommand\@didactic@ifover@{%
+-   \if@didactic@closed\expandafter\@secondoftwo\else
++ \newcommand\@didactic@ifover@{%
++   \iffalse\expandafter\@secondoftwo\else
+
+# The deferrable claim at nothing: the notes after a deferrable one are found to fit, and
+# marginfix moves them on (test-notefoot's warnclaim and defercarry-warn).
+#: notefoot
+#= killed test-notefoot
+Tclaim didactic.dtx
+- \newcommand\@didactic@deferclaim{%
+-   \ifdefined\mfx@priority
++ \newcommand\@didactic@deferclaim{\z@}
++ \newcommand\@didactic@deferclaimoff{%
++   \ifdefined\mfx@priority
+
+# The deferrable claim whole, as if the note stayed (the reviewer's Mdeferclaim): the
+# notes after it are carried where marginfix would set them (test-notefoot's defercarry).
+#: notefoot
+#= killed test-notefoot
+Tclaimwhole didactic.dtx
+- \newcommand\@didactic@deferclaim{%
+-   \ifdefined\mfx@priority
++ \newcommand\@didactic@deferclaim{\@didactic@noteht}
++ \newcommand\@didactic@deferclaimoff{%
++   \ifdefined\mfx@priority
+
+# Review 3, T5: a footnote that isn't plain runs its text three times, its LaTeX counters
+# set back before the second and third; not before the copy for the foot, a counter in it
+# steps twice there (notplainf).
+#: noteplace
+#= killed test-noteplace
+Tctfoot didactic.dtx
+-   \global\let\@thefnmark\@didactic@markbefore
+-   \@didactic@ctbefore
+-   \@didactic@boxget\@didactic@cbox
++   \global\let\@thefnmark\@didactic@markbefore
++   \@didactic@boxget\@didactic@cbox
+
+# Not before the copy for the margin, it steps twice there (notplainm).
+#: noteplace
+#= killed test-noteplace
+Tctmargin didactic.dtx
+-   \global\let\@thefnmark\@didactic@markbefore
+-   \@didactic@ctbefore
+-   \@didactic@footmargin
++   \global\let\@thefnmark\@didactic@markbefore
++   \@didactic@footmargin

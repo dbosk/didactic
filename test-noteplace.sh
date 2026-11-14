@@ -321,6 +321,9 @@ check footfirst2 x 9 '' "kept,noover,incol=NOTEY" '\def\testyieldfoot{}\def\test
 # margin's foot as a plain note does.
 check footfirstover x 4.5 '' "kept,over=1" '\def\testyieldfoot{}\def\testtall{.975}\def\testbody{FIRSTLINE \filler\ end\yieldnote{} \filler\ \filler\par}'
 check overthree x 9 '' "carried,noover" '\def\testtall{.95}\def\testbody{FIRSTLINE \filler\ end\yieldnote[\par TWO\par THREE\par FOUR\par FIVE] \filler\par}'
+# Between two lines and three it is carried too: the limit is two (review 3, T1;
+# red with a limit of three lines).
+check overlimit x 9 '' "carried,noover" '\def\testtall{.95}\def\testbody{FIRSTLINE \filler\ end\yieldnote[\par TWO\par THREE\par FOUR] \filler\par}'
 # In carry mode (and draft) nothing runs over: the note is carried.
 check overcarry x 9 'noteoverflow=carry' "carried,noover" "$OV"
 # The allowance is for the column with the callout's line: when TeX's own break
@@ -476,6 +479,26 @@ check heldtopmn x 3 '' "kept,align=cl:nt,pairs,exactwarn" "$ALONE$HP${HT%\}}$LMN
 # later: LaTeX's ("where LaTeX puts it") and didactic's ("found from the last run").
 HELD='\def\testfirst{\noindent\rule{1cm}{\dimexpr\textheight-4\baselineskip\relax}\par\noindent FIRSTLINE words{\footnotesatfoot\interfootnotelinepenalty=10000 \footnote{LATEXFN a long footnote of LaTeX'"'"'s own, \filler\ \filler\ \filler\ \filler}} more.\par\newpage\noindent x\marginpar{TALLB\par\rule{1pt}{.97\textheight}} text \yieldnote{} and words.\par\noindent\rule{1cm}{\dimexpr\textheight-\testroom\baselineskip\relax}\par{\interlinepenalty=10000 \noindent LATERA\marginpar{LATERNOTE}\newline LATERB\newline LATERC\newline LATERD\par}}\def\testyieldfoot{}'
 check heldover x 12 '' "foundlast=1,reason=where LaTeX puts it,at=LATEXFN:3/NOTEY:3/LATERA:3" "$HELD"
+# Review 3, T1: rows for what no row pinned, each red under its mutant in
+# test-mutants.txt (the overhang's limit: overlimit above; sameline: test-notefoot's
+# waitover; the deferrable claim: test-notefoot's defercarry and warnclaim).
+# footback: a footnote of ours at the foot whole stays on its
+# page when a later margin note's line, in a paragraph that can't break, goes to
+# the next page (\@didactic@footback puts our foot back before that line; left to
+# the kernel's \@reinserts it would go on with it).
+check footback x 6 '' "kept,at=LATERA:2" '\def\testyieldfoot{}\def\testbody{FIRSTLINE words\yieldnote{} more words.\par{\interlinepenalty=10000 \noindent LATERA\marginpar{LATERNOTE}\newline LATERB\newline LATERC\newline LATERD\newline LATERE\par}}'
+# aftercarry: a margin note carried for want of room closes the margin to the notes
+# after it on the page (\if@didactic@closed): a short one that would fit is carried
+# too, with didactic's warning and its reason; decided to stay, marginfix would set
+# it on the next page all the same, with a warning of its own that gives none.
+check aftercarry x 9 '' "carried,pairs,exactwarn,allreasons" '\def\testtall{.8}\def\testbody{FIRSTLINE words\yieldnote[\par\rule{1pt}{12\baselineskip}] more words \oneline\ LINEB\label{c-b}\marginpar{SHORTB\label{n-b}} \filler\par}'
+# notplainstate (review 3, T5): a footnote that isn't plain (a list in it) runs its text
+# three times, and the documentation says what that does: a LaTeX counter stepped in it
+# comes out as once (set back before the second and third), a count of TeX's is changed
+# by each.  In the margin (notplainm) and at the foot (notplainf, the margin full).
+NPS='\def\testpre{\newcounter{lc}\newcount\tcount}\def\testbody{FIRSTLINE words\yieldnote[\refstepcounter{lc}\global\advance\tcount1 \par LCIN\arabic{lc}X TCIN\the\tcount X\begin{itemize}\item one\end{itemize}] more words. AFTERLC\arabic{lc}X AFTERTC\the\tcount X \filler\par}\def\testyieldfoot{}'
+check notplainm x 20 '' "kept,notplain=1,has=AFTERLC1X,has=AFTERTC3X,has=LCIN1X" "\\def\\testtall{.1}$NPS"
+check notplainf x 20 '' "kept,notplain=1,has=AFTERLC1X,has=AFTERTC3X,has=LCIN1X,incol=NOTEY" "$NPS"
 # A footnote set at the foot as LaTeX sets it (\footnotesatfoot) is left to TeX; one
 # that doesn't fit at a foot that ours has filled is taken to the next page by TeX,
 # and named a run later (latexfoot); one that TeX splits over two pages, begun on its

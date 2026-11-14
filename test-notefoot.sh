@@ -139,6 +139,15 @@ job mcol3nm 4 "$C{mcol3n}${R}{34}\\def\\testmulticols{}" nofalse nooverfull noov
 S='\def\testshortA{}'
 job waitsec 4 "$C{waitsec}${R}{36}$S" foot beside nofalse nooverfull nooverlap
 job waitsh 4 "$C{waitsh}${R}{37}$S" foot beside nofalse nooverfull nooverlap
+# waitover: the same as waitsec with the first footnote long, at 35 lines: it goes to
+# the foot a line over, the second runs past the foot of the margin, and both stay on
+# their line's page, the page ending after that line: the place to break that the
+# kernel put after the first note's special output is moved after our mark of the
+# second (\@didactic@sameline, review 3 T1; without it the second note is set on the
+# next page, found from the last run).  FOOTA here is a footnote set a line past the
+# foot (B1's outcome): the fix of B1 may move this layout, and the row is to be
+# checked again then.
+job waitover 4 "$C{waitsec}${R}{35}" foot beside nofalse nooverfull nooverlap
 # A passage's mode is the one where its notes are called out (review S3): a
 # footnote in {\marginnoteoverflow{carry}...} is carried, though the paragraph
 # ends after the group, where the mode is foot; and one in

@@ -71,6 +71,7 @@ called out somewhere names a place, not an internal name; no footnote found not 
   order=A<B   A is above B on the page of A, and B is on that page.
   movedwarn   a warning says that TeX ended a page before the line of a footnote
               that had gone to its foot.
+  allreasons  every warning that a note is set on a later page gives a reason;
   pullok      if the callout went to a later page than page 1 (TeX's own break),
               LINEA is on the callout's page and every LINE word on it or the
               next (the note goes with its line), and movedwarn.
@@ -319,6 +320,10 @@ for e in expect:
         if len(rc - rn) != int(e[11:]):
             fails.append(f"{len(rc - rn)} notes with a callout's record and none of their own, "
                          f"not {e[11:]}")
+    elif e == "allreasons" and re.search(r"is set on page \d+\.", joined):
+        # every warning that a note is set on a later page gives a reason (one of
+        # marginfix's own, for a note didactic decided to stay, gives none)
+        fails.append("a note set on a later page without a reason")
     elif e.startswith("fnrecords="):
         # footnotes with records (negative ids): those whose mark and text
         # \footnote makes together, at the foot
