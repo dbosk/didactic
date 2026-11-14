@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}[2021/06/01]
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/11/13 v2.17 didactic]
+  [2026/11/14 v2.18 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -40,6 +40,13 @@
 %
 %<*driver>
 \documentclass{article}
+\usepackage{iftex}
+\ifpdftex
+  % as under XeLaTeX and LuaLaTeX: Latin Modern, with a bold typewriter, and
+  % the braces in code from the typewriter font, not Computer Modern's symbols
+  \usepackage[T1]{fontenc}
+  \usepackage{lmodern}
+\fi
 \usepackage{doc}
 \NewDocElement[printtype={opt.}]{Opt}{option}
 \usepackage[utf8]{inputenc}
@@ -156,6 +163,28 @@
 %   when it's loaded.
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
+% }
+% \changes{v2.18}{2026/11/14}{%
+%   With \TeX~Live's \textsf{marginfix} 1.2, a margin note on a page that also
+%   holds \textsf{multicol}'s columns is set in the margin: 1.2 draws a page's
+%   margin at |\columnwidth|, a column's width there, and so into the text;
+%   \textsf{didactic} sets |\columnwidth| to the text's width while it does.
+% }
+% \changes{v2.18}{2026/11/14}{%
+%   \texttt{noteoverflow} is decided by \textsf{didactic} itself, where the
+%   note is called out, in one run: \texttt{foot} (the default) or
+%   \texttt{carry}; \texttt{break} is gone, since no page ends early for a note
+%   any more; it no longer needs \textsf{marginfix} 1.6 or records in
+%   the \texttt{.aux} file.  A footnote goes to the foot whole, or whole and one
+%   line past it, never split; one too long for that is carried, with a
+%   warning that says so.  A margin note whose line \TeX\ takes to the next
+%   page waits there for it with its first line on the text's first, as
+%   \textsf{marginfix} sets a note carried to a page (it was set at the
+%   margin's top, some points higher).  A footnote at the foot is set in the width of the
+%   text, and its text runs once (twice more, quietly, for a footnote with
+%   more than paragraphs).  \textsf{didactic}
+%   checks the names of \textsf{marginfix} and the kernel it relies on and
+%   falls back to \texttt{carry}, with a warning, when one is missing.
 % }
 % \changes{v2.17}{2026/11/13}{%
 %   Adds bilingual documents: the environments \texttt{en} and \texttt{sv}, 
@@ -480,6 +509,18 @@
 % In a long document, the first compilation may need more passes than 
 % |latexmk| allows by default (5); it continues from where it stopped the next 
 % time, or you can raise |$max_repeat|.
+% A note counts as on the page where it starts: a mark beside the rest of a
+% footnote split over two pages (by \TeX, at the foot, or by \textsf{marginfix},
+% in the margin) gets a footnote of its own.
+% A citation beside the mark of a footnote that is carried to the next page
+% shares its number, both marks before the note; the warning about that
+% footnote names the marks that share it.
+% Two settled layouts can exist: when a reusing citation's own footnote would
+% move its paragraph off the page of the note it reuses, both \enquote{reuse} (the
+% paragraph stays) and \enquote{a note of its own} (the paragraph moves) are
+% consistent, and which one a build ends in depends on the |.aux| file it starts
+% from.
+% A build from no |.aux| file is the canonical one (issue \#93).
 %
 % \DescribeOpt{biburlpenalty}
 % A URL or DOI in the bibliography, or in a citation, can only break after 
@@ -725,28 +766,118 @@
 % Even so, the notes of a page can be more than its margin holds, say in a 
 % paragraph dense with citations, whose footnotes are in the margin too.
 % Then a note moves to the next page, away from its mark.
-% With |noteoverflow=break|, the default, the text gives way instead: the 
-% page ends before the line that calls out the first note that doesn't fit, 
-% in the next run, so that line and its note start the next page.
-% That can move more text and more notes, so a page dense with notes can take 
-% several runs, up to about ten; \LaTeX\ asks for a rerun until they are done.
-% A page that ends that early is a little shorter, but its margin is full; 
-% if its text fills less than half of it, \textsf{marginfix} warns, naming 
-% the page.
-% With |noteoverflow=carry| the notes move to the next page as before, which 
-% is the default with the option |draft|.
-%
-% This needs \textsf{marginfix} 1.6 or later.
-% With an older one the option, and |\marginnoteoverflow| below, do nothing and 
-% say so in a warning.
-% It also needs pdf\LaTeX\ or Lua\LaTeX: with Xe\LaTeX\ the notes are carried, and 
-% a warning names the pages of each.
+% \textsf{didactic} decides what happens to such a note where it is called 
+% out, in the same run.
+% With |noteoverflow=foot|, the default, a footnote that doesn't fit in the
+% margin goes to the foot of its page if it fits there whole, without a word.
+% A note that misses the foot of the margin by no more than two lines of the
+% text, and doesn't go to the foot whole, stays beside its line and runs past the
+% foot of the margin, with a warning that says by how much and what took the
+% margin (the notes above it, the floats on the page); a margin note that isn't a
+% footnote has no place at the foot, so for it that comes first (deferrable notes
+% are \textsf{marginfix}'s to place, as ever).
+% Nothing is under the margin at the foot of a page as \LaTeX\ and
+% \textsf{memoir} set it, since the folio is under the text; a running foot as
+% wide as the text and the margin (\textsf{memoir}'s |\headwidth| widened into
+% the margin, as in its |companion| style) would be in its way.
+% A footnote that misses by more goes to the foot of its page after all, whole,
+% if only a line is missing there: it runs one line past the foot, with a
+% warning.
+% A footnote is never split over two pages (issue \#104 has why that waits):
+% one too long for the foot whole is carried to the next page, as any note that
+% fits nowhere, and the warning says that it doesn't fit the foot whole and how
+% many lines the foot had left.
+% At the foot a footnote is set as \textsf{memoir} sets one there, in the width
+% of the text.
+% Its text runs once, where it is called out, as without \textsf{didactic}: it
+% is set into one long line per paragraph, and that is broken twice, for the
+% margin and, if the note goes there, for the foot; so a counter in it steps
+% once, an acronym's first use is its first, a citation is recorded once.
+% A footnote with more than paragraphs (a list, a display, space or a box
+% between its lines, a paragraph too long for that line) isn't \emph{plain},
+% and the log says so, as information, with the place and what it has: its
+% text runs three times, whether it overflows or not, once as above and twice
+% more, quietly, for the margin and the foot.
+% Before each of those two its \LaTeX\ counters are set back (all that
+% |\include| keeps), so they come out as once, and \textsf{biblatex} records
+% nothing in them; any other state its text changes (an acronym's first use, a
+% count of \TeX's, a citation's tracker) is changed by the first of the three,
+% and the printed one shows it changed: an acronym used first in such a
+% footnote shows its short form.
+% Inside a footnote, widths taken from |\linewidth| are taken from that long
+% line, half as wide as \TeX\ allows (8191\,pt): a |\parbox{\linewidth}|
+% makes the note one of those, but |\makebox[.01\linewidth]| is 82\,pt wide
+% in the margin and at the foot.
+% Under Xe\LaTeX\ a footnote that stays in the margin can break its lines
+% otherwise than without \textsf{didactic}, at a hyphen or a dash: Xe\TeX\ keeps
+% a word it doesn't break at its hyphen or dash as one piece, and drops that
+% place to break, so the long lines it is measured in have lost it, and the
+% margin's lines, broken again from them, can't use it.
+% pdf\LaTeX\ and Lua\LaTeX\ are not affected; |noteoverflow=carry| sets the note
+% directly, as without \textsf{didactic}.
+% A document whose margin overflows on every page can run out of \LaTeX's
+% boxes for floats (``Too many unprocessed floats'') under Xe\LaTeX, where
+% carried notes pile up (issue \#103).
+% A footnote that would need two lines past the foot (the folio is there) is
+% carried.
+% One called out on the same page after a footnote that runs past the foot, and
+% that fits nowhere else, is carried too: the foot is full.
+% So is one called out after a footnote carried from the page, even where it
+% would fit at the foot: the footnotes keep their order.
+% The room at the foot is counted at the natural size of the page, so that
+% \TeX's own page break agrees; where it still takes a footnote's line to the
+% next page (lines that must stay together with it), the note goes with the
+% line and a warning says so.
+% Any other note is carried to a later page, with a warning that names it and
+% says why.
+% A note whose line \TeX\ takes to the next page after the note was called out
+% goes with its line and waits at the top of that page's margin, its first
+% line on the text's first line: beside its line when that line opens the
+% page, but above it, by a line or more, when the line comes lower: where the
+% line will stand on that page isn't known when the note is held for it.
+% Below a float that keeps the margin beside it clear, the same holds for the
+% stretch of margin under the float: a held note that opens it stands with its
+% first line as far below the stretch's top as the text's first line stands
+% below the page's (|\topskip|).
+% Each run also records in the |.aux| file the page each margin note's callout
+% and the note itself are printed on; a note printed on another page than its
+% callout that no warning of that run named is warned about in the next run,
+% ``found from the last run''.  So none goes unsaid, though such a one is said
+% a run late (a settled build has it).  Two cases are known to be said that
+% way: a foot that holds a footnote of \LaTeX's own as well as \textsf{didactic}'s,
+% where a later line with a margin note takes them all to the next page with
+% it; and footnotes in \textsf{multicol}'s columns that it sets at the foot of
+% another page (below).  Any other is one the placement didn't foresee, which
+% we'd like to hear about.  Deferrable notes (|\ltnote| and the like) are
+% left out: \textsf{marginfix} moves them on by design, as its mode says.
+% |noteoverflow=break| is gone: no page ends early for a note.
+% In two columns a note runs past the foot of its column's margin the same way,
+% but there is no foot beside a column for a footnote, so it is carried.
+% Inside \textsf{multicol}'s |multicols|, where no margin note can be set, a
+% footnote goes to the foot of the page under the columns, where
+% \textsf{multicol} sets it; when it sets one at the foot of another page than
+% its mark's, a warning says so, one run late (from records of the run before),
+% and a settled build has it.
+% Such a footnote is printed after footnotes that are called out after it, so
+% the numbers are out of sequence on the two pages.
+% Any other margin note there is lost, as in \LaTeX, but with a warning.
+% With \TeX~Live's \textsf{marginfix} 1.2 all of this works, with these
+% differences: every line with a margin note may end a page there, so a line
+% that would move to the next page with its note stays on its page, with the
+% note (one the margin can't hold then runs past its foot, with a warning); a
+% note taller than the margin is lost,
+% with \textsf{marginfix}'s error ``lost some margin notes'', and named a run
+% later; and there are no deferrable notes and no split of a note taller than
+% the margin, which come with the newer build of \textsf{marginfix} (the
+% |integration| branch of \texttt{dbosk/marginfix}).
+% With that fork's |integration| as it was before this version, a note taller
+% than the margin is lost the same way, and a note held for its line stands a
+% few points above it; so install the two together.
+% With |noteoverflow=carry|, the default with the option |draft|, every note 
+% that doesn't fit is carried, with a warning.
 % The mode is read where a note is called out, and obeys groups, so 
 % |{\marginnoteoverflow{carry}| ...|}| lets the notes of one passage move to 
-% the next page, while the rest of the document keeps |break|.
-% \textsf{marginfix} logs every note that is still carried to a later page, 
-% as |marginfix-spill: page=|\meta{p}| to=|\meta{q}| intended| for a note in 
-% the mode |carry| and |... unresolved| otherwise.
+% the next page, while the rest of the document keeps its mode.
 %
 % Outside |beamer|, \textsf{didactic} writes where the margin column is to 
 % the log, once, as |didactic-margin: odd=431.65 even=431.65 width=156.7|: 
@@ -1634,22 +1765,75 @@
 %   \emph{Reopens:} one reader's report that where a block or a frame begins or ends is
 %   missed.} \\
 % \midrule
-% A margin note beside its mark, \texttt{noteoverflow} & \texttt{break} &
+% A margin note beside its mark, \texttt{noteoverflow} & \texttt{foot} &
 %   \textsf{marginfix} 1.2, in \TeX\ Live: a note that doesn't fit moves to the next
 %   page. \\*
 % \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} correct or warn: a note stays
 %   beside the line that calls it out, and a footnote in the margin with its mark
 %   (\cref{MarginNoteKinds}).
+%   The order is the maintainer's: a footnote goes to the foot whole before a note
+%   runs past the foot of the margin, so the foot goes to the first footnote that
+%   fits it; on a page dense with notes that can cost a later note its page, with a
+%   warning (one note in \texttt{test-noteoverflow}).
+%   A footnote goes to the foot only whole, or whole and one line past it; one too
+%   long for that is carried with a warning that says so.
+%   Splitting it over two pages, as \LaTeX\ splits a footnote at the foot, is
+%   deferred (issue \#104): a rest at the head of the next page's foot needs an
+%   insertion class of our own to stay correct, a rest put after a later line
+%   landed a page too late, and no real document of the measure splits a note.
 %   \emph{Strength:} no outside support; the maintainer's choice.
-%   \emph{Reopens:} if on the eight documents it costs a page or more, or twice its pages
-%   with three lines or more empty: now no page, and 2 such pages more, so 4.
-%   \emph{Measured:} against \texttt{carry}, 813 pages either way; pages with three lines
-%   or more empty 114 against 112, with more than five 64 against 63, of 674 text pages.
-%   Only two documents differ, where a margin overflows: \texttt{carry} moves two notes
-%   in each to the next page, and \texttt{break} ends those pages early instead, with
-%   4.3 and 8.9 lines empty, and needs up to six runs to settle, against three.
-%   Under Xe\TeX\ it carries, as \texttt{break} needs \texttt{\textbackslash vadjust pre}
-%   (\cref{app:pb-measure}).} \\
+%   \emph{Reopens:} on these builds, a page more than \texttt{carry}, or more than 136
+%   pages with three lines or more empty (\texttt{carry}'s count; \texttt{foot} now has
+%   134).
+%   \emph{Measured} (\texttt{foot} against \texttt{carry}, from clean; eight documents,
+%   seven under pdf\LaTeX\ and one under Xe\LaTeX, and two of the seven again under
+%   Xe\LaTeX: 1058 pages, 913 text pages): the same pages; 43 runs against 44; notes off
+%   their marks 0 against 7, in three of the builds (\texttt{carry} moves them to the next
+%   page; \texttt{foot} sets them at the foot of their own, whole, or two of them up to a
+%   line past it, with a warning); pages with three lines or more empty 134 against 136,
+%   with more than five 73 against 74, every difference on a page after a note that
+%   \texttt{carry} moved.
+%   Under Xe\TeX\ a footnote that stays in the margin can break its lines otherwise than
+%   with \texttt{carry}, at a hyphen or a dash, on 14 pages of the three Xe\LaTeX\ builds
+%   (see the option \texttt{noteoverflow}).
+%   (v2.15's \texttt{break}, which ended a page before the line of a note that didn't
+%   fit, is gone, with its measure; \cref{app:pb-measure}.)} \\
+% \midrule
+% A citation's footnote is reused on its spread, \texttt{footnotereuse} & \texttt{compact} &
+%   \textsf{biblatex}: every citation in a footnote makes a footnote of its own. \\*
+% \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} a margin without blanks that wait
+%   for an edit, for a run more than \texttt{fast} (the evaluation with the option).
+%   \emph{Strength:} no outside support; the maintainer's choice.
+%   \emph{Reopens:} on these three documents, \texttt{compact} needing a run more than now
+%   (3/5/6), or \texttt{fast} keeping no blank in a settled build.
+%   \emph{Measured} (on three of the documents, from clean): runs 3/3/3 with reuse off
+%   (one page more on the densest), 3/5/6 with \texttt{compact}, 3/4/5 with \texttt{fast};
+%   in the settled builds \texttt{fast} keeps 6 citations reserving space (blanks that wait
+%   for an edit) in the third, \texttt{compact} none (counted from the reuse states in the
+%   \texttt{.aux} file).} \\
+% \midrule
+% A float gives way to the margin notes already on its page & Yes &
+%   A float that fits in the text block goes on the page. \\*
+% \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} the margin beside a float at
+%   the top or the bottom of a page, or beside a wide one in the text, is taken from
+%   the notes, and the notes already decided for the page were promised that room:
+%   their lines are on the page.
+%   Leaving them there and moving the float on keeps the one pass (what is decided
+%   stays), where the float landing first would move notes off their lines, footnotes
+%   out of the order of their numbers (\texttt{test-notefoot}'s \texttt{botfloat}).
+%   That a note off its line costs the reader more than a float one page later is the
+%   maintainer's judgement, not a measured one.
+%   \emph{Strength:} no outside support; the maintainer's choice.
+%   \emph{Reopens:} a reader study on either, or real documents where held floats
+%   cost a page or move a float more than one page; the log says each float held
+%   (\enquote{The float ending at \ldots\ waits}).
+%   \emph{Measured:} on the eight real documents and two more under Xe\TeX, 1058
+%   pages from clean, the same text and the same \texttt{.aux} with and without it:
+%   no float held.
+%   In a generated document with notes too many for its margins and a float on every
+%   page, at one density one float is held, four floats land a page later, one note
+%   fewer is carried and the document is a page shorter; at another, nothing
+%   changes.} \\
 % \midrule
 % What can't be kept warns & Where it can see it &
 %   Mostly silent. \\*
@@ -2148,20 +2332,26 @@
 % \end{option}
 %
 % \begin{option}{noteoverflow}
-% The |noteoverflow| option is passed on to \textsf{marginfix}'s 
-% |\marginnoteoverflow| (version 1.6 and later), see below.
-% We default to |break|, unlike \textsf{marginfix}: a footnote in the 
-% margin must stay with its mark, and when the margin of a page can't hold 
-% the notes of its text even after |notepriority| has moved the commentary, 
-% the text has to give way.
-% That takes several runs, each moving text that the next run may have to move 
-% again, so with |draft| the default is |carry|, as with the other 
-% options that take runs; see the option |draft|, below, for where that is 
-% decided.
+% The |noteoverflow| option says what happens to a margin note that doesn't 
+% fit beside its line: |foot| or |carry|, see \cref{NotesThatDontFit}.
+% We default to |foot|: a footnote in the margin must stay on the page of its 
+% mark, and the foot of that page is the place readers know for it.
+% There is no |break|: a page doesn't end early for a note (the maintainer's
+% decision of November 2026); anything else would be an error.
+% With |draft| the default is |carry|, as with the other options that move 
+% text to keep things together; see the option |draft|, below, for where that 
+% is decided.
 %    \begin{macrocode}
 \newcommand\@didactic@noteoverflow{}
+\newif\if@didactic@noteoverflowgiven
 \DeclareOptionX{noteoverflow}{%
-  \renewcommand\@didactic@noteoverflow{#1}}
+  \renewcommand\@didactic@noteoverflow{#1}%
+  \@didactic@noteoverflowgiventrue}
+\newcommand\@didactic@checkoverflow[1]{%
+  \IfStrEqCase{#1}{{foot}{}{carry}{}}[%
+    \PackageError{didactic}{Unknown value `#1' for noteoverflow}%
+      {Use foot or carry.}%
+    \def#1{carry}]}
 %    \end{macrocode}
 % \end{option}
 %
@@ -2288,12 +2478,12 @@
   \ifdefstring{\@didactic@draft}{draft}
     {\renewcommand\@didactic@fnreusemode{off}}
     {\renewcommand\@didactic@fnreusemode{compact}}}{}
-\newif\if@didactic@noteoverflowgiven
 \ifdefempty{\@didactic@noteoverflow}{%
   \ifdefstring{\@didactic@draft}{draft}
     {\renewcommand\@didactic@noteoverflow{carry}}
-    {\renewcommand\@didactic@noteoverflow{break}}%
-}{\@didactic@noteoverflowgiventrue}
+    {\renewcommand\@didactic@noteoverflow{foot}}%
+}{}
+\@didactic@checkoverflow\@didactic@noteoverflow
 \newif\if@didactic@fnreuseoff
 \newcount\@didactic@fnthreshold
 \IfStrEqCase{\@didactic@fnreusemode}{%
@@ -2829,6 +3019,15 @@
 % normal, and a pass that changes nothing but that state costs another pass 
 % to see that nothing changes.
 % (|compact| has to count it, since it waits for the second change.)
+% That costs |compact| a pass after a change: the count goes back to 0 when the
+% decision holds, the |.aux| file changes, and one more pass sees that nothing
+% else did.
+% Not writing the count back would need the record to tell a change in the pass
+% before from one in an earlier build: a number of passes that changed something
+% does it within a build, but the first pass after an edit reads the same number
+% and would take an unrelated change for a second one in a row (a record outliving
+% its cause, as in issue \#93), and nothing in \TeX\ tells two builds apart
+% without changing in every pass.
 %    \begin{macrocode}
 \def\@didactic@fnhold{%
   \edef\@didactic@fnnow{%
@@ -2876,11 +3075,18 @@
       repeats one on the same page, since\MessageBreak
       reusing it didn't settle}%
     \@didactic@fnreusefalse}{}}
-% \@didactic@fnnewnote{<text>}: a real footnote, with a label inside its text
-% for the page where it is printed.
+% \@didactic@fnnewnote{<text>}: a real footnote, with a label at the start of
+% its text for the page where it starts: a note split over two pages counts as
+% on the first, where its number is, and a later citation beside its rest on the
+% next page gets a note of its own.  The serial of the margin note it makes, if
+% any, is kept for the reusers (\@didactic@reuser): numbers restart in each
+% chapter, serials don't.
 \def\@didactic@fnnewnote#1{%
   \edef\@didactic@fnnotelabel{didacticfnnote@\@didactic@fnserial}%
-  \mkbibfootnote{#1\expandafter\zlabel\expandafter{\@didactic@fnnotelabel}}%
+  \global\let\@didactic@fnlastnote\@empty
+  \mkbibfootnote{\expandafter\zlabel\expandafter{\@didactic@fnnotelabel}#1}%
+  \expandafter\xdef\csname @didactic@fnnote@\@didactic@fnkey\endcsname
+    {\@didactic@fnlastnote}%
   \expandafter\xdef\csname @didactic@fncite@\@didactic@fnkey\endcsname
     {\the\c@footnote}%
   \expandafter\xdef\csname @didactic@fnlabel@\@didactic@fnkey\endcsname
@@ -3024,7 +3230,11 @@
      \@didactic@fnpb=\@didactic@fnabspage{\@didactic@fnhere}\relax
      \@didactic@fngb=\@didactic@fnpb \@didactic@fntogroup\@didactic@fngb
      % reuse only when both pages are resolved (>0) and the citation shares a
-     % group with the earlier footnote or with its resolved mark
+     % group with the earlier footnote or with its resolved mark: the mark's
+     % page counts as well, so that a second citation beside the mark of a
+     % note carried to the next page shares its number, both marks
+     % before the note and in order, instead of setting the note again there
+     % under a number of its own
      \@didactic@fnreusefalse
      \@didactic@fnga=\@didactic@fnpa \@didactic@fntogroup\@didactic@fnga
      \ifnum\@didactic@fnga=\@didactic@fngb \@didactic@fnreusetrue\fi
@@ -3036,6 +3246,7 @@
      \ifnum\@didactic@fnpb<\@ne \@didactic@fnreusefalse\fi
      \@didactic@fnhold
      \if@didactic@fnreuse
+       \@didactic@reuser{\csname @didactic@fnnote@\@didactic@fnkey\endcsname}%
        % no space before the mark, as \mkbibfootnote does
        \unspace
        \ifdefequal{\@didactic@fnmode}{\@didactic@fnone}
@@ -3173,6 +3384,15 @@
 % |\@didactic@url@out| what \textsf{url} gets to set instead.
 % The width of the line is |\linewidth|, which is narrower than |\hsize| in
 % a list such as the bibliography, and the same in a margin note.
+% A margin footnote's text is set once, at no width, and its lines broken
+% later from that list, for the margin and for the foot
+% (|\@didactic@measure|); there the width is the margin's,
+% |\@didactic@url@fixed|, the narrower of the two.
+% A piece wider than the margin but narrower than the text then has letter
+% breaks in the foot's version too, at the penalty |biburlpenalty|, which
+% \TeX\ takes only where every other break there costs more.
+% At the measure's own width no piece would be wide, and the margin's version
+% couldn't break a long URL.
 % A mark that the URL can't contain ends the characters, and |://| after it
 % makes sure the scheme's pattern below matches once.
 %    \begin{macrocode}
@@ -3183,8 +3403,12 @@
   \let\@didactic@url@piece\@empty
   \def\@didactic@url@esc{0}%
   \def\@didactic@url@prev{2}%
-  \dimen@\linewidth
-  \ifdim\hsize<\dimen@ \dimen@\hsize \fi
+  \ifdefined\@didactic@url@fixed
+    \dimen@\@didactic@url@fixed
+  \else
+    \dimen@\linewidth
+    \ifdim\hsize<\dimen@ \dimen@\hsize \fi
+  \fi
   \edef\@didactic@url@width{\the\dimen@}%
   \@didactic@url@scheme#1\@didactic@url@mark://\@nil
   \@didactic@url@out
@@ -3645,6 +3869,7 @@
     \fi}%
   \if@tempswa\expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
 \newcommand\@didactic@aftermarginfloat{}
+\newif\if@didactic@inmfloat
 \newcommand\@didactic@marginfloat[2]{%
   \@didactic@ifhiddenframe
     {\let\marginfloatmarginmacro\@gobble
@@ -3653,6 +3878,7 @@
     {\@didactic@marginfloatorder@check{#2}}%
   \@bsphack
   \let\FloatBlock\relax
+  \@didactic@inmfloattrue
   \begin{mem@margin@float}[#1]{#2}}
 \newcommand\@didactic@endmarginfloat{%
   \end{mem@margin@float}%
@@ -4753,58 +4979,2387 @@
     \expandafter\marginnotebesidefloats\expandafter
       {\@didactic@notebesidefloats}%
   \fi
-  \ifdefined\marginnoteoverflow
-    \expandafter\marginnoteoverflow\expandafter
-      {\@didactic@noteoverflow}%
-  \else
-    \if@didactic@noteoverflowgiven
-      \PackageWarningNoLine{didactic}{%
-        The option noteoverflow needs marginfix 1.6 or later;\MessageBreak
-        it has no effect with this one}%
-    \fi
-    \@ifclassloaded{beamer}
-      {\let\marginnoteoverflow\@gobble}
-      {\let\marginnoteoverflow\@didactic@oldmarginfix}%
-  \fi}
-\def\@didactic@oldmarginfix#1{%
-  \PackageWarning{didactic}{%
-    \string\marginnoteoverflow\space needs marginfix 1.6 or
-    later;\MessageBreak
-    it has no effect with this one}}
+  \@didactic@takeoverflow}
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\MFX@fit@spilled}
-% |noteoverflow=break| needs |\vadjust pre|, which Xe\TeX\ doesn't have.
-% There \textsf{marginfix} carries the notes that don't fit to a later page, and 
-% says so for a note that hits the limit, but otherwise only in the log.
-% We say it for every such note: where it was called out and where it ended up.
-% The hook is \textsf{marginfix}'s macro for a note that is carried, from 
-% version~1.6; a note in the mode |carry| was meant to be.
-% If it isn't there, we say once that the mode can't work.
+% \subsection{Notes that don't fit}\label{NotesThatDontFit}
+%
+% A margin note that doesn't fit beside its line is \textsf{didactic}'s to 
+% place, by the option |noteoverflow|: beside its line, running past the foot
+% of the margin by up to two lines; at the foot of its page if it is a footnote,
+% whole, or whole and one line past the foot; or carried to a later page, with a
+% warning.
+% No page ends early for a note.
+% The decision is taken where the note is called out, in the kernel's special 
+% output for the note, and once only: nothing about it is written to the 
+% |.aux| file, so the notes are in place in the run that sets them.
+% \textsf{marginfix} keeps the margin's own mechanics (the margin is built 
+% from its list of waiting notes, deferrable notes give way, a note taller 
+% than the margin is split); it gets nothing that only \textsf{didactic} 
+% uses.
+% So \textsf{didactic} reads a few of \textsf{marginfix}'s internals, and 
+% patches a few of the kernel's, and must notice when one of them has changed.
+%
+% \subsubsection{What \textsf{didactic} reads of \textsf{marginfix} and of 
+% the kernel}
+%
+% Each name below is checked when the document starts, after every package 
+% has made its own changes; if one is missing, or can't be patched, 
+% \textsf{didactic} says which in one warning and places no note itself: 
+% |noteoverflow| becomes |carry|, which is what \textsf{marginfix} does 
+% alone.
+% A name some versions of \textsf{marginfix} don't have is optional: without 
+% it \textsf{didactic} does a little less, as said for each.
+% \begin{description}
+% \item[\texttt{\textbackslash @specialoutput}] the kernel's output for floats 
+%   and margin notes: we patch the place where it puts the page so far back 
+%   and hands the note to |\@addmarginpar|, to decide there; the place
+%   where it adds a float, for the room the margin notes take; and the two
+%   places where it puts the footnotes back (|\@reinserts|), for ours.
+% \item[\texttt{\textbackslash @makecol}] where the kernel makes a column: at
+%   its start (the kernel's hook |build/column/before|, or before
+%   |\@makecol| on a kernel without it) the notes at the foot whose
+%   lines went to the next column are taken back and inserted for the next
+%   column (|\@didactic@colfeet|).
+%   In one column only, the only place notes go to the foot.
+% \item[\texttt{\textbackslash @flcheckspace}] the kernel's test whether a
+%   float fits at the top or the bottom of a column, |#1| the room for such
+%   floats, |#2| their list, with the room the float needs in
+%   \texttt{\textbackslash saved@reqcolroom} (from 2025) or
+%   \texttt{\textbackslash @reqcolroom} (before, which it adds to): we wrap it,
+%   so that a float gives way to the notes already decided
+%   (|\@didactic@flcheck|).
+% \item[\texttt{\textbackslash end@float}] where a float ends: we keep its
+%   place in the input, for the log.
+% \item[\texttt{\textbackslash @xympar}] where the kernel makes a margin note: 
+%   we mark its callout.
+% \item[\texttt{\textbackslash MFX@combinefloats@before}] where 
+%   \textsf{marginfix} builds the margin of a column, with the column in 
+%   |\@outputbox|, a macro without parameters: we wrap it, to read which 
+%   callouts are in the column and hold back the notes of the others.
+% \item[\texttt{\textbackslash mfx@marginlist}] its list of waiting notes, 
+%   each |\mfx@build@note|\meta{box}\meta{box}|{|\meta{position}|}|,
+%   with |\mfx@build@skip{|\meta{dimen}|}| and |\mfx@build@clear| between
+%   them: we read how much room the notes so far take.
+% \item[\texttt{\textbackslash MFX@marginside}] (optional) in which margin a 
+%   page's notes go; without it (\textsf{marginfix} 1.2) we ask the kernel's 
+%   switches, as for the column of the margin in the log, below.
+% \item[\texttt{\textbackslash MFX@minus@inf}] the position of a note moved to 
+%   the top of a page.
+% \item[\texttt{\textbackslash mfx@placeid}] (optional) the number of the next 
+%   note \textsf{marginfix} places, which must advance when we take a note 
+%   away from it; \textsf{marginfix} 1.2 doesn't number its notes.
+% \item[\texttt{\textbackslash Mfx@inject@insert}] (optional) what 
+%   \textsf{marginfix} puts in the margin to block it, which is not a note.
+% \item[\texttt{\textbackslash MFX@copyclass}] (optional) where 
+%   \textsf{marginfix} makes the rest of a note it splits, |#1| from |#2|: the 
+%   rest gets the number of its note.
+% \item[\texttt{\textbackslash MFX@chop@tall}] (optional) where
+%   \textsf{marginfix} sets whole, or splits, a note taller than the margin;
+%   without it a marginfix loses such a note, and the records name it a run
+%   later (|\@didactic@lost|).
+% \item[\texttt{\textbackslash MFX@columnwidth}] (optional) the width
+%   \textsf{marginfix} draws a column's margin at; without it
+%   (\textsf{marginfix} 1.2, which takes |\columnwidth|) we set |\columnwidth|
+%   to the text's width while it builds and attaches the margin, outside two
+%   columns (|\@didactic@mfxbuild|).
+% \item[\texttt{\textbackslash marginheightadjustment}] (optional, public)
+%   what \textsf{marginfix} adds to the height of every margin: we add to it
+%   for the one column where a note runs past the foot of the margin, and put
+%   it back; without it no note runs over.
+% \item[\texttt{\textbackslash MFX@check@page@}] (optional) 
+%   \textsf{marginfix}'s warning for a note set on another page than its 
+%   callout, which we silence, since we give that warning ourselves, with the 
+%   reason.
+% \end{description}
+% The test |test-marginfix-interface| builds a document with the 
+% \textsf{marginfix} found, with \TeX~Live's \textsf{marginfix} 1.2, on the 
+% oldest kernel \textsf{didactic} asks for, and with the kernel's 
+% |\@specialoutput| changed, and fails if the outcome isn't the one above.
+%
+% \begin{macro}{\@didactic@needmacro,\@didactic@needshape,\@didactic@needpatch,
+%   \@didactic@wish}
+% A required name that is missing, or a patch that doesn't apply, is added 
+% to |\@didactic@missing|; an optional one to |\@didactic@lacking|.
+% A patch is checked with \textsf{etoolbox}'s |\ifpatchable|, which tests the 
+% very text we replace, so that a kernel that has moved it is caught here and 
+% not by a page set wrong; a macro we wrap, by the start of its |\meaning|, 
+% which shows its parameters.
 %    \begin{macrocode}
-\def\@didactic@spillwarning#1{%
-  \expandafter\ifx\csname mfx@bo@#1\endcsname\MFX@break
+\let\@didactic@missing\@empty
+\let\@didactic@lacking\@empty
+\newcommand\@didactic@needmacro[1]{%
+  \ifdefined#1\else\@didactic@miss\@didactic@missing#1\fi}
+\newcommand\@didactic@needpatch[2]{%
+  \ifpatchable{#1}{#2}{}{\@didactic@miss\@didactic@missing#1}}
+\newcommand\@didactic@needshape[2]{%
+  \ifdefined#1%
+    \edef\@didactic@tmp{\meaning#1}%
+    \edef\@didactic@tmpb{\detokenize{#2}}%
+    \IfBeginWith{\@didactic@tmp}{\@didactic@tmpb}{}%
+      {\@didactic@miss\@didactic@missing#1}%
+  \else\@didactic@miss\@didactic@missing#1\fi}
+\newcommand\@didactic@wish[1]{%
+  \ifdefined#1\else\@didactic@miss\@didactic@lacking#1\fi}
+\newcommand\@didactic@miss[2]{%
+  \ifx#1\@empty\else\xdef#1{#1,}\fi
+  \xdef#1{#1\space\string#2}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@checkinterface}
+% The list itself.
+% It runs at the end of |\begin{document}|, after the |\AtBeginDocument| code 
+% of every package, since \textsf{marginfix} makes some of its changes there.
+% Under |beamer| there are no margin notes, and nothing to check.
+% The outcome goes to the log in one line, |didactic-interface: ok| or 
+% |didactic-interface: carry (|\meta{names}|)|, for the test.
+%    \begin{macrocode}
+\newif\if@didactic@noteplace
+\newcommand\@didactic@checkinterface{%
+  \@didactic@needpatch\@specialoutput
+    {\unvbox\@holdpg\@next\@currbox\@currlist}%
+  \@didactic@needpatch\@specialoutput{\@reinserts\@addtocurcol}%
+  \@didactic@needpatch\@specialoutput{\@reinserts\@addmarginpar}%
+  \@didactic@needmacro\@xympar
+  \@didactic@needmacro\@makecol
+  \@didactic@needmacro\@flcheckspace
+  \@didactic@needmacro\end@float
+  \@didactic@needshape\MFX@combinefloats@before{macro:->}%
+  \@didactic@needmacro\mfx@marginlist
+  \@didactic@needmacro\MFX@minus@inf
+  \@didactic@wish\MFX@marginside
+  \@didactic@wish\mfx@placeid
+  \@didactic@wish\MFX@check@page@
+  \@didactic@wish\Mfx@inject@insert
+  \@didactic@wish\MFX@copyclass
+  \@didactic@wish\MFX@chop@tall
+  \@didactic@wish\MFX@columnwidth
+  \@didactic@wish\marginheightadjustment
+  \ifx\@didactic@missing\@empty
+    \global\@didactic@noteplacetrue
+    \@didactic@numbernotes
+    \@didactic@footwarn
+    \typeout{didactic-interface: ok%
+      \ifx\@didactic@lacking\@empty\else
+        \space(without\@didactic@lacking)\fi}%
+  \else
+    \global\@didactic@noteplacefalse
+    \gdef\@didactic@noteoverflow{carry}%
     \PackageWarningNoLine{didactic}{%
-      A margin note from page \csname mfx@sp@#1\endcsname\space is
-      on page \the\c@page:\MessageBreak
-      noteoverflow=break needs pdfLaTeX or LuaLaTeX}%
-  \fi
-  \@didactic@MFX@fit@spilled{#1}}
-\AtBeginDocument{%
-  \ifdefined\MFX@break
-    \ifdefined\pdftexversion\else\ifdefined\directlua\else
-      \ifdefstring{\@didactic@noteoverflow}{break}{%
-        \ifdefined\MFX@fit@spilled
-          \let\@didactic@MFX@fit@spilled\MFX@fit@spilled
-          \let\MFX@fit@spilled\@didactic@spillwarning
-        \else
-          \PackageWarningNoLine{didactic}{%
-            noteoverflow=break needs pdfLaTeX or LuaLaTeX;\MessageBreak
-            with this engine margin notes may move to a later page}%
+      Can't place margin notes that don't fit:\MessageBreak
+      marginfix or the kernel has changed%
+      \@didactic@missing;\MessageBreak
+      noteoverflow is carry}%
+    \typeout{didactic-interface: carry (\@didactic@missing)}%
+  \fi}
+\@ifclassloaded{beamer}{}{%
+  \AddToHook{begindocument/end}{\@didactic@checkinterface}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\marginnoteoverflow}
+% |\marginnoteoverflow{|\meta{mode}|}| sets the mode for what follows, in its 
+% group.
+% A \textsf{marginfix} with a |\marginnoteoverflow| of its own (the 
+% \texttt{margin-fit} layer of the fork, 1.6 and later) would decide too, 
+% from records in the |.aux| file; we set it to |carry|, which makes it place 
+% nothing itself, and replace the command with ours.
+% |\@didactic@takeoverflow| runs at the end of the package, when 
+% \textsf{marginfix} is loaded.
+%    \begin{macrocode}
+\newcommand\@didactic@takeoverflow{%
+  \@ifclassloaded{beamer}{\let\marginnoteoverflow\@gobble}{%
+    \ifdefined\marginnoteoverflow\marginnoteoverflow{carry}\fi
+    \def\marginnoteoverflow##1{%
+      \def\@didactic@noteoverflow{##1}%
+      \@didactic@checkoverflow\@didactic@noteoverflow
+      \@didactic@noteoverflowgiventrue
+      \@didactic@footwarn}}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{Which notes' lines are on a page}
+%
+% A note is handed to \textsf{marginfix} when its callout's line is added to 
+% the page, but the page may still end above that line: \TeX\ chooses the 
+% break when the page is full, and the best break may come before the 
+% callout, as when a paragraph that can't break goes to the next page as a 
+% whole.
+% Then the note must go with its line.
+% \textsf{marginfix} 1.2 sets it on the page it was handed over on, beside 
+% nothing; later versions hold it back by marks of their own.
+% We don't rely on those: each note gets a number of ours, and a mark with it 
+% follows its callout's line, so that when a page is built the last of our 
+% marks on it says which notes' lines are there.
+% Every note numbered higher waits for the next page.
+% That works the same with every \textsf{marginfix}, \TeX~Live's included.
+%
+% \begin{macro}{\@didactic@tagnote}
+% The kernel's |\@xympar| makes a margin note; by then |\count\@marbox| is 
+% $-1$, the kernel's sign for a margin note.
+% We keep it negative and store our number in it, as $-1-n$, so that $-1$ 
+% still means a note we haven't numbered.
+% The material \textsf{marginfix} injects to block the margin 
+% (|\Mfx@inject@insert|, from 1.5 on) is not a note and gets no number; it
+% comes as |\@marbox|, a macro that names that box, so we compare what it
+% expands to (comparing the macro itself never matched, and those entries were
+% numbered and decided as notes of no height until v2.18).
+% The rest of a note \textsf{marginfix} splits gets the number of its note, 
+% less a million, so that it goes with the note's line but can be told from 
+% the note (|\@didactic@ifrest|): it continues a note set on its page.
+% A note called out where the mode is |carry| is marked so
+% (|\@didactic@cc@|\meta{note}), for |\@didactic@decide|: the mode is read
+% where a note is called out.
+%    \begin{macrocode}
+\newcount\@didactic@noteid
+\newcommand\@didactic@tagnote{%
+  \ifnum\@floatpenalty<\z@
+    \@didactic@ifinjected\@marbox{}{%
+      \@didactic@mcolwarn
+      \global\advance\@didactic@noteid\@ne
+      \global\count\@marbox\numexpr-1-\@didactic@noteid\relax
+      \expandafter\xdef\csname @didactic@ln@\the\@didactic@noteid\endcsname{%
+        \@didactic@here}%
+      \if@didactic@inmfloat
+        \expandafter\gdef\csname @didactic@mf@\the\@didactic@noteid\endcsname{}%
+      \fi
+      \ifdefstring{\@didactic@noteoverflow}{carry}
+        {\expandafter\gdef\csname @didactic@cc@\the\@didactic@noteid\endcsname{}}
+        {}%
+      \@didactic@markfn
+      \@didactic@record}%
+  \fi}
+\newcommand\@didactic@ifinjected[1]{%
+  \ifdefined\Mfx@inject@insert
+    \expandafter\ifx#1\Mfx@inject@insert
+      \expandafter\expandafter\expandafter\@firstoftwo
+    \else
+      \expandafter\expandafter\expandafter\@secondoftwo
+    \fi
+  \else
+    \expandafter\@secondoftwo
+  \fi}
+% |\@didactic@here| is the place in the input, file and line, for warnings: 
+% |\CurrentFile| is empty in the main file, where it is the job's.
+\newcommand\@didactic@here{%
+  \ifdefined\CurrentFile
+    \expandafter\ifx\expandafter\relax\detokenize\expandafter{\CurrentFile}\relax
+      \jobname.tex\else\CurrentFile\fi
+  \else\jobname.tex\fi:\the\inputlineno}
+\newcommand\@didactic@noteof[1]{%
+  \ifnum\count#1<-1000000 \numexpr-1000001-\count#1\relax
+  \else\numexpr-1-\count#1\relax\fi}
+\newcommand\@didactic@ifcarry{%
+  \ifcsname @didactic@cc@\the\@didactic@noteof\@didactic@head\endcsname
+    \expandafter\@firstoftwo
+  \else
+    \expandafter\@secondoftwo
+  \fi}
+\newcommand\@didactic@ifrest[1]{%
+  \ifnum\count#1<-1000000
+    \expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
+\newcommand\@didactic@ifdeferrable[1]{%
+  \@tempswafalse
+  \ifdefined\MFX@islow\MFX@islow#1\fi
+  \if@tempswa\expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@record,\@didactic@rnwrite,\@didactic@warned,
+%   \@didactic@recheck}
+% Whatever places a note, where its callout and the note itself end up is
+% recorded where they are printed, and the next run compares the two: a note
+% printed on another page than its callout's, that no warning of that run
+% named, is warned about then, ``found from the last run''.
+% So no placement of a note on another page is silent, whatever caused it,
+% though such a case is said a run late (a settled build has it): a foot that
+% mixes our footnotes with \LaTeX's own, which a later line takes to the next
+% page (|\@didactic@footback|), footnotes in |multicols|
+% (|\@didactic@mcolfoot|), and any case the placement didn't foresee.
+% The callout's record is a |\write| in the callout's line, put where the
+% kernel puts its own mark of the note, before its penalty: it is shipped with
+% the line, and it adds no place to break and changes no hyphenation, since the
+% kernel's material is there already.
+% The note's record is a |\write| at the top of its box, and of its version for
+% the foot when it is made (|\@didactic@footset|, the fallback's copy): it is
+% shipped with the version printed.
+% A box \textsf{memoir} sets as a |\vtop| (without colour) is put in a |\vbox|,
+% as colour does, so that the |\write| doesn't change its height.
+% A warning that names a note on another page in the run records that too
+% (|\@didactic@warned|), and the next run says nothing more for it.
+% Nor for a deferrable note (|\ltnote| and the like, |\@didactic@rd|):
+% \textsf{marginfix} moves those on by design, to give way to the others, and
+% says so where its mode asks it to (|\marginnotepriority|); a record would
+% only repeat what the document chose.
+% A note that \textsf{marginfix} splits (one taller than the margin) keeps only
+% its paragraph's box, and loses the record at the top of the outer one: the
+% check can't see such a note, whose first part is on its callout's page by
+% the split's own making.
+% A \textsf{marginfix} that doesn't set or split a note taller than the margin
+% (without |\MFX@chop@tall|: \TeX~Live's 1.2, and the fork's builds before it,
+% which have a split of their own but still lose such a note) loses it with
+% the error ``lost some margin notes'', which names no note, its labels and
+% index entries with it: there a callout's record with no note's record says
+% that the note wasn't printed (|\@didactic@lost|).
+% The comparison is made when the |.aux| file has been read, at the start.
+%    \begin{macrocode}
+\newcommand\@didactic@record{%
+  \if@filesw
+    \@didactic@writepage{\string\@didactic@rc
+      {\the\@didactic@noteid}{\thepage}{\@didactic@here}}%
+    \@didactic@rnbox\@marbox
+    \@didactic@rnbox\@currbox
+    \@didactic@ifdeferrable\@marbox
+      {\immediate\write\@auxout{\string\@didactic@rd{\the\@didactic@noteid}}}{}%
+  \fi}
+\newcommand\@didactic@rnwrite[1]{%
+  \if@filesw
+    \@didactic@writepage{\string\@didactic@rn{#1}{\thepage}}%
+  \fi}
+% |\@didactic@writepage|: \LaTeX's |\protected@write| to the |.aux| file, with
+% |\thepage| as it is when the page is shipped, but without its |\nobreak|
+% after a heading, which would add a penalty where there was none.
+\newcommand\@didactic@writepage[1]{%
+  \begingroup
+    \let\thepage\relax
+    \let\protect\@unexpandable@protect
+    \edef\reserved@a{\write\@auxout{#1}}%
+    \reserved@a
+  \endgroup}
+\newcommand\@didactic@rnbox[1]{%
+  \ifvoid#1\else
+    \ifx\color@vbox\relax
+      \global\setbox#1\vbox{\@didactic@rnwrite{\the\@didactic@noteid}\box#1}%
+    \else
+      \global\setbox#1\vbox{\@didactic@rnwrite{\the\@didactic@noteid}\unvbox#1}%
+    \fi
+  \fi}
+\newcommand\@didactic@warned[1]{%
+  \if@filesw\immediate\write\@auxout{\string\@didactic@rw{#1}}\fi}
+\newcount\@didactic@rcmax
+\newcount\@didactic@rcmin
+\newcommand\@didactic@rc[3]{%
+  \expandafter\gdef\csname @didactic@rc@#1\endcsname{{#2}{#3}}%
+  \ifnum#1>\@didactic@rcmax\global\@didactic@rcmax#1\relax\fi
+  \ifnum#1<\@didactic@rcmin\global\@didactic@rcmin#1\relax\fi}
+\newcommand\@didactic@rn[2]{%
+  \expandafter\gdef\csname @didactic@rn@#1\endcsname{#2}}
+\newcommand\@didactic@rw[1]{%
+  \expandafter\gdef\csname @didactic@rw@#1\endcsname{}}
+\let\@didactic@rd\@didactic@rw
+\AtBeginDocument{\if@filesw\immediate\write\@auxout{%
+  \string\providecommand\string\@didactic@rc[3]{}%
+  \string\providecommand\string\@didactic@rn[2]{}%
+  \string\providecommand\string\@didactic@rw[1]{}%
+  \string\providecommand\string\@didactic@rd[1]{}}\fi}
+\newcommand\@didactic@recheck{%
+  \@tempcnta\@ne
+  \loop\ifnum\@tempcnta>\@didactic@rcmax\else
+    \ifcsname @didactic@rw@\the\@tempcnta\endcsname\else
+      \ifcsname @didactic@rn@\the\@tempcnta\endcsname
+        \expandafter\expandafter\expandafter\@didactic@recheck@
+          \csname @didactic@rc@\the\@tempcnta\endcsname
+      \else\ifdefined\MFX@chop@tall\else
+        \ifcsname @didactic@rc@\the\@tempcnta\endcsname
+          \expandafter\expandafter\expandafter\@didactic@lost
+            \csname @didactic@rc@\the\@tempcnta\endcsname
         \fi
-      }{}%
+      \fi\fi
+    \fi
+    \advance\@tempcnta\@ne
+  \repeat
+  \global\@didactic@rcmax\z@
+  \@tempcnta\m@ne
+  \loop\ifnum\@tempcnta<\@didactic@rcmin\else
+    \ifcsname @didactic@rn@\the\@tempcnta\endcsname
+      \ifcsname @didactic@rc@\the\@tempcnta\endcsname
+        \expandafter\expandafter\expandafter\@didactic@mccheck
+          \csname @didactic@rc@\the\@tempcnta\endcsname
+      \fi
+    \fi
+    \advance\@tempcnta\m@ne
+  \repeat
+  \global\@didactic@rcmin\z@}
+\newcommand\@didactic@mccheck[2]{%
+  \edef\@tempa{#1}%
+  \edef\@tempb{\csname @didactic@rn@\the\@tempcnta\endcsname}%
+  \ifx\@tempa\@tempb\else
+    \PackageWarningNoLine{didactic}{Footnote called out at #2 in multicols\MessageBreak
+      on page #1 is set at the foot of page \@tempb, where\MessageBreak
+      multicol puts it (seen in the run before)}%
+  \fi}
+\newcommand\@didactic@recheck@[2]{%
+  \edef\@tempa{#1}%
+  \edef\@tempb{\csname @didactic@rn@\the\@tempcnta\endcsname}%
+  \ifx\@tempa\@tempb\else
+    \PackageWarningNoLine{didactic}{Margin note called out at #2\MessageBreak
+      on page #1 is set on page \@tempb\space (found from the last
+      run):\MessageBreak nothing said so in that run}%
+  \fi}
+\newcommand\@didactic@lost[2]{%
+  \PackageWarningNoLine{didactic}{Margin note called out at #2\MessageBreak
+    on page #1 wasn't printed (found from the last run):\MessageBreak
+    this marginfix loses a note taller than the margin;\MessageBreak
+    the fork's newer build sets it whole or splits it}}
+\AddToHook{begindocument/end}{\@didactic@recheck}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@callout}
+% In the special output for a note, where the kernel puts the page so far 
+% back, we put our mark after it, so that it travels with the callout's line 
+% wherever the page breaks.
+% Penalties at the end of the page so far are legal breaks, after the line: 
+% we take them off and put them back after the mark, which must stay with 
+% the line.
+% This is the first of the patches of |\@specialoutput| checked above; the
+% decision for a note that doesn't fit goes here too, below.
+%
+% The footnotes at the foot so far come back too.
+% The kernel puts them back as one insertion after the page so far
+% (|\@reinserts|), that is after the latest callout's line, and behind a
+% place to break (the |\interlinepenalty| it adds after the special output,
+% \textsf{marginfix}'s own): a footnote we sent to the foot after its line
+% would then go to the next page with that later line, its own line staying
+% (the row |reins| of |test-noteplace|).
+% When every box at the foot is one of ours (|\@didactic@footback|, below), we
+% put them back before the page so far, at the head of the page, where they
+% stay on it whatever line \TeX\ breaks before; those whose lines \TeX\ then
+% takes to the next column are taken back when the column is made
+% (|\@didactic@colfeet|), as they are by their numbers.
+% With a footnote of \LaTeX's own among them the kernel's way stays, since
+% we can't take back a footnote whose line goes on: a footnote of ours may then
+% be put after a later line and go to the next page, which the records say a
+% run later (|\@didactic@record|).
+% Where the kernel's part for the note is skipped (a note sent to the foot),
+% its |\@reinserts| is ours to do: without it no insertion of
+% footnotes would be on the page and \TeX\ wouldn't count the foot (the rows
+% |mcol3x| and |mcol3|); we do it before the place to break after the line.
+%
+% A second note called out in the same line as an earlier one comes after the
+% place to break that the kernel put after the earlier one's special output
+% (its |\addpenalty\interlinepenalty|, which must be there, since the
+% penalty \TeX\ broke at is gone): its mark, and its footnote if it goes to
+% the foot, would go to the next page if \TeX\ broke there, its line staying
+% (the row |wait|).
+% So for one of our notes, if nothing but marks lies after the last place to
+% break in the page so far, that place is taken out (|\@didactic@sameline|)
+% and put back after our mark, as the kernel made it, |\interlinepenalty|
+% (the kernel adds its own after the special output only where its part for
+% the note isn't skipped and \textsf{marginfix} leaves |\outputpenalty| below
+% zero, so it can't be left to it).
+%    \begin{macrocode}
+\newmarks\@didactic@notemarks
+\newcommand\@didactic@callout{%
+  \let\@didactic@after\relax
+  \let\@didactic@skip\relax
+  \expandafter\@didactic@peek\@currlist\@elt\relax\@elt\relax\@nil
+  \ifnum\@didactic@noteof\@didactic@head>\z@
+    \@didactic@decide
+    \@didactic@freenote{\the\@didactic@noteof\@didactic@head}%
+  \fi
+  \@didactic@footback
+  \ifnum\@didactic@noteof\@didactic@head>\z@
+    \@didactic@sameline
+  \fi
+  \unvbox\@holdpg
+  \ifx\@didactic@skip\@didactic@skipnext
+    \@didactic@attach{\@didactic@reinserts}%
+  \fi
+  \@didactic@after
+  \ifnum\@didactic@noteof\@didactic@head>\z@
+    \@didactic@attach{%
+      \marks\@didactic@notemarks{\the\@didactic@noteof\@didactic@head}}%
+  \fi
+  \if@didactic@samelined\penalty\interlinepenalty\fi
+  \@didactic@skip}
+\def\@didactic@peek\@elt#1\@elt#2#3\@nil{%
+  \def\@didactic@head{#1}\def\@didactic@pair{#2}}
+\newcommand\@didactic@attach[1]{%
+  \let\@didactic@pens\@empty
+  \@didactic@unpenalty
+  #1\@didactic@pens}
+\newcommand\@didactic@unpenalty{%
+  \ifnum\lastnodetype=13
+    \edef\@didactic@pens{\penalty\the\lastpenalty\relax\@didactic@pens}%
+    \unpenalty
+    \expandafter\@didactic@unpenalty
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@footback,\@didactic@reinserts}
+% The footnotes go back before the page so far if every box at the foot is
+% ours; the box itself is kept until the kernel's |\@reinserts|, since the
+% kernel counts its height first where it tries a float on the page, and
+% emptied there (|\@didactic@reinserts|, which takes the kernel's place in
+% the special output, the third and fourth patches), so that they aren't put
+% back twice.
+%    \begin{macrocode}
+\newif\if@didactic@backed
+\newcommand\@didactic@footback{%
+  \global\@didactic@backedfalse
+  \ifvoid\footins\else
+    \@didactic@scan\footins
+    \if@didactic@allours
+      \insert\footins{\floatingpenalty\@MM\unvcopy\footins}%
+      \global\@didactic@backedtrue
+    \fi
+  \fi}
+\newcommand\@didactic@reinserts{%
+  \if@didactic@backed
+    \global\setbox\footins\box\voidb@x
+    \global\@didactic@backedfalse
+  \fi
+  \@reinserts}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@sameline}
+% The page so far is split at its last place to break, on a copy with a kern
+% of 1sp at its end, to its own height without it: the end doesn't fit, a break
+% after the last line does; if what is left has no height, it holds no line,
+% only what \TeX\ leaves of it when it splits: marks and the like, with the
+% penalties and kerns before them dropped (that 1sp too).
+% Then the page so far is the two parts, without the place to break between
+% them.
+% The kernel has already read the height of the page so far, which this
+% doesn't change; only its depth may move into it.
+% A page so far that can shrink (the glue around a heading, a |\vspace| with a
+% |minus|) fits its own height without its end by shrinking, and the split
+% then takes it all: the height to split to is then the least the copy can be
+% packed to, found by halving (a box packed to less is overfull), less 1sp.
+% A page so far that can shrink without end (|\vss|) is left as it is: the
+% records then say where its notes went (|\@didactic@record|).
+% The two parts are taken only if together they are as tall as the page so far
+% was: the place to break may be glue, the space before a note made in
+% vertical mode (after a |\vspace|, the |\addvspace| at an environment's end,
+% the title's space after the date before its |\thanks|), and the split drops
+% it at the top of the second part; then the place to break is no penalty to
+% move, and the page so far stays as it is (the rows |vgap|\ldots\ of
+% |test-noteplace|).
+%    \begin{macrocode}
+\newif\if@didactic@samelined
+\newdimen\@didactic@shlo
+\newdimen\@didactic@shhi
+\newcommand\@didactic@sameline{%
+  \global\@didactic@samelinedfalse
+  \begingroup
+    \vbadness\@M \vfuzz\maxdimen
+    \splitmaxdepth\maxdimen \splittopskip\z@skip
+    \setbox\z@\vbox{\unvcopy\@holdpg\kern1sp}%
+    \@didactic@shhi\ht\z@
+    \setbox4\vbox to\dimexpr\ht\z@-1sp\relax{\unvcopy\z@}%
+    \ifnum\badness<1000000
+      \setbox4\vbox to\z@{\unvcopy\z@}%
+      \ifnum\badness<1000000
+        \setbox\z@\box\voidb@x
+      \else
+        \@didactic@shlo\z@
+        \loop\ifdim\dimexpr\@didactic@shhi-\@didactic@shlo\relax>\@ne sp
+          \dimen@\dimexpr(\@didactic@shlo+\@didactic@shhi)/2\relax
+          \setbox4\vbox to\dimen@{\unvcopy\z@}%
+          \ifnum\badness=1000000
+            \@didactic@shlo\dimen@\else\@didactic@shhi\dimen@\fi
+        \repeat
+      \fi
+    \fi
+    \ifvoid\z@\else
+      \setbox\tw@\vsplit\z@ to\dimexpr\@didactic@shhi-1sp\relax
+    \fi
+    \ifvoid\z@\else
+      \ifdim\dimexpr\ht\z@+\dp\z@\relax=\z@
+        \setbox4\vbox{\unvcopy\tw@\unvcopy\z@}%
+        \ifdim\dimexpr\ht4+\dp4\relax=\dimexpr\ht\@holdpg+\dp\@holdpg\relax
+          \global\setbox\@holdpg\box4
+          \global\@didactic@samelinedtrue
+        \fi
+      \fi
+    \fi
+  \endgroup}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@scan}
+% |\@didactic@scan|\meta{box} reads the boxes at a foot from the end: ours are
+% the vertical boxes that end with a penalty of $-1000000$ less the note's
+% number (|\@didactic@tofoot|, read by |\@didactic@idof|); anything else is
+% \LaTeX's (the lines of a footnote of its own), and the foot isn't all ours.
+% The number is read from no dimension of the box or the page: a box keeps it
+% whatever the column's width is where it is read (in \textsf{multicol}'s
+% columns, in two columns, after a change of the text's width), and a
+% penalty at the end of a vertical box changes neither its height nor its
+% depth.
+% Glue, kerns and penalties are passed; any other item ends the scan (\TeX\
+% can't take it off a list), and the scan isn't complete: what is above it is
+% unknown, and the foot isn't taken as all ours.
+%    \begin{macrocode}
+\newif\if@didactic@allours
+\newif\if@didactic@scanfull
+\newcount\@didactic@boxid
+\newcommand\@didactic@idof[1]{%
+  \global\@didactic@boxid\z@
+  \ifvbox#1%
+    \begingroup
+      \setbox\@tempboxa\vbox{\unvcopy#1%
+        \ifnum\lastpenalty<-1000000
+          \global\@didactic@boxid\numexpr-1000000-\lastpenalty\relax
+        \fi}%
+    \endgroup
+  \fi}
+\newcommand\@didactic@scan[1]{%
+  \global\@didactic@alloursfalse
+  \global\@didactic@scanfulltrue
+  \ifvoid#1\else
+    \global\@didactic@alloursfalse
+    \global\let\@didactic@scanlatex\relax
+    \setbox\@tempboxa\vbox{\unvcopy#1\@didactic@scanloop}%
+    \ifx\@didactic@scanlatex\relax
+      \if@didactic@scanfull\global\@didactic@allourstrue\fi
+    \fi
+  \fi}
+\newcommand\@didactic@scanloop{%
+  \let\@didactic@next\relax
+  \ifnum\lastnodetype=\tw@
+    \setbox\z@\lastbox
+    \@didactic@idof\z@
+    \ifnum\@didactic@boxid>\z@\else
+      \global\let\@didactic@scanlatex\@empty
+    \fi
+    \let\@didactic@next\@didactic@scanloop
+  \else\ifnum\lastnodetype=\@ne
+    \setbox\z@\lastbox
+    \global\let\@didactic@scanlatex\@empty
+    \let\@didactic@next\@didactic@scanloop
+  \else\ifnum\lastnodetype>10
+    \unskip\unkern\unpenalty
+    \let\@didactic@next\@didactic@scanloop
+  \else\ifnum\lastnodetype>\m@ne
+    \global\@didactic@scanfullfalse
+  \fi\fi\fi\fi
+  \@didactic@next}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@readlast}
+% When a column is made, the last of our marks in it is the highest number of 
+% a note whose line is there; if it has none of our marks, no note's line is 
+% there, and the number stays what the last column made said.
+% We read it where \textsf{marginfix} builds the margin of the column, in 
+% |\MFX@combinefloats@before|, from the column in |\@outputbox|: not at the 
+% start of |\@makecol|, which \textsf{lineno} (loaded by a package 
+% \textsf{didactic} uses) replaces in two columns by a copy it took before 
+% ours (the row |linemovestwocol|).
+% We can't take \TeX's |\botmarks| for it.
+% \TeX\ sets the marks at every output, the special outputs for notes and 
+% floats too, and a column without marks gets the last value as its own: the 
+% mark of a note whose paragraph then went to the next page whole would count 
+% as on this one.
+% Not from the special output for that note: we put the mark into the page 
+% there, after \TeX\ has set the marks for it.
+% But a later special output on the same page, for another note or a float, 
+% reads a page so far that holds the mark, and sets |\botmarks| to it; if the 
+% paragraph then goes on, the column made has none of our marks and inherits 
+% that one.
+% The row |linemovestwo| of |test-noteplace| pins it (two callouts in a 
+% paragraph that moves whole, from a page with no callout of its own); 
+% |linemovesalone|, with one callout, shows why one isn't enough to see it.
+% So we read the column itself: we split a copy of it, all of it, and take 
+% |\splitbotmarks|, which is empty when the part split off has no mark.
+% A column is split only where it may break; |\vsplit| to |\maxdimen| keeps 
+% going until the copy is empty.
+% That is right on a page with no callout (nothing read, the number stays), 
+% one whose only callout's line went on (likewise), one after several special 
+% outputs (they don't change the number, only columns made do), a page of 
+% floats (no column is made, the number stays; the row |linemovesfloat|) and 
+% the first page (it starts at zero).
+%
+% Splitting fails on glue that shrinks without limit, which \TeX\ doesn't let 
+% into a page but code in the output routine could put there; we test for it 
+% first, as \textsf{marginfix} does: a box with such glue, set to no height, 
+% is not overfull.
+% Glue, kerns and penalties at the column's end hold no mark and are taken off
+% the copy before the test (|\@didactic@untail|): \textsf{longtable} ends each
+% page it makes with |\vss|, and its columns are read as any other (the row
+% |ltcallouts|).
+% If the test still finds such glue, we fall back to |\botmarks|, with a warning that a note called out 
+% near the foot of the page may be set there, a page before its line; but
+% only if a note's place can depend on it (|\@didactic@doubt|): a note of ours
+% in \textsf{marginfix}'s list, or sent to the foot, numbered above what the
+% last reading found, is one called out since, maybe on this page; without
+% one, the reading changes nothing, and nothing is said (the row
+% |ltnodoubt|).
+% We warn once for the page, though it may be read twice (|\@didactic@colfeet|
+% and |\MFX@combinefloats@before|, in two columns).
+% A column with no height, an empty page, isn't overfull at no height either,
+% shrink or not; it splits all the same, so the test is only for a column with
+% height.
+%    \begin{macrocode}
+\newcount\@didactic@pagelast
+\newcount\@didactic@cantpage
+\@didactic@cantpage\m@ne
+\newcommand\@didactic@readlast{%
+  \begingroup
+    \vbadness\@M \vfuzz\maxdimen
+    \splittopskip\z@skip \splitmaxdepth\maxdimen
+    \setbox\z@\vbox{\unvcopy\@outputbox\@didactic@untail}%
+    \setbox\tw@\vbox to\z@{\unvcopy\z@}%
+    \@tempswafalse
+    \ifnum\badness<1000000
+      \ifdim\dimexpr\ht\z@+\dp\z@\relax>\z@ \@tempswatrue \fi
+    \fi
+    \if@tempswa
+      \@didactic@doubt
+      \edef\@didactic@tmp{\botmarks\@didactic@notemarks}%
+      \ifx\@didactic@tmp\@empty\else
+        \global\@didactic@pagelast\@didactic@tmp\relax
+      \fi
+      \if@didactic@indoubt\ifnum\c@page=\@didactic@cantpage\else
+        \global\@didactic@cantpage\c@page
+        \PackageWarningNoLine{didactic}{Can't read the callouts of page
+          \thepage:\MessageBreak a margin note called out near its foot may
+          be set there,\MessageBreak a page before its line}%
+      \fi\fi
+    \else
+      \let\@didactic@last\@empty
+      \@didactic@splitall
+      \ifx\@didactic@last\@empty\else
+        \global\@didactic@pagelast\@didactic@last\relax
+      \fi
+    \fi
+  \endgroup}
+\newcommand\@didactic@untail{%
+  \ifcase\numexpr\lastnodetype-10\relax
+  \or\unskip\expandafter\@didactic@untail
+  \or\unkern\expandafter\@didactic@untail
+  \or\unpenalty\expandafter\@didactic@untail
+  \fi}
+\newif\if@didactic@indoubt
+\newcommand\@didactic@doubt{%
+  \global\@didactic@indoubtfalse
+  \begingroup
+    \def\mfx@build@note##1##2##3{%
+      \ifnum\@didactic@noteof##1>\@didactic@pagelast
+        \global\@didactic@indoubttrue
+      \fi}%
+    \let\mfx@build@skip\@gobble
+    \let\mfx@build@clear\relax
+    \mfx@marginlist
+    \def\@didactic@delt##1,{\ifx\relax##1\relax\else
+      \ifnum##1>\@didactic@pagelast\global\@didactic@indoubttrue\fi
+      \expandafter\@didactic@delt\fi}%
+    \expandafter\@didactic@delt\@didactic@footids\relax,%
+  \endgroup}
+\newcommand\@didactic@splitall{%
+  \setbox\tw@\vsplit\z@ to\maxdimen
+  \edef\@didactic@tmp{\splitbotmarks\@didactic@notemarks}%
+  \ifx\@didactic@tmp\@empty\else\let\@didactic@last\@didactic@tmp\fi
+  \ifvoid\z@\else\expandafter\@didactic@splitall\fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@sift,\@didactic@unsift}
+% Before \textsf{marginfix} builds the margin of the page we take the notes 
+% numbered higher than that out of its list, and after it we put them back 
+% at the end, where what the page couldn't hold waits too, at the top of the 
+% next page (|\MFX@minus@inf|).
+% \textsf{marginfix} sets a note so marked at the top of a margin with its first
+% line on the text's first (at |\topskip|), as a note carried to the page; its
+% own hold of a note whose line went on puts it back at 0\,pt, the margin's
+% very top, a few points above that line (the row |heldtop| of
+% |test-noteplace| pins ours).
+% A skip goes with the note before it.
+% The rest of a note \textsf{marginfix} has split carries the number of its 
+% note (|\MFX@copyclass| makes the rest, from 1.5 on): it goes with its note's 
+% line, which is on this page or an earlier one.
+%    \begin{macrocode}
+\let\@didactic@held\@empty
+\let\@didactic@kept\@empty
+\newcommand\@didactic@sift{%
+  \global\let\@didactic@kept\@empty
+  \global\let\@didactic@held\@empty
+  \let\@didactic@to\@didactic@kept
+  \begingroup
+    \def\mfx@build@note##1##2##3{%
+      \ifnum\@didactic@noteof##1>\@didactic@pagelast
+        \@didactic@append\@didactic@held{%
+          \noexpand\mfx@build@note\noexpand##1\noexpand##2{\MFX@minus@inf}}%
+        \global\let\@didactic@to\@didactic@held
+      \else
+        \@didactic@append\@didactic@kept{%
+          \noexpand\mfx@build@note\noexpand##1\noexpand##2{##3}}%
+        \global\let\@didactic@to\@didactic@kept
+      \fi}%
+    \def\mfx@build@skip##1{%
+      \ifx\@didactic@to\@didactic@held
+        \@didactic@append\@didactic@held{\noexpand\mfx@build@skip{##1}}%
+      \else
+        \@didactic@append\@didactic@kept{\noexpand\mfx@build@skip{##1}}%
+      \fi}%
+    \def\mfx@build@clear{%
+      \@didactic@append\@didactic@kept{\noexpand\mfx@build@clear}}%
+    \mfx@marginlist
+  \endgroup
+  \global\let\mfx@marginlist\@didactic@kept}
+\newcommand\@didactic@unsift{%
+  \xdef\mfx@marginlist{\unexpanded\expandafter{\mfx@marginlist}%
+    \unexpanded\expandafter{\@didactic@held}}%
+  \global\let\@didactic@held\@empty}
+\newcommand\@didactic@append[2]{\xdef#1{\unexpanded\expandafter{#1}#2}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{The decision at the callout}
+%
+% Where a note is called out we know the page so far, and how much of the 
+% margin of the column the notes for it already take: those carried from the 
+% page before, at the top, and those called out on it so far, each with 
+% |\marginparpush| after it.
+% \textsf{marginfix} sets the notes of a column in their order, as low as their 
+% callouts allow and as high as needed: they all fit if their heights and the 
+% pushes between them add up to less than the margin.
+% So a note fits if what the notes so far take and its own height add up to 
+% less than the height of the column (with \textsf{marginfix}'s 
+% |\marginheightadjustment|); that is the test \textsf{marginfix} makes too 
+% (|\MFX@check@fit|).
+% A note that doesn't fit is carried to a later page by \textsf{marginfix}, and 
+% every note after it on the page with it, since it keeps their order; so 
+% after a carried note the margin counts as full.
+% Deferrable notes are \textsf{marginfix}'s: they give way to the others at 
+% the page build, by its mode (|\marginnotepriority|), so we never decide for 
+% one, and count it at what it keeps (|\@didactic@deferclaim|).
+% Counting them at their full height would send the notes after them to the
+% foot or to the next page where \textsf{marginfix} would have made room.
+%
+% \begin{macro}{\@didactic@decide}
+% The decision itself, for the note at the head of |\@currlist|, before the 
+% kernel hands it to |\@addmarginpar|.
+% Its height is that of the taller of its two boxes (one for each side of the 
+% page).
+% A note carried gets its reason, by the number of its boxes, for the 
+% warning that it is set on another page (|\@didactic@whyof|).
+% Every note keeps the page it was decided for, by its number (|\@didactic@dn@|
+% and, as printed, |\@didactic@dt@|\meta{number}), for a note whose line \TeX's
+% break then takes to a later page (|\@didactic@carrywarn|).
+% Its mode is the one where it was called out (|\@didactic@ifcarry|, kept by
+% |\@didactic@tagnote|), not the one where the output fires, at the end of the
+% paragraph, say, after the group of a |\marginnoteoverflow| has ended.
+%    \begin{macrocode}
+\newif\if@didactic@closed
+\newdimen\@didactic@stay
+\newdimen\@didactic@noteht
+\newcommand\@didactic@decide{%
+  \expandafter\xdef\csname @didactic@dn@\the\@didactic@noteof\@didactic@head
+    \endcsname{\the\c@page}%
+  \expandafter\xdef\csname @didactic@dt@\the\@didactic@noteof\@didactic@head
+    \endcsname{\thepage}%
+  \@didactic@noteht\dimexpr\ht\@didactic@head+\dp\@didactic@head\relax
+  \ifdim\dimexpr\ht\@didactic@pair+\dp\@didactic@pair\relax>\@didactic@noteht
+    \@didactic@noteht\dimexpr\ht\@didactic@pair+\dp\@didactic@pair\relax
+  \fi
+  \@didactic@setwhy{}%
+  \@didactic@ifdeferrable\@didactic@head
+    {\global\advance\@didactic@stay
+       \dimexpr\@didactic@deferclaim+\marginparpush\relax}
+    {\@didactic@decide@}}
+\newcommand\@didactic@decide@{%
+  \@tempswafalse
+  \if@didactic@closed\else
+    \ifdim\dimexpr\@didactic@stay+\@didactic@noteht\relax<\@didactic@room
+      \@tempswatrue
+    \fi
+  \fi
+  \if@tempswa
+    \global\advance\@didactic@stay
+      \dimexpr\@didactic@noteht+\marginparpush\relax
+  \else
+    \@didactic@ifcarry
+      {\@didactic@carry{noteoverflow is carry}}
+      {\@didactic@footplace\@ne
+       \if@tempswa\else
+         \@didactic@ifover
+           {\@didactic@over}
+           {\@didactic@footplace\z@
+            \if@tempswa\else
+              \expandafter\@didactic@carry\expandafter{\@didactic@footwhy}%
+            \fi}%
+       \fi}%
+  \fi}
+\newcommand\@didactic@carry[1]{%
+  \@didactic@setwhy{#1}%
+  \global\@didactic@closedtrue
+  \ifcsname @didactic@fn@\the\@didactic@noteof\@didactic@head\endcsname
+    \global\@didactic@fncarriedtrue
+  \fi}
+% A deferrable note gives way to the notes after it, in \textsf{marginfix}'s 
+% mode |defer| whole, in |split| down to what is worth splitting 
+% (|\Mfx@splitmin|); in |warn| and |off| not at all: there notes are set as
+% if none were deferrable, |warn| only saying which deferrable notes an
+% ordinary one that moved had ahead of it.  (Counted at nothing in |warn|, it
+% let the notes after it be found to fit, and \textsf{marginfix} then moved
+% them to the next page, a footnote too, where the foot had room.)
+% It never makes us decide for itself: \textsf{marginfix} places it, splits 
+% it or moves it at the page build.
+% For the notes after it it takes what it will keep: nothing, the split 
+% minimum or all.
+\def\@didactic@prdefer{defer}
+\newcommand\@didactic@deferclaim{%
+  \ifdefined\mfx@priority
+    \ifx\mfx@priority\MFX@priority@split
+      \ifdefined\Mfx@splitmin
+        \ifdim\@didactic@noteht<\Mfx@splitmin\@didactic@noteht
+        \else\Mfx@splitmin\fi
+      \else\z@\fi
+    \else\ifx\mfx@priority\@didactic@prdefer\z@
+    \else\@didactic@noteht\fi\fi
+  \else\@didactic@noteht\fi}
+\newcommand\@didactic@room{%
+  \dimexpr\@colroom
+    \ifdefined\marginheightadjustment+\marginheightadjustment\fi\relax}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@ifover,\@didactic@over}
+% A note that misses the foot of the margin by no more than two lines of the
+% text stays beside its line and runs past the foot of the margin, with a
+% warning, unless it is a footnote the foot holds whole, which goes there first
+% (|\@didactic@footplace|\,|1|, in |\@didactic@decide@|): there it is still
+% where the reader looks for it, and nothing is under
+% the margin at the foot of the page (the folio is under the text; a running
+% foot as wide as text and margin would be in its way, see the documentation).
+% Only in |foot| mode, and only once in a column: after it the margin counts as
+% full and beyond, so that no other note runs over as well.
+% Only notes: a margin float (|marginfigure|, |margintable|, which |memoir| makes
+% a margin note of, |\@didactic@mf@|\meta{number}) below the text block is
+% another thing to look at, and \textsf{marginfix} moves it on as ever.
+% \textsf{marginfix} gives it the room when it builds the column, through its
+% |\marginheightadjustment| (|\@didactic@overapply|, below): by exactly as much
+% as the note misses, and a scaled point more since a note fits only if it is
+% shorter than the room, so that nothing is left for a note after it.
+% The cause goes into the warning: what the notes above it take of the margin,
+% and what floats on the page take of the column.
+% Not after a note carried from the page, nor after one that runs over
+% (|\if@didactic@closed|, until the next page): \textsf{marginfix} keeps the
+% notes in order, so every note after one carried goes with it, and room past
+% the foot can't keep it on the page; it was warned as running past the foot
+% here and then set on the next page.
+% The margin is closed by a note carried or run over (|\@didactic@carry|,
+% |\@didactic@over|); what the notes so far take is |\@didactic@stay| either
+% way, the notes that stay on the page.
+% A footnote carried also bars the foot to the footnotes after it on the page
+% (|\if@didactic@fncarried|), whatever carried it: by the mode |carry| of its
+% passage as by a foot without room (review 3, S1).
+%    \begin{macrocode}
+\newcount\@didactic@ovid
+\newcount\@didactic@ovnote
+\newdimen\@didactic@ovd
+\newdimen\@didactic@ovsaved
+\let\@didactic@ovwhy\@empty
+\newcommand\@didactic@overmax{2\@didactic@keep@L}
+\newcommand\@didactic@ifover{%
+  \ifcsname @didactic@mf@\the\@didactic@noteof\@didactic@head\endcsname
+    \expandafter\@secondoftwo
+  \else
+    \expandafter\@didactic@ifover@
+  \fi}
+\newcommand\@didactic@ifover@{%
+  \if@didactic@closed\expandafter\@secondoftwo\else
+    \expandafter\@didactic@ifover@@\fi}
+\newcommand\@didactic@ifover@@{%
+  \ifdefined\marginheightadjustment
+    \ifdim\dimexpr\@didactic@stay+\@didactic@noteht\relax
+        <\dimexpr\@didactic@room+\@didactic@overmax\relax
+      \expandafter\expandafter\expandafter\@firstoftwo
+    \else
+      \expandafter\expandafter\expandafter\@secondoftwo
+    \fi
+  \else
+    \expandafter\@secondoftwo
+  \fi}
+\newcommand\@didactic@over{%
+  \global\@didactic@ovid\@didactic@noteof\@didactic@head
+  \global\@didactic@ovd
+    \dimexpr\@didactic@stay+\@didactic@noteht-\@didactic@room+1sp\relax
+  \xdef\@didactic@ovwhy{the notes above it take \the\@didactic@stay\space of
+    the margin's \the\@didactic@room
+    \ifdim\@colroom<\textheight\space(floats on the page take
+      \the\dimexpr\textheight-\@colroom\relax)\fi}%
+  \@didactic@setwhy{}%
+  \global\advance\@didactic@stay
+    \dimexpr\@didactic@noteht+\marginparpush\relax
+  \global\@didactic@closedtrue}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@overapply,\@didactic@overdone}
+% When the column is built, the note runs over only if its callout is in the
+% column: \TeX's own break may have taken its line to the next column since we
+% decided, and then the note goes with it, and the room must not go to another
+% note, which would then run over unasked.
+% The adjustment is put back after the column's margin is built, and the
+% warning comes then, with the page the note is on.
+%    \begin{macrocode}
+\newif\if@didactic@overon
+\newcommand\@didactic@overapply{%
+  \global\@didactic@overonfalse
+  \ifnum\@didactic@ovid>\z@
+    \ifnum\@didactic@ovid>\@didactic@pagelast\else
+      \global\@didactic@overontrue
+      \global\@didactic@ovnote\@didactic@ovid
+      \global\@didactic@ovsaved\marginheightadjustment
+      \global\advance\marginheightadjustment\@didactic@ovd
+    \fi
+    \global\@didactic@ovid\z@
+  \fi}
+%    \end{macrocode}
+%
+% \textsf{marginfix} 1.2 draws the margin of a column at |\columnwidth| from the
+% text's left edge; on a page that holds \textsf{multicol}'s columns that is
+% the width of a column when the page is made, so the margin is drawn into the
+% text, notes and all, without a word (later versions use the text's width,
+% |\MFX@columnwidth|).  Where \textsf{marginfix} has no |\MFX@columnwidth| and
+% outside two columns, |\columnwidth| is the text's width while it builds and
+% attaches the margin, and what it was after (|\@didactic@mfxbuild|).
+%    \begin{macrocode}
+\newcommand\@didactic@mfxbuild{%
+  \ifdefined\MFX@columnwidth\@didactic@MFX@combinefloats@before
+  \else\if@twocolumn\@didactic@MFX@combinefloats@before
+  \else
+    \edef\@didactic@colw{\the\columnwidth}%
+    \columnwidth\textwidth
+    \@didactic@MFX@combinefloats@before
+    \columnwidth\@didactic@colw\relax
+  \fi\fi}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\newcommand\@didactic@overdone{%
+  \if@didactic@overon
+    \global\marginheightadjustment\@didactic@ovsaved
+    \global\@didactic@overonfalse
+    \PackageWarningNoLine{didactic}{Margin note called out at
+      \csname @didactic@ln@\the\@didactic@ovnote\endcsname\MessageBreak
+      on page \thepage\space runs \the\@didactic@ovd\space past the foot of
+      the margin:\MessageBreak \@didactic@ovwhy}%
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@setwhy,\@didactic@whyof}
+% The reason is kept for both boxes of the note, since which of them is set 
+% depends on the side of the page, and cleared for a note that fits, since 
+% the boxes come back for other notes.
+%    \begin{macrocode}
+\newcommand\@didactic@setwhy[1]{%
+  \@didactic@setwhy@\@didactic@head{#1}%
+  \@didactic@setwhy@\@didactic@pair{#1}}
+\newcommand\@didactic@setwhy@[2]{%
+  \ifx\relax#2\relax
+    \global\expandafter\let\csname @didactic@why@\number#1\endcsname
+      \@undefined
+  \else
+    \expandafter\gdef\csname @didactic@why@\number#1\endcsname{#2}%
+  \fi}
+\newcommand\@didactic@whyof[1]{%
+  \ifcsname @didactic@why@\number#1\endcsname
+    :\MessageBreak\csname @didactic@why@\number#1\endcsname
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@newpage}
+% What the notes carried to the next page take of its margin, counted when 
+% \textsf{marginfix} has built the column: the notes and skips left in its 
+% list, ours held for their lines among them.
+% A deferrable note left there counts at what it keeps, as at its callout
+% (|\@didactic@deferclaim|): on the next page it gives way to the notes after
+% it as it did on its own, and counted whole it would send them to the foot or
+% on where \textsf{marginfix} makes room.
+%    \begin{macrocode}
+\newcommand\@didactic@newpage{%
+  \global\@didactic@stay\z@
+  \global\@didactic@closedfalse
+  \global\@didactic@fncarriedfalse
+  \begingroup
+    \def\mfx@build@note##1##2##3{%
+      \@didactic@noteht\dimexpr\ht##1+\dp##1\relax
+      \@didactic@ifdeferrable##1
+        {\global\advance\@didactic@stay\@didactic@deferclaim}
+        {\global\advance\@didactic@stay\@didactic@noteht}}%
+    \def\mfx@build@skip##1{\global\advance\@didactic@stay##1\relax}%
+    \let\mfx@build@clear\relax
+    \mfx@marginlist
+  \endgroup}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@carrywarn}
+% A note set on another page than its callout's is named in one warning, with 
+% the page it is set on and the reason.
+% We find out ourselves, when a column is built: a note of ours left in 
+% \textsf{marginfix}'s list whose line is in the column is carried 
+% (|\@didactic@carried| keeps its number, with the page of its callout); a 
+% note carried before that is no longer in the list after a later column is 
+% built has been set there, and we warn.
+% \textsf{marginfix} 1.6 warns for such notes itself (|\MFX@check@page@|), but 
+% not for every one (not for the notes it sets on the pages it adds at the end 
+% of the document), and without our reason; so we silence it while we place 
+% notes, and give the one warning ourselves.
+% A note decided for one page (to stay, or to run past the foot of the
+% margin) whose line \TeX's break then takes to a later page goes with its
+% line, and is carried from there only if the margin of that page has no room
+% for it; it has no reason of its own, as it wasn't carried where it was
+% decided, so the warning says that (|\@didactic@dn@|, kept by
+% |\@didactic@decide|).
+%    \begin{macrocode}
+\let\@didactic@carried\@empty
+\let\@didactic@cwhy\@empty
+\newcommand\@didactic@carrywarn{%
+  \begingroup
+    \let\@didactic@left\@empty
+    \def\mfx@build@note##1##2##3{%
+      \@didactic@ifrest##1{}{\@didactic@ifdeferrable##1{}{%
+      \ifnum\@didactic@noteof##1>\z@
+        \xdef\@didactic@left{\@didactic@left,\the\@didactic@noteof##1,}%
+        \ifnum\@didactic@noteof##1>\@didactic@pagelast\else
+        \ifcsname @didactic@cp@\the\@didactic@noteof##1\endcsname\else
+          \expandafter\xdef
+            \csname @didactic@cp@\the\@didactic@noteof##1\endcsname{\thepage}%
+          \edef\@didactic@cwhy{\@didactic@whyof##1}%
+          \ifx\@didactic@cwhy\@empty
+            \ifcsname @didactic@dn@\the\@didactic@noteof##1\endcsname
+              \ifnum\csname @didactic@dn@\the\@didactic@noteof##1\endcsname
+                  =\c@page\else
+                \edef\@didactic@cwhy{:\noexpand\MessageBreak its line went on
+                  to page \thepage\space after the note was placed for page
+                  \csname @didactic@dt@\the\@didactic@noteof##1\endcsname,
+                  and the margin there has no room for it}%
+              \fi
+            \fi
+          \fi
+          \expandafter\xdef
+            \csname @didactic@cw@\the\@didactic@noteof##1\endcsname{%
+              \@didactic@cwhy}%
+          \xdef\@didactic@carried{%
+            \unexpanded\expandafter{\@didactic@carried}%
+            \noexpand\@didactic@set{\the\@didactic@noteof##1}}%
+        \fi\fi
+      \fi}}}%
+    \let\mfx@build@skip\@gobble
+    \let\mfx@build@clear\relax
+    \mfx@marginlist
+    \let\@didactic@still\@empty
+    \let\@didactic@set\@didactic@ifset
+    \@didactic@carried
+    \global\let\@didactic@carried\@didactic@still
+  \endgroup}
+\newcommand\@didactic@ifset[1]{%
+  \IfSubStr{\@didactic@left}{,#1,}{%
+    \xdef\@didactic@still{\unexpanded\expandafter{\@didactic@still}%
+      \noexpand\@didactic@set{#1}}}{%
+    \ifnum\csname @didactic@cp@#1\endcsname=\c@page\else
+      \@didactic@warned{#1}%
+      \PackageWarningNoLine{didactic}{Margin note called out at
+        \csname @didactic@ln@#1\endcsname\MessageBreak
+        on page \csname @didactic@cp@#1\endcsname\space is set on page
+        \thepage\csname @didactic@cw@#1\endcsname\@didactic@reusers{#1}}%
+    \fi}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{A footnote at the foot}
+%
+% With |noteoverflow=foot| a footnote that doesn't fit in the margin goes to
+% the foot of its page, if it fits there (below), set as \textsf{memoir} sets a
+% footnote at the foot: in the width of the text, with its mark, rule and
+% struts.
+% The decision is made in the output routine, where the text of the note is
+% gone; and the text must run once, where it is called out, as without
+% \textsf{didactic}: a counter, the first use of an acronym, a citation that
+% \textsf{biblatex} records must happen once, whichever of the two places the
+% reader finds the note in.
+% So the text is set once, into lines as long as \TeX\ allows
+% (|\@didactic@measure|): each paragraph is one line, which holds the
+% paragraph's horizontal material, before any line of it is broken.
+% If that is all there is (|\@didactic@plain|), the note is \emph{plain}: its
+% margin note is made from copies of those lines, broken at the margin's
+% measure, and if the note goes to the foot, the foot's version is made from
+% them too, broken at the text's (|\@didactic@reflow|), and no word of the text
+% runs again.
+% Citations and sentences are plain.
+% A note with a list, a display, space of its own between its lines, a rule or
+% a box between them, anything else than lines of paragraphs, isn't: for it the
+% text runs twice more, quietly, once for the margin and once for the foot, as
+% before version~2.18 (|\@didactic@fallback|).
+% Its counters are set back each time and \textsf{biblatex} records nothing
+% those times, but other state its text changes (an acronym's first use, a
+% citation seen) has been changed by the first run, and the two that are
+% printed show it as changed.
+%
+% \begin{macro}{\@didactic@footwrap,\@didactic@ifcopies,\@didactic@fl}
+% We wrap \textsf{memoir}'s |\@footnotetext| when it sets footnotes in the
+% margin, or \textsf{hyperref}'s |\H@@footnotetext|, which it passes the text
+% to after the link target: so the target is in the text, and in both
+% versions, of which only the printed one is shipped.
+% The margin note \textsf{memoir} makes is tagged as a footnote's
+% (|\@didactic@tagnote|); it may go to the foot if its text
+% was set to go there: in the mode |foot|, read where it is called out, in one
+% column, with the footnotes in the margin (|\@didactic@ifcopies|).
+% The note's lines take the penalty between a footnote's lines,
+% |\interfootnotelinepenalty|, as \LaTeX's footnotes do, and not that of the
+% paragraph it is called out in.
+% The lines of a footnote are those of \textsf{memoir}'s font for footnotes,
+% |\@didactic@fl|, its |\baselineskip|.
+%    \begin{macrocode}
+\newif\if@didactic@isfn
+\newdimen\@didactic@fl
+\long\def\@didactic@footwrap#1{%
+  \if@didactic@inmeasure
+    \global\@didactic@nestedtrue
+  \else
+    \@didactic@footwrap@{#1}%
+  \fi}
+\long\def\@didactic@footwrap@#1{%
+  \global\@didactic@isfntrue
+  \@didactic@ifcopies{%
+    \edef\@didactic@idbefore{\the\@didactic@noteid}%
+    \@didactic@hboxwhere
+    \@didactic@measure{#1}%
+    \if@didactic@plain
+      \@didactic@footmargin{\@didactic@quiet
+        \interlinepenalty\interfootnotelinepenalty
+        \@didactic@curpieces\@didactic@quiet}%
+    \else
+      \PackageInfo{didactic}{Footnote called out at \@didactic@hboxat
+        \MessageBreak isn't plain: it has \@didactic@whynot;\MessageBreak
+        its text runs three times, for the margin and the foot}%
+      \@didactic@fallback{#1}%
+    \fi
+    \@didactic@hboxmargin
+    \@didactic@keep
+    \global\let\@thefnmark\@didactic@markafter}%
+   {\@didactic@footmargin{\interlinepenalty\interfootnotelinepenalty#1}}%
+  \global\@didactic@isfnfalse}
+\newcommand\@didactic@ifcopies{%
+  \@tempswafalse
+  \if@didactic@inmeasure\else\ifm@mfnmargin\if@twocolumn\else\if@didactic@noteplace
+    \ifdefstring{\@didactic@noteoverflow}{foot}{\@tempswatrue}{}%
+  \fi\fi\fi\fi
+  \if@tempswa\expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
+\AtBeginDocument{{%
+  \ifdefined\foottextfont\foottextfont\else\footnotesize\fi
+  \global\@didactic@fl\baselineskip}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@boxget,\@didactic@boxput}
+% The lines of a note waiting for its decision are kept in boxes of a pool,
+% taken here and given back when the note is decided: as many as there are
+% notes waiting at once, typically a few, not one per note.
+% A box is allocated only when the pool is empty.
+%    \begin{macrocode}
+\let\@didactic@freeboxes\@empty
+\newcommand\@didactic@boxget[1]{%
+  \ifx\@didactic@freeboxes\@empty
+    \newbox\@didactic@newbox
+    \xdef#1{\number\@didactic@newbox}%
+  \else
+    \expandafter\@didactic@boxpop\@didactic@freeboxes\@nil#1%
+  \fi}
+\def\@didactic@boxpop#1,#2\@nil#3{\xdef#3{#1}\gdef\@didactic@freeboxes{#2}}
+\newcommand\@didactic@boxput[1]{%
+  \global\setbox#1\box\voidb@x
+  \xdef\@didactic@freeboxes{\@didactic@freeboxes#1,}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@measure}
+% The text is set as a footnote's, in \textsf{memoir}'s font for footnotes
+% (whose justification asks which page it is on, and writes a label for that:
+% not here, where the justification is ours, nor in the versions for the foot,
+% where a |\write| between their lines would stop the reading of the foot,
+% |\@didactic@scan|, and the justification is the same on either side)
+% and with its label, but in a |\vbox| as wide as \TeX\ allows, with no
+% indent (|\everypar| takes the indent's box off), no glue at the sides:
+% each paragraph is one line, ended by its |\parfillskip|, or more than one
+% where the text breaks a line itself (|\\|, |\linebreak|).
+% Its paragraphs end quietly: \TeX\ packs a paragraph's lines at its end, and a
+% line of the measure's width that a list's item or a |\linebreak| leaves short,
+% or a paragraph too long for one line, would be said of from a version that
+% isn't printed.  The kernel's hooks |para/end| and |para/after| set
+% |\@didactic@quiet| for the end and the document's values back after it,
+% whatever the text makes |\par| (a list redefines it), for the paragraphs of
+% the measure's width only (|\hsize| is |\maxdimen|): a paragraph in a box of
+% the text, a column of a |tabular| or a |minipage|, says what it would without
+% \textsf{didactic}.  So do boxes the text makes itself (an |\hbox to|, a
+% |\makebox|), packed here, where the text runs once, with the document's
+% |\hfuzz| and |\hbadness|: the versions made from the measured lines copy those
+% boxes and never pack them again, and the fallback's two copies of a note that
+% isn't plain are quiet throughout (in the copy for the foot after
+% \textsf{memoir}'s |\@preamfntext|, whose |\@parboxrestore| sets |\sloppy|,
+% and with it the default |\hfuzz|).
+% This is where the text runs, once, as at the callout: counters step, labels
+% and citations are recorded, \textsf{biblatex}'s trackers too; and as in a
+% footnote, which \textsf{biblatex} marks in \textsf{memoir}'s |\@footnotetext|
+% by its toggle |blx@footnote|, so that a citation in it is set in the text and
+% doesn't make a footnote of its own.
+% Widths the text takes from |\linewidth| are taken here, where it is half as
+% wide as \TeX\ allows (the whole would make a |\parbox{\linewidth}| overflow
+% \TeX's arithmetic): such a box makes the note not plain (below), but a small
+% fraction of the width is wrong at both measures; the documentation says so.
+% The counters are kept as they were before and after, for the fallback.
+% So is the footnote's mark, |\@thefnmark|, which a |\footnotemark| in the text
+% sets for itself, globally: the note's own mark is set back after the
+% measure, for the margin note and the foot, and the inner one is left after
+% the note, as \LaTeX\ leaves it.
+% A |\\| in the text is \LaTeX's own forced line break here (the kernel's
+% |\@gnewline|, |\@didactic@gnewline|), as it is in a footnote at the foot:
+% in the margin's ragged setting (\textsf{ragged2e}'s) it ends a paragraph and
+% starts the next without an indent, by a hook for the next paragraph only,
+% which the measure would spend, and the margin note set from the lines would
+% indent that line.
+% A footnote or margin note made while the text is measured (a citation that
+% makes a footnote of its own, a |\marginpar| in the note) isn't made there,
+% since the measure is never printed and a margin note can't be made in a box;
+% the note is then not plain, and the fallback sets it, as without
+% \textsf{didactic}, with the counters as that leaves them.
+%    \begin{macrocode}
+\newif\if@didactic@inmeasure
+\AddToHook{para/end}{\if@didactic@inmeasure\ifdim\hsize=\maxdimen
+  \@didactic@quiet\fi\fi}
+\AddToHook{para/after}{\if@didactic@inmeasure\ifdim\hsize=\maxdimen
+  \@didactic@mloud\fi\fi}
+\def\@didactic@gnewline#1{\ifvmode\@nolnerr\else
+  \unskip\reserved@e{\reserved@f#1}\nobreak\hfil\break\fi}
+\long\def\@didactic@gobbleopt[#1]#2{}
+\newif\if@didactic@nested
+\newcommand\@didactic@measure[1]{%
+  \global\@didactic@nestedfalse
+  \global\@didactic@inmeasuretrue
+  \global\let\@didactic@markbefore\@thefnmark
+  \xdef\@didactic@lang{\language\the\language\relax
+    \lefthyphenmin\the\lefthyphenmin\relax
+    \righthyphenmin\the\righthyphenmin\relax
+    \uchyph\the\uchyph\relax}%
+  \@didactic@savecounters
+  \global\let\@didactic@ctbefore\@didactic@counters
+  \@didactic@boxget\@didactic@mbox
+  \global\setbox\@didactic@mbox\vbox{%
+    \def\baselinestretch{\m@m@footnote@spacing}%
+    \let\checkoddpage\relax
+    \reset@font\foottextfont
+    \let\\\@normalcr \let\@gnewline\@didactic@gnewline
+    \hsize\maxdimen \linewidth.5\maxdimen
+    \def\@didactic@url@fixed{\marginparwidth}%
+    \@didactic@keep@inboxtrue \clubpenalties\z@
+    \leftskip\z@skip \rightskip\z@skip \parskip\z@skip
+    \parindent\z@ \parfillskip\z@\@plus1fil
+    \everypar{\setbox\z@\lastbox}%
+    \def\marginpar{\global\@didactic@nestedtrue
+      \@ifnextchar[\@didactic@gobbleopt\@gobble}%
+    \edef\@didactic@mloud{\hfuzz\the\hfuzz\relax\hbadness\the\hbadness\relax}%
+    \def\@currentcounter{footnote}%
+    \protected@edef\@currentlabel{%
+      \csname p@footnote\endcsname\@thefnmark}%
+    \color@begingroup
+      \ifcsdef{etb@tgl@blx@footnote}{\toggletrue{blx@footnote}}{}%
+      \noindent\ignorespaces#1\par
+    \color@endgroup
+    \xdef\@didactic@mbsk{\the\dimexpr\baselineskip\relax}}%
+  \global\@didactic@inmeasurefalse
+  \global\let\@didactic@markafter\@thefnmark
+  \global\let\@thefnmark\@didactic@markbefore
+  \@didactic@savecounters
+  \global\let\@didactic@ctafter\@didactic@counters
+  \if@didactic@nested
+    \global\@didactic@plaintrue
+    \@didactic@notplain{a footnote or margin note of its own}%
+    \global\let\@didactic@ctafter\relax
+  \else
+    \@didactic@plain
+  \fi
+  \@didactic@boxput\@didactic@mbox}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@plain}
+% The measured box is read from its end, \TeX's only way into a list.
+% There may be lines, and between two lines only what \TeX\ puts between
+% them: penalties, the glue between lines, checked by its width (from
+% |\baselineskip| and the depth above and height below, or |\lineskip| where
+% that is less than |\lineskiplimit|), and between two paragraphs the
+% |\parskip|, of no width, above it; and above the first line, |\parskip|
+% glue of no width.
+% A line is an |\hbox| as wide as the measure, which a list's or a
+% |\parshape|'s line, a display or a box of the text's own isn't, and no
+% wider as text than half of it, else \TeX\ broke the paragraph because it
+% didn't fit and took the space at the break away.
+% That is tested by packing it to half the measure, overfull or not, never by
+% reading its width: a paragraph longer than the measure's line that \TeX\
+% breaks into lines it fits only by shrinking leaves a line wider than \TeX\
+% allows, and reading that width stops with \enquote{Dimension too large}.
+% It ends with its |\rightskip|, of no width, which a |\raggedright| in the
+% text would change, and if it ends its paragraph, with the |\parfillskip|
+% after a penalty; those go, since the lines are set again as paragraphs.
+% Anything else in the box, a mark, an insertion, a |\write| or a colour
+% between the lines, and the note isn't plain.
+% What failed first is kept (|\@didactic@notplain|), and the log says it, once
+% per note that isn't plain, as information: the reader can't act on it, but a
+% note found not plain by mistake would run its text three times without a
+% word, and the tests count these lines.
+% The lines go into boxes of the pool, from the last; |\@didactic@curpieces|
+% lists them, first first, each with what follows it: |P| a new paragraph,
+% |B| a line the text broke, |E| the end.
+%    \begin{macrocode}
+\newif\if@didactic@plain
+\let\@didactic@curpieces\@empty
+\let\@didactic@whynot\@empty
+\newcommand\@didactic@notplain[1]{%
+  \if@didactic@plain\xdef\@didactic@whynot{#1}\fi
+  \global\@didactic@plainfalse}
+\newcommand\@didactic@nodename[1]{%
+  \ifcase\numexpr#1\relax a character\or a line\or a box of its own\or a rule\or
+    an insertion\or a mark\or \string\vadjust\space material\or a ligature\or
+    a discretionary\or a \string\write, \string\special\space or colour\or
+    math\or glue\or a kern\or a penalty\else an item of type \number#1\fi}
+\newcommand\@didactic@plain{%
+  \global\@didactic@plaintrue
+  \gdef\@didactic@curpieces{}%
+  \gdef\@didactic@kind{E}%
+  \global\let\@didactic@belowht\relax
+  \global\let\@didactic@pend\relax
+  \setbox\z@\vbox{%
+    \rightskip\z@skip \parfillskip\z@\@plus1fil
+    \unvcopy\@didactic@mbox\@didactic@plainloop}%
+  \ifx\@didactic@pend\relax\else
+    \ifdim\@didactic@pend=\z@\else\@didactic@notplain{space of its own above its first line}\fi
+  \fi
+  \if@didactic@plain\else
+    \@didactic@freepieces\@didactic@curpieces
+    \gdef\@didactic@curpieces{}%
+  \fi}
+\newcommand\@didactic@plainloop{%
+  \let\@didactic@next\relax
+  \ifnum\lastnodetype=\@ne
+    \setbox\tw@\lastbox
+    \@didactic@plainline
+    \let\@didactic@next\@didactic@plainloop
+  \else\ifnum\lastnodetype=11
+    \ifx\@didactic@belowht\relax
+      \@didactic@notplain{space of its own at its end}
+    \else\ifx\@didactic@pend\relax
+      \xdef\@didactic@pend{\the\lastskip}%
+    \else
+      \ifdim\lastskip=\z@ \gdef\@didactic@kind{P}%
+      \else\@didactic@notplain{space of its own between paragraphs}\fi
     \fi\fi
+    \unskip
+    \let\@didactic@next\@didactic@plainloop
+  \else\ifnum\lastnodetype=13
+    \unpenalty
+    \let\@didactic@next\@didactic@plainloop
+  \else\ifnum\lastnodetype>\m@ne
+    \@didactic@notplain{\@didactic@nodename\lastnodetype\space between its lines}
+  \fi\fi\fi\fi
+  \if@didactic@plain\else\let\@didactic@next\relax\fi
+  \@didactic@next}
+%    \end{macrocode}
+% A line: the glue below it is checked now that its depth is known, and its
+% kind (what follows it) was set by what lay between it and the line below:
+% |P| if a |\parskip| was there, |E| for the last, else |B|.
+%    \begin{macrocode}
+\newcommand\@didactic@plainline{%
+  \ifx\@didactic@pend\relax
+    \ifx\@didactic@belowht\relax\else\@didactic@notplain{two lines without glue between them}\fi
+  \else
+    \dimen@\dimexpr\@didactic@mbsk-\dp\tw@-\@didactic@belowht\relax
+    \ifdim\dimen@<\lineskiplimit \dimen@\lineskip \fi
+    \ifdim\dimen@=\@didactic@pend\relax\else\@didactic@notplain{space of its own between lines (a display, \string\vspace)}\fi
+  \fi
+  \ifdim\wd\tw@=\maxdimen\else\@didactic@notplain{a line or box of another width (a list, a display, a box of its own)}\fi
+  \if@didactic@plain
+    \setbox4\hbox{\unhcopy\tw@
+      \@didactic@ifnoglue\rightskip{\unskip}{\@didactic@notplain{a \string\rightskip\space of its own}}%
+      \if\@didactic@kind B%
+        \ifnum\lastnodetype=13 \ifnum\lastpenalty>-\@M\relax
+          \@didactic@notplain{a line broken where the text didn't break it}%
+        \fi\else
+          \@didactic@notplain{a line broken where the text didn't break it}%
+        \fi
+      \else
+        \@didactic@ifnoglue\parfillskip
+          {\unskip\ifnum\lastnodetype=13 \unpenalty\fi}%
+          {\@didactic@notplain{a \string\parfillskip\space of its own}}%
+      \fi}%
+    {\@didactic@quiet \setbox6\hbox to.5\maxdimen{\unhcopy4}%
+     \ifnum\badness=1000000 \@didactic@notplain{a line too wide for a paragraph (a box as wide as \string\linewidth, or a paragraph too long)} \fi}%
+  \fi
+  \if@didactic@plain
+    \@didactic@boxget\@didactic@pb
+    \global\setbox\@didactic@pb\box4
+    \xdef\@didactic@curpieces{%
+      \noexpand\@didactic@pc{\@didactic@pb}{\@didactic@kind}%
+      \unexpanded\expandafter{\@didactic@curpieces}}%
+  \fi
+  \gdef\@didactic@kind{B}%
+  \xdef\@didactic@belowht{\the\ht\tw@}%
+  \global\let\@didactic@pend\relax}
+% |\@didactic@ifnoglue|\meta{skip}: whether the list ends with glue of
+% that skip's value, in the measure (|\rightskip| or |\parfillskip| there).
+\newcommand\@didactic@ifnoglue[1]{%
+  \@tempswafalse
+  \ifnum\lastnodetype=11
+    \ifdim\lastskip=#1%
+      \ifdim\gluestretch\lastskip=\gluestretch#1%
+        \ifnum\gluestretchorder\lastskip=\gluestretchorder#1%
+          \ifdim\glueshrink\lastskip=\glueshrink#1%
+            \@tempswatrue
+          \fi
+        \fi
+      \fi
+    \fi
+  \fi
+  \if@tempswa\expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@pc,\@didactic@freepieces,\@didactic@keep}
+% The pieces are set again where |\@didactic@curpieces| or a note's list
+% is used: each line's material, then a paragraph's end, or nothing: a line
+% the text broke keeps the penalty it broke at (\TeX\ leaves it at the end of
+% the line), which breaks it again.
+% A note's list is kept by its number when \textsf{memoir}'s margin note has
+% been made and numbered (if none was, it is given back), with the note's
+% mark, for the foot: either the
+% lines, |\@didactic@fromlines{|\meta{mark}|}{|\meta{pieces}|}{|\meta{language}|}|,
+% the language being the |\language| and the hyphenation's settings where the
+% note was called out, which the foot's version is broken with (in the output
+% routine they may be another language's), or the
+% fallback's copy, |\@didactic@fromcopy{|\meta{box}|}|.
+%    \begin{macrocode}
+\newcommand\@didactic@pc[2]{%
+  \unhcopy#1\relax
+  \if#2P\par\fi}
+\newcommand\@didactic@freepieces[1]{%
+  \begingroup
+    \def\@didactic@pc##1##2{\@didactic@boxput{##1}}%
+    #1%
+  \endgroup}
+\newcommand\@didactic@keep{%
+  \ifnum\@didactic@noteid>\@didactic@idbefore\relax
+    \@didactic@keep@
+  \else
+    \@didactic@freepieces\@didactic@curpieces
+    \if@didactic@plain\else\@didactic@boxput\@didactic@cbox\fi
+  \fi}
+\newcommand\@didactic@keep@{%
+  \if@didactic@plain\else
+    \global\setbox\@didactic@cbox\vbox{%
+      \@didactic@rnwrite{\the\@didactic@noteid}\unvbox\@didactic@cbox}%
+  \fi
+  \expandafter\xdef\csname @didactic@pcs@\the\@didactic@noteid\endcsname{%
+    \if@didactic@plain
+      \noexpand\@didactic@fromlines
+        {\unexpanded\expandafter{\@didactic@markbefore}}%
+        {\unexpanded\expandafter{\@didactic@curpieces}}%
+        {\unexpanded\expandafter{\@didactic@lang}}%
+    \else
+      \noexpand\@didactic@fromcopy{\@didactic@cbox}%
+    \fi}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@fallback}
+% A note that isn't plain is set twice more, after the measure, as before
+% version~2.18: for the foot, as \textsf{memoir} sets a footnote there, into a
+% box of the pool, and for the margin; both quietly, with the counters as they
+% were before the measure, and with \textsf{biblatex}'s trackers off and
+% nothing written to the |.aux| file (|\@didactic@blxfootnote|); the counters
+% are as the measure left them after.
+%    \begin{macrocode}
+\newcommand\@didactic@fallback[1]{%
+  \global\let\@thefnmark\@didactic@markbefore
+  \@didactic@ctbefore
+  \@didactic@boxget\@didactic@cbox
+  \begingroup
+    \@didactic@quiet
+    \global\setbox\@didactic@cbox\vbox{%
+      \hsize\columnwidth
+      \def\baselinestretch{\m@m@footnote@spacing}%
+      \let\checkoddpage\relax
+      \reset@font\foottextfont\@preamfntext
+      \def\@currentcounter{footnote}%
+      \protected@edef\@currentlabel{%
+        \csname p@footnote\endcsname\@thefnmark}%
+      \color@begingroup
+        \@didactic@blxfootnote
+        \@makefntext{%
+          \rule\z@\footnotesep\ignorespaces\foottextfont\@didactic@quiet #1%
+          \@finalstrut\strutbox\@didactic@quiet}%
+      \color@endgroup}%
+  \endgroup
+  \@didactic@hboxcheck\@didactic@cbox{at the foot}%
+  \global\let\@thefnmark\@didactic@markbefore
+  \@didactic@ctbefore
+  \@didactic@footmargin{\@didactic@blxfootnote\@didactic@quiet
+    \interlinepenalty\interfootnotelinepenalty#1\@didactic@quiet}%
+  \@didactic@ctafter}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@savecounters}
+% The counters are those \LaTeX\ knows (|\cl@@ckpt|, the list the kernel uses
+% for |\include|); |\@didactic@counters| sets them back to what they were.
+%    \begin{macrocode}
+\newcommand\@didactic@savecounters{%
+  \begingroup
+    \def\@elt##1{\global\csname c@##1\endcsname\the\csname c@##1\endcsname
+      \relax}%
+    \xdef\@didactic@counters{\cl@@ckpt}%
+  \endgroup}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@blxfootnote}
+% \textsf{biblatex} marks the text of a footnote, so that a citation in it
+% doesn't make a footnote of its own, by its toggle |blx@footnote|; the
+% fallback's two settings need it too, and must not record a citation as
+% seen, nor write to the |.aux| file at once (|\blx@auxwrite|): the measure has.
+%    \begin{macrocode}
+\newcommand\@didactic@blxfootnote{%
+  \ifcsdef{etb@tgl@blx@footnote}{\toggletrue{blx@footnote}}{}%
+  \ifdefined\citetrackerfalse\citetrackerfalse\fi
+  \ifdefined\pagetrackerfalse\pagetrackerfalse\fi
+  \ifdefined\blx@auxwrite\let\blx@auxwrite\@gobblethree\fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@hboxwhere,\@didactic@quiet,\@didactic@hboxcheck,
+%   \@didactic@hboxmargin}
+% \TeX\ would say of every version what it says of a paragraph with a line
+% too wide or too loose, at once, also of the one that isn't printed.
+% So all are set quietly (|\hfuzz| and |\hbadness| at their highest, as late
+% as the paragraph's end, where \TeX\ reads them), and we look at their lines
+% ourselves with the document's own values, read before: a line is overfull
+% when it doesn't fit in its own width and |\hfuzz| more, by as much as it is
+% wider than its width when it shrinks all it can (found by halving), and
+% underfull when set to its width its badness is above |\hbadness|.
+% The halving starts from the line's own width, where it doesn't fit, and
+% |\maxdimen|, \TeX's largest dimension, where it does; the line's natural
+% width isn't read, as it may be larger than \TeX\ allows (a line that
+% shrinks to fit), and reading it would stop with \enquote{Dimension too
+% large}.  A line that doesn't fit even in |\maxdimen| is said to be wider by
+% more than that, without halving.  \TeX\ itself says it of such a line in
+% every version, the one not printed too, as no |\hfuzz| is that large: a
+% limit of the quiet setting.  Each turn takes the midpoint as the lower
+% bound and half the gap, never as half the sum, which passes \TeX's limit
+% when the line is wide.  The loop takes 31 turns, no more: a gap below
+% $2^{30}$\,sp (|\maxdimen| is $2^{30}-1$) is halved, rounded up, to a
+% scaled point in 30, and the turns that remain do nothing.  So the loop ends
+% whatever an expression does, where one that waited for the gap to close ran
+% on with an error each turn until \TeX\ gave up after a hundred, without a
+% PDF.
+% What there is to say goes into the version as a |\write| that isn't
+% immediate, which \TeX\ carries out only when it ships the page the version
+% is printed on: so the printed one says it, once, on its page, with the file
+% and the line of the footnote.
+% In the margin note the |\write| goes first in the outer |\vbox| of the
+% note, which is a |\vbox| also without colour since it carries its record
+% (|\@didactic@record|), so that it changes neither the box's height nor its
+% depth.
+%    \begin{macrocode}
+\newcommand\@didactic@hboxwhere{%
+  \edef\@didactic@hfz{\the\hfuzz}%
+  \edef\@didactic@hbd{\the\hbadness}%
+  \edef\@didactic@hboxat{\@didactic@here}}
+\newcommand\@didactic@quiet{\hfuzz\maxdimen\hbadness\@M}
+\newdimen\@didactic@hboxlo
+\newdimen\@didactic@hboxhi
+\newcommand\@didactic@hboxscan[2]{%
+  \global\let\@didactic@hboxsaid\@empty
+  \setbox\z@\vbox{%
+    \@didactic@quiet
+    \unvcopy#1%
+    \def\@didactic@hboxplace{#2}%
+    \@didactic@hboxlines}}
+\newcommand\@didactic@hboxlines{%
+  \ifcase\numexpr\lastnodetype-10\relax
+  \or\unskip\expandafter\@didactic@hboxlines
+  \or\unkern\expandafter\@didactic@hboxlines
+  \or\unpenalty\expandafter\@didactic@hboxlines
+  \else
+    \ifnum\lastnodetype=\@ne
+      \setbox\tw@\lastbox
+      \@didactic@hboxline
+      \expandafter\expandafter\expandafter\@didactic@hboxlines
+    \else\ifnum\lastnodetype=\tw@
+      \setbox\tw@\lastbox
+      \setbox\tw@\vbox{\unvbox\tw@\@didactic@hboxlines}%
+      \expandafter\expandafter\expandafter\@didactic@hboxlines
+    \fi\fi
+  \fi}
+\newcount\@didactic@hboxturn
+\newcommand\@didactic@hboxline{%
+  \setbox4\hbox to\maxdimen{\unhcopy\tw@}%
+  \ifnum\badness=1000000
+    \@didactic@hboxsay{Overfull \string\hbox\space
+      (more than \the\dimexpr\maxdimen-\wd\tw@\relax\space too wide)}%
+  \else
+    \setbox4\hbox to\dimexpr\wd\tw@+\@didactic@hfz\relax{\unhcopy\tw@}%
+    \ifnum\badness=1000000
+      \@didactic@hboxlo\wd\tw@
+      \@didactic@hboxhi\maxdimen
+      \@didactic@hboxturn\z@
+      \loop\ifnum\@didactic@hboxturn<31
+        \advance\@didactic@hboxturn\@ne
+        \ifdim\dimexpr\@didactic@hboxhi-\@didactic@hboxlo\relax>\@ne sp
+          \dimen@\dimexpr\@didactic@hboxlo
+            +(\@didactic@hboxhi-\@didactic@hboxlo)/2\relax
+          \setbox4\hbox to\dimen@{\unhcopy\tw@}%
+          \ifnum\badness=1000000
+            \@didactic@hboxlo\dimen@\else\@didactic@hboxhi\dimen@\fi
+        \fi
+      \repeat
+      \@didactic@hboxsay{Overfull \string\hbox\space
+        (\the\dimexpr\@didactic@hboxhi-\wd\tw@\relax\space too wide)}%
+    \else
+      \setbox4\hbox to\wd\tw@{\unhcopy\tw@}%
+      \ifnum\badness>\@didactic@hbd\relax
+        \@didactic@hboxsay{Underfull \string\hbox\space(badness \the\badness)}%
+      \fi
+    \fi
+  \fi}
+\newcommand\@didactic@hboxsay[1]{%
+  \xdef\@didactic@hboxsaid{%
+    ^^JPackage didactic Warning: #1 in the footnote called out at
+    \@didactic@hboxat, \@didactic@hboxplace\space of page
+    \noexpand\thepage.^^J%
+    \unexpanded\expandafter{\@didactic@hboxsaid}}}
+\newcommand\@didactic@hboxwrite{%
+  \edef\reserved@a{\write\@unused{%
+    \unexpanded\expandafter{\@didactic@hboxsaid}}}%
+  \reserved@a}
+\newcommand\@didactic@hboxcheck[2]{%
+  \@didactic@hboxscan#1{#2}%
+  \ifx\@didactic@hboxsaid\@empty\else
+    \global\setbox#1\vbox{\@didactic@hboxwrite\unvbox#1}%
+  \fi}
+\newcommand\@didactic@hboxmargin{%
+  \@didactic@hboxscan\@marbox{in the margin}%
+  \ifx\@didactic@hboxsaid\@empty\else
+    \@didactic@hboxmark\@marbox
+    \@didactic@hboxmark\@currbox
+  \fi}
+\newcommand\@didactic@hboxmark[1]{%
+  \ifvoid#1\else
+    \global\setbox#1\vbox{\@didactic@hboxwrite\unvbox#1}%
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@markfn,\@didactic@iffootnote,\@didactic@footset,
+%   \@didactic@freenote}
+% A margin note made for a footnote is marked when it is numbered:
+% |\@didactic@fnlastnote| holds its serial, for the reusers of the footnote's
+% number (|\@didactic@reuser|), and |\@didactic@fn@|\meta{note} is defined, for
+% the reason a note is carried: a margin note that isn't a footnote can't go to
+% the foot, and its warning doesn't name it.
+% It may go to the foot if its list was kept, and in one column, where the
+% foot is the page's; the test keeps a flag of its own, since
+% |\@didactic@footplace| uses |\if@tempswa| for whether the note found a place.
+% Its version for the foot is made from its list when the note is decided
+% (|\@didactic@footset|): as \textsf{memoir} sets a footnote at the foot, with
+% the note's mark, its lines broken at the text's width, and checked for the
+% lines \TeX\ would warn about, as said where the callout is; or the
+% fallback's copy.
+% The list's boxes go back to the pool when the note is decided
+% (|\@didactic@freenote|, in |\@didactic@callout|).
+%    \begin{macrocode}
+\newcommand\@didactic@markfn{%
+  \if@didactic@isfn
+    \xdef\@didactic@fnlastnote{\the\@didactic@noteid}%
+    \expandafter\gdef\csname @didactic@fn@\the\@didactic@noteid\endcsname{}%
+  \fi}
+\newif\if@didactic@footok
+\newcommand\@didactic@iffootnote[1]{%
+  \@didactic@footokfalse
+  \ifcsname @didactic@pcs@#1\endcsname
+    \if@twocolumn\else\if@didactic@noteplace
+      \@didactic@footoktrue
+    \fi\fi
+  \fi
+  \if@didactic@footok
+    \expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
+\newcommand\@didactic@footset[1]{%
+  \def\@didactic@rnid{#1}%
+  \edef\@didactic@hboxat{\csname @didactic@ln@#1\endcsname}%
+  \edef\@didactic@hfz{\the\hfuzz}%
+  \edef\@didactic@hbd{\the\hbadness}%
+  \let\@didactic@fromlines\@didactic@footlines
+  \let\@didactic@fromcopy\@didactic@footcopy
+  \csname @didactic@pcs@#1\endcsname}
+\newbox\@didactic@footbox
+\long\def\@didactic@footlines#1#2#3{%
+  \global\setbox\@didactic@footbox\vbox{%
+    \@didactic@rnwrite\@didactic@rnid
+    \hsize\columnwidth
+    \def\baselinestretch{\m@m@footnote@spacing}%
+    \let\checkoddpage\relax
+    \reset@font\foottextfont\@preamfntext
+    #3%
+    \def\@thefnmark{#1}%
+    \color@begingroup
+      \@makefntext{%
+        \rule\z@\footnotesep\ignorespaces\foottextfont\@didactic@quiet
+        #2\@finalstrut\strutbox\@didactic@quiet}%
+    \color@endgroup}%
+  \@didactic@hboxcheck\@didactic@footbox{at the foot}}
+\newcommand\@didactic@footcopy[1]{%
+  \global\setbox\@didactic@footbox\box#1\relax}
+\newcommand\@didactic@freenote[1]{%
+  \ifcsname @didactic@pcs@#1\endcsname
+    \begingroup
+      \def\@didactic@fromlines##1##2##3{\@didactic@freepieces{##2}}%
+      \def\@didactic@fromcopy##1{\@didactic@boxput{##1}}%
+      \csname @didactic@pcs@#1\endcsname
+    \endgroup
+    \global\expandafter\let\csname @didactic@pcs@#1\endcsname\@undefined
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@reuser,\@didactic@reusers}
+% A footnote's number may be reused by later citations (above); when the note
+% is carried to the next page, its warning names them too, since the
+% reader of the log will look for every mark with that number.
+% |\@didactic@reuser{|\meta{note}|}| records the place of a reusing mark under
+% the serial of the margin note it reuses, kept when the citation's footnote
+% was made (|\@didactic@fnlastnote|, set by |\@didactic@markfn|); nothing, for a
+% footnote that made no margin note.  |\@didactic@reusers{|\meta{note}|}| says
+% them.  Not under the footnote's number: \textsf{memoir} restarts the numbers in
+% each chapter, and a carried note would name the reusers of another chapter's
+% note with its number.
+%    \begin{macrocode}
+\let\@didactic@fnlastnote\@empty
+\newcommand\@didactic@reuser[1]{%
+  \ifx\relax#1\relax\else
+    \ifcsname @didactic@ru@#1\endcsname
+      \expandafter\xdef\csname @didactic@ru@#1\endcsname{%
+        \csname @didactic@ru@#1\endcsname, \@didactic@here}%
+    \else
+      \expandafter\xdef\csname @didactic@ru@#1\endcsname{\@didactic@here}%
+    \fi
+  \fi}
+\newcommand\@didactic@reusers[1]{%
+  \ifcsname @didactic@ru@#1\endcsname
+    \MessageBreak (its number is reused at
+    \csname @didactic@ru@#1\endcsname)%
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@footroom,\@didactic@footcompute}
+% The room at the foot is what the page builder will find there, at the
+% natural size of everything: the column less the page so far (with the
+% callout's line), less the footnotes already at the foot and the
+% |\skip\footins| above them, and no more than \TeX's limit for footnotes on a
+% page (|\dimen\footins|).
+% No credit for what the page can shrink: a page that holds its foot only when
+% shrunk to the full lets \TeX\ find a break above the callout's line cheaper,
+% and the line then goes to the next page without its note having been decided
+% there.
+% A note fits whole if it is no taller than that room.
+%    \begin{macrocode}
+\newdimen\@didactic@footroom
+\newcommand\@didactic@footcompute{%
+  \@didactic@footroom
+    \dimexpr\@colroom-\@pageht-\@pagedp-\skip\footins\relax
+  \dimen@\dimen\footins
+  \ifvoid\footins\else
+    \advance\@didactic@footroom-\dimexpr\ht\footins+\dp\footins\relax
+    \advance\dimen@-\dimexpr\ht\footins+\dp\footins\relax
+  \fi
+  \ifdim\dimen@<\@didactic@footroom \@didactic@footroom\dimen@ \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@footplace}
+% |\@didactic@footplace|\meta{1 or 0}: a footnote that doesn't fit beside its
+% line goes to the foot of its page if it fits there whole (|1|, tried first,
+% where its version for the foot is made); if not, it may run past the foot of
+% the margin (above), and if it can't do that either (|0|) it goes to the foot
+% whole and one line past it, if only one line is missing, and is otherwise
+% carried, with the reason: that it doesn't fit at the foot whole, and how many
+% lines are left there.
+% It is never split over two pages: a rest at the head of the next page's foot
+% stays correct, wherever \TeX\ ends the page, only in an insertion class of
+% its own, which waits (issue \#104).
+% Two lines past the foot would reach the folio: a note that would need them
+% is carried.
+% The reason counts the lines left at the foot, or says less than a line: the
+% count rounds, and under half a line it came out as $-1$.
+% On a page where a footnote runs past the foot, the foot is full: a later
+% footnote that fits nowhere else is carried, with that reason.
+% On a page a footnote was carried from, a later footnote doesn't go to the foot
+% either, but is carried too, after it (|\if@didactic@fncarried|, set in
+% |\@didactic@decide@|, cleared with the page, |\@didactic@newpage|): a
+% footnote at this foot would come before one with a lower number, and the
+% footnotes keep their order, as \textsf{marginfix} keeps the notes in the
+% margin.
+% The lines are those of the footnote font, |\@didactic@fl| (above).
+% The note's version for the foot is made first (|\@didactic@footset|, above).
+%    \begin{macrocode}
+\newif\if@didactic@footfull
+\newif\if@didactic@fncarried
+\let\@didactic@footwhy\@empty
+\newcommand\@didactic@footplace[1]{%
+  \@tempswafalse
+  \let\@didactic@footwhy\@empty
+  \@didactic@iffootnote{\the\@didactic@noteof\@didactic@head}{%
+    \ifnum#1=\@ne
+      \@didactic@footset{\the\@didactic@noteof\@didactic@head}%
+    \fi
+    \if@didactic@fncarried
+      \def\@didactic@footwhy{it fits neither beside its line nor at the foot
+        (a footnote before it on the page was carried, and the footnotes keep
+        their order)}%
+    \else\if@didactic@footfull
+      \def\@didactic@footwhy{it fits neither beside its line nor at the foot
+        (a footnote already runs past the foot of the page)}%
+    \else
+      \@didactic@footcompute
+      \dimen@\dimexpr\ht\@didactic@footbox+\dp\@didactic@footbox\relax
+      \ifdim\@didactic@footroom<\z@
+        \def\@didactic@footwhy{it fits neither beside its line nor at the
+          foot (the page has no room for a footnote)}%
+      \else\ifdim\dimen@>\@didactic@footroom
+        \ifnum#1=\z@
+          \ifdim\dimen@>\dimexpr\@didactic@footroom+\@didactic@fl+\p@\relax
+            \edef\@didactic@footwhy{it fits neither beside its line nor at
+              the foot, where it doesn't fit whole
+              (\ifnum\@didactic@flines\@didactic@footroom<\@ne
+                less than a line\else
+                \@didactic@flines\@didactic@footroom\space lines\fi\space
+              left there; it would run more than one line past it)}%
+          \else
+            \@didactic@footover
+          \fi
+        \fi
+      \else
+        \@didactic@tofoot\@didactic@footbox
+        \@tempswatrue
+      \fi\fi
+    \fi\fi}%
+   {\ifcsname @didactic@fn@\the\@didactic@noteof\@didactic@head\endcsname
+      \def\@didactic@footwhy{it fits neither beside its line nor at the foot}%
+    \else
+      \def\@didactic@footwhy{it doesn't fit beside its line, and only a
+        footnote can go to the foot}%
+    \fi}}
+\newcommand\@didactic@flines[1]{%
+  \number\numexpr(2*(#1)-\@didactic@fl)/(2*\@didactic@fl)\relax}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@footover,\@didactic@overwarn}
+% A note at most one line too tall for the room (a point more, for its
+% depth) goes whole, counted exactly as tall as the room, so that \TeX's page
+% builder finds it fits and its last line stands below the foot of the page.
+% A page with no room at the foot at all, not even for the space above the
+% footnotes, takes none.
+% The warning says how much, up to a line, and why: what the margin's notes
+% took, and how many lines the foot had.
+%    \begin{macrocode}
+\newcommand\@didactic@footover{%
+  \@didactic@overwarn{\the\@didactic@noteof\@didactic@head}\@didactic@footbox
+  \@didactic@countroom\@didactic@footbox
+  \global\@didactic@footfulltrue
+  \@didactic@tofoot\@didactic@footbox
+  \@tempswatrue}
+\newcommand\@didactic@countroom[1]{%
+  \ifdim\dimexpr\ht#1+\dp#1\relax>\@didactic@footroom
+    \global\ht#1\dimexpr\@didactic@footroom-\dp#1\relax
+  \fi}
+\newcommand\@didactic@overwarn[2]{%
+  \PackageWarningNoLine{didactic}{Footnote called out at
+    \csname @didactic@ln@#1\endcsname\MessageBreak
+    on page \thepage\space runs
+    \the\dimexpr\ht#2+\dp#2-\@didactic@footroom\relax\space past the foot of
+    the page:\MessageBreak
+    the margin is full (the notes above it take \the\@didactic@stay\space
+    of \the\@didactic@room) and the foot has \@didactic@flines
+    \@didactic@footroom\space lines left}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@tofoot,\@didactic@offmargin}
+% A note that goes to the foot leaves \textsf{marginfix} out: its two boxes
+% come off the head of |\@currlist|, back to the free list, so that it takes no
+% room in the margin, and the note is inserted after its line, where it
+% travels with the line; it carries the note's number in a penalty at its end
+% (|\@didactic@scan|, above), for |\@didactic@colfeet| (below).
+% \textsf{marginfix} 1.5 and later number the notes it is handed
+% (|\mfx@placeid|) in the order of their callouts, which it reads from marks of
+% its own; a note it never sees must still advance the number, or every later
+% note would take the place of the one before.
+% The kernel's |\@next| for the note, which follows our part of the special
+% output, is then skipped (|\@didactic@skipnext|).
+% The notes sent to the foot in a column are listed by number
+% (|\@didactic@footids|), for the warning when \TeX\ takes a line to the next
+% column after all, and for the check that they are at the column's foot.
+%    \begin{macrocode}
+\newcommand\@didactic@offmargin{%
+  \@next\@currbox\@currlist{}\@latexbug
+  \@next\@marbox\@currlist{}\@latexbug
+  \@cons\@freelist\@currbox
+  \@cons\@freelist\@marbox
+  \ifdefined\mfx@placeid\global\advance\mfx@placeid\@ne\fi
+  \let\@didactic@skip\@didactic@skipnext}
+\newcommand\@didactic@tofoot[1]{%
+  \global\setbox#1\vbox{\box#1%
+    \penalty-\numexpr1000000+\@didactic@noteof\@didactic@head\relax}%
+  \@didactic@footid
+  \global\let\@didactic@fbx#1%
+  \@didactic@offmargin
+  \def\@didactic@after{%
+    \@didactic@attach{\insert\footins{\floatingpenalty\@MM
+      \box\@didactic@fbx}}}}
+\def\@didactic@skipnext\@next\@currbox\@currlist#1#2{}
+\let\@didactic@footids\@empty
+\newcommand\@didactic@footid{%
+  \xdef\@didactic@footids{\@didactic@footids
+    \the\@didactic@noteof\@didactic@head,}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@colfeet,\@didactic@pull,\@didactic@movedwarn}
+% When a column is made, before its footnotes are attached, the notes at its
+% foot whose lines went to the next column after all are taken back (a later
+% special output on the page put them into |\footins| while their lines were
+% still on it): each is a box of ours (|\@didactic@idof|), numbered higher
+% than the last callout in the column.
+% They are inserted again, whole and in their order: insertions left in the
+% output routine's list go back to the head of the page, so these head the next
+% column's foot, after any page of floats that is made in between.
+% If one doesn't get there (a later special output put it back after another
+% line, with a footnote of \LaTeX's own at the foot), the records say so a run
+% later.
+% A note sent to the foot whose line went on to the next column is warned
+% about: \TeX\ ended the page before that line, which couldn't hold the lines
+% that stay with it, and the page is that much short.
+% The column's last callout is read from a copy of the column, in a group, so
+% that whatever reads |\@outputbox| there, ourselves or a wrapper of
+% |\@didactic@readlast|, can't change or empty the column itself (the row
+% |readfallback| of |test-noteplace| wraps it to change what it reads).
+% The margin of the same column is built a moment later, in the same
+% |\@makecol|, and takes this reading (|\@didactic@readcol|, by the page
+% number it was made for) rather than reading the column again: by then
+% \textsf{memoir}'s |\@makecol| has put the footnotes after the text, and
+% glue at the text's end that shrinks without limit (\textsf{longtable}'s
+% |\vss|) is no longer at the end, where the reading takes it off.  Where no
+% such reading was made (two columns, where we don't make up the feet), the
+% margin's build reads the column itself.
+%    \begin{macrocode}
+\newbox\@didactic@pullbox
+\newbox\@didactic@one
+\newcount\@didactic@colast
+\newcommand\@didactic@colfeet{%
+  \begingroup
+    \setbox\@outputbox\copy\@cclv
+    \count@\@didactic@pagelast
+    \@didactic@readlast
+    \global\@didactic@colast\@didactic@pagelast
+    \global\@didactic@pagelast\count@
+  \endgroup
+  \xdef\@didactic@colread{\the\c@page}%
+  \global\setbox\@didactic@pullbox\box\voidb@x
+  \ifvoid\footins\else
+    \global\setbox\footins\vbox{\unvbox\footins\@didactic@pull}%
+    \ifdim\dimexpr\ht\footins+\dp\footins\relax=\z@
+      \global\setbox\footins\box\voidb@x
+    \fi
+  \fi
+  \@didactic@movedwarn
+  \ifvoid\@didactic@pullbox\else
+    \insert\footins{\floatingpenalty\@MM\unvbox\@didactic@pullbox}%
+  \fi
+  \global\let\@didactic@footids\@empty
+  \global\@didactic@footfullfalse}
+\let\@didactic@colread\@empty
+\newcommand\@didactic@readcol{%
+  \edef\@tempa{\the\c@page}%
+  \ifx\@tempa\@didactic@colread
+    \global\@didactic@pagelast\@didactic@colast
+  \else
+    \@didactic@readlast
+  \fi
+  \global\let\@didactic@colread\@empty}
+\newcommand\@didactic@pull{%
+  \let\@didactic@next\relax
+  \ifnum\lastnodetype=\tw@
+    \setbox\@didactic@one\lastbox
+    \@didactic@idof\@didactic@one
+    \@tempcnta\@didactic@boxid
+    \ifnum\@tempcnta>\@didactic@colast
+      \global\setbox\@didactic@pullbox
+        \vbox{\box\@didactic@one\unvbox\@didactic@pullbox}%
+      \let\@didactic@next\@didactic@pull
+    \else
+      \box\@didactic@one
+    \fi
+  \fi
+  \@didactic@next}
+\newcommand\@didactic@movedwarn{%
+  \setbox\z@\vbox{\unvcopy\@cclv}%
+  \dimen@\dimexpr\@colroom-\ht\z@-\dp\z@\relax
+  \ifvoid\footins\else
+    \advance\dimen@-\dimexpr\ht\footins+\dp\footins+\skip\footins\relax
+  \fi
+  \def\@didactic@welt##1,{\ifx\relax##1\relax\else
+    \ifnum##1>\@didactic@colast
+    \@didactic@warned{##1}%
+    \PackageWarningNoLine{didactic}{TeX ended page \thepage\space before the
+      line of the footnote\MessageBreak called out at
+      \csname @didactic@ln@##1\endcsname, which had gone to its foot:\MessageBreak
+      the page couldn't hold the lines that stay with that line;\MessageBreak
+      the note goes with its line to the next page,\MessageBreak
+      and page \thepage\space is
+      \number\numexpr(\dimen@+\@didactic@keep@L/2)/\@didactic@keep@L\relax
+      \space lines short}%
+    \fi
+    \expandafter\@didactic@welt\fi}%
+  \expandafter\@didactic@welt\@didactic@footids\relax,}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{Floats beside the notes}
+%
+% \begin{macro}{\@didactic@floatroom}
+% A float placed in the column where its text is (|h|) can reach into the 
+% margin, with a side caption or a picture wider than the text; 
+% \textsf{marginfix} keeps the margin beside such a float empty (it marks it, 
+% from 1.5 on, by |\mfx@wide@|\meta{box}).
+% The notes already called out on the page must then still fit above it: so 
+% for such a float the kernel's test whether it fits on the page counts the 
+% page so far as at least as tall as the margin the notes take.
+% A float that stays in the text block takes no margin room, and the rule 
+% doesn't apply; nor with a \textsf{marginfix} that doesn't mark them.
+% \textsf{marginfix} unmarks a box by letting the name be |\relax| when the 
+% box is free again, so the test is that, not whether the name exists: an 
+% earlier float in the same box would otherwise hold back one that takes no 
+% margin room (the test |test-marginfloat-moved|).
+% This is the second patch of |\@specialoutput| checked above.
+%    \begin{macrocode}
+\newcommand\@didactic@floatroom{%
+  \expandafter\ifx\csname mfx@wide@\number\@currbox\endcsname\relax\else
+    \ifdim\@pageht<\@didactic@stay \@pageht\@didactic@stay \fi
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@flcheck,\@didactic@floatat,\@didactic@floatheld}
+% A float at the top or the bottom of a column takes the margin beside it as
+% well: \textsf{marginfix} sets notes only beside the text, |\@colroom|, the
+% room the kernel leaves when it adds such a float.
+% The notes already decided for the page were decided in the room before it;
+% with less, \textsf{marginfix} moves what no longer fits to the next page,
+% after notes called out later that went to the foot of this one, so that
+% footnotes leave the order of their numbers.
+% So the float gives way, as a wide one in the text does (above): the kernel's
+% test whether a float fits at the top or the bottom (|\@flcheckspace|, with
+% the room it needs in |\saved@reqcolroom|, or in kernels before 2025
+% |\@reqcolroom|, which the test adds to) asks also that the notes so far fit in
+% the room it leaves, the float's height more than they take.
+% The notes so far are those that stay on the page (|\@didactic@stay|): the
+% ones decided to fit, a note that runs past the foot of the margin at its
+% height, and those carried to the page, which come first in its margin; not a
+% note carried on from the page, after which the margin is closed
+% (|\if@didactic@closed|), so that the notes after it keep their order.
+% And only while they can stay, in the room and what a note may run past it:
+% where the notes carried to a page are more than its margin holds, some go on
+% whatever the float does, and holding it back would only send it further.
+% A wide float in the text counts the same notes.
+% A float that doesn't fit waits, as any float that doesn't fit in \LaTeX:
+% for the next column, at the top or the bottom as its placement allows, or a
+% page of floats.
+% So the one pass holds: what is decided stays, and what comes after it gives
+% way.
+% That leaves \LaTeX's own rule, by which a float that fits in the text block
+% goes on the page; the decisions say why (\cref{tab:pb-decisions}).
+%
+% A float held back so is said in the log, with where it ends in the input,
+% as \LaTeX\ says nothing when it moves a float on
+% (|\@didactic@floatheld|; |\@didactic@floatat| keeps the place by the box).
+% The rule doesn't apply in two columns, where |\@didactic@stay| counts the
+% page and not the column, nor to a bottom float with
+% |\marginnotebesidefloats{use}|, beside which \textsf{marginfix} sets notes,
+% unless it reaches into the margin.
+% (In neither could a float be made to take a note's room in the tests: in
+% two columns \textsf{marginfix} still set the note, and with |use| the
+% margin beside the float is the notes'.)
+%    \begin{macrocode}
+\newif\if@didactic@floatclaim
+\newdimen\@didactic@reqroom
+\def\@didactic@besideuse{use}
+\newcommand\@didactic@flcheck[2]{%
+  \@didactic@reqroom
+    \ifdefined\saved@reqcolroom\saved@reqcolroom\else\@reqcolroom\fi
+  \@didactic@flcheckspace#1#2%
+  \@didactic@floatclaimfalse
+  \if@twocolumn\else\ifdim\@didactic@stay>\z@
+  \ifdim\@didactic@stay>\dimexpr\@didactic@room+\@didactic@overmax\relax\else
+    \@didactic@floatclaimtrue
+    \ifx#1\@botroom\ifdefined\mfx@besidefloats
+      \ifx\mfx@besidefloats\@didactic@besideuse
+        \expandafter\ifx\csname mfx@wide@\number\@currbox\endcsname\relax
+          \@didactic@floatclaimfalse
+        \fi
+      \fi
+    \fi\fi
+  \fi\fi\fi
+  \if@tempswa
+    \if@didactic@floatclaim
+      \ifdim\@didactic@reqroom<\dimexpr\@didactic@stay+\ht\@currbox
+          \ifdefined\marginheightadjustment-\marginheightadjustment\fi\relax
+        \@didactic@reqroom\dimexpr\@didactic@stay+\ht\@currbox
+          \ifdefined\marginheightadjustment-\marginheightadjustment\fi\relax
+        \ifdefined\saved@reqcolroom
+          \saved@reqcolroom\@didactic@reqroom
+        \else
+          \@reqcolroom\@didactic@reqroom
+        \fi
+        \@tempswafalse
+        \@didactic@flcheckspace#1#2%
+        \if@tempswa\else\@didactic@floatheld\fi
+      \fi
+    \fi
+  \fi}
+\newcommand\@didactic@floatat{%
+  \ifnum\count\@currbox>\z@
+    \expandafter\xdef\csname @didactic@fl@\number\@currbox\endcsname{%
+      \@didactic@here}%
+  \fi}
+\newcommand\@didactic@floatheld{%
+  \PackageInfo{didactic}{The float ending at
+    \ifcsname @didactic@fl@\number\@currbox\endcsname
+      \csname @didactic@fl@\number\@currbox\endcsname
+    \else ?\fi\space waits:\MessageBreak
+    the margin notes already on page \thepage\space need\MessageBreak
+    the room it would take\@gobble}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@mcolfoot,\@didactic@mcolwarn}
+% In \textsf{multicol}'s columns no margin note can be set: the margin isn't
+% beside a column there, and \textsf{multicol} drops the note, with its text.
+% So inside |multicols| a footnote goes to the foot of the page, under the
+% columns, as an ordinary footnote: \textsf{memoir}'s |\footnotesatfoot|, for
+% the environment only.
+% There \textsf{multicol} decides where it goes: it collects the columns'
+% material and breaks the page after, so a note can end up at the foot of the
+% page before its mark's.
+% We can't see that when it happens; so, in |multicols| only, the footnote gets
+% the records a margin note gets (|\@didactic@record|): one at the mark, one at
+% the start of the note, numbered $-1$, $-2$, \ldots\ apart from the margin
+% notes, and the run after warns where their pages differ
+% (|\@didactic@recheck|): records for the warning only, which a settled build
+% has too.
+% The record at the mark is a |\write| right after the mark's box, where no
+% place to break is and the next word starts after the space as before.
+% A margin note other than a footnote has nowhere to go there, as in \LaTeX\
+% without \textsf{didactic}, where it is lost without a word; we warn
+% (|\@didactic@mcolwarn|, where a margin note is made), but not for what
+% \textsf{marginfix} puts in the margin for itself (|\blockmargin|, which
+% \textsf{didactic}'s code side by side uses too), which is no note.
+%    \begin{macrocode}
+\newcommand\@didactic@mcolfoot{%
+  \ifdefined\footnotesatfoot\footnotesatfoot\fi
+  \let\@didactic@mc@fnmark\@footnotemark
+  \def\@footnotemark{\@didactic@mc@fnmark\@didactic@mc@mark}%
+  \let\@didactic@mc@fntext\@footnotetext
+  \long\def\@footnotetext##1{\@didactic@mc@fntext{\@didactic@mc@note##1}}}
+\newcount\@didactic@mcn
+\newcommand\@didactic@mc@mark{%
+  \global\advance\@didactic@mcn\@ne
+  \if@filesw
+    \@didactic@writepage{\string\@didactic@rc
+      {-\the\@didactic@mcn}{\thepage}{\@didactic@here}}%
+  \fi}
+\newcommand\@didactic@mc@note{\@didactic@rnwrite{-\the\@didactic@mcn}}
+\newcommand\@didactic@mcolwarn{%
+  \ifdefined\col@number
+    \ifnum\col@number>\if@twocolumn\tw@\else\@ne\fi
+      \PackageWarning{didactic}{A margin note in multicols is lost:\MessageBreak
+        multicol can't set it}%
+    \fi
+  \fi}
+\AddToHook{env/multicols/begin}{\@didactic@mcolfoot}
+\AddToHook{env/multicols*/begin}{\@didactic@mcolfoot}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@footwarn}
+% In two columns there is no foot to go to beside a column's margin (the foot 
+% spans the page), so |foot| works as |carry| there.
+% With the default that is silent: the author asked for nothing.
+% Asked for, by the option or by |\marginnoteoverflow{foot}| for a passage, 
+% we say so, once.
+%    \begin{macrocode}
+\newif\if@didactic@footwarned
+\newcommand\@didactic@footwarn{%
+  \if@twocolumn\if@didactic@noteoverflowgiven\if@didactic@footwarned\else
+    \ifdefstring{\@didactic@noteoverflow}{foot}{%
+      \global\@didactic@footwarnedtrue
+      \PackageWarning{didactic}{noteoverflow=foot works as
+        noteoverflow=carry here:\MessageBreak it works in one column only}}{}%
+  \fi\fi\fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@numbernotes}
+% The changes themselves, at the end of |\begin{document}|, once the check 
+% above has found every name; otherwise no note is numbered and 
+% \textsf{marginfix} does as it does alone.
+%    \begin{macrocode}
+\newcommand\@didactic@numbernotes{%
+  \pretocmd\@xympar{\@didactic@tagnote}{}{}%
+  \patchcmd\@specialoutput{\unvbox\@holdpg\@next\@currbox\@currlist}
+    {\@didactic@callout\@next\@currbox\@currlist}{}{}%
+  \patchcmd\@specialoutput{\@reinserts\@addtocurcol}
+    {\@didactic@floatroom\@didactic@reinserts\@addtocurcol}{}{}%
+  \let\@didactic@flcheckspace\@flcheckspace
+  \let\@flcheckspace\@didactic@flcheck
+  \pretocmd\end@float{\@didactic@floatat}{}{}%
+  \patchcmd\@specialoutput{\@reinserts\@addmarginpar}
+    {\@didactic@reinserts\@addmarginpar}{}{}%
+  \ifpatchable{\@makecol}{\UseHook{build/column/before}}%
+    {\AddToHook{build/column/before}{\if@twocolumn\else\@didactic@colfeet\fi}}%
+    {\pretocmd\@makecol{\if@twocolumn\else\@didactic@colfeet\fi}{}{}}%
+  \let\@didactic@MFX@combinefloats@before\MFX@combinefloats@before
+  \def\MFX@combinefloats@before{%
+    \@didactic@readcol\@didactic@sift
+    \@didactic@overapply
+    \@didactic@mfxbuild
+    \@didactic@overdone
+    \@didactic@carrywarn
+    \@didactic@unsift\@didactic@newpage}%
+  \ifdefined\MFX@check@page@\def\MFX@check@page@##1##2{}\fi
+  \if@didactic@memoir
+    \ifdefined\H@@footnotetext
+      \let\@didactic@footmargin\H@@footnotetext
+      \let\H@@footnotetext\@didactic@footwrap
+    \else
+      \let\@didactic@footmargin\@footnotetext
+      \let\@footnotetext\@didactic@footwrap
+    \fi
+  \fi
+  \ifdefined\MFX@copyclass
+    \apptocmd\MFX@copyclass{%
+      \global\count##1\count##2\relax
+      \ifnum\count##1<-1000000 \else\ifnum\count##1<\m@ne
+        \global\advance\count##1-1000000 \fi\fi}{}{}%
   \fi}
 %    \end{macrocode}
 % \end{macro}
@@ -9023,12 +11578,18 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 % |\clubpenalties| we set globally at the start of a paragraph and clear at its 
 % end, so that nothing outlives the paragraph whatever groups there are.
 % Paragraphs in boxes don't count: a note, a float, a cell of a table, the 
-% head of a page in the output routine.
+% head of a page in the output routine, the text of a margin footnote as it is
+% first set (|\@didactic@measure|).
 % They all come through |\@arrayparboxrestore|, or the output routine, or start 
 % directly in a |\vbox|, where we set |\if@didactic@keep@inbox|, locally.
+% (The measure's box comes through none of them, so it sets the flag itself;
+% else the footnote's paragraph ended the heading's first paragraph, and the
+% lines it kept with the heading were let go.)
 % They get no |\clubpenalties| from around them either.
 % A display in the first paragraph is lines enough, and what follows it in the
 % same paragraph would count its lines from the start: the penalties end there.
+% Not a display in a box, such as a footnote's in the first paragraph, which
+% is no line of that paragraph.
 %
 % At the start of the first paragraph the heading is on the page, so we can 
 % measure, in vertical mode (|para/before|), again counting what the page can 
@@ -9326,7 +11887,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \global\@didactic@keep@headstate\z@
     \global\let\@didactic@keep@shortmsg\@empty
   \fi}
-\def\@didactic@keep@display{\global\clubpenalties\z@}
+\def\@didactic@keep@display{%
+  \if@didactic@keep@inbox\else\global\clubpenalties\z@\fi}
 \AddToHook{para/before}{\@didactic@keep@parabefore}
 \AddToHook{para/begin}{\@didactic@keep@parabegin}
 \AddToHook{para/after}{\@didactic@keep@paraafter}

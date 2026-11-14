@@ -1,6 +1,7 @@
 % Test of didactic with a marginfix older than 1.6 (didactic), where
 % \marginnoteoverflow doesn't exist: the documented group form must not stop
-% LaTeX, and it and the option warn, naming the marginfix needed.  Stepping down
+% LaTeX, and since v2.18 didactic decides itself, so nothing warns that a newer
+% marginfix is needed.  Stepping down
 % to a stand-in because TeX Live's older marginfix can't be chosen by name once
 % ~/texmf shadows it: the real macro is removed right after marginfix is read.
 \documentclass[a4paper]{memoir}
@@ -8,7 +9,7 @@
 \AddToHook{package/marginfix/after}{\let\marginnoteoverflow\@undefined}
 \makeatother
 \usepackage{amsmath,amssymb,amsthm}
-\usepackage[noteoverflow=break]{didactic}
+\usepackage[noteoverflow=foot]{didactic}
 \begin{document}
 {\marginnoteoverflow{carry} Text of a passage in the group form.}
 \end{document}

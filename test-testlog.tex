@@ -1,0 +1,36 @@
+% Test of testlog.py, the tests' reader of TeX's logs: messages cut from real
+% ones of didactic's, set so that TeX breaks its log's line (after 79 bytes,
+% or characters, as the engine counts) inside the words a check looks for.
+% The Makefile builds it under pdfLaTeX, XeLaTeX and LuaLaTeX (test-testlog)
+% and runs testlog.py selftest on each log, which also checks that each phrase
+% is cut by a break there, so that the test still tests the joiner.  Keep the
+% messages as they are: their columns are what is tested.
+\documentclass{article}
+\begin{document}
+% found from the last run, cut inside "found"
+\PackageWarning{didactic}{Margin note called out at test-noteplace.tex:93
+  on page 1\MessageBreak wasn't printed, and this line runs long enough so
+  (found from the last run): fixture}
+% isn't plain, cut inside "isn't"
+\PackageWarning{didactic}{Footnote called out at test-footwide.tex:115, which
+  isn't plain: it has space of its own at its end}
+% a line of non-ASCII text cut in "margin": 79 bytes, fewer characters
+\PackageWarning{didactic}{Overfull \string\hbox\space(1.5pt too wide) in the
+  footnote called out at\MessageBreak
+  kurs/del-ett/text/kapitel-översikt.tex:12, in the margin of page 3}
+% a character of two bytes at the break
+\typeout{A line of words that runs on until it reaches the end of a long line, out at Ölandsbron.}
+% a break just before a parenthesis
+\PackageWarning{didactic}{Footnote 7, the Committee on Computing Standards, or
+  (CCS) is at the foot of page 4}
+% the words looked for on a message's second line
+\PackageWarning{didactic}{The heading near page 11\MessageBreak
+  Only 1 of the 3 lines of keepafterheading fit after it}
+% a verdict past the break; then a verdict of PASS and a line with FAIL in it
+\typeout{didactic biburl test: before:biburlpenalty=500::0::3em with its longer label FAIL}
+\typeout{didactic biburl test: after:biburlpenalty::0::3em PASS}
+\typeout{The word FAIL in a line of its own, which is no verdict}
+% a line that ends at 79 by itself, and the line after it
+\typeout{A line of exactly seventy-nine characters, no more, no fewer, which ENDS AT 79.}
+\typeout{NEXT LINE}
+\end{document}

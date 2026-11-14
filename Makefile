@@ -1,7 +1,9 @@
 LATEX?=latex
-PDFLATEX?=xelatex
+PDFLATEX?=pdflatex
 LATEXFLAGS=-shell-escape
 PYTHONTEX=python3 $(shell which pythontex) --interpreter python:python3
+# reads a log with TeX's line breaks joined, a message per line (see testlog.py)
+TESTLOG=python3 testlog.py
 
 # A failed check leaves no PDF, so that the next make doesn't call it up to date.
 .DELETE_ON_ERROR:
@@ -20,8 +22,9 @@ TEST_KEEP_SMALL=	test-keep-style test-keep-columns test-keep-guard \
 			test-keep-pagereset test-keep-nofiles test-keep-nofiles0 test-keep-box \
 			test-keep-addvspace test-keep-club test-keep-club-article
 TEST_NOTEOVERFLOW=	test-noteoverflow test-noteoverflow-lua test-noteoverflow-carry \
-			test-noteoverflow-draft test-noteoverflow-draftbreak \
-			test-noteoverflow-xe test-noteoverflow-old
+			test-noteoverflow-draft test-noteoverflow-draftfoot \
+			test-noteoverflow-xe test-noteoverflow-old test-noteoverflow-break \
+			test-footonce
 # The order of float numbers, from the pages the floats end up on.
 TEST_FLOATORDER=	test-marginfloat-samepar test-marginfloat-moved \
 			test-marginfloat-chapters test-marginfloat-kinds \
@@ -34,8 +37,12 @@ TEST_KEEPCHECK=		test-keep-leadin test-keep-leadin-off test-keep-overfull \
 			test-keep-noweb-break test-keep-once test-keep-enumitem test-keep-first \
 			test-keep-parted
 
-.PHONY: all
-all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
+.PHONY: all tests
+# all: the package, its script for bilingual documents and its documentation.
+# tests: every test, each failing make by its checks (see the README for the time
+# and for MARGINFIX).
+all: didactic.sty didactic-sync.py didactic.pdf
+tests: didactic.sty test.pdf test-marginfix-interface test-footcite.pdf \
 	test-footcite-twoside.pdf test-footcite-memoir.pdf test-run.pdf \
 	test-note-heading.pdf test-pair.pdf test-pair-slides.pdf \
 	test-sidecap.pdf test-sidecap-off.pdf \
@@ -54,7 +61,9 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-marginfloat-inorder.pdf test-marginfloat-hidden.pdf \
 	${TEST_FLOATORDER:=.pdf} test-marginfloat-include.pdf \
 	test-format.pdf test-oldkernel-title.pdf test-biburl check \
-	didactic-sync.py test-sync check-bilingual
+	test-noteplace test-noteplace-tl12 test-footreuse-spread \
+	test-noteoverflow-foot test-notefoot test-notefoot-tl12 test-footwide \
+	test-testlog test-sync check-bilingual
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -86,9 +95,9 @@ didactic.pdf: ${SRC} didactic.sty
 	grep -q 'Adds bilingual documents' didactic.gls
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
-	! grep -E 'Empty bibliography|Citation .*undefined|could not be found' didactic.log
+	! ${TESTLOG} grep 'Empty bibliography|Citation .*undefined|could not be found' didactic.log
 	! grep -E 'WARN|ERROR' didactic.blg
-	! grep -E 'Reference .*undefined' didactic.log
+	! ${TESTLOG} grep 'Reference .*undefined' didactic.log
 	pdftotext didactic.pdf - | tr -d '\f' | grep -q '^References$$'
 
 # docstrip asks before overwriting, so remove the old file first.
@@ -214,7 +223,7 @@ mutants: test-mutants.py test-mutants.txt
 	python3 test-mutants.py ${MUTANTS}
 
 .PHONY: check
-check: test-check.py ${CHECKED_TESTS:=.pdf}
+check: test-check.py testlog.py ${CHECKED_TESTS:=.pdf}
 	python3 test-check.py ${CHECKED_TESTS}
 
 # a format from before the hooks we use: the warning from didactic itself, so
@@ -267,7 +276,7 @@ test-bilingual-nested.pdf: test-bilingual-nested.tex \
 	${PDFLATEX} ${LATEXFLAGS} $<
 
 .PHONY: check-bilingual
-check-bilingual: $(addsuffix .pdf,${TEST_BILINGUAL}) test-bilingual-off.pdf \
+check-bilingual: $(addsuffix .pdf,${TEST_BILINGUAL}) test-bilingual-off.pdf testlog.py \
 		test-bilingual-nested.pdf
 	./test-bilingual.sh
 
@@ -295,8 +304,8 @@ test-keep.pdf: test-keep.tex didactic.sty
 	-${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	${PYTHONTEX} test-keep
 	@${latex_until_settled}
-	! grep -E 'didactic keep test:.*(FAIL|SKIP)' test-keep.log
-	grep -q 'didactic keep test: all checks ran' test-keep.log
+	! ${TESTLOG} grep 'didactic keep test:.*(FAIL|SKIP)' test-keep.log
+	${TESTLOG} grep 'didactic keep test: all checks ran' test-keep.log
 	! grep 'Overfull .vbox' test-keep.log
 	pdftotext -layout test-keep.pdf - | grep -Eq '^ *1\. +qline 1$$'
 	test "$$(pdftotext test-keep.pdf - | awk -v RS='\f' '/wline 1\n/ && /wline 30/ {n++} /wline 27/ && /wline 30/ {m++} END {print n+0, m+0}')" = "0 1"
@@ -304,7 +313,7 @@ test-keep.pdf: test-keep.tex didactic.sty
 # listings too tall for a page, and what warns when one can't be kept: see the
 # documents.  Words that are off the paper aren't in pdftotext's output.
 count_word=$$(pdftotext $@ - | grep -o $(1) | wc -l)
-count_warn=$$(grep -c 'Package didactic Warning: .*$(1)' $(basename $@).log)
+count_warn=$$(${TESTLOG} count 'Package didactic Warning: .*$(1)' $(basename $@).log)
 
 test-keep-tall.pdf: test-keep-tall.tex didactic.sty
 	@${latex_until_settled}
@@ -359,25 +368,26 @@ test-keep-include-all.pdf: test-keep-include-all.tex test-keep-include-a.tex \
 test-keep-include.pdf: test-keep-include.tex test-keep-include-all.pdf
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
-	! grep -q 'didactic@hn@' test-keep-include.log
+	! ${TESTLOG} grep 'didactic@hn@' test-keep-include.log
 	test "${call count_warn,The heading in a file left out}" -eq 1
 
 test-keep-blank.pdf: test-keep-blank.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
-	! grep 'didactic blank test: WRONG' test-keep-blank.log
-	test "$$(grep -c 'didactic blank test: right' test-keep-blank.log)" -eq 25
-	grep -q 'didactic blank test: all ran' test-keep-blank.log
+	! ${TESTLOG} grep 'didactic blank test: WRONG' test-keep-blank.log
+	test "$$(${TESTLOG} count 'didactic blank test: right' test-keep-blank.log)" -eq 25
+	${TESTLOG} grep 'didactic blank test: all ran' test-keep-blank.log
 
 # multicol from the distribution: noweb's examples, in a texmf tree, have an old copy,
-# with no multicols*.
-test-keep-multicol.pdf: export TEXINPUTS:=$(shell kpsewhich -var-value=TEXMFDIST)/tex/latex/tools::
+# with no multicols*; test-check.py fails a test that loads another one.
+test-keep-multicol.pdf test-keep-noweb.pdf test-keep-noweb-break.pdf: \
+	export TEXINPUTS:=$(shell kpsewhich -var-value=TEXMFDIST)/tex/latex/tools::
 
 test-keep-huge.pdf: test-keep-huge.tex didactic.sty
 	@${latex_until_settled}
 	grep -q 'Package didactic Warning: Line 1 of a listing .*taller than a page' test-keep-huge.log
 	grep -A3 'taller than a page' test-keep-huge.log | grep -q 'is lost'
 	grep -A3 'taller than a page' test-keep-huge.log | grep -q 'input line 23'
-	! grep 'may break\|between its lines' test-keep-huge.log
+	! ${TESTLOG} grep 'may break|between its lines' test-keep-huge.log
 
 # a heading keeps its lines, within keepmaxgap, or warns: see the documents.
 # Each document also runs with keepafterheading=3 (the files ending in 3 only set
@@ -385,13 +395,13 @@ test-keep-huge.pdf: test-keep-huge.tex didactic.sty
 test-keep-heading.pdf test-keep-heading3.pdf: %.pdf: %.tex test-keep-heading.tex \
 		didactic.sty
 	@${latex_until_settled}
-	! grep -E 'didactic heading test:.*FAIL' $*.log
-	grep -q 'didactic heading test: all checks ran' $*.log
+	! ${TESTLOG} grep 'didactic heading test:.*FAIL' $*.log
+	${TESTLOG} grep 'didactic heading test: all checks ran' $*.log
 	! grep 'Overfull .vbox' $*.log
-	test "$$(grep -c 'Package didactic Warning: .*Only 1 of' $*.log)" -eq 0
-	test "$$(grep -c 'Package didactic Warning: .*Only 2 of' $*.log)" -eq ${ONLY2}
+	test "$$(${TESTLOG} count 'Package didactic Warning: .*Only 1 of' $*.log)" -eq 0
+	test "$$(${TESTLOG} count 'Package didactic Warning: .*Only 2 of' $*.log)" -eq ${ONLY2}
 	test "${call count_warn,What starts at}" -eq 1
-	test "$$(grep -c 'didactic heading test.*PASS' $*.log)" -ge 40
+	test "$$(${TESTLOG} count 'didactic heading test.*PASS' $*.log)" -ge 40
 test-keep-heading.pdf: ONLY2=0
 test-keep-heading3.pdf: ONLY2=3
 
@@ -399,9 +409,9 @@ test-keep-nogap.pdf test-keep-nogap3.pdf: %.pdf: %.tex test-keep-nogap.tex \
 		test-basedir/keep1/x.tex test-basedir/keep2/x.tex \
 		test-basedir/keep3.tex didactic.sty
 	@${latex_until_settled}
-	! grep -E 'didactic heading test:.*FAIL' $*.log
-	grep -q 'didactic heading test: all checks ran' $*.log
-	test "$$(grep -c 'Package didactic Warning: The heading in test-keep-nogap' $*.log)" -eq ${NOGAP_HEADINGS}
+	! ${TESTLOG} grep 'didactic heading test:.*FAIL' $*.log
+	${TESTLOG} grep 'didactic heading test: all checks ran' $*.log
+	test "$$(${TESTLOG} count 'Package didactic Warning: The heading in test-keep-nogap' $*.log)" -eq ${NOGAP_HEADINGS}
 	! grep 'Overfull .vbox' $*.log
 test-keep-nogap.pdf: NOGAP_HEADINGS=0
 test-keep-nogap3.pdf: NOGAP_HEADINGS=1
@@ -417,14 +427,14 @@ ${SWEEP_ALL:%=test-keep-sweep-%.pdf}: %.pdf: %.tex didactic.sty
 	@${latex_until_settled}
 	! grep 'Overfull .vbox' $*.log
 .PHONY: test-keep-sweep
-test-keep-sweep: test-keep-sweep.py ${SWEEP_ALL:%=test-keep-sweep-%.pdf}
+test-keep-sweep: test-keep-sweep.py testlog.py ${SWEEP_ALL:%=test-keep-sweep-%.pdf}
 	rc=0; for v in ${SWEEP}; do python3 $< check $$v || rc=1; done; exit $$rc
 
 # noweb without breakcode warns, once; with breakcode, however it is set, it doesn't.
 ${TEST_KEEP_NOWEB:=.pdf}: %.pdf: %.tex didactic.sty
 	@${latex_until_settled}
 	test "${call count_warn,Code chunks of noweb}" -eq "${FILBREAK_WARNINGS}"
-	test -z "${LATE_CHECK}" || grep -q 'didactic late test: PASS' $*.log
+	test -z "${LATE_CHECK}" || ${TESTLOG} grep 'didactic late test: PASS' $*.log
 test-keep-breakcode-late.pdf: LATE_CHECK=yes
 test-keep-filbreak.pdf: FILBREAK_WARNINGS=1
 test-keep-breakcode.pdf test-keep-breakcode-late.pdf test-keep-filbreak-nogap.pdf: \
@@ -436,9 +446,9 @@ test-keep-style.pdf: test-keep-style.tex didactic.sty
 	for k in 0 2 3; do \
 		${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode \
 			"\def\testk{$$k}\input{test-keep-style}" || exit 1; \
-		! grep -E 'didactic style test:.*FAIL' test-keep-style.log || exit 1; \
-		grep -q 'didactic style test: all checks ran' test-keep-style.log || exit 1; \
-		test "$$(grep -c 'didactic style ran' test-keep-style.log)" -eq 1 || exit 1; \
+		! ${TESTLOG} grep 'didactic style test:.*FAIL' test-keep-style.log || exit 1; \
+		${TESTLOG} grep 'didactic style test: all checks ran' test-keep-style.log || exit 1; \
+		test "$$(${TESTLOG} count 'didactic style ran' test-keep-style.log)" -eq 1 || exit 1; \
 		! grep '^!' test-keep-style.log || exit 1; \
 	done
 test-keep-columns.pdf: test-keep-columns.tex didactic.sty
@@ -455,15 +465,15 @@ test-keep-guard.pdf: test-keep-guard.tex didactic.sty
 	! grep '^!' test-keep-guard.log
 test-keep-pagereset.pdf: test-keep-pagereset.tex didactic.sty
 	@${latex_until_settled}
-	test "$$(grep -c 'keepafterheading): it moves' test-keep-pagereset.log)" -eq 2
-	! grep "heading in test-keep-pagereset, line $$(grep -n 'Stays, number raised' test-keep-pagereset.tex | cut -d: -f1)" test-keep-pagereset.log
+	test "$$(${TESTLOG} count 'keepafterheading\): it moves' test-keep-pagereset.log)" -eq 2
+	! ${TESTLOG} grep "heading in test-keep-pagereset, line $$(grep -n 'Stays, number raised' test-keep-pagereset.tex | cut -d: -f1)" test-keep-pagereset.log
 test-keep-nofiles.pdf test-keep-nofiles0.pdf: %.pdf: %.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	test "${call count_warn,With .nofiles}" -eq 1
 test-keep-box.pdf test-keep-club.pdf test-keep-club-article.pdf: %.pdf: %.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
-	! grep -E 'didactic (box|club) test:.*FAIL' $*.log
-	grep -Eq 'didactic (box|club) test: all checks ran' $*.log
+	! ${TESTLOG} grep 'didactic (box|club) test:.*FAIL' $*.log
+	${TESTLOG} grep 'didactic (box|club) test: all checks ran' $*.log
 test-keep-club-article.pdf: test-keep-club.tex
 test-keep-addvspace.pdf: test-keep-addvspace.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode "\def\testk{0}\input{test-keep-addvspace}"
@@ -489,42 +499,158 @@ ${TEST_KEEP_CHAPTER:=.pdf}: %.pdf: %.tex didactic.sty
 test-keep-stale.pdf: test-keep-stale.tex test-keep-stale.sh didactic.sty
 	sh test-keep-stale.sh "${PDFLATEX} ${LATEXFLAGS}"
 
-# noteoverflow.  break needs pdfTeX or LuaTeX, so these name the engine, except
-# test-noteoverflow-xe, which is about the engine that can't; test-noteoverflow-lua
-# is test-noteoverflow under LuaLaTeX.
-NOTEOVERFLOW_SRC=	test-noteoverflow-contents.tex didactic.sty
+# noteoverflow.  These name the engine, as test-noteoverflow-xe and -lua are about
+# the other engines; test-noteoverflow-lua
+# is test-noteoverflow under LuaLaTeX.  test-noteoverflow.py checks the outcome:
+# from labels at each footnote's mark and in its note, on which page each note is
+# set, and that every note away from its mark is named by a warning.  Runs to
+# settle are a requirement: each document is built first with noteoverflow=carry
+# (\testfloor, job <name>-floor), which places no note but beside its line or on
+# a later page, and may then take at most one run more than that floor.
+NOTEOVERFLOW_SRC=	test-noteoverflow-contents.tex test-noteoverflow.py testlog.py didactic.sty
 test-noteoverflow.pdf test-noteoverflow-carry.pdf test-noteoverflow-draft.pdf \
-		test-noteoverflow-draftbreak.pdf: PDFLATEX=pdflatex
+		test-noteoverflow-draftfoot.pdf: PDFLATEX=pdflatex
 test-noteoverflow-lua.pdf: PDFLATEX=lualatex
+test-noteoverflow-xe.pdf: PDFLATEX=xelatex
 define settle_many
+floor=15; for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do \
+	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode \
+		-jobname=$(basename $<)-floor "\def\testfloor{}\input{$<}" || exit 1; \
+	grep -q 'Rerun to get' $(basename $<)-floor.log || { floor=$$i; break; }; \
+done; \
 for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do \
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $< || exit 1; \
-	grep -q 'Rerun to get' $(basename $<).log || exit 0; \
+	grep -q 'Rerun to get' $(basename $<).log && continue; \
+	test $$i -le $$((floor + 1)) && exit 0; \
+	echo "$<: $$i runs to settle, floor $$floor"; exit 1; \
 done; echo "$<: references did not settle"; exit 1
 endef
-count_spill=$$(grep -c 'marginfix-spill.*$(1)' $(basename $@).log)
-test-noteoverflow.pdf test-noteoverflow-lua.pdf test-noteoverflow-draftbreak.pdf: %.pdf: %.tex \
+test-noteoverflow.pdf test-noteoverflow-lua.pdf test-noteoverflow-draftfoot.pdf: %.pdf: %.tex \
 		${NOTEOVERFLOW_SRC}
 	@${settle_many}
 	! grep '^!' $*.log
-	test "$$(grep -c 'marginfix-spill' $*.log)" -eq 0
-	test "$$(grep -c '^\\mfx@yield{' $*.aux)" -gt 0
+	python3 test-noteoverflow.py $* beside ${NOTEOVERFLOW_AWAY}
+# The foot goes to the first footnote that fits it whole (before a margin note
+# runs past the margin's foot): on page 1, dense with notes, that leaves no foot
+# for note 30 (contents line 25), which is carried, warned; a declared note.
+test-noteoverflow.pdf test-noteoverflow-lua.pdf test-noteoverflow-draftfoot.pdf: \
+	NOTEOVERFLOW_AWAY=away=30 awayat=test-noteoverflow-contents.tex:25
 test-noteoverflow-carry.pdf test-noteoverflow-draft.pdf: %.pdf: %.tex ${NOTEOVERFLOW_SRC}
 	@${settle_many}
 	! grep '^!' $*.log
-	test "${call count_spill,intended}" -gt 0
-	test "${call count_spill,unresolved}" -eq 0
-	test "$$(grep -c '^\\mfx@yield{' $*.aux)" -eq 0
+	python3 test-noteoverflow.py $* carried
 test-noteoverflow-xe.pdf: %.pdf: %.tex ${NOTEOVERFLOW_SRC}
 	@${settle_many}
 	! grep '^!' $*.log
-	test "${call count_spill,unresolved}" -gt 0
-	test "${call count_warn,A margin note from page}" -eq "${call count_spill,unresolved}"
+	python3 test-noteoverflow.py $* warned
+# a margin footnote is set once: its text runs once, and no box is kept for it.
+FOOTONCE=${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode
+test-footonce.pdf: PDFLATEX=pdflatex
+test-footonce.pdf: test-footonce.tex didactic.sty
+	${FOOTONCE} -jobname=test-footonce "\def\testcase{gls}\input{test-footonce}"
+	${FOOTONCE} -jobname=test-footonce "\def\testcase{gls}\input{test-footonce}"
+	pdftotext test-footonce.pdf - | tr '\n' ' ' | grep -q 'First use: three-letter acronym (TLA). BUMP1'
+	pdftotext test-footonce.pdf - | tr '\n' ' ' | grep -q 'Second use: TLA. BUMP2'
+	pdftotext test-footonce.pdf - | tr '\n' ' ' | grep -q 'TLB. LBUMP1 BUMP5'
+	test "$$(${TESTLOG} count "isn't plain" test-footonce.log)" -eq 1
+	${FOOTONCE} -jobname=test-footonce-many "\def\testcase{many}\input{test-footonce}"
+	${FOOTONCE} -jobname=test-footonce-carry "\def\testcase{many}\def\testcarry{}\input{test-footonce}"
+	! grep '^!' test-footonce-many.log
+	! grep '^!' test-footonce-carry.log
+	test "$$(${TESTLOG} count '@didactic@fb@' test-footonce-many.log)" -eq 0
+	test $$(grep -o '[0-9]* words of memory' test-footonce-many.log | cut -d' ' -f1) \
+		-le $$(( $$(grep -o '[0-9]* words of memory' test-footonce-carry.log | cut -d' ' -f1) * 105 / 100 ))
+	${FOOTONCE} -jobname=test-footonce-feet "\def\testcase{feet}\input{test-footonce}"
+	! grep '^!' test-footonce-feet.log
+	test "$$(${TESTLOG} count '@didactic@fb@' test-footonce-feet.log)" -eq 0
+	test $$(pdftotext -bbox test-footonce-feet.pdf - | grep '>FOOTWORD<' \
+		| awk -F'"' '$$2 < 300' | wc -l) -ge 200
+	grep -o '[0-9]* words of memory' test-footonce-feet.log
+
+# noteoverflow=break is gone, with no alias: an error.
+test-noteoverflow-break.pdf: test-noteoverflow-break.tex didactic.sty
+	-${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
+	grep -q "Unknown value .break. for noteoverflow" test-noteoverflow-break.log
 test-noteoverflow-old.pdf: test-noteoverflow-old.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	! grep '^!' test-noteoverflow-old.log
-	test "${call count_warn,option noteoverflow needs marginfix}" -eq 1
-	test "${call count_warn,marginnoteoverflow needs marginfix}" -eq 1
+	test "${call count_warn,needs marginfix}" -eq 0
+	grep -q '^didactic-interface: ok' test-noteoverflow-old.log
+
+# what didactic reads of marginfix and the kernel is there, with the shape it
+# expects, or didactic says which isn't and carries the notes (see the script).
+# MARGINFIX=<directory> runs this and the note rows (test-noteplace,
+# test-notefoot, test-noteoverflow-foot, test-footreuse-spread) against the
+# marginfix.sty there, put first on TEXINPUTS; unset, the one found.  TeX
+# Live's: MARGINFIX=$(kpsewhich -var-value TEXMFDIST)/tex/latex/marginfix;
+# another branch: the directory where its make marginfix.sty left it.
+export MARGINFIX
+# and the documents too: it goes first on TEXINPUTS for every target (but those
+# that set TEXINPUTS themselves, such as test-keep-multicol)
+ifneq ($(MARGINFIX),)
+export TEXINPUTS:=$(abspath $(MARGINFIX))//:$(TEXINPUTS)
+endif
+test-marginfix-interface: test-marginfix-interface.tex \
+		test-marginfix-interface.sh testlog.py didactic.sty
+	./test-marginfix-interface.sh
+.PHONY: test-marginfix-interface
+
+# where a margin note goes that doesn't fit beside its line, and what that does
+# to headings, ties and lone lines; checked by the outcome (test-noteplace.py).
+.PHONY: test-noteplace
+test-noteplace: test-noteplace.tex test-noteplace-slides.tex test-noteplace.sh \
+		test-noteplace.py testlog.py didactic.sty
+	./test-noteplace.sh
+
+# the same rows with TeX Live's marginfix 1.2, which didactic supports with less
+# (no deferrable notes, no split of a tall note: those rows are skipped there)
+TL12=$(shell kpsewhich -var-value TEXMFDIST)/tex/latex/marginfix
+.PHONY: test-noteplace-tl12
+test-noteplace-tl12: test-noteplace.tex test-noteplace-slides.tex test-noteplace.sh \
+		test-noteplace.py testlog.py didactic.sty
+	MARGINFIX=$(TL12) ./test-noteplace.sh
+
+# footnote reuse across the pages of a spread, at the foot and in the margin,
+# checked by the outcome (test-footreuse-spread.py).
+.PHONY: test-footreuse-spread
+test-footreuse-spread: test-footreuse-spread.tex test-footreuse-spread.sh \
+		test-footreuse-spread.py test-footcite.bib testlog.py didactic.sty
+	./test-footreuse-spread.sh
+
+# noteoverflow=foot: footnotes that don't fit in the margin at the foot of their
+# page, with citations, a note set once whatever its place (test-noteoverflow-foot),
+# and in the situations of marginfix's footcheck (test-notefoot); checked by the
+# outcome.
+# testlog.py, which the checks read the logs with (TESTLOG), on logs of TeX's
+# own under the three engines, whose line breaks cut the words looked for: see
+# test-testlog.tex.
+.PHONY: test-testlog
+test-testlog: test-testlog.tex testlog.py
+	for e in pdflatex xelatex lualatex; do \
+	  $$e ${LATEXFLAGS} -interaction=nonstopmode -jobname=test-testlog-$$e \
+	    test-testlog.tex > /dev/null || exit 1; \
+	done
+	${TESTLOG} selftest test-testlog-pdflatex.log test-testlog-xelatex.log \
+		test-testlog-lualatex.log
+
+.PHONY: test-noteoverflow-foot test-notefoot test-footwide
+# A footnote at the foot is set in the width of the text, its text run once
+# (test-footwide), under the three engines and with hyperref.
+test-footwide: test-footwide.tex test-footwide.sh test-footwide.py \
+		test-footcite.bib didactic.sty
+	./test-footwide.sh
+test-noteoverflow-foot: test-noteoverflow-foot.tex test-noteoverflow-foot-hbox.tex \
+		test-noteoverflow-foot.sh test-noteoverflow-foot.py testlog.py didactic.sty
+	./test-noteoverflow-foot.sh
+test-notefoot: test-notefoot.tex test-notefoot-dense.tex test-notefoot-tall.tex \
+		test-notefoot.sh test-notefoot.py testlog.py didactic.sty
+	./test-notefoot.sh
+# the floats' rows with TeX Live's marginfix 1.2 too (gen and the deferrable
+# rows need 1.5 or later)
+.PHONY: test-notefoot-tl12
+test-notefoot-tl12: test-notefoot.tex test-notefoot.sh test-notefoot.py testlog.py didactic.sty
+	MARGINFIX=$(TL12) CASES="botfloat botfloat-two topfloat clear dense" \
+	  ./test-notefoot.sh
 
 # the place of the margin column in the log against where a note is printed.
 test-margin-log.pdf test-margin-log-article.pdf: %.pdf: %.tex test-margin-log.tex \
@@ -558,8 +684,8 @@ test-biburl: test-biburl.tex didactic.sty test-biburl-overfull.pdf \
 	  ${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode \
 	    "\\def\\testorder{$$1}\\def\\testoptions{$$2}\\def\\testset{$$3}\\def\\testexpect{$$4}\\def\\testsetstretch{$$5}\\def\\testexpectstretch{$$6}\\input{$<}" \
 	    >/dev/null; \
-	  grep 'didactic biburl test:' test-biburl.log || exit 1; \
-	  ! grep -q 'didactic biburl test:.*FAIL' test-biburl.log || exit 1; \
+	  ${TESTLOG} grep 'didactic biburl test:' test-biburl.log || exit 1; \
+	  ! ${TESTLOG} grep 'didactic biburl test:.*FAIL' test-biburl.log >/dev/null || exit 1; \
 	done
 
 # where URLs break, read from the PDF: see test-biburl-breaks.py.  By default
@@ -590,15 +716,17 @@ test-biburl-breaks: test-biburl-breaks.tex test-biburl-memoir.tex \
 
 # what biburlpenalty is for: a bibliography whose URL and DOI have 90 letters
 # and digits without punctuation is set without an Overfull \hbox; both
-# entries must be there, with their URL and DOI.
+# entries must be there, with their URL and DOI.  The labels are biblatex's, in
+# small caps, which pdftotext gives in lower case under pdfLaTeX's fonts: the
+# greps ignore case.
 test-biburl-overfull.pdf: test-biburl-overfull.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	biber $(basename $@)
 	${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	! grep -A3 'Overfull .hbox' $(basename $@).log
 	test "$$(grep -c 'entry{' $(basename $@).bbl)" -eq 2
-	pdftotext $@ - | grep -q 'DOI:'
-	pdftotext $@ - | grep -q 'URL:'
+	pdftotext $@ - | grep -qi 'doi:'
+	pdftotext $@ - | grep -qi 'url:'
 
 VERSION=$(shell sed -En "s/^.*v([0-9]+(\.[0-9]+)+) didactic.*$$/\1/p" didactic.dtx)
 .PHONY: release
@@ -683,10 +811,18 @@ clean:
 			${SWEEP_ALL:%=test-keep-sweep-%} ${TEST_KEEP_NOWEB} \
 			${TEST_KEEP_SMALL} \
 			test-keep-flush test-keep-stale \
-			test-block-nested ${TEST_KEEP_CHAPTER} ${TEST_NOTEOVERFLOW}; do \
+			test-block-nested ${TEST_KEEP_CHAPTER} ${TEST_NOTEOVERFLOW} \
+			${TEST_NOTEOVERFLOW:=-floor}; do \
 		${RM} $$f.pdf $$f.aux $$f.log $$f.unq $$f.pytxcode $$f.out $$f.toc; \
 	done
 	${RM} test-keep-heading-?.txt test-keep-heading3-?.txt test-keep-stale-room.tex test-keep-stale-opt.tex
+	${RM} test-footwide.bib
+	for f in $(basename $(wildcard test-noteplace-*.log test-footreuse-spread-*.log \
+			test-noteoverflow-foot-*.log test-notefoot-*.log test-footwide-*.log \
+			test-marginfix-interface-*.log test-testlog-*.log)); do \
+		${RM} $$f.pdf $$f.aux $$f.aux.old $$f.log $$f.unq $$f.pytxcode \
+			$$f.nav $$f.snm $$f.toc $$f.out $$f.bbl $$f.bcf $$f.blg $$f.run.xml; \
+	done
 	${RM} ${TEST_KEEPCHECK:=.pdf} ${TEST_KEEPCHECK:=.aux} ${TEST_KEEPCHECK:=.log}
 	${RM} ${TEST_KEEPCHECK:=.unq} ${TEST_KEEPCHECK:=.out}
 	${RM} ${TEST_KEEPCHECK:=.pytxcode} ${TEST_KEEPCHECK:=-?.txt}

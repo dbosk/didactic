@@ -37,16 +37,26 @@
 #            -enumitem, and the sweep in variants m, s, k, m3, c, k3 and a, against their
 #            references (5 to 9 minutes; 7)
 #   biburl   test-biburl, which builds test-biburl-overfull and test-biburl-breaks (in
-#            five modes, under xelatex, pdflatex and lualatex) (1 to 2 minutes; 1.5);
+#            five modes, under pdflatex and lualatex) (1 to 2 minutes; 1.5);
 #            with the Makefile's engines, as the target chooses them
-# All with pdflatex, for speed, where make all uses xelatex, but title with xelatex: its
-# check reads a letter inside a picture, whose box depends on the engine.
+#   footcite test-noteoverflow-foot, its job default only (CASES=default), against the
+#            marginfix found or $MARGINFIX (about 1 minute)
+#   hbox     test-noteoverflow-foot, its job hbox only (CASES=hbox): the warnings of
+#            boxes in footnotes, against the marginfix found or $MARGINFIX (about 30 s)
+#   noteplace test-noteplace, its rows rsvsidecap, rsvblock, mcolblock,
+#            rsvsidebefore, heldtop, heldsecond and overmoved only, against the marginfix
+#            found or $MARGINFIX (1 minute)
+#   footwide test-footwide, its cases rigid, oneline and beyond only (CASES), under its
+#            three engines and with hyperref, against the marginfix found or $MARGINFIX
+# All with pdflatex, the Makefile's default since #72.  The title group's check reads a
+# letter inside a picture by its vertical centre, not by its box, which depends on the
+# engine: its three mutants are killed under xelatex too (PDFLATEX=xelatex make mutants).
 #
 # A kill needs a named reason: the targets are named, and a full disk is an ERROR.  A
 # mutant that breaks a build also fails, so these keep the document compiling.
 #
 # Not run against these mutants: the sweep's variants s3 and e, test-keep-stale,
-# test-keep-chapter, and the rest of make all.
+# test-keep-chapter, and the rest of make tests.
 #
 # Code that no test kills is marked survived below, with the reason.
 
@@ -1548,10 +1558,10 @@ u_counters didactic.dtx
 #: biburl
 #= killed test-biburl
 u_textwidth didactic.dtx
--   \dimen@\linewidth
--   \ifdim\hsize<\dimen@ \dimen@\hsize \fi
-+   \dimen@\textwidth
-+   \relax
+-     \dimen@\linewidth
+-     \ifdim\hsize<\dimen@ \dimen@\hsize \fi
++     \dimen@\textwidth
++     \relax
 
 # the document's own \UrlLeft not called (review of round 1)
 #: biburl
@@ -1625,3 +1635,153 @@ u_nolook didactic.dtx
 u_probeopen didactic.dtx
 -         \ifnum\@didactic@url@open>\@ne
 +         \ifnum\z@>\@ne
+
+# ===== A footnote at the foot, set once =====
+
+# The measure runs a footnote's text outside memoir's \@footnotetext, so it marks it as
+# a footnote's for biblatex itself; without that, a \textcite in a plain footnote makes
+# footnotes of its own inside the measure (an arithmetic overflow and lost notes before
+# the guard).  The guard against notes made in a measure catches it: no error, no note
+# lost or unwarned, the two footnotes with a \textcite are found not plain, and the job
+# fails by that count (test-noteoverflow-foot-default, every footnote plain).
+#: footcite
+#= killed test-noteoverflow-foot
+Mblxmeasure didactic.dtx
+-       \ifcsdef{etb@tgl@blx@footnote}{\toggletrue{blx@footnote}}{}%
+-       \noindent\ignorespaces#1\par
++       \noindent\ignorespaces#1\par
+
+# The two breaks the review of the one-pass placement found that rsvsidecap and rsvblock
+# couldn't catch (first pass, test gaps): the wide float's rule taken out, which only a
+# note called out before the float on its page shows (rsvsidebefore: the note goes on to
+# the next page), and marginfix's injected box taken for a note, which mcolblock shows (a
+# warning that a note in multicols is lost).
+#: noteplace
+#= killed test-noteplace
+Mrsvroom didactic.dtx
+-   \expandafter\ifx\csname mfx@wide@\number\@currbox\endcsname\relax\else
+-     \ifdim\@pageht<\@didactic@stay \@pageht\@didactic@stay \fi
+-   \fi}
++   }
+
+#: noteplace
+#= killed test-noteplace
+Mrsvinj didactic.dtx
+-     \expandafter\ifx#1\Mfx@inject@insert
+-       \expandafter\expandafter\expandafter\@firstoftwo
+-     \else
+-       \expandafter\expandafter\expandafter\@secondoftwo
+-     \fi
++     \expandafter\@secondoftwo
+
+# A note held for its line on the next page is set as marginfix sets a note carried to a
+# page, at \MFX@minus@inf: its first line on the text's first.  Held at 0pt, as marginfix's
+# own hold releases its notes, its top is at the margin's top instead, \topskip less its
+# first line's height higher (the row heldtop; the branch's code had it right from step 2,
+# so the row was never red on it).
+#: noteplace
+#= killed test-noteplace
+Mheldtop didactic.dtx
+-          \noexpand\mfx@build@note\noexpand##1\noexpand##2{\MFX@minus@inf}}%
++          \noexpand\mfx@build@note\noexpand##1\noexpand##2{0pt}}%
+
+# The document's own \emergencystretch wins over bibemergencystretch: the bibliography sets
+# its 3em only where the stretch is 0pt.  Without the test, the bibliography overrides a
+# stretch the document set (the cases before:::0:2em:2em and after:::0:2em:2em, whose
+# expectation is the document's 2em, taken where the document set it).
+#: biburl
+#= killed test-biburl
+Bstretchown didactic.dtx
+-       \ifdim\emergencystretch=\z@
+-         \setlength\emergencystretch{\@didactic@bibemergencystretch}%
+-       \fi}%
++         \setlength\emergencystretch{\@didactic@bibemergencystretch}}%
+
+# The measure's own lines, as wide as TeX allows, end quietly by the kernel's para/end hook;
+# without it, a note with a list and a forced break says an Underfull \hbox of badness 10000
+# that no printed line has (hbox's note G).  And the fallback's copy for the foot is quiet
+# again after memoir's \@preamfntext, whose \@parboxrestore sets \sloppy; without that, a box
+# in a note that isn't plain says its warning twice, from the measure and from that copy
+# (hbox's note F).
+#: hbox
+#= killed test-noteoverflow-foot
+Hmeasureend didactic.dtx
+- \AddToHook{para/end}{\if@didactic@inmeasure\ifdim\hsize=\maxdimen
+-   \@didactic@quiet\fi\fi}
++ \AddToHook{para/end}{}
+
+#: hbox
+#= killed test-noteoverflow-foot
+Hfootcopy didactic.dtx
+-           \rule\z@\footnotesep\ignorespaces\foottextfont\@didactic@quiet #1%
++           \rule\z@\footnotesep\ignorespaces\foottextfont #1%
+
+# The fallback's version for the margin, set quietly: without that, note G (a list, not
+# plain, in the margin of page 3) has TeX's words as well as didactic's.
+#: hbox
+#= killed test-noteoverflow-foot
+Hfallmargin didactic.dtx
+-   \@didactic@footmargin{\@didactic@blxfootnote\@didactic@quiet
+-     \interlinepenalty\interfootnotelinepenalty#1\@didactic@quiet}%
++   \@didactic@footmargin{\@didactic@blxfootnote
++     \interlinepenalty\interfootnotelinepenalty#1}%
+
+# The quiet setting again after the note's text, before its last paragraph ends, in the
+# fallback's versions for the margin and for the foot: a note whose text sets \fussy (H,
+# I) would have that paragraph's lines said by TeX too, twice for H, printed in the
+# margin, and for I from its version for the margin, not printed (Hfalltrail), or twice
+# from its version for the foot, printed (Hfoottrail).
+#: hbox
+#= killed test-noteoverflow-foot
+Hfalltrail didactic.dtx
+-     \interlinepenalty\interfootnotelinepenalty#1\@didactic@quiet}%
++     \interlinepenalty\interfootnotelinepenalty#1}%
+
+#: hbox
+#= killed test-noteoverflow-foot
+Hfoottrail didactic.dtx
+-           \@finalstrut\strutbox\@didactic@quiet}%
++           \@finalstrut\strutbox}%
+
+# A footnote with a line wider than TeX allows (test-footwide's rigid, oneline and beyond):
+# what didactic says of an overfull line is found by halving from the line's width up to
+# \maxdimen, in 31 turns.  A midpoint that never moves would have run on for ever when the
+# loop waited for the gap to close; it now ends with a wrong amount, which rigid's row
+# compares with TeX's.  Half the sum, as before, passes TeX's limit: an error each turn.
+# Reading the line's natural width, where it is larger than TeX allows: "Dimension too
+# large" (oneline).  A line wider than \maxdimen however it shrinks is said to be wider by
+# more than an amount (beyond).
+#: footwide
+#= killed test-footwide
+Hmidlo didactic.dtx
+-           \dimen@\dimexpr\@didactic@hboxlo
+-             +(\@didactic@hboxhi-\@didactic@hboxlo)/2\relax
++           \dimen@\dimexpr\@didactic@hboxlo\relax
+
+#: footwide
+#= killed test-footwide
+Hmidsum didactic.dtx
+-           \dimen@\dimexpr\@didactic@hboxlo
+-             +(\@didactic@hboxhi-\@didactic@hboxlo)/2\relax
++           \dimen@\dimexpr(\@didactic@hboxlo+\@didactic@hboxhi)/2\relax
+
+#: footwide
+#= killed test-footwide
+Hnatural didactic.dtx
+-       \@didactic@hboxhi\maxdimen
++       \setbox4\hbox{\unhcopy\tw@}\@didactic@hboxhi\wd4
+
+#: footwide
+#= killed test-footwide
+Hmorethan didactic.dtx
+-       (more than \the\dimexpr\maxdimen-\wd\tw@\relax\space too wide)}%
++       (\the\dimexpr\maxdimen-\wd\tw@\relax\space too wide)}%
+
+# A note decided for one page whose line TeX's break takes to the next, and which is
+# carried from there (test-noteplace's overmoved): its warning says why, that its line
+# went on, as it has no reason of its own.
+#: noteplace
+#= killed test-noteplace
+Cmovedwhy didactic.dtx
+-             \ifcsname @didactic@dn@\the\@didactic@noteof##1\endcsname
++             \ifcsname @didactic@dn@none\endcsname

@@ -1,0 +1,124 @@
+% Test of noteoverflow=foot (didactic): a footnote that doesn't fit in the
+% margin goes to the foot of its page, and the page stays full.  A section
+% that starts in the middle of a page, in which nearly every sentence cites a
+% new source in full (verbose), a few cite one again (short) and a few have a
+% plain footnote, each with a citation in it, one early, which goes in the margin,
+% and one later, at the foot, of a work cited again after it: more notes than the
+% margins hold.  The sources are made up.  The plain footnotes and the margin note
+% have zref labels as didactic gives a citation's footnote, at the mark
+% (didacticfn@...) and in the note (didacticfnnote@...), so that the check counts
+% every note.
+%
+% Build: see the Makefile, which runs it with
+%   \def\testoptions{<options of didactic>}  (none: the default)
+%   \def\testhyper{}                          to load hyperref
+% under pdflatex, lualatex or xelatex, and then test-noteoverflow-foot.py,
+% which checks the outcome: the PDF, the labels, biblatex's records and the
+% warnings, whatever the mechanism.  ENDPART marks the end of the text before a
+% page that is meant to end short (\clearpage, the bibliography).
+\ifdefined\testclassopt\else\def\testclassopt{}\fi
+\documentclass[a4paper,\testclassopt]{memoir}
+\begin{filecontents*}[overwrite]{\jobname.bib}
+@article{src1, author={Ada Writer and Bo Reader and Cy Third}, title={On the Placement of Notes Beside the Text They Explain, and What Happens When They Do Not Fit}, journal={Journal of Imaginary Typography}, volume={12}, number={3}, pages={101--139}, year={2021}}
+@article{src2, author={Di Fourth and Ed Fifth}, title={Margins, Feet and the Reader's Eye: A Study of Where Readers Look for a Note}, journal={Studies in Made-Up Reading}, volume={7}, number={1}, pages={1--29}, year={2019}}
+@book{src3, author={Fo Sixth}, title={A Long History of the Footnote and Its Many Relatives in the Margin of the Printed Page}, publisher={Invented Press}, location={Nowhere}, year={2018}}
+@article{src4, author={Gu Seventh and Ha Eighth and Io Ninth}, title={Citations in the Margin: Counting Lines, Measuring Pages, and Other Pastimes of Typesetters}, journal={Annals of Pretend Bibliometrics}, volume={44}, pages={210--248}, year={2020}}
+@inproceedings{src5, author={Ju Tenth}, title={Page Breaks Under Pressure: When the Text Must Give Way to Its Notes}, booktitle={Proceedings of the Workshop on Fictional Layout}, pages={55--71}, year={2022}}
+@article{src6, author={Ka Eleventh and Lu Twelfth}, title={The Reader Who Follows Every Note: An Experiment That Never Happened}, journal={Journal of Imaginary Typography}, volume={13}, number={2}, pages={77--98}, year={2022}}
+@book{src7, author={Mo Thirteenth}, title={Feet Below the Text: Practice and Precept in Book Design Through Five Centuries}, publisher={Invented Press}, location={Somewhere Else}, year={2017}}
+@article{src8, author={Nu Fourteenth and Ol Fifteenth and Pi Sixteenth}, title={A Survey of Margin Widths in Textbooks, Course Notes and Other Teaching Material}, journal={Studies in Made-Up Reading}, volume={9}, number={4}, pages={300--342}, year={2021}}
+@inproceedings{src9, author={Qu Seventeenth}, title={Two Runs or Ten: How Long a Document Takes to Settle When Its Notes Move}, booktitle={Proceedings of the Workshop on Fictional Layout}, pages={12--30}, year={2023}}
+@article{src10, author={Ro Eighteenth and Sa Nineteenth}, title={Short and Full Citations in the Same Paragraph: A Note on Notes}, journal={Annals of Pretend Bibliometrics}, volume={46}, pages={1--18}, year={2022}}
+@book{src11, author={Ti Twentieth}, title={The Lone Line at the Foot of the Page and Other Small Sorrows of the Compositor}, publisher={Invented Press}, location={Nowhere}, year={2016}}
+@article{src12, author={Uv Twentyfirst and Vi Twentysecond}, title={How Far a Reader Will Turn for a Note, Measured in Pages and in Patience}, journal={Journal of Imaginary Typography}, volume={14}, number={1}, pages={5--44}, year={2023}}
+@article{src13, author={Wo Twentythird}, title={Marginalia, Old and New: From Glosses to Sidenotes in Digital Course Material}, journal={Studies in Made-Up Reading}, volume={10}, number={2}, pages={88--120}, year={2022}}
+@inproceedings{src14, author={Xa Twentyfourth and Yu Twentyfifth}, title={When the Margin Is Full: Strategies for Notes That Do Not Fit Beside Their Text}, booktitle={Proceedings of the Workshop on Fictional Layout}, pages={90--111}, year={2021}}
+@article{src15, author={Za Twentysixth}, title={The Arithmetic of Empty Lines at the Foot of a Page, and Why Readers Notice Them}, journal={Annals of Pretend Bibliometrics}, volume={45}, pages={60--79}, year={2021}}
+@book{src16, author={Ab Twentyseventh and Bc Twentyeighth}, title={Designing Pages for Learners: Text, Notes, Figures and the Space Between Them}, publisher={Invented Press}, location={Somewhere Else}, year={2020}}
+@article{src17, author={Cd Twentyninth}, title={Numbering Notes in One Sequence Whether They Sit in the Margin or at the Foot}, journal={Journal of Imaginary Typography}, volume={15}, number={3}, pages={140--171}, year={2024}}
+@article{src18, author={De Thirtieth and Ef Thirtyfirst}, title={A Census of Footnotes in Lecture Notes Written by People Who Like Footnotes Too Much}, journal={Studies in Made-Up Reading}, volume={11}, number={1}, pages={2--40}, year={2023}}
+@inproceedings{src19, author={Fg Thirtysecond}, title={Floats, Feet and Margins: Three Things That Want the Same Corner of the Page}, booktitle={Proceedings of the Workshop on Fictional Layout}, pages={131--150}, year={2024}}
+@article{src20, author={Gh Thirtythird and Hi Thirtyfourth}, title={What the Eye Does at a Page Break, With Some Thoughts on Notes That Cross It}, journal={Annals of Pretend Bibliometrics}, volume={47}, pages={33--58}, year={2023}}
+@book{src21, author={Ij Thirtyfifth}, title={The Complete and Unabridged Guide to Notes That Wander, Notes That Stay, and Notes That Go to the Foot}, publisher={Invented Press}, location={Nowhere}, year={2019}}
+@article{src22, author={Jk Thirtysixth and Kl Thirtyseventh}, title={Measuring the Cost of a Page That Ends Early, in Lines and in Readers' Goodwill}, journal={Journal of Imaginary Typography}, volume={16}, number={1}, pages={1--33}, year={2025}}
+@article{src23, author={Lm Thirtyeighth}, title={A Second Look at the Margin: Width, Measure and the Length of a Note}, journal={Studies in Made-Up Reading}, volume={12}, number={3}, pages={201--230}, year={2024}}
+@inproceedings{src24, author={Mn Thirtyninth and No Fortieth}, title={Notes on Notes: A Workshop Report Nobody Asked For}, booktitle={Proceedings of the Workshop on Fictional Layout}, pages={151--160}, year={2025}}
+@book{src25, author={Op Fortyfirst}, title={Cited Once, in a Footnote}, publisher={Invented Press}, location={Nowhere}, year={2025}}
+\end{filecontents*}
+\ifdefined\testoptions\else\def\testoptions{}\fi
+\usepackage[british]{babel}
+\usepackage{csquotes}
+\ifdefined\teststyle\else\def\teststyle{verbose}\fi
+\ifdefined\testbib\else\def\testbib{}\fi
+\edef\testbibopts{backend=biber,style=\teststyle,\testbib}
+\expandafter\usepackage\expandafter[\testbibopts]{biblatex}
+\ifdefined\testcounter
+  \AtEveryCitekey{\printtext{\ifnumgreater{\value{citecounter}}{1}{MANYTIMES}{ONCE}}}
+\fi
+\addbibresource{\jobname.bib}
+\expandafter\PassOptionsToPackage\expandafter{\testoptions}{didactic}
+% \testfloor: the same document with noteoverflow=carry, for the runs LaTeX needs
+% without moving any note (the floor of the runs to settle).
+\ifdefined\testfloor\PassOptionsToPackage{noteoverflow=carry}{didactic}\fi
+\usepackage{didactic}
+\ifdefined\testhyper\usepackage{hyperref}\fi
+\extrafloats{500}
+% Where the text block is, for test-noteoverflow-foot.py (in bp, as pdftotext
+% gives): its left edge on odd and on even pages, its width, top and height.
+\makeatletter
+\AtBeginDocument{\typeout{noteoverflow-foot geometry:
+  odd=\strip@pt\dimexpr(1in+\hoffset+\oddsidemargin)*7200/7227\relax\space
+  even=\strip@pt\dimexpr(1in+\hoffset+\evensidemargin)*7200/7227\relax\space
+  width=\strip@pt\dimexpr\textwidth*7200/7227\relax\space
+  top=\strip@pt\dimexpr(1in+\voffset+\topmargin+\headheight+\headsep)*7200/7227\relax\space
+  height=\strip@pt\dimexpr\textheight*7200/7227\relax}}
+\makeatother
+\newcommand\filler{Some words of ordinary text that fill up the lines of this
+  paragraph, as the words of a paragraph do when it goes on for a while.}
+\newcommand\citesrc[1]{\filler\autocite{#1} }
+\pagestyle{plain}\aliaspagestyle{chapter}{plain}
+\begin{document}
+\chapter{Text}
+\filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler
+
+\filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler
+
+\filler\ \filler\ \filler\ \filler\ \filler\ \filler
+
+\section{Dense}
+\citesrc{src1}\citesrc{src2}\citesrc{src3}\citesrc{src4}
+\filler\zlabel{didacticfn@plainA}\footnote{\zlabel{didacticfnnote@plainA}A plain footnote, which cites \textcite[Ch.~9]{src21} in it,
+  and \autocite{src24}, which biblatex sets in the note's text.}
+\citesrc{src5}\citesrc{src6}\citesrc{src1}\citesrc{src7}\citesrc{src7}\citesrc{src8}
+
+\citesrc{src9}\citesrc{src10}\citesrc{src11}\citesrc{src2}\citesrc{src12}
+\citesrc{src13}\citesrc{src14}\citesrc{src15}
+\filler\zlabel{didacticfn@plainB}\footnote{\zlabel{didacticfnnote@plainB}Another plain footnote, which cites \textcite{src22}, cited
+  again below, and \textcite{src25}, cited only here.}
+\citesrc{src16}
+
+\citesrc{src17}\citesrc{src18}\citesrc{src19}\citesrc{src20}\citesrc{src3}
+\citesrc{src21}\citesrc{src22}\citesrc{src23}\citesrc{src24}
+
+\filler\ \filler\ \filler\ \filler\ \filler\ \filler
+\ifdefined\testnowhere
+  % A footnote that fits neither in the margin (a plain note fills most of it)
+  % nor at the foot (its line is low on the page): it is carried to the next
+  % page's margin, where it fits.
+  ENDPART\clearpage
+  \filler\zlabel{didacticfn@tallmp}\marginpar{\zlabel{didacticfnnote@tallmp}%
+    \rule{1pt}{.55\textheight}}\par
+  \vspace*{.6\textheight}
+  \noindent LOWLINE, which shows where the page is filled to.\par
+  \filler\zlabel{didacticfn@tallfn}\footnote{\zlabel{didacticfnnote@tallfn}%
+    A tall footnote. \rule{1pt}{.5\textheight}}\par
+  \filler\ \filler\ \filler\ \filler\ \filler\ \filler
+\fi
+
+\section{After}
+\filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler
+
+\filler\ \filler\ \filler\ \filler
+ENDPART
+\ifdefined\testbibliography\printbibliography\fi
+\end{document}

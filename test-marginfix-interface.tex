@@ -1,0 +1,27 @@
+% Test of what didactic reads of marginfix and of the LaTeX kernel (its
+% interface): every name it relies on is there with the shape it expects, or
+% didactic says which is not and sets noteoverflow to carry.  See
+% test-marginfix-interface.sh, which builds it with the marginfix found, with
+% TeX Live's marginfix 1.2, on the oldest kernel didactic asks for, and with a
+% name taken away, and reads the log: the line "didactic-interface: ..." that
+% didactic writes, and the shape of marginfix's list of waiting notes after one
+% note, which this document writes as "interface-list: ...".
+\ifdefined\testoldkernel\RequirePackage[2021-06-01]{latexrelease}\fi
+\documentclass{article}
+\usepackage{didactic}
+\makeatletter
+% \testbreak: change the kernel's special output before didactic checks, as
+% a new kernel might, without changing what it does: didactic can't patch it
+\ifdefined\testbreak
+  \AddToHook{begindocument}{%
+    \patchcmd\@specialoutput{\unvbox\@holdpg\@next}{\unvbox\@holdpg\relax\@next}{}{}}
+\fi
+% the list of waiting notes as marginfix builds the margin from it
+\AtBeginDocument{\ifdefined\MFX@combinefloats@before
+  \pretocmd\MFX@combinefloats@before
+    {\ifx\mfx@marginlist\@empty\else
+       \typeout{interface-list: \meaning\mfx@marginlist\space:end}\fi}{}{}\fi}
+\makeatother
+\begin{document}
+Text\marginpar{NOTE} and more text.
+\end{document}
