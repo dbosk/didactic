@@ -836,9 +836,13 @@
 % Each run also records in the |.aux| file the page each margin note's callout
 % and the note itself are printed on; a note printed on another page than its
 % callout that no warning of that run named is warned about in the next run,
-% ``found from the last run'': a case the placement didn't foresee, which we'd
-% like to hear about.  So none goes unsaid, though such a one is said a run late
-% (a settled build has it).  Deferrable notes (|\ltnote| and the like) are
+% ``found from the last run''.  So none goes unsaid, though such a one is said
+% a run late (a settled build has it).  Two cases are known to be said that
+% way: a foot that holds a footnote of \LaTeX's own as well as \textsf{didactic}'s,
+% where a later line with a margin note takes them all to the next page with
+% it; and footnotes in \textsf{multicol}'s columns that it sets at the foot of
+% another page (below).  Any other is one the placement didn't foresee, which
+% we'd like to hear about.  Deferrable notes (|\ltnote| and the like) are
 % left out: \textsf{marginfix} moves them on by design, as its mode says.
 % |noteoverflow=break| is gone: no page ends early for a note.
 % In two columns a note runs past the foot of its column's margin the same way,
@@ -5256,8 +5260,10 @@
 % printed on another page than its callout's, that no warning of that run
 % named, is warned about then, ``found from the last run''.
 % So no placement of a note on another page is silent, whatever caused it,
-% though a case the placement didn't foresee is said a run late (a settled
-% build has it).
+% though such a case is said a run late (a settled build has it): a foot that
+% mixes our footnotes with \LaTeX's own, which a later line takes to the next
+% page (|\@didactic@footback|), footnotes in |multicols|
+% (|\@didactic@mcolfoot|), and any case the placement didn't foresee.
 % The callout's record is a |\write| in the callout's line, put where the
 % kernel puts its own mark of the note, before its penalty: it is shipped with
 % the line, and it adds no place to break and changes no hyphenation, since the
@@ -5319,9 +5325,11 @@
 \newcommand\@didactic@warned[1]{%
   \if@filesw\immediate\write\@auxout{\string\@didactic@rw{#1}}\fi}
 \newcount\@didactic@rcmax
+\newcount\@didactic@rcmin
 \newcommand\@didactic@rc[3]{%
   \expandafter\gdef\csname @didactic@rc@#1\endcsname{{#2}{#3}}%
-  \ifnum#1>\@didactic@rcmax\global\@didactic@rcmax#1\relax\fi}
+  \ifnum#1>\@didactic@rcmax\global\@didactic@rcmax#1\relax\fi
+  \ifnum#1<\@didactic@rcmin\global\@didactic@rcmin#1\relax\fi}
 \newcommand\@didactic@rn[2]{%
   \expandafter\gdef\csname @didactic@rn@#1\endcsname{#2}}
 \newcommand\@didactic@rw[1]{%
@@ -5348,15 +5356,33 @@
     \fi
     \advance\@tempcnta\@ne
   \repeat
-  \global\@didactic@rcmax\z@}
+  \global\@didactic@rcmax\z@
+  \@tempcnta\m@ne
+  \loop\ifnum\@tempcnta<\@didactic@rcmin\else
+    \ifcsname @didactic@rn@\the\@tempcnta\endcsname
+      \ifcsname @didactic@rc@\the\@tempcnta\endcsname
+        \expandafter\expandafter\expandafter\@didactic@mccheck
+          \csname @didactic@rc@\the\@tempcnta\endcsname
+      \fi
+    \fi
+    \advance\@tempcnta\m@ne
+  \repeat
+  \global\@didactic@rcmin\z@}
+\newcommand\@didactic@mccheck[2]{%
+  \edef\@tempa{#1}%
+  \edef\@tempb{\csname @didactic@rn@\the\@tempcnta\endcsname}%
+  \ifx\@tempa\@tempb\else
+    \PackageWarningNoLine{didactic}{Footnote called out at #2 in multicols\MessageBreak
+      on page #1 is set at the foot of page \@tempb, where\MessageBreak
+      multicol puts it (seen in the run before)}%
+  \fi}
 \newcommand\@didactic@recheck@[2]{%
   \edef\@tempa{#1}%
   \edef\@tempb{\csname @didactic@rn@\the\@tempcnta\endcsname}%
   \ifx\@tempa\@tempb\else
     \PackageWarningNoLine{didactic}{Margin note called out at #2\MessageBreak
       on page #1 is set on page \@tempb\space (found from the last
-      run):\MessageBreak nothing said so in that run; a case the placement
-      of notes\MessageBreak didn't foresee}%
+      run):\MessageBreak nothing said so in that run}%
   \fi}
 \newcommand\@didactic@lost[2]{%
   \PackageWarningNoLine{didactic}{Margin note called out at #2\MessageBreak
@@ -5391,8 +5417,8 @@
 % (|\@didactic@colfeet|), as they are by their numbers.
 % With a footnote of \LaTeX's own among them the kernel's way stays, since
 % we can't take back a footnote whose line goes on: a footnote of ours may then
-% be put after a later line and go to the next page, which the column's check
-% warns about (|\@didactic@footnet|).
+% be put after a later line and go to the next page, which the records say a
+% run later (|\@didactic@record|).
 % Where the kernel's part for the note is skipped (a note sent to the foot),
 % its |\@reinserts| is ours to do: without it no insertion of
 % footnotes would be on the page and \TeX\ wouldn't count the foot (the rows
@@ -5545,9 +5571,8 @@
 % \begin{macro}{\@didactic@scan}
 % |\@didactic@scan|\meta{box} reads the boxes at a foot from the end: ours are
 % the vertical boxes that end with a penalty of $-1000000$ less the note's
-% number (|\@didactic@tofoot|, read by |\@didactic@idof|), listed in
-% |\@didactic@stamps|; anything else is \LaTeX's (the lines of a footnote of
-% its own), and the foot isn't all ours.
+% number (|\@didactic@tofoot|, read by |\@didactic@idof|); anything else is
+% \LaTeX's (the lines of a footnote of its own), and the foot isn't all ours.
 % The number is read from no dimension of the box or the page: a box keeps it
 % whatever the column's width is where it is read (in \textsf{multicol}'s
 % columns, in two columns, after a change of the text's width), and a
@@ -5559,7 +5584,6 @@
 %    \begin{macrocode}
 \newif\if@didactic@allours
 \newif\if@didactic@scanfull
-\let\@didactic@stamps\@empty
 \newcount\@didactic@boxid
 \newcommand\@didactic@idof[1]{%
   \global\@didactic@boxid\z@
@@ -5574,7 +5598,6 @@
 \newcommand\@didactic@scan[1]{%
   \global\@didactic@alloursfalse
   \global\@didactic@scanfulltrue
-  \gdef\@didactic@stamps{,}%
   \ifvoid#1\else
     \global\@didactic@alloursfalse
     \global\let\@didactic@scanlatex\relax
@@ -5588,10 +5611,7 @@
   \ifnum\lastnodetype=\tw@
     \setbox\z@\lastbox
     \@didactic@idof\z@
-    \@tempcnta\@didactic@boxid
-    \ifnum\@tempcnta>\z@
-      \xdef\@didactic@stamps{\@didactic@stamps\the\@tempcnta,}%
-    \else
+    \ifnum\@didactic@boxid>\z@\else
       \global\let\@didactic@scanlatex\@empty
     \fi
     \let\@didactic@next\@didactic@scanloop
@@ -6974,8 +6994,7 @@
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\@didactic@colfeet,\@didactic@pull,\@didactic@pullcheck,
-%   \@didactic@movedwarn}
+% \begin{macro}{\@didactic@colfeet,\@didactic@pull,\@didactic@movedwarn}
 % When a column is made, before its footnotes are attached, the notes at its
 % foot whose lines went to the next column after all are taken back (a later
 % special output on the page put them into |\footins| while their lines were
@@ -6984,12 +7003,9 @@
 % They are inserted again, whole and in their order: insertions left in the
 % output routine's list go back to the head of the page, so these head the next
 % column's foot, after any page of floats that is made in between.
-% There they are looked for (|\@didactic@pullcheck|), by their numbers, when
-% that column is made; one that isn't there (a later special output put it back
-% after another line, with a footnote of \LaTeX's own at the foot, and it went
-% with that line) is warned about, in the words of a note set on another page.
-% Where \textsf{multicol} makes the page (|\col@number| above one), the check
-% says nothing: there the foot is \textsf{multicol}'s to read.
+% If one doesn't get there (a later special output put it back after another
+% line, with a footnote of \LaTeX's own at the foot), the records say so a run
+% later.
 % A note sent to the foot whose line went on to the next column is warned
 % about: \TeX\ ended the page before that line, which couldn't hold the lines
 % that stay with it, and the page is that much short.
@@ -7009,8 +7025,6 @@
 \newbox\@didactic@pullbox
 \newbox\@didactic@one
 \newcount\@didactic@colast
-\let\@didactic@expect\@empty
-\let\@didactic@expectnext\@empty
 \newcommand\@didactic@colfeet{%
   \begingroup
     \setbox\@outputbox\copy\@cclv
@@ -7020,7 +7034,6 @@
     \global\@didactic@pagelast\count@
   \endgroup
   \xdef\@didactic@colread{\the\c@page}%
-  \@didactic@pullcheck
   \global\setbox\@didactic@pullbox\box\voidb@x
   \ifvoid\footins\else
     \global\setbox\footins\vbox{\unvbox\footins\@didactic@pull}%
@@ -7029,12 +7042,9 @@
     \fi
   \fi
   \@didactic@movedwarn
-  \@didactic@footnet
   \ifvoid\@didactic@pullbox\else
-    \global\let\@didactic@expect\@didactic@expectnext
     \insert\footins{\floatingpenalty\@MM\unvbox\@didactic@pullbox}%
   \fi
-  \global\let\@didactic@expectnext\@empty
   \global\let\@didactic@footids\@empty
   \global\@didactic@footfullfalse}
 \let\@didactic@colread\@empty
@@ -7053,7 +7063,6 @@
     \@didactic@idof\@didactic@one
     \@tempcnta\@didactic@boxid
     \ifnum\@tempcnta>\@didactic@colast
-      \xdef\@didactic@expectnext{\@didactic@expectnext\the\@tempcnta/\thepage,}%
       \global\setbox\@didactic@pullbox
         \vbox{\box\@didactic@one\unvbox\@didactic@pullbox}%
       \let\@didactic@next\@didactic@pull
@@ -7062,27 +7071,6 @@
     \fi
   \fi
   \@didactic@next}
-\newcommand\@didactic@pullcheck{%
-  \ifx\@didactic@expect\@empty\else
-    \@didactic@scan\footins
-    \@tempswatrue
-    \ifdefined\col@number\ifnum\col@number>\@ne \@tempswafalse \fi\fi
-    \if@tempswa
-      \def\@didactic@pelt##1/##2,{\ifx\relax##1\relax\else
-        \edef\@tempa{\noexpand\in@{,##1,}{\@didactic@stamps}}\@tempa
-        \ifin@\else
-          \@didactic@warned{##1}%
-          \PackageWarningNoLine{didactic}{Margin note called out at
-            \csname @didactic@ln@##1\endcsname\MessageBreak
-            on page ##2 is set on a later page:\MessageBreak its footnote,
-            which went on with its line,\MessageBreak didn't reach the foot of
-            page \thepage}%
-        \fi
-        \expandafter\@didactic@pelt\fi}%
-      \expandafter\@didactic@pelt\@didactic@expect\relax/,%
-    \fi
-    \global\let\@didactic@expect\@empty
-  \fi}
 \newcommand\@didactic@movedwarn{%
   \setbox\z@\vbox{\unvcopy\@cclv}%
   \dimen@\dimexpr\@colroom-\ht\z@-\dp\z@\relax
@@ -7103,48 +7091,6 @@
     \fi
     \expandafter\@didactic@welt\fi}%
   \expandafter\@didactic@welt\@didactic@footids\relax,}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\@didactic@footnet}
-% Each note sent to the foot whose line is in the column must be at its foot
-% when the column is made: its box, by its number (|\@didactic@scan|).
-% If it isn't, a later special output put it back after another line, with the
-% kernel's |\@reinserts| (a footnote of \LaTeX's own at the same foot), and it
-% went with that line to the next page: we warn, in the words of a note set
-% on another page than its callout.
-% If the scan can't read the whole foot (an item \TeX\ can't take off a list,
-% in a footnote of \LaTeX's own), a note not found may be above that item: the
-% warning says it may be on a later page, since it can't say more.
-%    \begin{macrocode}
-\newcommand\@didactic@footnet{%
-  \ifx\@didactic@footids\@empty\else
-    \@didactic@scan\footins
-    \def\@didactic@nelt##1,{\ifx\relax##1\relax\else
-      \ifnum##1>\@didactic@colast\else
-        \edef\@tempa{\noexpand\in@{,##1,}{\@didactic@stamps}}\@tempa
-        \ifin@\else
-          \if@didactic@scanfull
-            \@didactic@warned{##1}%
-            \PackageWarningNoLine{didactic}{Margin note called out at
-              \csname @didactic@ln@##1\endcsname\MessageBreak
-              on page \thepage\space is set on a later page:\MessageBreak
-              its footnote was put back after a later line,\MessageBreak
-              with a footnote of LaTeX's own at the foot,\MessageBreak
-              and went with that line to the next page}%
-          \else
-            \@didactic@warned{##1}%
-            \PackageWarningNoLine{didactic}{Footnote called out at
-              \csname @didactic@ln@##1\endcsname\MessageBreak
-              on page \thepage\space may be set on a later page:\MessageBreak
-              it was sent to the foot, and the foot of the page\MessageBreak
-              holds what can't be read to find it there}%
-          \fi
-        \fi
-      \fi
-      \expandafter\@didactic@nelt\fi}%
-    \expandafter\@didactic@nelt\@didactic@footids\relax,%
-  \fi}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -7274,10 +7220,12 @@
 % There \textsf{multicol} decides where it goes: it collects the columns'
 % material and breaks the page after, so a note can end up at the foot of the
 % page before its mark's.
-% We can't see that when it happens; so, in |multicols| only, a record of the
-% page at the mark and one at the start of the note, in the |.aux| file, and the
-% run after warns where they differ (|\@didactic@mc@mark|): a record for the
-% warning only, which a settled build has too.
+% We can't see that when it happens; so, in |multicols| only, the footnote gets
+% the records a margin note gets (|\@didactic@record|): one at the mark, one at
+% the start of the note, numbered $-1$, $-2$, \ldots\ apart from the margin
+% notes, and the run after warns where their pages differ
+% (|\@didactic@recheck|): records for the warning only, which a settled build
+% has too.
 % The record at the mark is a |\write| right after the mark's box, where no
 % place to break is and the next word starts after the space as before.
 % A margin note other than a footnote has nowhere to go there, as in \LaTeX\
@@ -7293,26 +7241,13 @@
   \let\@didactic@mc@fntext\@footnotetext
   \long\def\@footnotetext##1{\@didactic@mc@fntext{\@didactic@mc@note##1}}}
 \newcount\@didactic@mcn
-\newcommand\@didactic@mcpage[2]{\expandafter\gdef\csname @didactic@mcp@#1\endcsname{#2}}
-\AtBeginDocument{\if@filesw\immediate\write\@auxout{%
-  \string\providecommand\string\@didactic@mcpage[2]{}}\fi}
-\newcommand\@didactic@mc@record[1]{%
-  \protected@write\@auxout{\let\thepage\relax}{%
-    \string\@didactic@mcpage{#1\the\@didactic@mcn}{\thepage}}}
 \newcommand\@didactic@mc@mark{%
   \global\advance\@didactic@mcn\@ne
-  \@didactic@mc@record m%
-  \ifcsname @didactic@mcp@m\the\@didactic@mcn\endcsname
-  \ifcsname @didactic@mcp@n\the\@didactic@mcn\endcsname
-    \edef\@tempa{\csname @didactic@mcp@m\the\@didactic@mcn\endcsname}%
-    \edef\@tempb{\csname @didactic@mcp@n\the\@didactic@mcn\endcsname}%
-    \ifx\@tempa\@tempb\else
-      \PackageWarning{didactic}{Footnote \@thefnmark\space in multicols is called
-        out on page \@tempa\MessageBreak and set at the foot of page \@tempb,
-        where multicol puts it\MessageBreak (seen in the run before)}%
-    \fi
-  \fi\fi}
-\newcommand\@didactic@mc@note{\@didactic@mc@record n}
+  \if@filesw
+    \@didactic@writepage{\string\@didactic@rc
+      {-\the\@didactic@mcn}{\thepage}{\@didactic@here}}%
+  \fi}
+\newcommand\@didactic@mc@note{\@didactic@rnwrite{-\the\@didactic@mcn}}
 \newcommand\@didactic@mcolwarn{%
   \ifdefined\col@number
     \ifnum\col@number>\if@twocolumn\tw@\else\@ne\fi

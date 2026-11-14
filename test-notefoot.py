@@ -109,7 +109,7 @@ def atfoot(n):
 
 feet = [n for n in notes if atfoot(n)]
 said = len(re.findall(r"[Mm]argin note called out at.{0,160}? on page \d+ is set on (?:page|a later page)|Margin note from .{0,160}? moved from page|"
-                      r"A margin note from page|Footnote \d+ in multicols is called out on page \d+", joined))
+                      r"A margin note from page|Footnote called out at \S+:\d+ in multicols on page \d+ is set at the foot of page \d+", joined))
 fails = []
 if OLDMC:
     fails.append("multicol.sty from outside TeX Live's tools: %s" % OLDMC[0])

@@ -426,6 +426,12 @@ check mcolfoot x 20 '' "kept,at=MCOLNOTE:1,incol=MCOLNOTE" "$MC"'\def\testbody{\
 # (didactic decided that it fits), and the warning that says so is true; it has no
 # labels, so it isn't counted (no exactwarn).
 check mcolafter x 20 '' "kept,incol=NOTEY${NOT12:+,exactwarn}" '\def\testpre{\usepackage{multicol,lipsum}}\def\testyieldfoot{}\def\testbody{FIRSTLINE words before the columns.\yieldnote{} Words.\begin{multicols}{2}COLSTART \lipsum[1-3]\footnote{MCOLFN in the columns.} \lipsum[4-6]\end{multicols}}'
+# A foot that holds a footnote of LaTeX's own as well as ours goes back after a later
+# line where a later margin note is made (the kernel's \@reinserts: ours can't be
+# taken back without taking LaTeX's); TeX then ends the page before that line, and
+# the footnote goes to the next page with it.  The records say so a run later, and
+# name it (no check of the foot of each column any more: review 3).
+check mixfoot x 9 '' "carried,foundlast=1" '\def\testyieldfoot{}\def\testbody{FIRSTLINE words\yieldnote{} more words, {\footnotesatfoot\footnote{LATEXFN at the foot.}} and words. \filler\par{\interlinepenalty=10000 \noindent LATERA\marginpar{LATERNOTE} \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\par}}'
 # Any other margin note in multicols is lost, as in LaTeX, but with a warning.
 check mcolnote x 20 '' "mcolwarn" "$MC"'\def\testbody{\begin{multicols}{2}FIRSTLINE\marginpar{MCOLMARGIN} \filler\ \filler\end{multicols}}'
 # What marginfix puts in the margin for itself (\blockmargin, \unblockmargin) is no
