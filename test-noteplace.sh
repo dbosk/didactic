@@ -436,6 +436,12 @@ check mcolafter x 20 '' "kept,incol=NOTEY${NOT12:+,exactwarn}" '\def\testpre{\us
 # the footnote goes to the next page with it.  The records say so a run later, and
 # name it (no check of the foot of each column any more: review 3).
 check mixfoot x 9 '' "carried,foundlast=1" '\def\testyieldfoot{}\def\testbody{FIRSTLINE words\yieldnote{} more words, {\footnotesatfoot\footnote{LATEXFN at the foot.}} and words. \filler\par{\interlinepenalty=10000 \noindent LATERA\marginpar{LATERNOTE} \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\par}}'
+# A margin note on a page that also holds multicol's columns is set in the margin.
+# TeX Live's marginfix 1.2 draws a page's margin at \columnwidth, a column's width
+# there, which put the note into the text without a word (fuzz seed 5 under 1.2);
+# didactic sets \columnwidth to the text's width while it builds the margin, where
+# marginfix has no \MFX@columnwidth.
+check mcolmargin x 3 '' "inmargin=MCOLMARGIN" '\def\testpre{\usepackage{multicol,lipsum}}\def\testfirst{\noindent FIRSTLINE words\marginpar{MCOLMARGIN in the margin of page one.} \lipsum[1-3]\begin{multicols}{2}COLSTART \lipsum[4-12]\end{multicols}}'
 # Any other margin note in multicols is lost, as in LaTeX, but with a warning.
 check mcolnote x 20 '' "mcolwarn" "$MC"'\def\testbody{\begin{multicols}{2}FIRSTLINE\marginpar{MCOLMARGIN} \filler\ \filler\end{multicols}}'
 # What marginfix puts in the margin for itself (\blockmargin, \unblockmargin) is no

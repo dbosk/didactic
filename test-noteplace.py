@@ -79,6 +79,7 @@ called out somewhere names a place, not an internal name; no footnote found not 
   align=A:B   the positions A and B (zsavepos) are on one page and one baseline,
               within half a point (a note's first line beside its callout's).
   incol=W     W is in the text column (at the foot, not in a margin).
+  inmargin=W  W is in a margin, outside the text column (not drawn into the text).
   lostwarn=F  a warning says that a margin note called out in file F (with its
               line and page) wasn't printed (TeX Live's 1.2, which loses a note
               taller than the margin).
@@ -256,6 +257,10 @@ for e in expect:
             low = [w for w, y in margin_words(n) if y > foot + .3 * line12 and w.startswith(word)]
             if low:
                 fails.append("page %d: margin words below the text block: %s" % (n, " ".join(low[:5])))
+    elif e.startswith("inmargin="):
+        n = page_of(e[9:])
+        if n is None or not [w for w, y in margin_words(n) if w.startswith(e[9:])]:
+            fails.append("%s not in a margin (page %s)" % (e[9:], n))
     elif e.startswith("at="):
         for pair in e[3:].split("/"):
             w, p = pair.split(":")

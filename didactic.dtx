@@ -165,6 +165,12 @@
 %   regardless of load order.
 % }
 % \changes{v2.18}{2026/11/14}{%
+%   With \TeX~Live's \textsf{marginfix} 1.2, a margin note on a page that also
+%   holds \textsf{multicol}'s columns is set in the margin: 1.2 draws a page's
+%   margin at |\columnwidth|, a column's width there, and so into the text;
+%   \textsf{didactic} sets |\columnwidth| to the text's width while it does.
+% }
+% \changes{v2.18}{2026/11/14}{%
 %   \texttt{noteoverflow} is decided by \textsf{didactic} itself, where the
 %   note is called out, in one run: \texttt{foot} (the default) or
 %   \texttt{carry}; \texttt{break} is gone, since no page ends early for a note
@@ -852,6 +858,8 @@
 % \textsf{multicol} sets it; when it sets one at the foot of another page than
 % its mark's, a warning says so, one run late (from records of the run before),
 % and a settled build has it.
+% Such a footnote is printed after footnotes that are called out after it, so
+% the numbers are out of sequence on the two pages.
 % Any other margin note there is lost, as in \LaTeX, but with a warning.
 % With \TeX~Live's \textsf{marginfix} 1.2 all of this works, with these
 % differences: every line with a margin note may end a page there, so a line
@@ -5051,6 +5059,11 @@
 %   \textsf{marginfix} sets whole, or splits, a note taller than the margin;
 %   without it a marginfix loses such a note, and the records name it a run
 %   later (|\@didactic@lost|).
+% \item[\texttt{\textbackslash MFX@columnwidth}] (optional) the width
+%   \textsf{marginfix} draws a column's margin at; without it
+%   (\textsf{marginfix} 1.2, which takes |\columnwidth|) we set |\columnwidth|
+%   to the text's width while it builds and attaches the margin, outside two
+%   columns (|\@didactic@mfxbuild|).
 % \item[\texttt{\textbackslash marginheightadjustment}] (optional, public)
 %   what \textsf{marginfix} adds to the height of every margin: we add to it
 %   for the one column where a note runs past the foot of the margin, and put
@@ -5122,6 +5135,7 @@
   \@didactic@wish\Mfx@inject@insert
   \@didactic@wish\MFX@copyclass
   \@didactic@wish\MFX@chop@tall
+  \@didactic@wish\MFX@columnwidth
   \@didactic@wish\marginheightadjustment
   \ifx\@didactic@missing\@empty
     \global\@didactic@noteplacetrue
@@ -5999,6 +6013,28 @@
     \fi
     \global\@didactic@ovid\z@
   \fi}
+%    \end{macrocode}
+%
+% \textsf{marginfix} 1.2 draws the margin of a column at |\columnwidth| from the
+% text's left edge; on a page that holds \textsf{multicol}'s columns that is
+% the width of a column when the page is made, so the margin is drawn into the
+% text, notes and all, without a word (later versions use the text's width,
+% |\MFX@columnwidth|).  Where \textsf{marginfix} has no |\MFX@columnwidth| and
+% outside two columns, |\columnwidth| is the text's width while it builds and
+% attaches the margin, and what it was after (|\@didactic@mfxbuild|).
+%    \begin{macrocode}
+\newcommand\@didactic@mfxbuild{%
+  \ifdefined\MFX@columnwidth\@didactic@MFX@combinefloats@before
+  \else\if@twocolumn\@didactic@MFX@combinefloats@before
+  \else
+    \edef\@didactic@colw{\the\columnwidth}%
+    \columnwidth\textwidth
+    \@didactic@MFX@combinefloats@before
+    \columnwidth\@didactic@colw\relax
+  \fi\fi}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
 \newcommand\@didactic@overdone{%
   \if@didactic@overon
     \global\marginheightadjustment\@didactic@ovsaved
@@ -7305,7 +7341,7 @@
   \def\MFX@combinefloats@before{%
     \@didactic@readcol\@didactic@sift
     \@didactic@overapply
-    \@didactic@MFX@combinefloats@before
+    \@didactic@mfxbuild
     \@didactic@overdone
     \@didactic@carrywarn
     \@didactic@unsift\@didactic@newpage}%

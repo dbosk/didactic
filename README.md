@@ -50,13 +50,15 @@ For the package:
   would move to the next page with its note stays on its page, with the note
   (one the margin can't hold then runs past its foot, with a warning); a note
   taller than the margin is lost, with marginfix's error "lost some margin
-  notes", and didactic names it a run later; and there are no deferrable notes (`notepriority`, `\ltnote` giving
-  way to the others) and no split of a note taller than the margin. Those come
-  with the `integration` branch of
+  notes", and didactic names it a run later; and there are no deferrable notes
+  (`notepriority`, `\ltnote` giving way to the others) and no split of a note
+  taller than the margin. Those come with the `integration` branch of
   [dbosk/marginfix](https://github.com/dbosk/marginfix), until upstream has
-  them. didactic checks the names it uses in marginfix, not a version: if one
-  it needs is missing, the notes are carried, as marginfix does alone, and a
-  warning names what is missing.
+  them. marginfix 1.2 by itself draws a page's margin into the text when the
+  page also holds multicol's columns; didactic corrects that for its own
+  documents. didactic checks the names it uses in marginfix, not a version: if
+  one it needs is missing, the notes are carried, as marginfix does alone, and
+  a warning names what is missing.
 
   Install marginfix together with didactic. With the fork's `integration`
   branch as it was before this version, a margin note taller than the margin
