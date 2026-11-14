@@ -45,6 +45,8 @@
 #            boxes in footnotes, against the marginfix found or $MARGINFIX (about 30 s)
 #   noteplace test-noteplace, its rows rsvsidecap, rsvblock, mcolblock,
 #            rsvsidebefore, heldtop and heldsecond only, against the marginfix found or $MARGINFIX (1 minute)
+#   footwide test-footwide, its cases rigid, oneline and beyond only (CASES), under its
+#            three engines and with hyperref, against the marginfix found or $MARGINFIX
 # All with pdflatex, the Makefile's default since #72.  The title group's check reads a
 # letter inside a picture by its vertical centre, not by its box, which depends on the
 # engine: its three mutants are killed under xelatex too (PDFLATEX=xelatex make mutants).
@@ -1712,3 +1714,37 @@ Hmeasureend didactic.dtx
 Hfootcopy didactic.dtx
 -           \rule\z@\footnotesep\ignorespaces\foottextfont\@didactic@quiet #1%
 +           \rule\z@\footnotesep\ignorespaces\foottextfont #1%
+
+# A footnote with a line wider than TeX allows (test-footwide's rigid, oneline and beyond):
+# what didactic says of an overfull line is found by halving from the line's width up to
+# \maxdimen, in 31 turns.  A midpoint that never moves would have run on for ever when the
+# loop waited for the gap to close; it now ends with a wrong amount, which rigid's row
+# compares with TeX's.  Half the sum, as before, passes TeX's limit: an error each turn.
+# Reading the line's natural width, where it is larger than TeX allows: "Dimension too
+# large" (oneline).  A line wider than \maxdimen however it shrinks is said to be wider by
+# more than an amount (beyond).
+#: footwide
+#= killed test-footwide
+Hmidlo didactic.dtx
+-           \dimen@\dimexpr\@didactic@hboxlo
+-             +(\@didactic@hboxhi-\@didactic@hboxlo)/2\relax
++           \dimen@\dimexpr\@didactic@hboxlo\relax
+
+#: footwide
+#= killed test-footwide
+Hmidsum didactic.dtx
+-           \dimen@\dimexpr\@didactic@hboxlo
+-             +(\@didactic@hboxhi-\@didactic@hboxlo)/2\relax
++           \dimen@\dimexpr(\@didactic@hboxlo+\@didactic@hboxhi)/2\relax
+
+#: footwide
+#= killed test-footwide
+Hnatural didactic.dtx
+-       \@didactic@hboxhi\maxdimen
++       \setbox4\hbox{\unhcopy\tw@}\@didactic@hboxhi\wd4
+
+#: footwide
+#= killed test-footwide
+Hmorethan didactic.dtx
+-       (more than \the\dimexpr\maxdimen-\wd\tw@\relax\space too wide)}%
++       (\the\dimexpr\maxdimen-\wd\tw@\relax\space too wide)}%

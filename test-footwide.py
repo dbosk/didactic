@@ -16,11 +16,15 @@ that aren't plain, whose version at the foot is the second of three runs.
 linewidth: LWA and LWB are more than 60bp apart
 (the box of .01\\linewidth is measured where \\linewidth is half as wide as TeX
 allows: a limit, pinned).  huge: only that it isn't plain, for a line too
-wide.  bs: the margin note's BSLINE (the line after \\) starts at the margin's
+wide.  longsix, rigid, oneline, beyond, longthree: not plain, no error, and
+ENDLAST printed.  rigid, oneline: didactic's overfull warnings say, line by
+line, what TeX says of the same note set at the foot by LaTeX (JOB-ref,
+\testref), within a point.  beyond: one overfull warning by didactic, by
+"more than" an amount no larger than TeX's.  bs: the margin note's BSLINE (the line after \\) starts at the margin's
 edge, from the log's "didactic-margin:" line, within a point.  fnmark: the word
 before NOTEA in the margin is the note's own mark, 1.  lang: the words of the note at the foot
 that end with a hyphen are those of JOB-ref (the same note set at the foot by
-LaTeX, \testlangref).
+LaTeX, \testref).
 Prints one line, PASS or FAIL with what failed; exit status 1 on FAIL.
 """
 import html
@@ -41,6 +45,10 @@ CASES = {
     "vspace": ("space of its own between paragraphs|space of its own between lines",
                True, True),
     "huge": ("too wide", False, False),
+    "longsix": ("too wide|broken where", False, False), "rigid": ("too wide|broken where", False, False),
+    "oneline": ("too wide|broken where", False, False),
+    "beyond": ("too wide|broken where", False, False),
+    "longthree": ("too wide", False, False),
     "bs": (None, True, False), "fnmark": (None, True, False), "lang": (None, True, True),
 }
 job, case = sys.argv[1], sys.argv[2]
@@ -100,6 +108,21 @@ if hasonce:
     runs = "RUNS2" if reason else "RUNS1"
     if runs not in text:
         fails.append(f"no {runs}: {re.findall(r'RUNS[0-9]+', text)}")
+if case in ("longsix", "rigid", "oneline", "beyond", "longthree") and "ENDLAST" not in text:
+    fails.append("ENDLAST, the note's last word, isn't printed")
+if case in ("rigid", "oneline", "beyond"):
+    over = re.findall(r"Package didactic Warning: Overfull \\hbox \((more than )?([\d.]+)pt too wide\)",
+                      joined)
+    ref = open(f"{job}-ref.log", errors="replace").read()
+    tex = [float(a) for a in re.findall(r"^Overfull \\hbox \(([\d.]+)pt too wide\) in paragraph",
+                                        ref, re.M)]
+    if case == "beyond":
+        if (len(over) != 1 or len(tex) != 1 or not over[0][0]
+                or float(over[0][1]) > tex[0]):
+            fails.append(f"didactic says {over}, TeX {tex}: one, by more than at most TeX's")
+    elif (not tex or len(over) != len(tex) or any(m for m, _ in over)
+          or any(abs(a - b) > 1 for a, b in zip(sorted(float(a) for _, a in over), sorted(tex)))):
+        fails.append(f"didactic says {over}, TeX {tex}")
 if case == "linewidth":
     a, b = find("LWA"), find("LWB")
     if not a or not b or b[-1][1][0] - a[-1][1][2] < 60:

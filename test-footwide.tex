@@ -24,6 +24,20 @@
 %   parbox    a \parbox{\linewidth}: not plain;
 %   vspace    \vspace between two paragraphs: not plain;
 %   huge      a paragraph too long for one line: not plain;
+%   longsix   six \lipsum[1] in one paragraph (lipsum makes none in a footnote),
+%             longer than the measure's line, whose broken line fits only by
+%             shrinking, wider than TeX allows: not plain, no error, its last
+%             word ENDLAST printed;
+%   rigid     the same by two boxes of 8000pt and 8500pt with shrink between,
+%             each on a line of its own at the foot: no error, ENDLAST printed,
+%             and an overfull line each, by as much as TeX says of the same
+%             footnote set at the foot by LaTeX (\testref);
+%   oneline   the two boxes on one line (no break between), wider than TeX
+%             allows unless shrunk: as rigid, one overfull line;
+%   beyond    two boxes of 9000pt on one line, wider than TeX allows: no
+%             error, ENDLAST printed, an overfull line by more than the most
+%             that can be said, and no more than TeX says;
+%   longthree three \lipsum[1]: between half the measure's line and all of it;
 %   bs        a footnote with \\ that stays in the margin (no tall note): the
 %             line after \\ starts at the margin's edge, as in a margin note
 %             without didactic (review P4);
@@ -31,7 +45,7 @@
 %             mark, 1, before NOTEA (review P5);
 %   lang      a footnote of long German compounds called out in
 %             \foreignlanguage{ngerman} in English text, at the foot: broken as
-%             the same footnote set at the foot by LaTeX (\testlangref) is
+%             the same footnote set at the foot by LaTeX (\testref) is
 %             (review P3);
 % \testhyper loads hyperref.  test-footwide.py checks the outcome from the PDF and
 % the log.
@@ -56,8 +70,9 @@
 \def\testlang{lang}
 \ifx\testcase\testlang\usepackage[ngerman,english]{babel}\fi
 \usepackage{xcolor}
+\usepackage{lipsum}
 \usepackage{didactic}
-\ifdefined\testlangref\footnotesatfoot\fi
+\ifdefined\testref\footnotesatfoot\fi
 \ifdefined\testhyper\usepackage{hyperref}\else
   \ifx\testcase\testurl\usepackage[colorlinks]{hyperref}\fi\fi
 \newcounter{once}
@@ -70,6 +85,8 @@
 \def\testdisplay{display}
 \def\testmixed{mixed}\def\testcolor{color}\def\testlinewidth{linewidth}
 \def\testparbox{parbox}\def\testvspace{vspace}\def\testhuge{huge}
+\def\testlongsix{longsix}\def\testrigid{rigid}\def\testlongthree{longthree}
+\def\testoneline{oneline}\def\testbeyond{beyond}
 \def\testbs{bs}\def\testfnmark{fnmark}
 \ifx\testcase\testbs\def\testnotall{}\fi
 \ifx\testcase\testfnmark\def\testnotall{}\fi
@@ -111,6 +128,14 @@
   \ifx\testcase\testhuge\footnote{NOTEA \longnote\ \longnote\ \longnote\ \longnote\
     \longnote\ \longnote\ \longnote\ \longnote\ \longnote\ \longnote\ \longnote\
     \longnote\ \longnote\ \longnote\ \longnote\ \longnote\ \once}\fi
+  \ifx\testcase\testlongsix\footnote{NOTEA \lipsum[1]\lipsum[1]\lipsum[1]\lipsum[1]%
+    \lipsum[1]\lipsum[1] ENDLAST}\fi
+  \ifx\testcase\testrigid\footnote{NOTEA \hbox to 8000pt{}\hskip 0pt minus 500pt
+    \hbox to 8500pt{} ENDLAST}\fi
+  \ifx\testcase\testlongthree\footnote{NOTEA \lipsum[1]\lipsum[1]\lipsum[1] ENDLAST}\fi
+  \ifx\testcase\testoneline\footnote{NOTEA \hbox to 8000pt{}\nobreak\hskip 0pt minus 500pt
+    \hbox to 8500pt{} ENDLAST}\fi
+  \ifx\testcase\testbeyond\footnote{NOTEA \hbox to 9000pt{}\hbox to 9000pt{} ENDLAST}\fi
   \ \filler\ \filler\par
   \filler\ \filler\ \filler\par
 \iftestbib\printbibliography\fi

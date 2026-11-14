@@ -7,7 +7,7 @@
 # first on TEXINPUTS; unset, the one found.  $CASES: only these.
 src=test-footwide
 status=0
-ALL='plain cite url prepost reuse twopar mixed color linewidth list display parbox vspace huge bs fnmark lang'
+ALL='plain cite url prepost reuse twopar mixed color linewidth list display parbox vspace huge longsix rigid oneline beyond longthree bs fnmark lang'
 [ -n "$MARGINFIX" ] && export TEXINPUTS="$(cd "$MARGINFIX" && pwd)//:$TEXINPUTS"
 job() { # <engine> <case> [<definitions>]
   local eng=$1 c=$2 defs=$3 j=$src-$1-$2${3:+-h}
@@ -18,10 +18,10 @@ job() { # <engine> <case> [<definitions>]
       "\\def\\testcase{$c}$defs\\input{$src}" > /dev/null 2>&1
     [ $i = 1 ] && [ -f "$j.bcf" ] && biber -q "$j" > /dev/null 2>&1
   done
-  if [ "$c" = lang ]; then
+  if [[ " lang rigid oneline beyond " == *" $c "* ]]; then
     for i in 1 2 3; do
       timeout 200 $eng -interaction=nonstopmode -jobname="$j-ref" \
-        "\\def\\testcase{$c}\\def\\testlangref{}$defs\\input{$src}" > /dev/null 2>&1
+        "\\def\\testcase{$c}\\def\\testref{}$defs\\input{$src}" > /dev/null 2>&1
     done
   fi
   if res=$(python3 $src.py "$j" "$c"); then

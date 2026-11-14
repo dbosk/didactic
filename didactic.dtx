@@ -5950,6 +5950,10 @@
 % |\parshape|'s line, a display or a box of the text's own isn't, and no
 % wider as text than half of it, else \TeX\ broke the paragraph because it
 % didn't fit and took the space at the break away.
+% That is tested by packing it to half the measure, overfull or not, never by
+% reading its width: a paragraph longer than the measure's line that \TeX\
+% breaks into lines it fits only by shrinking leaves a line wider than \TeX\
+% allows, and reading that width stops with \enquote{Dimension too large}.
 % It ends with its |\rightskip|, of no width, which a |\raggedright| in the
 % text would change, and if it ends its paragraph, with the |\parfillskip|
 % after a penalty; those go, since the lines are set again as paragraphs.
@@ -6043,7 +6047,8 @@
           {\unskip\ifnum\lastnodetype=13 \unpenalty\fi}%
           {\@didactic@notplain{a \string\parfillskip\space of its own}}%
       \fi}%
-    \ifdim\wd4>.5\maxdimen \@didactic@notplain{a line too wide for a paragraph (a box as wide as \string\linewidth, or a paragraph too long)} \fi
+    {\@didactic@quiet \setbox6\hbox to.5\maxdimen{\unhcopy4}%
+     \ifnum\badness=1000000 \@didactic@notplain{a line too wide for a paragraph (a box as wide as \string\linewidth, or a paragraph too long)} \fi}%
   \fi
   \if@didactic@plain
     \@didactic@boxget\@didactic@pb
@@ -6195,6 +6200,21 @@
 % when it doesn't fit in its own width and |\hfuzz| more, by as much as it is
 % wider than its width when it shrinks all it can (found by halving), and
 % underfull when set to its width its badness is above |\hbadness|.
+% The halving starts from the line's own width, where it doesn't fit, and
+% |\maxdimen|, \TeX's largest dimension, where it does; the line's natural
+% width isn't read, as it may be larger than \TeX\ allows (a line that
+% shrinks to fit), and reading it would stop with \enquote{Dimension too
+% large}.  A line that doesn't fit even in |\maxdimen| is said to be wider by
+% more than that, without halving.  \TeX\ itself says it of such a line in
+% every version, the one not printed too, as no |\hfuzz| is that large: a
+% limit of the quiet setting.  Each turn takes the midpoint as the lower
+% bound and half the gap, never as half the sum, which passes \TeX's limit
+% when the line is wide.  The loop takes 31 turns, no more: a gap below
+% $2^{30}$\,sp (|\maxdimen| is $2^{30}-1$) is halved, rounded up, to a
+% scaled point in 30, and the turns that remain do nothing.  So the loop ends
+% whatever an expression does, where one that waited for the gap to close ran
+% on with an error each turn until \TeX\ gave up after a hundred, without a
+% PDF.
 % What there is to say goes into the version as a |\write| that isn't
 % immediate, which \TeX\ carries out only when it ships the page the version
 % is printed on: so the printed one says it, once, on its page, with the file
@@ -6234,24 +6254,35 @@
       \expandafter\expandafter\expandafter\@didactic@hboxlines
     \fi\fi
   \fi}
+\newcount\@didactic@hboxturn
 \newcommand\@didactic@hboxline{%
-  \setbox4\hbox to\dimexpr\wd\tw@+\@didactic@hfz\relax{\unhcopy\tw@}%
+  \setbox4\hbox to\maxdimen{\unhcopy\tw@}%
   \ifnum\badness=1000000
-    \@didactic@hboxlo\wd\tw@
-    \setbox4\hbox{\unhcopy\tw@}%
-    \@didactic@hboxhi\wd4
-    \loop\ifdim\dimexpr\@didactic@hboxhi-\@didactic@hboxlo\relax>\@ne sp
-      \dimen@\dimexpr(\@didactic@hboxlo+\@didactic@hboxhi)/2\relax
-      \setbox4\hbox to\dimen@{\unhcopy\tw@}%
-      \ifnum\badness=1000000
-        \@didactic@hboxlo\dimen@\else\@didactic@hboxhi\dimen@\fi
-    \repeat
     \@didactic@hboxsay{Overfull \string\hbox\space
-      (\the\dimexpr\@didactic@hboxhi-\wd\tw@\relax\space too wide)}%
+      (more than \the\dimexpr\maxdimen-\wd\tw@\relax\space too wide)}%
   \else
-    \setbox4\hbox to\wd\tw@{\unhcopy\tw@}%
-    \ifnum\badness>\@didactic@hbd\relax
-      \@didactic@hboxsay{Underfull \string\hbox\space(badness \the\badness)}%
+    \setbox4\hbox to\dimexpr\wd\tw@+\@didactic@hfz\relax{\unhcopy\tw@}%
+    \ifnum\badness=1000000
+      \@didactic@hboxlo\wd\tw@
+      \@didactic@hboxhi\maxdimen
+      \@didactic@hboxturn\z@
+      \loop\ifnum\@didactic@hboxturn<31
+        \advance\@didactic@hboxturn\@ne
+        \ifdim\dimexpr\@didactic@hboxhi-\@didactic@hboxlo\relax>\@ne sp
+          \dimen@\dimexpr\@didactic@hboxlo
+            +(\@didactic@hboxhi-\@didactic@hboxlo)/2\relax
+          \setbox4\hbox to\dimen@{\unhcopy\tw@}%
+          \ifnum\badness=1000000
+            \@didactic@hboxlo\dimen@\else\@didactic@hboxhi\dimen@\fi
+        \fi
+      \repeat
+      \@didactic@hboxsay{Overfull \string\hbox\space
+        (\the\dimexpr\@didactic@hboxhi-\wd\tw@\relax\space too wide)}%
+    \else
+      \setbox4\hbox to\wd\tw@{\unhcopy\tw@}%
+      \ifnum\badness>\@didactic@hbd\relax
+        \@didactic@hboxsay{Underfull \string\hbox\space(badness \the\badness)}%
+      \fi
     \fi
   \fi}
 \newcommand\@didactic@hboxsay[1]{%
