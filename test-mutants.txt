@@ -50,6 +50,10 @@
 #            116 s; run on 2026-11-14, before nestfn and nestmp)
 #   notefoot test-notefoot, its jobs waitover, warnclaim, defercarry-warn and defercarry,
 #            against $MARGINFIX (30 to 50 s; 30 s)
+#   matrix   test-noteplace, its rows mvlaterfull, fspullback, omtlaterfn, mvcarriedover,
+#            mvdeferclaim and heldover only (the line-moves matrix; heldtopfn and heldtopmn
+#            are killed by Mheldtop with the rest of heldtop's), against the marginfix found
+#            or $MARGINFIX (46 to 63 s; 51 s)
 #   noteplace12 test-noteplace-tl12, its rows nestfn, nestmp and mcolnote only, with TeX
 #            Live's 1.2 whatever $MARGINFIX is (24 s; 44 s)
 #   footwide test-footwide, its cases rigid, oneline and beyond only (CASES), under its
@@ -1944,3 +1948,74 @@ M1tall didactic.dtx
 - \newcommand\@didactic@tallflag[1]{%
 -   \ifcsname @didactic@tl@#1\endcsname t\fi}
 + \newcommand\@didactic@tallflag[1]{t}
+
+# The line-moves matrix (review 3): each outcome family's row red under a break of what it
+# names.  The notes marginfix holds for the next page not counted there
+# (\@didactic@newpage): a later footnote decided to stay is carried by marginfix without a
+# reason (mvlaterfull).
+#: matrix
+#= killed test-noteplace
+Fnpheld didactic.dtx
+-         {\global\advance\@didactic@stay\@didactic@deferclaim}
+-         {\global\advance\@didactic@stay\@didactic@noteht}}%
++         {\global\advance\@didactic@stay\@didactic@deferclaim}
++         {}}%
+
+# \@didactic@pull never takes a box on: a footnote put back at the head of the page stays
+# there when its line goes to the next page (fspullback).
+#: matrix
+#= killed test-noteplace
+Fpull didactic.dtx
+-     \ifnum\@tempcnta>\@didactic@colast
+-       \global\setbox\@didactic@pullbox
++     \ifnum\@tempcnta<\z@
++       \global\setbox\@didactic@pullbox
+
+# The overhang's record not cleared once applied (omtlaterfn).
+#: matrix
+#= killed test-noteplace
+Fovclear didactic.dtx
+-       \global\advance\marginheightadjustment\@didactic@ovd
+-     \fi
+-     \global\@didactic@ovid\z@
+-   \fi}
++       \global\advance\marginheightadjustment\@didactic@ovd
++     \fi
++   \fi}
+
+# The margin closed by a carry not opened again on the next page: a later note there that
+# would run over is carried (mvcarriedover).
+#: matrix
+#= killed test-noteplace
+Fclosed didactic.dtx
+-   \global\@didactic@stay\z@
+-   \global\@didactic@closedfalse
+-   \global\@didactic@fncarriedfalse
++   \global\@didactic@stay\z@
++   \global\@didactic@fncarriedfalse
+
+# A deferrable note left for the next page counted whole there: the later footnote is sent to
+# the foot (mvdeferclaim).
+#: matrix
+#= killed test-noteplace
+Fnpclaim didactic.dtx
+-         {\global\advance\@didactic@stay\@didactic@deferclaim}
+-         {\global\advance\@didactic@stay\@didactic@noteht}}%
++         {\global\advance\@didactic@stay\@didactic@noteht}
++         {\global\advance\@didactic@stay\@didactic@noteht}}%
+
+# The records of LaTeX's own footnotes off: the held-over one isn't named (heldover).
+#: matrix
+#= killed test-noteplace
+Fmarkat didactic.dtx
+- \newcommand\@didactic@mc@markat{\ifm@mfnmargin\else\@didactic@mc@pair\fi}
++ \newcommand\@didactic@mc@markat{}
+
+# The run-late check of our notes silent: the mixed foot's footnote of ours isn't named
+# (heldover).
+#: matrix
+#= killed test-noteplace
+Frecheck didactic.dtx
+- \newcommand\@didactic@recheck@[3]{%
++ \newcommand\@didactic@recheck@[3]{}
++ \newcommand\@didactic@recheckoff[3]{%

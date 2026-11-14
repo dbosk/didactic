@@ -42,7 +42,7 @@ export TEXINPUTS="$TOOLS:$TEXINPUTS"
 # line with a margin note end a page (see overguard): M12 is set there.
 M12=; case "$MARGINFIX" in *texmf-dist/tex/latex/marginfix*) M12=yes;; esac
 NOT12=yes; [ -n "$M12" ] && NOT12=
-NEEDS15='tallcut deferrable split mvdefer mvdeferfn mvdefermn'
+NEEDS15='tallcut deferrable split mvdefer mvdeferfn mvdefermn mvdeferclaim'
 ENGINE=${ENGINE:-pdflatex}
 MAXRUNS=${MAXRUNS:-8}
 TEXTIMEOUT=${TEXTIMEOUT:-120}
@@ -507,6 +507,32 @@ check notplainf x 20 '' "kept,notplain=1,has=AFTERLC1X,has=AFTERTC3X,has=LCIN1X,
 # (mcolnote, a margin note lost in multicols, likewise; tallsplit's is).
 check nestfn x 30 '' "error=Float(s) lost,notplain=1${M12:+,lostwarn=test-noteplace.tex,noreason=taller than the margin,foundlast=1}" '\def\testbody{FIRSTLINE text.\footnote{OUTER note with an inner\footnote{INNER note} one.} More text.\par}'
 check nestmp x 30 '' "error=Float(s) lost,notplain=1${M12:+,lostwarn=test-noteplace.tex,noreason=taller than the margin,foundlast=1}" '\def\testbody{FIRSTLINE text.\footnote{OUTER note with a\marginpar{INNERMP} margin note.} More text.\par}'
+# The matrix's rows made sensitive to what they name (each red under its mutant in
+# test-mutants.txt).  fspullback: as fspull, with a margin note (BACKNOTE) after the
+# footnote in its line: its special output, while page 1 is being built, puts our
+# foot back at the head of page 1 (\@didactic@footback), so that when TeX takes the
+# paragraph to page 2 only \@didactic@pull takes NOTEY on with its line (traced: FB
+# on page 1 with NOTEY's box, PULL on page 1; NOTEY at the foot of page 2, nothing
+# over it).  On the line after the footnote's, the margin note's special output came
+# after page 1 was made, and nothing was put back.
+check fspullback x 5 '' "pullok,kept,exactwarn${NOT12:+,label=callout-y:2}" '\def\testtall{.99}\def\testbody{{\interlinepenalty=10000 \noindent FIRSTLINE\newline SECOND\newline THIRD\label{callout-y}'"$(fn 1)"'\label{c-b}\marginpar{BACKNOTE\label{n-b}}\newline FOURTH\newline FIFTH\par}}'
+# mvlaterfull: NOTEY, decided beside its line on page 1 and most of a margin tall,
+# is held on page 2 for its line; a later footnote there fits only where the held
+# note isn't counted (\@didactic@newpage counts what marginfix holds), so it goes to
+# the foot, at its page; counted at nothing, it would be decided to stay in the
+# margin and marginfix would carry it, with a warning of its own and no reason.
+check mvlaterfull x 3 '' "kept,pairs,exactwarn,allreasons,incol=LATERFN" '\def\testtall{.1}\def\testbody{{\interlinepenalty=10000 \noindent FIRSTLINE\newline SECOND\newline THIRD\yieldnote[\par\rule{1pt}{.8\textheight}]\newline FOURTH\par} AFTER words\label{c-f}\footnote{\label{n-f}LATERFN a later footnote of many lines, \filler\ \filler\ \filler\ \filler\ \filler} more.\par}'
+# mvcarriedover: NOTEY carried by didactic on page 1, its line then on page 2 with it;
+# a later note there (LATEROV) misses the foot of page 2's margin by a line and runs
+# over it, warned: the margin closed by the carry on page 1 is open again on page 2
+# (\@didactic@newpage); left closed, LATEROV would be carried to page 3.
+check mvcarriedover x 3 '' "warned,exactwarn,allreasons,overwarn,at=LATEROV:2" '\def\testbody{{\interlinepenalty=10000 \noindent FIRSTLINE\newline SECOND\newline THIRD\yieldnote[\par\rule{1pt}{6\baselineskip}]\newline FOURTH\par} AFTER words\label{c-v}\marginpar{LATEROV\label{n-v}\par\rule{1pt}{\dimexpr\textheight-6\baselineskip\relax}} more.\par}'
+# mvdeferclaim: with \marginnotepriority{defer}, a deferrable note (DEFER) whose line
+# goes to page 2 waits there in marginfix's list; it claims nothing of page 2's
+# margin, where it gives way, so a later footnote (PLAINFN, half a margin tall) is
+# set in the margin beside its line; counted whole, DEFER would leave it no room
+# and send it to the foot.
+check mvdeferclaim x 3 'notepriority=defer' "exactwarn,allreasons,inmargin=PLAINFN" '\def\testbody{{\interlinepenalty=10000 \noindent FIRSTLINE\newline SECOND\newline THIRD\marginpar{\marginnotedeferrable DEFER\label{n-d1}\par\rule{1pt}{.6\textheight}}\label{c-d1}\newline FOURTH\par} AFTER words\label{c-p}\footnote{\label{n-p}PLAINFN\par\rule{1pt}{.5\textheight}} more.\par}'
 # A footnote set at the foot as LaTeX sets it (\footnotesatfoot) is left to TeX; one
 # that doesn't fit at a foot that ours has filled is taken to the next page by TeX,
 # and named a run later (latexfoot); one that TeX splits over two pages, begun on its
