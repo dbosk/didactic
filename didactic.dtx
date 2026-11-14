@@ -169,7 +169,9 @@
 %   \TeX\ sets at the foot of another page than its mark's is named a run
 %   later, as one in \textsf{multicol}'s columns was: only a footnote whose
 %   mark and text |\footnote| makes together, and whose text can reach the
-%   foot.
+%   foot.  Both warnings say ``where LaTeX puts it'': \LaTeX\ puts a foot that
+%   holds such a footnote back after each later margin note's line, and it goes
+%   on with that line to a later page.
 % }
 % \changes{v2.18}{2026/11/14}{%
 %   With \TeX~Live's \textsf{marginfix} 1.2, a margin note on a page that also
@@ -851,20 +853,24 @@
 % callout that no warning of that run named is warned about in the next run,
 % ``found from the last run''.  So none goes unsaid, though such a one is said
 % a run late (a settled build has it).  Two cases are known to be said that
-% way: a foot that holds a footnote of \LaTeX's own as well as \textsf{didactic}'s,
-% where a later line with a margin note takes them all to the next page with
-% it, so that ours can come after footnotes with later numbers; and, with
-% \textsf{memoir}, footnotes in \textsf{multicol}'s columns that it sets at the
-% foot of another page (below).
-% A foot is mixed so by a footnote set at the foot as \LaTeX\ sets it (one in
-% |\footnotesatfoot|, one in \textsf{multicol}'s columns), also by one that
-% didn't fit at the foot of its own page, which \TeX\ takes to the next page's.
+% way, with \textsf{memoir}: footnotes in \textsf{multicol}'s columns that it
+% sets at the foot of another page (below), and the following.
+% A foot that holds a footnote of \LaTeX's own (one in |\footnotesatfoot| or in
+% \textsf{multicol}'s columns, or one \TeX\ held over from the page before;
+% alone or with \textsf{didactic}'s) is put back by \LaTeX\ after the line of
+% each later margin note, and when the page breaks before that line the foot
+% goes on with it, for as many pages as that repeats.
+% \LaTeX\ does this by itself with |\marginpar|, a document dense with margin
+% notes shows it more, and \textsf{didactic}'s footnotes in such a foot can
+% come after footnotes with later numbers; each such footnote is named a run
+% later, \LaTeX's ``where LaTeX puts it'', \textsf{didactic}'s ``found from the
+% last run''.
 % Any other is one the placement didn't foresee, which we'd like to hear about.
 % A footnote set at the foot as \LaTeX\ sets it is left to \TeX: it takes no
 % part in keeping the footnotes in order.  With \textsf{memoir}, where
 % \textsf{didactic}'s footnotes use the foot too, one that \TeX\ sets at the
 % foot of another page than its mark's (as when the foot is full) is named a
-% run late too, ``where TeX puts it''; a footnote split over two pages, begun
+% run late too, ``where LaTeX puts it''; a footnote split over two pages, begun
 % on its mark's page, is not.  With another class \textsf{didactic} sets no
 % footnote, and names none that \TeX\ or \textsf{multicol} moves.
 % Deferrable notes (|\ltnote| and the like) are left out: \textsf{marginfix}
@@ -874,9 +880,12 @@
 % but there is no foot beside a column for a footnote, so it is carried.
 % Inside \textsf{multicol}'s |multicols|, where no margin note can be set, a
 % footnote goes to the foot of the page under the columns, where
-% \textsf{multicol} sets it; when it sets one at the foot of another page than
+% \textsf{multicol} sets it.  When one ends up at the foot of another page than
 % its mark's, a warning says so with \textsf{memoir}, one run late (from
-% records of the run before), and a settled build has it.
+% records of the run before), and a settled build has it: \textsf{multicol}'s
+% documentation says it can set a footnote on the page before its mark's (when
+% \TeX\ considered more of the columns than it used), and \LaTeX\ can take one
+% to a later page with a margin note's line (above).
 % Such a footnote is printed out of sequence with the footnotes around it on
 % the two pages: after footnotes called out after it, or before footnotes of
 % \textsf{didactic}'s called out before it that were carried to a later page (a
@@ -5408,15 +5417,10 @@
   \edef\@tempa{#1}%
   \edef\@tempb{\csname @didactic@rn@\the\@tempcnta\endcsname}%
   \ifx\@tempa\@tempb\else
-    \ifodd\@tempcnta
-      \PackageWarningNoLine{didactic}{Footnote called out at #2 in multicols\MessageBreak
-        on page #1 is set at the foot of page \@tempb, where\MessageBreak
-        multicol puts it (seen in the run before)}%
-    \else
-      \PackageWarningNoLine{didactic}{Footnote called out at #2\MessageBreak
-        on page #1 is set at the foot of page \@tempb, where TeX\MessageBreak
-        puts it (seen in the run before)}%
-    \fi
+    \PackageWarningNoLine{didactic}{Footnote called out at
+      #2\ifodd\@tempcnta\space in multicols\fi\MessageBreak
+      on page #1 is set at the foot of page \@tempb, where\MessageBreak
+      LaTeX puts it (seen in the run before)}%
   \fi}
 \newcommand\@didactic@recheck@[2]{%
   \edef\@tempa{#1}%
@@ -7291,14 +7295,18 @@
 % the environment only.
 % There \textsf{multicol} decides where it goes: it collects the columns'
 % material and breaks the page after, so a note can end up at the foot of the
-% page before its mark's.
+% page before its mark's, as its documentation says; and \LaTeX\ can take a
+% footnote of its own to a later page with a margin note's line (the run-late
+% cases in the user's part).  The warning says ``where LaTeX puts it'' for
+% either, \textsf{didactic} not having placed it, and ``in multicols'' after the
+% place of a callout in the columns.
 % We can't see that when it happens; so, with \textsf{memoir}, the footnote
 % gets the records a margin note gets (|\@didactic@record|): one at the mark, one at the start of the
 % note (so a footnote split over two pages counts on its first), numbered
 % apart from the margin notes, $-2k-1$ in |multicols| and $-2k$ for any other
 % footnote set at the foot as \LaTeX\ sets it (\TeX\ takes one that doesn't
 % fit to the next page), and the run after warns where their pages differ
-% (|\@didactic@recheck|), saying which of the two set it there: records for the
+% (|\@didactic@recheck|), saying that \LaTeX\ set it there: records for the
 % warning only, which a settled build has too.  Only a footnote whose mark and
 % text |\footnote| makes together gets them (|\if@didactic@fnpair|, set by
 % |\footnote|, cleared when its text is set): a |\footnotemark| and a

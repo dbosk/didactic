@@ -446,25 +446,25 @@ check mcolmargin x 3 '' "inmargin=MCOLMARGIN" '\def\testpre{\usepackage{multicol
 # that doesn't fit at a foot that ours has filled is taken to the next page by TeX,
 # and named a run later (latexfoot); one that TeX splits over two pages, begun on its
 # mark's page, is not (latexsplit).
-check latexfoot x 5 '' "kept,reason=where TeX puts it" '\def\testyieldfoot{}\def\testbody{FIRSTLINE words\yieldnote[\par TWO\par THREE] more words, {\footnotesatfoot\footnote{LATEXFN at the foot of a page, a footnote of LaTeX'"'"'s own.}} and words. \filler\par}'
-check latexsplit x 8 '' "noreason=where TeX puts it,at=LATEXFN:1/LATEXEND:2" '\def\testbody{FIRSTLINE words, {\footnotesatfoot\footnote{LATEXFN a long footnote of LaTeX'"'"'s own, \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ LATEXEND}} and words. \filler\par}'
+check latexfoot x 5 '' "kept,reason=where LaTeX puts it" '\def\testyieldfoot{}\def\testbody{FIRSTLINE words\yieldnote[\par TWO\par THREE] more words, {\footnotesatfoot\footnote{LATEXFN at the foot of a page, a footnote of LaTeX'"'"'s own.}} and words. \filler\par}'
+check latexsplit x 8 '' "noreason=where LaTeX puts it,at=LATEXFN:1/LATEXEND:2" '\def\testbody{FIRSTLINE words, {\footnotesatfoot\footnote{LATEXFN a long footnote of LaTeX'"'"'s own, \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ LATEXEND}} and words. \filler\par}'
 # Records only for a footnote whose mark and text \footnote makes together: none
 # for a \footnotemark and its \footnotetext apart, on another page (fnapart: two
 # marks, then two \footnotetext[n]; fnfloat: the mark in a float), none for a
 # footnote whose text can't reach the foot (fnbox: in a minipage, in a tabular),
 # none for \thanks; one for a heading's footnote beside its short form, none for a
 # caption's (in a float); and once with hyperref (fnhyper).
-check fnapart x 30 '' "noreason=where TeX puts it,fnrecords=0,at=FNTA:2/FNTB:2" '\def\testbody{\footnotesatfoot FIRSTLINE words\footnotemark\ and words\footnotemark\ and more. \filler\newpage TEXTS\footnotetext[1]{FNTA the first.}\footnotetext[2]{FNTB the second.} \filler\par}'
-check fnfloat x 30 '' "noreason=where TeX puts it,fnrecords=0,at=FLT:1" '\def\testbody{\footnotesatfoot FIRSTLINE words. \begin{figure}[p]\centering FLOATBODY\footnotemark\caption{Cap}\end{figure} \filler\par TEXTS\footnotetext{FLT the float'"'"'s note, apart.} \filler\par}'
-check fnbox x 30 '' "noreason=wasn't printed,noreason=where TeX puts it,fnrecords=0,at=MINIFN:1" '\def\testbody{\footnotesatfoot FIRSTLINE words.\par\begin{minipage}{.5\textwidth}MINI words\footnote{MINIFN in the minipage.}\end{minipage}\par\begin{tabular}{l}TAB cell\footnote{TABFN in a tabular.}\\\end{tabular}\par \filler\par}'
-check fnthanks x 30 '' "noreason=wasn't printed,noreason=where TeX puts it,fnrecords=1,at=THANKS:2/HEADFN:2" '\def\testbody{\footnotesatfoot\title{TITLE\thanks{THANKS a note to the title.}}\author{A}\date{}\maketitle \section[Short]{HEADX\footnote{HEADFN of the heading.}} FIRSTLINE words. \begin{figure}[h]\centering FIG\caption[Short]{CAP\footnote{CAPFN of the caption.}}\end{figure} \filler\par}'
+check fnapart x 30 '' "noreason=where LaTeX puts it,fnrecords=0,at=FNTA:2/FNTB:2" '\def\testbody{\footnotesatfoot FIRSTLINE words\footnotemark\ and words\footnotemark\ and more. \filler\newpage TEXTS\footnotetext[1]{FNTA the first.}\footnotetext[2]{FNTB the second.} \filler\par}'
+check fnfloat x 30 '' "noreason=where LaTeX puts it,fnrecords=0,at=FLT:1" '\def\testbody{\footnotesatfoot FIRSTLINE words. \begin{figure}[p]\centering FLOATBODY\footnotemark\caption{Cap}\end{figure} \filler\par TEXTS\footnotetext{FLT the float'"'"'s note, apart.} \filler\par}'
+check fnbox x 30 '' "noreason=wasn't printed,noreason=where LaTeX puts it,fnrecords=0,at=MINIFN:1" '\def\testbody{\footnotesatfoot FIRSTLINE words.\par\begin{minipage}{.5\textwidth}MINI words\footnote{MINIFN in the minipage.}\end{minipage}\par\begin{tabular}{l}TAB cell\footnote{TABFN in a tabular.}\\\end{tabular}\par \filler\par}'
+check fnthanks x 30 '' "noreason=wasn't printed,noreason=where LaTeX puts it,fnrecords=1,at=THANKS:2/HEADFN:2" '\def\testbody{\footnotesatfoot\title{TITLE\thanks{THANKS a note to the title.}}\author{A}\date{}\maketitle \section[Short]{HEADX\footnote{HEADFN of the heading.}} FIRSTLINE words. \begin{figure}[h]\centering FIG\caption[Short]{CAP\footnote{CAPFN of the caption.}}\end{figure} \filler\par}'
 # The same in two columns, with memoir (a footnote of its own at the foot gets its
 # records) and with article, where didactic sets no footnote and the hooks aren't
 # set: memoir's names in them must not reach another class (fnapartart).
 FNTWO='\def\testbody{\ifdefined\footnotesatfoot\footnotesatfoot\fi FIRSTLINE words\footnotemark\ and words\footnotemark\ and more, and a footnote\footnote{PAIRFN made whole.} too. \filler\clearpage TEXTS\footnotetext[1]{FNTA the first.}\footnotetext[2]{FNTB the second.} \filler\par}'
-check fnaparttwo x 30 '' "noreason=where TeX puts it,at=FNTA:2/PAIRFN:1,fnrecords=1" '\def\testclassopt{a4paper,twocolumn}'"$FNTWO"
-check fnapartart x 30 '' "noreason=where TeX puts it,at=FNTA:2/PAIRFN:1,fnrecords=0" "$ART"'\def\testclassopt{a4paper,twocolumn}'"$FNTWO"
-check fnhyper x 5 '' "kept,reason=where TeX puts it,fnrecords=1" '\def\testpre{\usepackage{hyperref}}\def\testyieldfoot{}\def\testbody{FIRSTLINE words\yieldnote[\par TWO\par THREE] more words, {\footnotesatfoot\footnote{LATEXFN at the foot of a page, a footnote of LaTeX'"'"'s own.}} and words. \filler\par}'
+check fnaparttwo x 30 '' "noreason=where LaTeX puts it,at=FNTA:2/PAIRFN:1,fnrecords=1" '\def\testclassopt{a4paper,twocolumn}'"$FNTWO"
+check fnapartart x 30 '' "noreason=where LaTeX puts it,at=FNTA:2/PAIRFN:1,fnrecords=0" "$ART"'\def\testclassopt{a4paper,twocolumn}'"$FNTWO"
+check fnhyper x 5 '' "kept,reason=where LaTeX puts it,fnrecords=1" '\def\testpre{\usepackage{hyperref}}\def\testyieldfoot{}\def\testbody{FIRSTLINE words\yieldnote[\par TWO\par THREE] more words, {\footnotesatfoot\footnote{LATEXFN at the foot of a page, a footnote of LaTeX'"'"'s own.}} and words. \filler\par}'
 # Any other margin note in multicols is lost, as in LaTeX, but with a warning.
 check mcolnote x 20 '' "mcolwarn" "$MC"'\def\testbody{\begin{multicols}{2}FIRSTLINE\marginpar{MCOLMARGIN} \filler\ \filler\end{multicols}}'
 # What marginfix puts in the margin for itself (\blockmargin, \unblockmargin) is no

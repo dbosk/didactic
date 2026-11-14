@@ -6,7 +6,7 @@ Usage: test-footreuse-spread.py JOB [oneside] [reused] [last=N] [next] [shared]
                                 [notplain=N] [fnrecords=N]
 
 Always: no footnote found not plain (didactic's information) but N declared,
-and no warning that TeX set a footnote on another page ("where TeX puts it").
+and no warning that LaTeX set a footnote on another page ("where LaTeX puts it").
 
 A mark is a number set right after a word, with no space ("spread1"); a note's
 number is one set right before a word, with none after another (the folio and
@@ -120,7 +120,7 @@ NOTPLAIN = len(re.findall(r"isn't plain", testlog.joined(f"{job}.log")))
 WANTPLAIN = int(next((a[9:] for a in sys.argv[2:] if a.startswith("notplain=")), 0))
 if NOTPLAIN != WANTPLAIN:
     fails.append(f"{NOTPLAIN} notes not plain, {WANTPLAIN} declared")
-if "where TeX puts it" in re.sub(r"\s+", " ", re.sub(r"\n\(didactic\) *", " ",
+if "where LaTeX puts it" in re.sub(r"\s+", " ", re.sub(r"\n\(didactic\) *", " ",
                                                       testlog.joined(f"{job}.log"))):
     fails.append("a warning that TeX set a footnote on another page")
 for a in sys.argv[2:]:

@@ -154,14 +154,15 @@ make tests LATEXFLAGS="-shell-escape -interaction=nonstopmode"
   multicol's columns, LaTeX's own footnotes), each built until it settles and
   checked by its outcome: no error, no words over words, every note on its
   callout's page or named by a warning with the right pages, the notes in
-  order in each margin and foot and across pages (footnotes that multicol or
-  TeX set after later numbers, each named, are listed as INFO), none lost or
-  printed twice, and the same PDF from a stale `.aux` as from clean. Fixed
-  seeds under pdfLaTeX with the marginfix found (or `MARGINFIX`) and with TeX
-  Live's 1.2, under XeLaTeX and LuaLaTeX; cases that fail for a known reason
-  are listed in the script with it. First `test-fuzz.py selftest` holds the
-  checker's own rules to small made-up documents, each rule from both sides
-  (no TeX, a second). About 9 minutes on one job, part of `make tests`.
+  order in each margin and foot and across pages (footnotes of LaTeX's own or
+  in multicols printed after later numbers, each named, are listed as INFO),
+  none lost or printed twice, and the same PDF from a stale `.aux` as from
+  clean. Fixed seeds under pdfLaTeX with the marginfix found (or `MARGINFIX`)
+  and with TeX Live's 1.2, under XeLaTeX and LuaLaTeX; cases that fail for a
+  known reason are listed in the script with it. First `test-fuzz.py selftest`
+  holds the checker's own rules to small made-up documents, each rule from
+  both sides (no TeX, a second). About 9 minutes on one job, part of
+  `make tests`.
 - `MARGINFIX=<directory>` runs the tests against the `marginfix.sty` in that
   directory, put first on `TEXINPUTS` (TeX Live's:
   `MARGINFIX=$(kpsewhich -var-value TEXMFDIST)/tex/latex/marginfix`); unset,

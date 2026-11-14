@@ -219,12 +219,12 @@ def judge(name, tex, aux, rawlog, log, bbox):
     the \\footnotetext (t-K), where it is anchored, not with the mark's.  A note on
     another page than its anchor must be named by a warning whose pages match the
     labels: for didactic's, one that says it is set on another page (in the run or
-    found from the last run); for LaTeX's and multicol's, the one that says that TeX
-    or multicol set it there.  Footnotes keep their order across pages when both of
+    found from the last run); for LaTeX's and multicol's, the one that says that
+    LaTeX set it there ("where LaTeX puts it").  Footnotes keep their order across pages when both of
     a pair are didactic's, without exception: the known mixed foot (a later line
     takes a foot that also holds LaTeX's own footnotes to the next page, named a
-    run late) fails here, and a seed that shows it goes into EXPECTED with that
-    reason (none of the sets does).  A pair with a footnote of LaTeX's own or
+    run late; #104 is its cure) fails here, and a seed that shows it goes into
+    EXPECTED with that reason (none of the sets does).  A pair with a footnote of LaTeX's own or
     multicol's is in order or else every note of it that is off its anchor's page
     is named.  Two words that overlap fail, but for TeX's overfull line: a word of
     the text whose right edge lies past the text's right edge (the edge most lines
@@ -265,7 +265,7 @@ def judge(name, tex, aux, rawlog, log, bbox):
                          log):
         named.setdefault(int(m[2]), []).append((m[3], m[4], "last" if m[5] else "run"))
     for m in re.finditer(r"Footnote called out at ([^\s:]+):(\d+)( in multicols)? on page (\d+) "
-                         r"is set at the foot of page (\d+), where (TeX|multicol) puts it", log):
+                         r"is set at the foot of page (\d+), where (LaTeX) puts it", log):
         named.setdefault(int(m[2]), []).append((m[4], m[5], m[6]))
     for m in re.finditer(r"line of the footnote called out at ([^\s:]+):(\d+)", log):
         named.setdefault(int(m[2]), []).append((None, None, "moved"))
@@ -462,7 +462,8 @@ MOVERS = [("unbreakable", "\\interlinepenalty=10000"), ("display", "\\begin{matr
 def synthetic(notes, warn=(), extra=(), raw="", margin=305):
     """A small made-up document for judge(): notes are (K, kind, mark page, note
     page[, \footnotetext page]), kind ours, latex or multicol; warn are (K, how,
-    from page, to page), how set (didactic's, "is set on page"), TeX or multicol;
+    from page, to page), how set (didactic's, "is set on page"), TeX or multicol
+    (LaTeX's "where LaTeX puts it", with "in multicols" for multicol);
     extra are words (page, x0, y0, x1, y1, text) beside the notes' (each note's
     word spans the text, x 50 to 300, so the text's edge is at 300; the margin
     starts at x margin); raw is put in the log as written."""
@@ -489,7 +490,7 @@ def synthetic(notes, warn=(), extra=(), raw="", margin=305):
         else:
             mc = " in multicols" if how == "multicol" else ""
             log.append(f"Package didactic Warning: Footnote called out at fz.tex:{line[K]}{mc}"
-                       f" on page {p} is set at the foot of page {q}, where {how} puts it")
+                       f" on page {p} is set at the foot of page {q}, where LaTeX puts it")
     words = [(n, 50, 600 + 10 * i, 300, 608 + 10 * i, f"NOTE{K}x")
              for i, (K, kind, c, n, *t) in enumerate(notes)] + list(extra)
     pages = max([w[0] for w in words] + [1])

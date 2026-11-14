@@ -9,7 +9,7 @@ INSIDE/MK line) and JOB.pdf (pages); nothing the mechanism logs.  Always:
 
 - every note has its labels, once each (a note set twice writes them twice);
 - every note away from its mark's page is named by a warning (that a margin note
-  is set on another page than its callout, or that multicol set a footnote at
+  is set on another page than its callout, or that LaTeX set a footnote at
   the foot of another page than its mark's), at least as many as notes away.
 
 CHECKs:
