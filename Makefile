@@ -276,7 +276,7 @@ test-bilingual-nested.pdf: test-bilingual-nested.tex \
 	${PDFLATEX} ${LATEXFLAGS} $<
 
 .PHONY: check-bilingual
-check-bilingual: $(addsuffix .pdf,${TEST_BILINGUAL}) test-bilingual-off.pdf \
+check-bilingual: $(addsuffix .pdf,${TEST_BILINGUAL}) test-bilingual-off.pdf testlog.py \
 		test-bilingual-nested.pdf
 	./test-bilingual.sh
 

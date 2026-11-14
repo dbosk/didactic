@@ -111,13 +111,15 @@ for package in comment verbatim; do
   if grep -q '^!' test-bilingual-taken.log; then
     fail taken "$package loaded first"
   fi
-  if grep -q 'Package didactic Warning.*comment' test-bilingual-taken.log; then
+  if python3 testlog.py grep 'Package didactic Warning.*comment' \
+    test-bilingual-taken.log >/dev/null; then
     fail taken "a warning about the comment environment of $package"
   fi
 done
 
 CLASS=memoir taken "\\usepackage{didactic}"
-if grep -q 'Package didactic Warning.*comment' test-bilingual-taken.log; then
+if python3 testlog.py grep 'Package didactic Warning.*comment' \
+  test-bilingual-taken.log >/dev/null; then
   fail taken "a warning about memoir's comment environment"
 fi
 
@@ -137,8 +139,8 @@ for order in "\\usepackage{physics}\\usepackage{didactic}" \
   if grep -q '^!' test-bilingual-taken.log; then
     fail physics "an error with $order"
   fi
-  if grep -Eq 'Package didactic Warning.*\\tr([^a-z]|$)' \
-    test-bilingual-taken.log; then
+  if python3 testlog.py grep 'Package didactic Warning.*\\tr([^a-z]|$)' \
+    test-bilingual-taken.log >/dev/null; then
     fail physics "a warning about \\tr with $order"
   fi
   text=$(pdftotext test-bilingual-taken.pdf - 2>/dev/null)
