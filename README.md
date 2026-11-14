@@ -60,12 +60,17 @@ For the package:
   one it needs is missing, the notes are carried, as marginfix does alone, and
   a warning names what is missing.
 
-  Install marginfix together with didactic. With the fork's `integration`
-  branch as it was before this version, a margin note taller than the margin
-  is lost with marginfix's error "lost some margin notes" (didactic names the
-  note a run later), and a note held for its line stands a few points above
-  it, as in v2.16.1; the other rows of `test-noteplace` pass, and the other
-  note suites were not run against it.
+  Install marginfix together with didactic. The fork's `integration` branch as
+  it was before this version (v1.6 of 2026/10/22) is not supported: a margin
+  note taller than the margin is lost with marginfix's error "lost some margin
+  notes" (didactic names the note a run later), a note held for its line
+  stands a few points above it, as in v2.16.1, and notes come out of order:
+  `test-fuzz` gives margin notes out of order on a page with it (seeds inrun 16
+  and xe 9), and the third review's fuzz runs gave footnotes out of order
+  across pages too. `test-fuzz` and the note suites need the marginfix this
+  version needs, installed or given by `MARGINFIX`: on a machine whose
+  installed marginfix is that older build they fail until both are installed
+  together.
 - `minted` 3 (with its `latexminted`) and `pythontex`, and LaTeX run with
   `-shell-escape`.
 - `comment`, for the bilingual blocks (in TeX Live), unless the option

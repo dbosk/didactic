@@ -37,7 +37,9 @@ lines of joined():
     python3 testlog.py grep PATTERN LOG    those lines; exit status 1 if none
     python3 testlog.py selftest LOG...     the joiner on test-testlog.tex's logs
 
-The Makefile's checks of the logs use the first two; the checkers in Python
+An error (a log that can't be read, a pattern that isn't one) exits with status
+2, as grep does, never 1: a check that a phrase must not appear, `! testlog.py
+grep ...`, then fails on it instead of passing.  The Makefile's checks of the logs use the first two; the checkers in Python
 import lines() and joined().
 """
 import re
@@ -126,6 +128,14 @@ def selftest(path):
 
 
 def main(argv):
+    try:
+        return command(argv)
+    except (OSError, re.error) as e:
+        print(f"testlog.py: {e}", file=sys.stderr)
+        return 2
+
+
+def command(argv):
     if len(argv) == 3 and argv[0] == "count":
         print(len(matching(argv[1], argv[2])))
         return 0

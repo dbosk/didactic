@@ -109,7 +109,7 @@ job twofoot pdflatex '\def\testclassopt{twocolumn}\def\testoptions{noteoverflow=
 hbox() { # test-noteoverflow-foot-hbox, with foot and with carry (no bibliography)
   [ -z "$CASES" ] || case " $CASES " in *" hbox "*) ;; *) return;; esac
   for m in foot ref; do
-    j=$src-hbox-$m; rm -f "$j.aux"
+    j=$src-hbox-$m; rm -f "$j.aux" "$j.aux.old"
     o=noteoverflow=$m; [ $m = ref ] && o=noteoverflow=carry
     for i in 1 2 3 4 5 6 7 8; do
       [ -f "$j.aux" ] && cp "$j.aux" "$j.aux.old"

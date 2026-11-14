@@ -63,7 +63,7 @@ tests: didactic.sty test.pdf test-marginfix-interface test-footcite.pdf \
 	test-format.pdf test-oldkernel-title.pdf test-biburl check \
 	test-noteplace test-noteplace-tl12 test-footreuse-spread \
 	test-noteoverflow-foot test-notefoot test-notefoot-tl12 test-footwide \
-	test-testlog test-sync check-bilingual test-fuzz
+	test-testlog test-sync check-bilingual test-fuzz test-settle
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -632,6 +632,11 @@ test-testlog: test-testlog.tex testlog.py
 	done
 	${TESTLOG} selftest test-testlog-pdflatex.log test-testlog-xelatex.log \
 		test-testlog-lualatex.log
+	# exit status: 1 for no match, 2 for an error (no log, no pattern), so that
+	# a check that a phrase must not appear fails on an error (review 3, M6)
+	${TESTLOG} grep 'NO SUCH PHRASE' test-testlog-pdflatex.log; test $$? = 1
+	${TESTLOG} grep 'x' test-testlog-none.log; test $$? = 2
+	${TESTLOG} grep '(' test-testlog-pdflatex.log; test $$? = 2
 
 .PHONY: test-noteoverflow-foot test-notefoot test-footwide
 # A footnote at the foot is set in the width of the text, its text run once
@@ -663,6 +668,13 @@ test-notefoot-tl12: test-notefoot.tex test-notefoot.sh test-notefoot.py testlog.
 test-fuzz: test-fuzz.py testlog.py didactic.sty
 	python3 test-fuzz.py selftest
 	python3 test-fuzz.py run
+
+# the note suites' settle starts from no .aux and no .aux.old of its own job: a stale
+# .aux.old must not end it after one run (test-settle.sh).
+.PHONY: test-settle
+test-settle: test-settle.sh test-noteplace.tex test-noteplace.sh test-noteplace.py \
+		testlog.py didactic.sty
+	./test-settle.sh
 
 # the place of the margin column in the log against where a note is printed.
 test-margin-log.pdf test-margin-log-article.pdf: %.pdf: %.tex test-margin-log.tex \

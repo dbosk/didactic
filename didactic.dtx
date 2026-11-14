@@ -165,6 +165,15 @@
 %   regardless of load order.
 % }
 % \changes{v2.18}{2026/11/14}{%
+%   A float gives way to the margin notes already decided for its page (it
+%   waits, where it would take the room they need).  A footnote in
+%   \textsf{multicol}'s columns goes to the foot under the columns, as an
+%   ordinary footnote (it was lost).  A note set on another page than its
+%   callout that no warning named is warned about in the next run, ``found
+%   from the last run'', from records each run writes to the \texttt{.aux}
+%   file for that only.
+% }
+% \changes{v2.18}{2026/11/14}{%
 %   A footnote set at the foot as \LaTeX\ sets it (in |\footnotesatfoot|) that
 %   \TeX\ sets at the foot of another page than its mark's is named a run
 %   later, as one in \textsf{multicol}'s columns was: only a footnote whose
@@ -183,8 +192,8 @@
 %   \texttt{noteoverflow} is decided by \textsf{didactic} itself, where the
 %   note is called out, in one run: \texttt{foot} (the default) or
 %   \texttt{carry}; \texttt{break} is gone, since no page ends early for a note
-%   any more; it no longer needs \textsf{marginfix} 1.6 or records in
-%   the \texttt{.aux} file.  A footnote goes to the foot whole, or whole and one
+%   any more; it no longer needs \textsf{marginfix} 1.6, and reads nothing
+%   from the \texttt{.aux} file to decide.  A footnote goes to the foot whole, or whole and one
 %   line past it, never split; one too long for that is carried, with a
 %   warning that says so.  A margin note whose line \TeX\ takes to the next
 %   page waits there for it with its first line on the text's first, as
@@ -519,8 +528,10 @@
 % |latexmk| allows by default (5); it continues from where it stopped the next 
 % time, or you can raise |$max_repeat|.
 % A note counts as on the page where it starts: a mark beside the rest of a
-% footnote split over two pages (by \TeX, at the foot, or by \textsf{marginfix},
-% in the margin) gets a footnote of its own.
+% note split over two pages (one of \LaTeX's own footnotes, which \TeX\ may
+% split at the foot, or a note taller than the margin, which \textsf{marginfix}
+% splits there; \textsf{didactic}'s footnotes are never split) gets a footnote
+% of its own.
 % A citation beside the mark of a footnote that is carried to the next page
 % shares its number, both marks before the note; the warning about that
 % footnote names the marks that share it.
@@ -5023,8 +5034,9 @@
 % warning.
 % No page ends early for a note.
 % The decision is taken where the note is called out, in the kernel's special 
-% output for the note, and once only: nothing about it is written to the 
-% |.aux| file, so the notes are in place in the run that sets them.
+% output for the note, and once only: it reads nothing from the |.aux| file,
+% so the notes are in place in the run that sets them (the records written
+% there serve the warnings that name a note a run later, nothing else).
 % \textsf{marginfix} keeps the margin's own mechanics (the margin is built 
 % from its list of waiting notes, deferrable notes give way, a note taller 
 % than the margin is split); it gets nothing that only \textsf{didactic} 
@@ -5475,7 +5487,8 @@
 % place to break (the |\interlinepenalty| it adds after the special output,
 % \textsf{marginfix}'s own): a footnote we sent to the foot after its line
 % would then go to the next page with that later line, its own line staying
-% (the row |reins| of |test-noteplace|).
+% (|test-noteplace|'s row |footback|, red without |\@didactic@footback|;
+% |test-notefoot|'s |reins| is the case the second review found).
 % When every box at the foot is one of ours (|\@didactic@footback|, below), we
 % put them back before the page so far, at the head of the page, where they
 % stay on it whatever line \TeX\ breaks before; those whose lines \TeX\ then
