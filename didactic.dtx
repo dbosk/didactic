@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}[2021/06/01]
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/11/13 v2.17 didactic]
+  [2026/11/15 v2.17.1 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -156,6 +156,13 @@
 %   when it's loaded.
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
+% }
+% \changes{v2.17.1}{2026/11/15}{%
+%   With \textsf{translator}, which \textsf{beamer} and 
+%   \textsf{beamerarticle} load, and Swedish in \textsf{babel}, sets 
+%   \textsf{translator} up to follow \textsf{babel}'s language, so that 
+%   \textsf{beamer}'s block titles are Swedish in the Swedish edition with no 
+%   lines in the preamble.
 % }
 % \changes{v2.17}{2026/11/13}{%
 %   Adds bilingual documents: the environments \texttt{en} and \texttt{sv}, 
@@ -1920,26 +1927,33 @@
 %
 % The names that \textsf{babel} sets follow by themselves: captions, and this 
 % package's block titles, such as \enquote{Exercise}.
-% \textsf{beamer}'s own block titles, such as \enquote{Example} and 
-% \enquote{Theorem}, don't: they come from \textsf{translator}, which 
-% \textsf{beamer} and \textsf{beamerarticle} load, and which takes its 
-% languages from the options of the class, not from \textsf{babel}'s, so 
-% that the Swedish slides say \enquote{Example}.
-% The shared preamble therefore tells it, once, for both editions:
+% So do \textsf{beamer}'s own block titles, such as \enquote{Example} and 
+% \enquote{Theorem}, since version~2.17.1.
+% They come from \textsf{translator}, which \textsf{beamer} and 
+% \textsf{beamerarticle} load, and which takes its languages from the options 
+% of the class, not from \textsf{babel}'s.
+% When \textsf{translator} is loaded and \textsf{babel} has Swedish, this 
+% package tells it at the end of the preamble that Swedish is one of its 
+% languages and that \textsf{babel}'s |swedish| is its |Swedish|; from then 
+% on it follows \textsf{babel}'s language, so the English edition says 
+% \enquote{Example} and the Swedish one \enquote{Exempel}, in the slides and 
+% in the notes.
+% The author has nothing to add for that.
+% The two lines that the documentation of version~2.17 asked for in the 
+% shared preamble,
 % \begin{verbatim}
 % \uselanguage{Swedish}
 % \languagealias{swedish}{Swedish}
 % \end{verbatim}
-% Then \textsf{translator} follows \textsf{babel}'s language, so the English 
-% edition still says \enquote{Example}, and the Swedish one 
-% \enquote{Exempel}.
-% The lines need \textsf{translator}: a document with neither \textsf{beamer} 
-% nor \textsf{beamerarticle} leaves them out.
-% Giving the class the language, |\documentclass[swedish]{beamer}|, also 
-% makes \textsf{translator} Swedish, but a class option reaches every 
-% package, and it turns \textsf{cleveref}'s order, which the next paragraph 
-% is about, round: with it, the Swedish edition's |\cref| says 
-% \enquote{section} and the English one \enquote{avsnitt}.
+% say the same again, which is harmless, and can go.
+% \textsf{translator} follows \textsf{babel}, not the edition: with the 
+% option |language=sv| and English as \textsf{babel}'s main language, the 
+% titles are English, like \textsf{babel}'s captions.
+% Don't give the class the language instead, |\documentclass[swedish]{beamer}|: 
+% a class option reaches every package, and it turns \textsf{cleveref}'s 
+% order, which the next paragraph is about, round: with it, the Swedish 
+% edition's |\cref| says \enquote{section} and the English one 
+% \enquote{avsnitt}.
 % The names of |\cref| don't: \textsf{cleveref} takes them from the 
 % \emph{last} language among its options.
 % Giving it both languages isn't enough, since \textsf{cleveref} adds a 
@@ -4504,10 +4518,38 @@
     Use \string\didactictr\space for bilingual strings%
   }%
 }
-\fi
 %    \end{macrocode}
 % \end{macro}
 % \end{macro}
+%
+% \textsf{beamer}'s own block titles, such as \enquote{Example} and 
+% \enquote{Theorem}, in the slides and, through \textsf{beamerarticle}, in 
+% the notes, come from \textsf{translator}.
+% That takes its languages from the options of the class, not from 
+% \textsf{babel}'s, so with Swedish as \textsf{babel}'s main language they 
+% would still be English.
+% Told that Swedish is one of its languages, and that \textsf{babel}'s 
+% |swedish| is its |Swedish|, it follows \textsf{babel}'s language instead, 
+% in both editions: that's what its own class option |swedish| does.
+% It loads its dictionaries at the start of the document, so we tell it at 
+% the end of the preamble, which also catches a \textsf{translator} loaded 
+% after this package.
+% Without \textsf{translator}, or without Swedish in \textsf{babel}, there 
+% is nothing to do.
+% An author who tells it the same in the preamble, as the documentation of 
+% version~2.17 asked, has it said twice, which \textsf{translator} reads as 
+% once.
+%    \begin{macrocode}
+\AtEndPreamble{%
+  \@ifpackageloaded{translator}{%
+    \ifcsname captionsswedish\endcsname
+      \uselanguage{Swedish}%
+      \languagealias{swedish}{Swedish}%
+    \fi
+  }{}%
+}
+\fi
+%    \end{macrocode}
 %
 % \subsection{Coloured blocks}
 %

@@ -78,8 +78,8 @@ done
 
 # The test notes load beamerarticle with notheorems, so their example is this
 # package's own, which follows babel anyway.  Notes without notheorems get
-# beamer's, from translator, like the slides: they need the two lines of the
-# shared preamble just as much.
+# beamer's, from translator, like the slides, and didactic sets translator up
+# for them just as much.
 cat > test-bilingual-titles.tex <<'TITLES'
 \documentclass{memoir}
 \PassOptionsToPackage{main=swedish}{babel}
@@ -100,6 +100,44 @@ case "$text" in
   *) fail titles "beamer's titles in Swedish notes without notheorems: $text" ;;
 esac
 
+# An author's own lines for translator, which the documentation asked for
+# before didactic set it up itself, are harmless, before didactic or after.
+for edition in british:EN:Example:Exempel swedish:SV:Exempel:Example; do
+  babel=${edition%%:*} rest=${edition#*:} rest=${rest#*:}
+  want=${rest%%:*} other=${rest#*:}
+  for place in before after; do
+    lines='\uselanguage{Swedish}\languagealias{swedish}{Swedish}'
+    case $place in
+      before) first=$lines second= ;;
+      after) first= second=$lines ;;
+    esac
+    cat > test-bilingual-ownlines.tex <<OWNLINES
+\documentclass{beamer}
+\PassOptionsToPackage{main=$babel}{babel}
+\usepackage[british,swedish]{babel}
+$first
+\usepackage{didactic}
+$second
+\begin{document}
+\begin{frame}
+\begin{example}OWNLINES\end{example}
+\end{frame}
+\end{document}
+OWNLINES
+    rm -f test-bilingual-ownlines.pdf
+    ${PDFLATEX:-pdflatex} -shell-escape -interaction=nonstopmode \
+      test-bilingual-ownlines.tex >/dev/null 2>&1
+    text=$(pdftotext test-bilingual-ownlines.pdf - 2>/dev/null)
+    case "$text" in
+      *"$want"*OWNLINES*) ;;
+      *) fail ownlines "$babel, lines $place didactic: no $want" ;;
+    esac
+    case "$text" in
+      *"$other"*) fail ownlines "$babel, lines $place didactic: $other" ;;
+    esac
+  done
+done
+
 # The test documents are examples too, so the script must find nothing wrong
 # with them: no error, and no stamp in a form that it no longer reads.
 for source in test-bilingual.tex test-bilingual-sv.tex \
@@ -116,7 +154,8 @@ for source in test-bilingual.tex test-bilingual-sv.tex \
 done
 
 # beamer's own block titles, such as Example, come from translator, which
-# follows babel only with the two lines that the documentation gives; this
+# follows babel only once didactic has set it up, with no lines in the
+# preamble; this
 # package's titles, such as Exercise, follow babel by themselves.
 for job in test-bilingual test-bilingual-slides; do
   text=$(pdftotext "$job.pdf" -)
