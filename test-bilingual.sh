@@ -356,8 +356,8 @@ pdftotext test-bilingual-sv.pdf - | grep -q 'see avsnitt' \
 
 pdftotext test-bilingual-off.pdf - | grep -q 'own ensv: x y' \
   || fail test-bilingual-off "own \\ensv is gone"
-pdftotext test-bilingual-off.pdf - | grep -q 'own en' \
-  || fail test-bilingual-off "own en is gone"
+pdftotext test-bilingual-off.pdf - | grep -q 'own onlyin' \
+  || fail test-bilingual-off "own onlyin is gone"
 
 nested=$(pdftotext test-bilingual-nested.pdf -)
 for word in NESTEDFIRST NESTEDINNER NESTEDINNERMOST NESTEDINNEREND NESTEDLAST \

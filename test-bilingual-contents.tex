@@ -2,33 +2,33 @@
 
 \section{\ensv{ENSECTION}{SVSECTION}}\label{sec:bilingual-test}
 
-\begin{en} % sync en=e0388d sv=747f90
+\begin{onlyin}{english} % sync en=e0388d sv=747f90
 ENPROSE in the notes only, see \cref{sec:bilingual-test}.
-\end{en}
-\begin{sv}
+\end{onlyin}
+\begin{onlyin}{swedish}
 SVPROSE in the notes only, see \cref{sec:bilingual-test}.
-\end{sv}
+\end{onlyin}
 
 \begin{frame}[fragile]
   \frametitle{\ensv{ENFRAMETITLE}{SVFRAMETITLE}}
   SHARED on every page.
 
-  \begin{en}
+  \begin{onlyin}{english}
 ENFRAME with code:
 \begin{minted}{text}
 ENVERBATIM
 \end{minted}
 \inputminted{python}{hello.py}
 \runpython[showcommand]{hello.py}
-\end{en}
-  \begin{sv}
+\end{onlyin}
+  \begin{onlyin}{swedish}
 SVFRAME with code:
 \begin{minted}{text}
 SVVERBATIM
 \end{minted}
 \inputminted{python}{hello.py}
 \runpython[showcommand]{hello.py}
-\end{sv}
+\end{onlyin}
 
   \begin{exercise}[\ensv{ENEXERCISE}{SVEXERCISE}]
     \begin{itemize}
@@ -38,45 +38,45 @@ SVVERBATIM
 \end{frame}
 
 \begin{frame}[fragile]
-\begin{en}
+\begin{onlyin}{english}
 \begin{exercise}[ENBLOCKED]\label{ex:same}
 A.
 \end{exercise}
 \ltnote{ENNOTE}
-\end{en}
-\begin{sv}
+\end{onlyin}
+\begin{onlyin}{swedish}
 \begin{exercise}[SVBLOCKED]\label{ex:same}
 B.
 \end{exercise}
 \ltnote{SVNOTE}
-\end{sv}
+\end{onlyin}
 \end{frame}
 
 \mode<all>
-\begin{en}
+\begin{onlyin}{english}
 \begin{frame}
 ENWHOLEFRAME
 \end{frame}
-\end{en}
-\begin{sv}
+\end{onlyin}
+\begin{onlyin}{swedish}
 \begin{frame}
 SVWHOLEFRAME
 \end{frame}
-\end{sv}
+\end{onlyin}
 \mode*
 
-\begin{en}
+\begin{onlyin}{english}
 \begin{figure}
 \rule{1cm}{1cm}
 \caption{ENCAPTION}\label{fig:same}
 \end{figure}
-\end{en}
-\begin{sv}
+\end{onlyin}
+\begin{onlyin}{swedish}
 \begin{figure}
 \rule{1cm}{1cm}
 \caption{SVCAPTION}\label{fig:same}
 \end{figure}
-\end{sv}
+\end{onlyin}
 
 \begin{frame}
   \ensv{ENSTRING \emph{in {braces}}}{SVSTRING \emph{i {klamrar}}}

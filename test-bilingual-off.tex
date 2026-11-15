@@ -1,17 +1,17 @@
 % Test the option nobilingual: a document can have its own \ensv and its own
-% environment en.
+% environment onlyin.
 %
 % Build: make check-bilingual
 %
-% Expected: it builds, and the PDF says "own ensv: x y" and "own en".
+% Expected: it builds, and the PDF says "own ensv: x y" and "own onlyin".
 \documentclass{article}
 \usepackage[british]{babel}
 \usepackage[nobilingual]{didactic}
 \newcommand\ensv[2]{own ensv: #1 #2}
-\newenvironment{en}{own en}{}
+\newenvironment{onlyin}{own onlyin}{}
 \begin{document}
 \ensv{x}{y}
 
-\begin{en}
-\end{en}
+\begin{onlyin}
+\end{onlyin}
 \end{document}
