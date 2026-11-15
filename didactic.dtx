@@ -4624,7 +4624,10 @@
 %    \end{macrocode}
 %
 % \begin{macro}{\didacticlanguage}
-% The edition is a tag, and it's chosen by a language's name or by its tag.
+% The edition is a tag, but it's chosen by a language's name, as everything 
+% else is: an author never writes a tag.
+% A tag in its place is an error that names the name to write, as for a 
+% block's argument, and the edition stays as it was.
 %    \begin{macrocode}
 \newcommand\@didactic@edition{}
 \newcommand\didacticlanguage[1]{%
@@ -4632,11 +4635,13 @@
     \edef\@didactic@edition{\csname @didactic@tag@#1\endcsname}%
   \else
     \ifcsname @didactic@name@#1\endcsname
-      \edef\@didactic@edition{#1}%
+      \PackageError{didactic}{%
+        The language is babel's name, not the tag `#1':\MessageBreak
+        write \csname @didactic@name@#1\endcsname
+      }{The edition stays as it was.}%
     \else
       \PackageError{didactic}{Unknown language `#1'}{%
-        Use babel's name of a language, such as swedish, or its tag, such 
-        as sv.%
+        Use babel's name of a language, such as swedish.%
       }%
     \fi
   \fi

@@ -325,8 +325,9 @@ block_document '\didactictr[english, swedish]{ENSPACE}{SVSPACE}' ''
 pdftotext test-bilingual-names.pdf - 2>/dev/null | grep -q SVSPACE \
   || fail names "\\didactictr[english, swedish] has no Swedish text"
 
-# language= takes a tag, and overrides babel's main language; a language that
-# only babel knows, not the package's table, is an edition too.
+# language= takes babel's name, and overrides babel's main language; a tag is
+# an error that names the name, there and in \didacticlanguage; a language
+# that only babel knows, not the package's table, is an edition too.
 edition_document() {
   printf '%s\n' '\documentclass{article}' "\\usepackage[$1]{babel}" \
     "\\usepackage$2{didactic}" '\begin{document}' \
@@ -339,10 +340,16 @@ edition_document() {
     test-bilingual-names.tex >/dev/null 2>&1
   pdftotext test-bilingual-names.pdf - 2>/dev/null | tr -s ' \n' '  '
 }
-case "$(edition_document british,swedish,estonian,main=british '[language=sv]')" in
+case "$(edition_document british,swedish,estonian,main=british '[language=swedish]')" in
   *SVEDITION*) ;;
-  *) fail names "language=sv doesn't give the Swedish edition" ;;
+  *) fail names "language=swedish doesn't give the Swedish edition" ;;
 esac
+edition_document british,swedish '[language=sv]' >/dev/null
+command grep -A1 "not the tag .sv." test-bilingual-names.log \
+  | grep -q "write swedish" || fail names "language=sv doesn't name swedish"
+block_document '\didacticlanguage{en}' ''
+command grep -A1 "not the tag .en." test-bilingual-names.log \
+  | grep -q "write english" || fail names "\\didacticlanguage{en} doesn't name english"
 edition_document british,swedish '[language=klingon]' >/dev/null
 command grep -q "Unknown language .klingon." test-bilingual-names.log \
   || fail names "language=klingon isn't an unknown language"
@@ -526,7 +533,7 @@ mkdir -p test-bilingual-stamp.d
 for variant in plain stamped; do
   case $variant in
     plain) stamp= ;;
-    stamped) stamp=' % sync en=3f9c1a sv=b20e7d' ;;
+    stamped) stamp=' % sync english=3f9c1a swedish=b20e7d' ;;
   esac
   printf '\\begin{onlyin}{english}%s\nENSTAMPED\n\\end{onlyin}\n\\begin{onlyin}{swedish}\nSVSTAMPED\n\\end{onlyin}\nAFTER\n' \
     "$stamp" > test-bilingual-stamp.d/$variant.tex
