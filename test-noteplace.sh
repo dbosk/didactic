@@ -603,6 +603,13 @@ check fnapart x 30 '' "noreason=where LaTeX puts it,fnrecords=0,at=FNTA:2/FNTB:2
 check fnfloat x 30 '' "noreason=where LaTeX puts it,fnrecords=0,at=FLT:1" '\def\testbody{\footnotesatfoot FIRSTLINE words. \begin{figure}[p]\centering FLOATBODY\footnotemark\caption{Cap}\end{figure} \filler\par TEXTS\footnotetext{FLT the float'"'"'s note, apart.} \filler\par}'
 check fnbox x 30 '' "noreason=wasn't printed,noreason=where LaTeX puts it,fnrecords=0,at=MINIFN:1" '\def\testbody{\footnotesatfoot FIRSTLINE words.\par\begin{minipage}{.5\textwidth}MINI words\footnote{MINIFN in the minipage.}\end{minipage}\par\begin{tabular}{l}TAB cell\footnote{TABFN in a tabular.}\\\end{tabular}\par \filler\par}'
 check fnthanks x 30 '' "noreason=wasn't printed,noreason=where LaTeX puts it,fnrecords=1,at=THANKS:2/HEADFN:2" '\def\testbody{\footnotesatfoot\title{TITLE\thanks{THANKS a note to the title.}}\author{A}\date{}\maketitle \section[Short]{HEADX\footnote{HEADFN of the heading.}} FIRSTLINE words. \begin{figure}[h]\centering FIG\caption[Short]{CAP\footnote{CAPFN of the caption.}}\end{figure} \filler\par}'
+# A footnote whose text took neither the foot nor the margin (in a minipage) left the
+# flag of a pair set for a later \footnotemark placed apart from its text (review 4,
+# S5-2: "where LaTeX puts it" for a mark and text the author put on two pages):
+# the flag holds only within one \footnote (fnstale; fnstaleplain, a footnote in the
+# margin before the mark instead).
+check fnstale x 30 '' "noreason=where LaTeX puts it,fnrecords=0,at=APART:2" '\def\testbody{\begin{minipage}{.5\linewidth}MINI\footnote{MININOTE in a minipage.}\end{minipage}\par{\footnotesatfoot FIRSTLINE words with a mark\footnotemark{} and its text apart.} \filler\newpage{\footnotesatfoot TEXTS\footnotetext{APART the text of the mark, on purpose.}} \filler\par}'
+check fnstaleplain x 30 '' "noreason=where LaTeX puts it,fnrecords=0,at=APART:2" '\def\testtall{.3}\def\testbody{PLAIN\footnote{PLAINNOTE in the margin.}\par{\footnotesatfoot FIRSTLINE words with a mark\footnotemark{} and its text apart.} \filler\newpage{\footnotesatfoot TEXTS\footnotetext{APART the text of the mark, on purpose.}} \filler\par}'
 # The same in two columns, with memoir (a footnote of its own at the foot gets its
 # records) and with article, where didactic sets no footnote and the hooks aren't
 # set: memoir's names in them must not reach another class (fnapartart).

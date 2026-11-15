@@ -165,6 +165,11 @@
 %   regardless of load order.
 % }
 % \changes{v2.18}{2026/11/15}{%
+%   A \cs{footnotemark} and \cs{footnotetext} placed apart no longer get the
+%   records of a pair, and so no ``where LaTeX puts it'', after a footnote in a
+%   minipage or in the margin.
+% }
+% \changes{v2.18}{2026/11/15}{%
 %   A second note in a line no longer waits for the next page, unwarned, when
 %   the page so far ends with a heading's space before that line: the place to
 %   break after the first note is found as the last, by \TeX's own rule.
@@ -6341,9 +6346,8 @@
     \@didactic@keep
     \global\let\@thefnmark\@didactic@markafter}%
    {\@didactic@footmargin{\ifm@mfnmargin\else\if@didactic@fnpair
-      \global\@didactic@fnpairfalse\@didactic@mc@note\fi\fi
+      \@didactic@mc@note\fi\fi
       \interlinepenalty\interfootnotelinepenalty#1}}%
-  \global\@didactic@fnpairfalse
   \global\@didactic@isfnfalse}
 \newcommand\@didactic@ifcopies{%
   \@tempswafalse
@@ -7359,8 +7363,12 @@
 % fit to the next page), and the run after warns where their pages differ
 % (|\@didactic@recheck|), saying that \LaTeX\ set it there: records for the
 % warning only, which a settled build has too.  Only a footnote whose mark and
-% text |\footnote| makes together gets them (|\if@didactic@fnpair|, set by
-% |\footnote|, cleared when its text is set): a |\footnotemark| and a
+% text |\footnote| makes together gets them (|\if@didactic@fnpair|, true only
+% within a call of |\footnote|: set at its start and cleared when it returns,
+% its text set by then, whatever way the text took, a minipage's included;
+% before review~4, S5-2, it was cleared where a text at the foot or in the
+% margin was set, and a minipage's footnote, whose text takes neither way,
+% left it set for a later |\footnotemark|): a |\footnotemark| and a
 % |\footnotetext| the author places apart are where the author put them; and
 % none for a footnote whose text can't reach the foot: in a |minipage| (|\@mpfn|
 % not |footnote|), where the text is set in the minipage; in a box, a tabular's
@@ -7406,6 +7414,11 @@
     \fi\fi\fi
   \fi}
 \newcommand\@didactic@mc@note{\@didactic@rnwrite{\@didactic@mc@id}}
+\long\def\@didactic@fnplain#1{%
+  \global\@didactic@fnpairtrue\@didactic@footnote{#1}\global\@didactic@fnpairfalse}
+\long\def\@didactic@fnopt[#1]#2{%
+  \global\@didactic@fnpairtrue\@didactic@footnote[#1]{#2}%
+  \global\@didactic@fnpairfalse}
 \newcommand\@didactic@mcolwarn{%
   \ifdefined\col@number
     \ifnum\col@number>\if@twocolumn\tw@\else\@ne\fi
@@ -7473,7 +7486,7 @@
       \let\@footnotetext\@didactic@footwrap
     \fi
     \let\@didactic@footnote\footnote
-    \def\footnote{\global\@didactic@fnpairtrue\@didactic@footnote}%
+    \def\footnote{\@ifnextchar[\@didactic@fnopt\@didactic@fnplain}%
     \let\@didactic@fnmark\@footnotemark
     \def\@footnotemark{\@didactic@fnmark\@didactic@mc@markat}%
   \fi

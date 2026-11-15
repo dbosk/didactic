@@ -45,8 +45,8 @@
 #            boxes in footnotes, against the marginfix found or $MARGINFIX (about 30 s)
 #   noteplace test-noteplace, its rows rsvsidecap, rsvblock, mcolblock,
 #            rsvsidebefore, heldtop, heldsecond, overmoved, footback, overlimit, overtwo,
-#            aftercarry, carrymode, notplainm, notplainf, nestfn, nestmp, fsoverstay, trailm
-#            and samelinehead only, against the marginfix found or $MARGINFIX (about 2 minutes a mutant,
+#            aftercarry, carrymode, notplainm, notplainf, nestfn, nestmp, fsoverstay, trailm,
+#            samelinehead, fnstale and fnstaleplain only, against the marginfix found or $MARGINFIX (about 2 minutes a mutant,
 #            one at a time; 116 s; run on 2026-11-14, before nestfn, nestmp, fsoverstay)
 #   notefoot test-notefoot, its jobs waitover, warnclaim, defercarry-warn and defercarry,
 #            against $MARGINFIX (30 to 50 s; 30 s)
@@ -2110,3 +2110,14 @@ Tsamesplit didactic.dtx
 +       \fi
 +     \fi
 +   \endgroup}
+
+# Review 4, S5-2: the flag of a footnote whose mark and text \footnote makes together
+# holds only within one call; not cleared when the call returns, a footnote whose text
+# took neither the foot's nor the margin's way (a minipage's), or one in the margin,
+# leaves it for a later \footnotemark placed apart (fnstale, fnstaleplain; the
+# reviewer's Nfnpairend, of the clearing that was at the end of the wrapper).
+#: noteplace
+#= killed test-noteplace
+Sfnpaircall didactic.dtx
+-   \global\@didactic@fnpairtrue\@didactic@footnote{#1}\global\@didactic@fnpairfalse}
++   \global\@didactic@fnpairtrue\@didactic@footnote{#1}\relax}
