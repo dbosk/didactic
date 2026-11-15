@@ -305,14 +305,25 @@ block_document() {
 block_document '\begin{onlyin}{sv}' '\end{onlyin}'
 command grep -q "begin{onlyin}{swedish}" test-bilingual-names.log \
   || fail names "\\begin{onlyin}{sv} doesn't name \\begin{onlyin}{swedish}"
+if pdftotext test-bilingual-names.pdf - 2>/dev/null | grep -q X; then
+  fail names "\\begin{onlyin}{sv} isn't skipped"
+fi
 block_document '\begin{onlyin}{klingon}' '\end{onlyin}'
 command grep -q "Unknown language .klingon." test-bilingual-names.log \
-  || fail names "\begin{onlyin}{klingon} isn't an unknown language"
+  || fail names "\\begin{onlyin}{klingon} isn't an unknown language"
 block_document '\begin{en}' '\end{en}'
 command grep -q "begin{onlyin}{english}" test-bilingual-names.log \
   || fail names "\\begin{en} doesn't name \\begin{onlyin}{english}"
 command grep -q -- "--migrate" test-bilingual-names.log \
   || fail names "\\begin{en} doesn't name --migrate"
+block_document '\begin{sv}' '\end{sv}'
+command grep -q "begin{onlyin}{swedish}" test-bilingual-names.log \
+  || fail names "\\begin{sv} doesn't name \\begin{onlyin}{swedish}"
+# a list of languages may have spaces after its commas (the edition is
+# swedish, babel's last language)
+block_document '\didactictr[english, swedish]{ENSPACE}{SVSPACE}' ''
+pdftotext test-bilingual-names.pdf - 2>/dev/null | grep -q SVSPACE \
+  || fail names "\\didactictr[english, swedish] has no Swedish text"
 
 # language= takes a tag, and overrides babel's main language; a language that
 # only babel knows, not the package's table, is an edition too.
@@ -332,6 +343,9 @@ case "$(edition_document british,swedish,estonian,main=british '[language=sv]')"
   *SVEDITION*) ;;
   *) fail names "language=sv doesn't give the Swedish edition" ;;
 esac
+edition_document british,swedish '[language=klingon]' >/dev/null
+command grep -q "Unknown language .klingon." test-bilingual-names.log \
+  || fail names "language=klingon isn't an unknown language"
 for setup in "main=estonian:" "main=british:[language=estonian]"; do
   case "$(edition_document british,swedish,estonian,${setup%%:*} "${setup#*:}")" in
     *ETEDITION*) ;;
