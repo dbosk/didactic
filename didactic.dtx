@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}[2021/06/01]
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/11/15 v2.17.2 didactic]
+  [2026/11/15 v2.19 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -156,6 +156,15 @@
 %   when it's loaded.
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
+% }
+% \changes{v2.19}{2026/11/15}{%
+%   Bilingual documents name languages as \textsf{babel} does: a block is 
+%   \texttt{\textbackslash begin\{onlyin\}\{swedish\}}, the edition is 
+%   \textsf{babel}'s main language, whichever it is, by its tag, and 
+%   \texttt{\textbackslash didactictr} takes its languages as an option, 
+%   with a text for each; \texttt{\textbackslash sven} is new.
+%   Removes the environments \texttt{en} and \texttt{sv}; 
+%   \texttt{didactic-sync.py --migrate} rewrites a source (\#105).
 % }
 % \changes{v2.17.2}{2026/11/15}{%
 %   With \textsf{cleveref}'s option \texttt{capitalise}, the names of this 
@@ -1873,37 +1882,55 @@
 %
 % \subsection{Bilingual documents}\label{sec:bilingual}
 %
-% One source can hold two editions of a text, in English and in Swedish: 
-% the material that doesn't depend on the language (code, runs, figures, 
-% the structure) is written once and only the prose is written twice.
-% Other pairs of languages are the subject of dbosk/didactic\#105.
+% One source can hold editions of a text in several languages, such as 
+% English and Swedish: the material that doesn't depend on the language 
+% (code, runs, figures, the structure) is written once and only the prose is 
+% written for each.
+% Languages are named as \textsf{babel} names them.
 %
-% \DescribeEnv{en}
-% \DescribeEnv{sv}
-% Prose comes in pairs of blocks, one paragraph or one list per block:
+% \DescribeEnv{onlyin}
+% Prose comes in pairs of blocks, one paragraph or one list per block, each 
+% in the language that its argument names:
 % \begin{verbatim}
-% \begin{en} % sync en=3f9c1a sv=b20e7d
+% \begin{onlyin}{english} % sync en=3f9c1a sv=b20e7d
 % The program prints one line.
-% \end{en}
-% \begin{sv}
+% \end{onlyin}
+% \begin{onlyin}{swedish}
 % Programmet skriver ut en rad.
-% \end{sv}
+% \end{onlyin}
 % \end{verbatim}
-% Either language may come first.
-% Two blocks form a pair when only blank lines and comments lie between 
-% them; a block with no partner next to it belongs to one edition only.
+% Either language may come first, and a pair may have more than two, an 
+% English, a Swedish and a German block.
+% Blocks of different languages form a pair when only blank lines and 
+% comments lie between them; a block with no partner next to it belongs to 
+% one edition only.
+% The argument is \textsf{babel}'s name of the language, |english|, 
+% |british|, |swedish|, |ngerman|; a tag such as |sv| there is an error that 
+% names the name to write.
+% |british| and |english| are one language: what decides is the language 
+% tag that \textsf{babel} gives each, |en| for both.
 % The comment on the first |\begin| line, which \textsf{comment} ignores, 
 % is written by the script \texttt{didactic-sync.py}, which is the subject 
 % of \cref{sec:didactic-sync}.
 %
-% \DescribeMacro{\ensv}
 % \DescribeMacro{\didactictr}
-% Short strings use |\ensv{English}{Svenska}|: frame titles, section titles, 
-% captions, list items, the title of the document.
-% The name gives the order of the arguments, English first.
-% |\didactictr| is the same command under a name that no other package takes.
-% A document doesn't redefine it either: \texttt{didactic-sync.py} reports 
-% that as an error, since the file could no longer be checked.
+% \DescribeMacro{\ensv}
+% \DescribeMacro{\sven}
+% Short strings use |\didactictr[|\meta{languages}|]|, followed by a text 
+% for each language: frame titles, section titles, captions, list items, the 
+% title of the document.
+% |\didactictr[english,swedish,ngerman]{One}{Ett}{Eins}| gives the 
+% edition's text.
+% Without the option the languages are English and Swedish, and 
+% |\ensv{English}{Svenska}| and |\sven{Svenska}{English}| are the short 
+% forms, whose names give the order of the arguments.
+% A string with no text for the edition, such as |\ensv| in a German 
+% edition, is an error where it's typeset, which names the edition and the 
+% string's languages: a shared file used by a German edition needs a German 
+% text in every string, |\didactictr[english,swedish,ngerman]|.
+% |\didactictr| is a name that no other package takes, and a document 
+% doesn't redefine it either: \texttt{didactic-sync.py} reports that as an 
+% error, since the file could no longer be checked.
 % It's expandable, so it's safe in moving arguments: the table of contents, 
 % the bookmarks and the headline of the slides only ever see the edition's 
 % language.
@@ -1915,8 +1942,9 @@
 %
 % \DescribeOpt{language}
 % \DescribeMacro{\didacticlanguage}
-% The edition is the main language of \textsf{babel}: |swedish| gives the 
-% Swedish edition, and any other language the English one.
+% The edition is the main language of \textsf{babel}, whichever it is, by 
+% its tag: |british| gives the English edition, |swedish| the Swedish one, 
+% |ngerman| the German one.
 % So the feature needs \textsf{babel}, which this package loads anyway: a 
 % document with \textsf{polyglossia} instead stops where this package loads 
 % \textsf{babel}, with or without the bilingual feature.
@@ -1928,7 +1956,8 @@
 % \PassOptionsToPackage{english,swedish}{cleveref}
 % \input{preamble.tex}
 % \end{verbatim}
-% The option |language=en| or |language=sv| overrides that.
+% The option |language| overrides that, with a language's name or its tag, 
+% |language=swedish| or |language=sv|.
 % So does the command |\didacticlanguage| with the same argument, which can 
 % also be used in the document, between blocks.
 %
@@ -2005,11 +2034,18 @@
 % of a macro, can't.)
 % Reading line by line also gives the rules for using them:
 % \begin{description}
-% \item[The end of a block] |\end{en}| and |\end{sv}| stand alone on their 
-%   line, in the first column, or the block doesn't end and \TeX\ runs to the 
-%   end of the file: \enquote{File ended while scanning use of} |\next| or 
+% \item[The end of a block] |\end{onlyin}| stands alone on its line, in 
+%   the first column, or the block doesn't end and \TeX\ runs to the end of 
+%   the file: \enquote{File ended while scanning use of} |\next| or 
 %   |\ProcessCommentLine|.
-%   |\begin{en}| may be indented, but the rest of its line is ignored.
+%   |\begin{onlyin}{english}| may be indented, but the rest of its line is 
+%   ignored.
+% \item[No block in a block] Every block ends with |\end{onlyin}|, so a 
+%   block can't stand inside another in the same file: the inner block's end 
+%   ends the outer one, and \TeX\ stops at the end of the file with the 
+%   error above.
+%   \texttt{didactic-sync.py} reports it at the inner block.
+%   A block may input a file that holds blocks, see below.
 % \item[Frames] A frame holding a block is |[fragile]|, because the body of 
 %   any other frame has been read as an argument already.
 %   On the slides, a block in any other frame ends the run with one of the 
@@ -2041,8 +2077,8 @@
 %   |\nowebchunks| or |\nowebindex| prints it.
 %   And it puts the text after a chunk's closing |@| on the same line, so 
 %   the |@| that closes a chunk in a block stands alone on its line, with 
-%   |\end{en}| on the next: |@ \end{en}| becomes a line that doesn't end 
-%   the block.
+%   |\end{onlyin}| on the next: |@ \end{onlyin}| becomes a line that doesn't 
+%   end the block.
 %   \texttt{didactic-sync.py} reports both.
 % \item[Labels] A label in a block doesn't exist in the other edition, so 
 %   text outside the block can only refer to it if the partner defines the 
@@ -2052,14 +2088,16 @@
 % error in a block is reported at a line of that file.
 % A block can input a file that holds blocks: those use 
 % \meta{jobname}|-1.cut| and so on, one file per depth.
+% An inner block of the edition's language is shown, of another language 
+% dropped, and in an excluded block nothing is read at all.
 % They aren't in a group, so definitions in a block stay in force after it, 
 % and a block may even open an environment that it doesn't close.
 %
 % \DescribeOpt{nobilingual}
-% The names |en|, |sv|, |\ensv| and, through \textsf{comment}, |\comment| 
-% are free in the packages that this package is used with, but a document 
-% might define them for itself, as might a package: \textsf{changes} has a 
-% |\comment|.
+% The names |onlyin|, |\ensv|, |\sven| and, through \textsf{comment}, 
+% |\comment| are free in the packages that this package is used with, but a 
+% document might define them for itself, as might a package: 
+% \textsf{changes} has a |\comment|.
 % (This package defines no |\tr|, which \textsf{physics} has for the trace.)
 % If |\ensv| is taken when this package is loaded, it stays as it is, with a 
 % warning, and the command is available as |\didactictr|.
@@ -2068,8 +2106,9 @@
 % reads the uses there as pairs, so such a document is best checked with its 
 % strings written as |\didactictr| (\cref{sec:sync-tr}; the script's limits 
 % are collected in dbosk/didactic\#106).
-% If |\en|, |\sv| or a command |\comment| is taken, then \textsf{comment} would 
-% overwrite it and the document would break somewhere else, so that's an error.
+% If |\onlyin| or a command |\comment| is taken, then \textsf{comment} 
+% would overwrite it and the document would break somewhere else, so that's 
+% an error.
 % An environment |comment| is replaced by one that drops its contents.
 % That's what those of \textsf{verbatim} and \textsf{memoir} do anyway; any 
 % other gets a warning, since its contents would be lost if it printed them.
@@ -2077,6 +2116,24 @@
 % loads a package that does, \LaTeX\ says so itself.
 % In all these cases, or if the document doesn't want any of this, the option 
 % |nobilingual| leaves the names, and \textsf{comment}, alone.
+%
+% \subsubsection{From version 2.17}
+%
+% Version~2.17 had the environments |en| and |sv|, and they're gone: a block 
+% is |\begin{onlyin}{english}| or |\begin{onlyin}{swedish}| now, and a 
+% document with |\begin{en}| stops with an error that names the form to 
+% write.
+% \texttt{didactic-sync.py --migrate} \meta{file}\dots\ rewrites a source: 
+% each real block, not the examples in code chunks, verbatim environments or 
+% comments, with what follows the |\begin| on its line, so the stamps stay 
+% where they are; they're keyed by tag, |en| and |sv|, and stay right.
+% A second run changes nothing.
+% The order is: install this version and the script with it, then run 
+% |--migrate| over each deck's sources, rebuild both editions and commit.
+% Until then a deck stops in the build and in the script (exit~2), so 
+% nothing is half migrated without a word.
+% |\ensv|, |\didactictr{..}{..}| and the option |language=en| or |sv| work 
+% as before.
 %
 % \StopEventually{}
 %

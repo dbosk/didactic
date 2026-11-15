@@ -86,6 +86,7 @@ didactic.pdf: ${SRC} didactic.sty
 	grep -q 'Adds bilingual documents' didactic.gls
 	grep -q 'translator' didactic.gls
 	grep -q 'capitalise' didactic.gls
+	grep -q 'babel. does' didactic.gls
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
 	! grep -E 'Empty bibliography|Citation .*undefined|could not be found' didactic.log

@@ -9,9 +9,12 @@ as "normal" text in handouts produced by `beamerarticle` (same style as
 
 It also provides macros for typesetting code listings and output side by side.
 
-For a bilingual source, it provides the environments `en` and `sv` and the 
-command `\ensv`, with which one source yields an English and a Swedish edition. 
-The script `didactic-sync.py` keeps the two languages of each pair in step.
+For a bilingual source, it provides the environment `onlyin`, as in
+`\begin{onlyin}{swedish}`, and the commands `\ensv`, `\sven` and
+`\didactictr`, with which one source yields an edition per language, named as
+babel names them. The script `didactic-sync.py` keeps the languages of each
+pair in step, and `didactic-sync.py --migrate` rewrites a source of version
+2.17, whose blocks were `\begin{en}` and `\begin{sv}`.
 
 Finally, it modifies the appearance of `beamer` (Berlin based theme) and 
 `memoir` (Tufte style layout), if loaded. It's designed to be used with 
