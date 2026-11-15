@@ -163,6 +163,8 @@
 %   \textsf{translator} up to follow \textsf{babel}'s language, so that 
 %   \textsf{beamer}'s block titles are Swedish in the Swedish edition with no 
 %   lines in the preamble.
+%   That holds for any document with Swedish in \textsf{babel}, bilingual or 
+%   not, unless the option \texttt{nobilingual} is given.
 % }
 % \changes{v2.17}{2026/11/13}{%
 %   Adds bilingual documents: the environments \texttt{en} and \texttt{sv}, 
@@ -1939,6 +1941,16 @@
 % \enquote{Example} and the Swedish one \enquote{Exempel}, in the slides and 
 % in the notes.
 % The author has nothing to add for that.
+% It isn't only for bilingual documents: any document that loads this 
+% package, \textsf{translator} and Swedish in \textsf{babel} gets it, a 
+% Swedish deck with no blocks at all or an article that loads 
+% \textsf{translator} itself.
+% And it makes all of \textsf{translator}'s words Swedish, not only the block 
+% titles: |\sectionpage| says \enquote{Avsnitt}, and a corollary is a 
+% \enquote{Korollarium}.
+% With the option |nobilingual|, which leaves the languages alone, there's no 
+% such set-up: a Swedish deck with it needs the two lines below in its 
+% preamble for Swedish titles.
 % The two lines that the documentation of version~2.17 asked for in the 
 % shared preamble,
 % \begin{verbatim}
@@ -4536,6 +4548,12 @@
 % after this package.
 % Without \textsf{translator}, or without Swedish in \textsf{babel}, there 
 % is nothing to do.
+% Swedish is in \textsf{babel} when its captions are, which is so whether it 
+% came as an option or through |\babelprovide|; a test of \textsf{babel}'s 
+% options would miss the latter.
+% Without the test, a document without Swedish would get the same output, 
+% and no error, but \textsf{translator} would load Swedish dictionaries for 
+% nothing.
 % An author who tells it the same in the preamble, as the documentation of 
 % version~2.17 asked, has it said twice, which \textsf{translator} reads as 
 % once.

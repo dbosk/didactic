@@ -138,6 +138,27 @@ OWNLINES
   done
 done
 
+# nobilingual is the way to have didactic leave the languages alone: a Swedish
+# beamer deck with it gets no set-up of translator, so beamer's titles stay
+# English, as without didactic.
+cat > test-bilingual-ownlines.tex <<'NOBILINGUAL'
+\documentclass{beamer}
+\usepackage[english,swedish]{babel}
+\usepackage[nobilingual]{didactic}
+\begin{document}
+\begin{frame}
+\begin{example}NOBILINGUAL\end{example}
+\end{frame}
+\end{document}
+NOBILINGUAL
+rm -f test-bilingual-ownlines.pdf
+${PDFLATEX:-pdflatex} -shell-escape -interaction=nonstopmode \
+  test-bilingual-ownlines.tex >/dev/null 2>&1
+case "$(pdftotext test-bilingual-ownlines.pdf - 2>/dev/null)" in
+  *Example*NOBILINGUAL*) ;;
+  *) fail nobilingual "translator was set up, or the deck didn't build" ;;
+esac
+
 # The test documents are examples too, so the script must find nothing wrong
 # with them: no error, and no stamp in a form that it no longer reads.
 for source in test-bilingual.tex test-bilingual-sv.tex \
