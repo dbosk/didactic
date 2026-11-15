@@ -165,6 +165,11 @@
 %   regardless of load order.
 % }
 % \changes{v2.18}{2026/11/15}{%
+%   A second note in a line no longer waits for the next page, unwarned, when
+%   the page so far ends with a heading's space before that line: the place to
+%   break after the first note is found as the last, by \TeX's own rule.
+% }
+% \changes{v2.18}{2026/11/15}{%
 %   A footnote with space of its own after its last line is plain, the space
 %   set after its last line and counted in its height; at the end of the
 %   document a warning says
@@ -5590,64 +5595,79 @@
 % \end{macro}
 %
 % \begin{macro}{\@didactic@sameline}
-% The page so far is split at its last place to break, on a copy with a kern
-% of 1sp at its end, to its own height without it: the end doesn't fit, a break
-% after the last line does; if what is left has no height, it holds no line,
-% only what \TeX\ leaves of it when it splits: marks and the like, with the
-% penalties and kerns before them dropped (that 1sp too).
-% Then the page so far is the two parts, without the place to break between
-% them.
+% A second note in a line comes after a place to break: the kernel's special
+% output for the first ends with |\addpenalty\interlinepenalty|, after our mark
+% of that note, and the second note's material (\textsf{marginfix}'s mark, then
+% ours) comes after it.  Were the page to end there, the line would be on it and
+% our mark of the second note on the next, which would then count the note as
+% one whose line is there: it would wait for that page, set there with no word
+% (the fuzz test's seed~1, a footnote after one sent to the foot, on the first
+% line after a heading, the last line of its page).
+% So that place to break is taken out of the page so far, where it is the last
+% place to break, and nothing but marks and the like (no height) comes after it:
+% the page so far is split at its last place to break, and if what is left has
+% no height, the two parts are put together again without it.  If what is left
+% has height, the last place to break was before the line: the note is alone in
+% its line, and the page so far stays as it is.
 % The kernel has already read the height of the page so far, which this
 % doesn't change; only its depth may move into it.
-% A page so far that can shrink (the glue around a heading, a |\vspace| with a
-% |minus|) fits its own height without its end by shrinking, and the split
-% then takes it all: the height to split to is then the least the copy can be
-% packed to, found by halving (a box packed to less is overfull), less 1sp.
-% A page so far that can shrink without end (|\vss|) is left as it is: the
-% records then say where its notes went (|\@didactic@record|).
-% The two parts are taken only if together they are as tall as the page so far
-% was: the place to break may be glue, the space before a note made in
+%
+% The split must be at the last place to break, whatever the page so far holds,
+% and |\vsplit| takes the place it finds best, not the last.  \TeX's rule for
+% that (\emph{\TeX: The Program}, \S\S974--975, in |vert_break|) makes them the
+% same here: a place to break before which the material is shorter than the
+% height asked for, and can't stretch to it, costs |deplorable| (100000), what
+% its penalty is; one that fits exactly, or with glue that stretches without
+% limit before it, costs its penalty; and of places that cost the same, the
+% later is taken (|b<=least_cost|).
+% So a copy of the page so far, with a kern of 12000\,pt at its end, is split
+% to its height less 4000\,pt: every place to break in the page so far is at
+% least 8000\,pt short, which glue that stretches less than about 1840\,pt
+% can't make up (badness 10000 from a ratio of 4.34 on, \S108), and the end,
+% after the kern, is 4000\,pt too tall, which no finite shrink makes fit
+% (|awful_bad|, the search stops).  All places to break then cost the same, and
+% the last is taken.
+% Two things would break that, and neither is in a page so far.
+% A penalty of $-10000$ or less ends the search where it is (\S974); the page
+% builder ends the page at every such penalty that reaches the page, and the one
+% it ends at becomes $10000$ (\S1013), so the page so far, which went through
+% the page builder without ending, holds none.
+% Glue that shrinks without limit stops |\vsplit| with an error (\S976); the
+% page builder makes such glue finite, with an error of its own, before it
+% reaches the page (\S1004), so the page so far holds none (the row
+% |samelinevss|: the document's error, and no other).
+% Glue that stretches without limit can be there (a |\vfill|): a place to break
+% after it costs its penalty, so one with a penalty below the last's (the
+% $-300$ before a heading) is taken, what is left has height, and the parts
+% stay apart, as for a note alone in its line.  That is right, and not only in
+% the one case traced: with such glue before them, the split and the page
+% builder cost every place to break in the page so far the same way (badness 0,
+% so the penalty decides, and of equal ones the later; \S975, \S1005), so
+% whenever the split prefers an earlier place to the one between the two
+% notes, the page builder prefers it too, and can't end the page between them
+% (the row |samelinefill| pins that outcome).
+% The two parts are put together only if they are as tall as the page so far
+% was: the last place to break may be glue, the space before a note made in
 % vertical mode (after a |\vspace|, the |\addvspace| at an environment's end,
-% the title's space after the date before its |\thanks|), and the split drops
-% it at the top of the second part; then the place to break is no penalty to
-% move, and the page so far stays as it is (the rows |vgap|\ldots\ of
+% the title's space after the date before its |\thanks|), which the split drops
+% at the top of the second part; then the place to break is no penalty to move,
+% and the page so far stays as it is (the rows |vgap|\ldots\ of
 % |test-noteplace|).
 %    \begin{macrocode}
 \newif\if@didactic@samelined
-\newdimen\@didactic@shlo
-\newdimen\@didactic@shhi
 \newcommand\@didactic@sameline{%
   \global\@didactic@samelinedfalse
   \begingroup
     \vbadness\@M \vfuzz\maxdimen
     \splitmaxdepth\maxdimen \splittopskip\z@skip
-    \setbox\z@\vbox{\unvcopy\@holdpg\kern1sp}%
-    \@didactic@shhi\ht\z@
-    \setbox4\vbox to\dimexpr\ht\z@-1sp\relax{\unvcopy\z@}%
-    \ifnum\badness<1000000
-      \setbox4\vbox to\z@{\unvcopy\z@}%
-      \ifnum\badness<1000000
-        \setbox\z@\box\voidb@x
-      \else
-        \@didactic@shlo\z@
-        \loop\ifdim\dimexpr\@didactic@shhi-\@didactic@shlo\relax>\@ne sp
-          \dimen@\dimexpr(\@didactic@shlo+\@didactic@shhi)/2\relax
-          \setbox4\vbox to\dimen@{\unvcopy\z@}%
-          \ifnum\badness=1000000
-            \@didactic@shlo\dimen@\else\@didactic@shhi\dimen@\fi
-        \repeat
-      \fi
-    \fi
-    \ifvoid\z@\else
-      \setbox\tw@\vsplit\z@ to\dimexpr\@didactic@shhi-1sp\relax
-    \fi
-    \ifvoid\z@\else
-      \ifdim\dimexpr\ht\z@+\dp\z@\relax=\z@
-        \setbox4\vbox{\unvcopy\tw@\unvcopy\z@}%
-        \ifdim\dimexpr\ht4+\dp4\relax=\dimexpr\ht\@holdpg+\dp\@holdpg\relax
-          \global\setbox\@holdpg\box4
-          \global\@didactic@samelinedtrue
-        \fi
+    \setbox\z@\vbox{\unvcopy\@holdpg\kern12000\p@}%
+    \setbox\tw@\vsplit\z@ to\dimexpr\ht\z@+\dp\z@-4000\p@\relax
+    \setbox\z@\vbox{\unvbox\z@\unkern}%
+    \ifdim\dimexpr\ht\z@+\dp\z@\relax=\z@
+      \setbox4\vbox{\unvcopy\tw@\unvcopy\z@}%
+      \ifdim\dimexpr\ht4+\dp4\relax=\dimexpr\ht\@holdpg+\dp\@holdpg\relax
+        \global\setbox\@holdpg\box4
+        \global\@didactic@samelinedtrue
       \fi
     \fi
   \endgroup}

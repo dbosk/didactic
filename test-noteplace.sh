@@ -567,6 +567,23 @@ check trailedgem x 20 '' "kept,incol=NOTEY,nobelow" '\def\testyieldfoot{}\def\te
 check trailedgemno x 20 '' "kept,inmargin=NOTEY" '\def\testyieldfoot{}\def\testtall{.944}\def\testbody{FIRSTLINE words\yieldnote[ with space of its own at its end.] and more \filler\par}'
 check trailedgef x 5 '' "carried,$WH,nobelow" '\def\testyieldfoot{}\def\testtall{.99}\def\testbody{FIRSTLINE \filler\ end\yieldnote[ '"$TRSP"'] \filler\ \filler\par}'
 check trailedgefno x 5 '' "kept,incol=NOTEY,nobelow" '\def\testyieldfoot{}\def\testtall{.99}\def\testbody{FIRSTLINE \filler\ end\yieldnote[ with space of its own at its end.] \filler\ \filler\par}'
+# A second note in a line, after a first that went to the foot, on the first line after a
+# heading and the last of its page (the fuzz test's seed 1, cut: test-samelinehead.tex): the
+# kernel leaves a place to break after the line, before our mark of the second; taken out of
+# the page so far by splitting it at its last place to break, which \vsplit must find whatever
+# the page holds (\@didactic@sameline).  samelinehead: every note on its callout's page or
+# warned in the run (with the old split, 16 waited for page 2, named only a run later);
+# margin-inrun's row: under 1.2 that page breaks elsewhere (the code is the same).  The
+# shape needs the first callout to be a footnote at the paragraph's start: in rows made
+# from the template, the kernel's break after the first note came out as \nobreak.
+# samelinefill: glue that stretches without limit at the top, so the split takes the place
+# before the heading and the join is refused; the page builder ends the page there too, the
+# heading and its line go on together, every note with its line.  samelinevss: glue that
+# shrinks without limit at the top: TeX's error that it found such glue on the page (it makes
+# it finite there), and no other, none from \vsplit.
+check samelinehead x 9 '' "pairs" '\def\testclassopt{a4paper,twoside}\def\testpre{\usepackage{xcolor,multicol}\extrafloats{100}}\def\testfirst{}\def\testbody{\input{test-samelinehead}}'
+check samelinefill x 9 '' "pairs" '\def\testclassopt{a4paper,twoside}\def\testpre{\usepackage{xcolor,multicol}\extrafloats{100}}\def\testfirst{}\def\testbody{\vspace*{0pt plus 1fil}\input{test-samelinehead}}'
+check samelinevss x 9 '' "error=Infinite glue shrinkage found on current page,pairs" '\def\testclassopt{a4paper,twoside}\def\testpre{\usepackage{xcolor,multicol}\extrafloats{100}}\def\testfirst{}\def\testbody{\vspace*{0pt minus 1fil}\input{test-samelinehead}}'
 # A footnote set directly, in a passage in the mode carry, isn't measured: one that
 # isn't plain there runs its text once, and is neither said nor counted.
 check notplaincarry x 20 '' "kept" '\def\testtall{.1}\def\testyieldfoot{}\def\testbody{{\marginnoteoverflow{carry}FIRSTLINE words\yieldnote[\par LCARRY\begin{itemize}\item one\end{itemize}] more words.} \filler\par}'

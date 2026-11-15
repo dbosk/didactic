@@ -45,8 +45,8 @@
 #            boxes in footnotes, against the marginfix found or $MARGINFIX (about 30 s)
 #   noteplace test-noteplace, its rows rsvsidecap, rsvblock, mcolblock,
 #            rsvsidebefore, heldtop, heldsecond, overmoved, footback, overlimit, overtwo,
-#            aftercarry, carrymode, notplainm, notplainf, nestfn, nestmp, fsoverstay and
-#            trailm only, against the marginfix found or $MARGINFIX (about 2 minutes a mutant,
+#            aftercarry, carrymode, notplainm, notplainf, nestfn, nestmp, fsoverstay, trailm
+#            and samelinehead only, against the marginfix found or $MARGINFIX (about 2 minutes a mutant,
 #            one at a time; 116 s; run on 2026-11-14, before nestfn, nestmp, fsoverstay)
 #   notefoot test-notefoot, its jobs waitover, warnclaim, defercarry-warn and defercarry,
 #            against $MARGINFIX (30 to 50 s; 30 s)
@@ -2049,3 +2049,64 @@ Strail didactic.dtx
 -         \unexpanded\expandafter{\@didactic@curpieces}}%
 +     \ifx\@didactic@belowht\relax
 +       \@didactic@notplain{space of its own at its end}%
+
+# Seed 1: the split of the page so far for a second note in a line takes the last place to
+# break by TeX's rule of equal costs; the old split, to the least height the page packs to,
+# took a cheaper place before a heading, and the second note waited for the next page,
+# unwarned (test-noteplace's samelinehead; inrun only: under 1.2 that page breaks elsewhere).
+#: noteplace
+#= killed test-noteplace
+Tsamesplit didactic.dtx
+- \newcommand\@didactic@sameline{%
+-   \global\@didactic@samelinedfalse
+-   \begingroup
+-     \vbadness\@M \vfuzz\maxdimen
+-     \splitmaxdepth\maxdimen \splittopskip\z@skip
+-     \setbox\z@\vbox{\unvcopy\@holdpg\kern12000\p@}%
+-     \setbox\tw@\vsplit\z@ to\dimexpr\ht\z@+\dp\z@-4000\p@\relax
+-     \setbox\z@\vbox{\unvbox\z@\unkern}%
+-     \ifdim\dimexpr\ht\z@+\dp\z@\relax=\z@
+-       \setbox4\vbox{\unvcopy\tw@\unvcopy\z@}%
+-       \ifdim\dimexpr\ht4+\dp4\relax=\dimexpr\ht\@holdpg+\dp\@holdpg\relax
+-         \global\setbox\@holdpg\box4
+-         \global\@didactic@samelinedtrue
+-       \fi
+-     \fi
+-   \endgroup}
++ \newdimen\@didactic@shlo
++ \newdimen\@didactic@shhi
++ \newcommand\@didactic@sameline{%
++   \global\@didactic@samelinedfalse
++   \begingroup
++     \vbadness\@M \vfuzz\maxdimen
++     \splitmaxdepth\maxdimen \splittopskip\z@skip
++     \setbox\z@\vbox{\unvcopy\@holdpg\kern1sp}%
++     \@didactic@shhi\ht\z@
++     \setbox4\vbox to\dimexpr\ht\z@-1sp\relax{\unvcopy\z@}%
++     \ifnum\badness<1000000
++       \setbox4\vbox to\z@{\unvcopy\z@}%
++       \ifnum\badness<1000000
++         \setbox\z@\box\voidb@x
++       \else
++         \@didactic@shlo\z@
++         \loop\ifdim\dimexpr\@didactic@shhi-\@didactic@shlo\relax>\@ne sp
++           \dimen@\dimexpr(\@didactic@shlo+\@didactic@shhi)/2\relax
++           \setbox4\vbox to\dimen@{\unvcopy\z@}%
++           \ifnum\badness=1000000
++             \@didactic@shlo\dimen@\else\@didactic@shhi\dimen@\fi
++         \repeat
++       \fi
++     \fi
++     \ifvoid\z@\else
++       \setbox\tw@\vsplit\z@ to\dimexpr\@didactic@shhi-1sp\relax
++     \fi
++     \ifvoid\z@\else
++       \ifdim\dimexpr\ht\z@+\dp\z@\relax=\z@
++         \setbox4\vbox{\unvcopy\tw@\unvcopy\z@}%
++         \ifdim\dimexpr\ht4+\dp4\relax=\dimexpr\ht\@holdpg+\dp\@holdpg\relax
++           \global\setbox\@holdpg\box4
++           \global\@didactic@samelinedtrue
++         \fi
++       \fi
++     \fi
++   \endgroup}
