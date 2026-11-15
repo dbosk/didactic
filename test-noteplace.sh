@@ -134,7 +134,7 @@ check headingoff heading 7 'keepafterheading=0' "$W,together"
 # A lone first or last line the document allows may be left for the note, with a
 # warning; one it forbids may not.
 check tallclub tallclub 4 '' "kept,lonewarn" "$YF"
-check tallwidow tallwidow 8 '' "kept,lonewarn" "$YF"
+check tallwidow tallwidow 9 '' "kept,lonewarn,nobelow" "$YF"
 check tallmiddle tallmiddle 9 '' "kept,lonewarn" "$YF"
 check club club 4 '' "kept,lonewarn" "$YF"
 check widow widow 7 '' "kept,lonewarn" "$YF"
@@ -231,7 +231,7 @@ TWOC='\def\testclass{article}\def\testclassopt{a4paper,twocolumn}\def\testtall{.
 check twodefault x 7 '' "nofootwarn" "$TWOC\def\testbody{FIRSTLINE\yieldnote{} \filler\par}"
 check twopassage x 7 '' "footwarn" "$TWOC\def\testbody{{\marginnoteoverflow{foot} FIRSTLINE\yieldnote{} \filler\par}}"
 # Nothing in the way: the note stays with its line.
-check runin runin 4 '' kept,lonewarn "$YF"
+check runin runin 5 '' kept,lonewarn,nobelow "$YF"
 check theorem theorem 4 '' kept,lonewarn "$YF"
 check middle middle 9 '' kept,lonewarn "$YF"
 # The rest of a split note doesn't stop the note after it.
@@ -259,7 +259,7 @@ check newline x 7 '' "$W" \
   '\def\testbody{FIRSTLINE \\[6pt] \filler\ Now the LASTLINE of the paragraph, with its note\yieldnote{}.}'
 check markright x 7 '' "$W" \
   '\def\testbody{FIRSTLINE\markright{M} \filler\ Now the last line of the paragraph, with its note\yieldnote{}.}'
-check hboxlines x 9 '' kept,lonewarn \
+check hboxlines x 10 '' kept,lonewarn,nobelow \
   "$YF"'\def\testbody{\section{HEADINGX} \hbox{Listing line one}\hbox{Listing line two}\hbox{Listing line three} \par FIRSTLINE\yieldnote{} \filler\ \filler}'
 # What is known of a heading ends with its page: a note at the same height on the
 # next page is free.
@@ -267,7 +267,7 @@ check headshipped x 7 '' kept,lonewarn \
   "$YF"'\def\testbody{\section{HEADINGX} FIRSTLINE \oneline\par\newpage \noindent x\marginpar{TALLB\par\rule{1pt}{.97\textheight}} text\par\noindent\rule{1cm}{\dimexpr\textheight-52pt\relax}\par FIRSTLINE\yieldnote{} \filler\ \filler}'
 check crosspages x 4 '' "$W" \
   '\def\testbody{FIRSTLINE \oneline\ more words\yieldnote{} \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler}'
-check laterpara x 9 '' kept,lonewarn \
+check laterpara x 10 '' kept,lonewarn,nobelow \
   "$YF"'\def\testbody{\section{HEADINGX} \filler\par FIRSTLINE\yieldnote{} \filler}'
 check onelinepara x 4 '' kept,lonewarn \
   "$YF"'\def\testbody{FIRSTLINE\yieldnote{}\par \filler}'
@@ -391,15 +391,15 @@ fsbody() { # fsbody <footnote> [<after>]: the callout on the third line
 WH="reason=where it doesn't fit whole"
 check fsk4n3 x 8 '' "kept,at=LINEA:1/LINEC:1,nobelow" "$(fsbody "$(fn 3)")"
 check fsk3n5 x 7 '' "carried,$WH,nobelow,nocontinued" "$(fsbody "$(fn 5)")"
-check fsk3n4 x 7 '' "kept,at=LINEA:1/LINED:1,below=LINED,footwarnpast" "$(fsbody "$(fn 4)")"
+check fsk3n4 x 7 '' "carried,$WH,nobelow" "$(fsbody "$(fn 4)")"
 check fsk2n4 x 6 '' "carried,$WH,nobelow" "$(fsbody "$(fn 4)")"
-check fsk2n3 x 6 '' "kept,at=LINEA:1/LINEC:1,below=LINEC,footwarnpast" "$(fsbody "$(fn 3)")"
-check fsk1n2 x 5 '' "kept,at=LINEA:1/LINEB:1,below=LINEB,footwarnpast" "$(fsbody "$(fn 2)")"
+check fsk2n3 x 6 '' "carried,$WH,nobelow" "$(fsbody "$(fn 3)")"
+check fsk1n2 x 5 '' "carried,$WH,nobelow" "$(fsbody "$(fn 2)")"
 check fsk1n3 x 5 '' "carried,$WH,nobelow" "$(fsbody "$(fn 3)")"
 check fsk1n4 x 5 '' "carried,$WH,nobelow" "$(fsbody "$(fn 4)")"
 # Five lines in 1.6 lines of room: carried, the reason counting the lines left.
 check fsk1n5 x 5.6 '' "carried,$WH,reason=lines left there,nobelow" "$(fsbody '\footnote{\label{note-y}LINEA gy\hfil\break LINEB gy\hfil\break LINEC gy\hfil\break LINED gy\hfil\break LINEE gy}')"
-check fsk0n1 x 4.5 '' "kept,at=LINEA:1,below=LINEA,footwarnpast" "$(fsbody "$(fn 1)")"
+check fsk0n1 x 4.5 '' "carried,$WH,nobelow" "$(fsbody "$(fn 1)")"
 check fsk0n2 x 4.5 '' "carried,$WH,nobelow" "$(fsbody "$(fn 2)")"
 # A later footnote on the page of one that was carried is carried too, after it,
 # though it would fit at the foot: the footnotes keep their order (fstwo: called
@@ -411,7 +411,7 @@ check fstwo x 6 '' "carried,$WH,reason=the footnotes keep their order,at=LINEA:2
 # footnotes after it on the page as one carried for want of room does: the later one,
 # in the mode foot, is carried too, after it (review 3, S1).
 check carrymode x 10 '' "carried,reason=noteoverflow is carry,reason=the footnotes keep their order,at=SECA:2,order=NOTEY<SECA" '\def\testyieldfoot{}\def\testbody{{\marginnoteoverflow{carry}FIRSTLINE words\yieldnote{}} more words.\par More words\footnote{SECA a short footnote at the foot.} \filler\par}'
-check fsspare x 8 '' "kept,at=LINEA:1/LINEE:1/SPAREA:2,below=LINEE,footwarnpast,reason=already runs past the foot" "$(fsbody "$(fn 5)$(fn 1 n-s SPARE)")"
+check fsspare x 8 '' "carried,$WH,reason=the footnotes keep their order,at=LINEA:2/SPAREA:2,order=LINEE<SPAREA,nobelow" "$(fsbody "$(fn 5)$(fn 1 n-s SPARE)")"
 # TeX takes the callout's line to the next page after its footnote went to this
 # foot whole (a paragraph that can't break, whose last lines don't fit): the
 # footnote goes with the line, and a warning says so (pullok; with marginfix 1.2
@@ -533,6 +533,22 @@ check mvcarriedover x 3 '' "warned,exactwarn,allreasons,overwarn,at=LATEROV:2" '
 # set in the margin beside its line; counted whole, DEFER would leave it no room
 # and send it to the foot.
 check mvdeferclaim x 3 'notepriority=defer' "exactwarn,allreasons,inmargin=PLAINFN" '\def\testbody{{\interlinepenalty=10000 \noindent FIRSTLINE\newline SECOND\newline THIRD\marginpar{\marginnotedeferrable DEFER\label{n-d1}\par\rule{1pt}{.6\textheight}}\label{c-d1}\newline FOURTH\par} AFTER words\label{c-p}\footnote{\label{n-p}PLAINFN\par\rule{1pt}{.5\textheight}} more.\par}'
+# B1 (review 3; T2, the matrix's "foot, a line over"): a footnote that would run a
+# line past the foot of its page is carried, with its reason, never cut to fit: one
+# whose line TeX then takes to the next page (fspull's paragraph, FSO) is set there
+# beside or at the foot of its line's page, at its true height, nothing printed over
+# it (fsoverpull), with a later footnote (fsoverpullfn: B1's own shape, where the cut
+# note was printed over the next) and a later margin note (fsoverpullmn) there; one
+# whose line stays is carried to the next page, warned (fsoverstay), as is one
+# followed at that foot by a footnote of LaTeX's own (fsoverlatex, whose footnote of
+# LaTeX's own goes on to the next page as TeX sets it, named).
+FSO='\def\testtall{.99}\def\testbody{{\interlinepenalty=10000 \noindent FIRSTLINE\newline SECOND\newline THIRD\label{callout-y}'"$(fn 2)"'\newline FOURTH\newline FIFTH\par}}'
+LFNF=' AFTER\marginpar{FILLB\par\rule{1pt}{.97\textheight}} words\label{c-f}\footnote{\label{n-f}LATERFN a later footnote.} more.\par'
+check fsoverpull x 5 '' "carried,$WH,nobelow,noreason=past the foot of the page" "$FSO"
+check fsoverpullfn x 5 '' "carried,$WH,nobelow,noreason=past the foot of the page,incol=LATERFN,apart=LINEB:LATERFN,apart=LINEA:LATERFN,order=LINEB<LATERFN" "${FSO%\}}$LFNF}"
+check fsoverpullmn x 5 '' "carried,$WH,nobelow,noreason=past the foot of the page,pairs" "${FSO%\}}$LMN}"
+check fsoverstay x 5 '' "carried,$WH,nobelow,noreason=past the foot of the page" '\def\testtall{.99}\def\testbody{FIRSTLINE \filler\ end\label{callout-y}'"$(fn 2)"' \filler\ \filler\par}'
+check fsoverlatex x 5 '' "carried,$WH,nobelow,noreason=past the foot of the page" '\def\testtall{.99}\def\testbody{FIRSTLINE \filler\ end\label{callout-y}'"$(fn 2)"' and {\footnotesatfoot\footnote{LATEXFN a footnote of LaTeX'"'"'s own.}} \filler\par}'
 # A footnote set at the foot as LaTeX sets it (\footnotesatfoot) is left to TeX; one
 # that doesn't fit at a foot that ours has filled is taken to the next page by TeX,
 # and named a run later (latexfoot); one that TeX splits over two pages, begun on its

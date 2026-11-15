@@ -193,9 +193,9 @@
 %   note is called out, in one run: \texttt{foot} (the default) or
 %   \texttt{carry}; \texttt{break} is gone, since no page ends early for a note
 %   any more; it no longer needs \textsf{marginfix} 1.6, and reads nothing
-%   from the \texttt{.aux} file to decide.  A footnote goes to the foot whole, or whole and one
-%   line past it, never split; one too long for that is carried, with a
-%   warning that says so.  A margin note whose line \TeX\ takes to the next
+%   from the \texttt{.aux} file to decide.  A footnote goes to the foot whole,
+%   never split; one too long for that is carried, with a warning that says
+%   so.  A margin note whose line \TeX\ takes to the next
 %   page waits there for it with its first line on the text's first, as
 %   \textsf{marginfix} sets a note carried to a page (it was set at the
 %   margin's top, some points higher).  A footnote at the foot is set in the width of the
@@ -800,9 +800,6 @@
 % \textsf{memoir} set it, since the folio is under the text; a running foot as
 % wide as the text and the margin (\textsf{memoir}'s |\headwidth| widened into
 % the margin, as in its |companion| style) would be in its way.
-% A footnote that misses by more goes to the foot of its page after all, whole,
-% if only a line is missing there: it runs one line past the foot, with a
-% warning.
 % A footnote is never split over two pages (issue \#104 has why that waits):
 % one too long for the foot whole is carried to the next page, as any note that
 % fits nowhere, and the warning says that it doesn't fit the foot whole and how
@@ -838,12 +835,11 @@
 % A document whose margin overflows on every page can run out of \LaTeX's
 % boxes for floats (``Too many unprocessed floats'') under Xe\LaTeX, where
 % carried notes pile up (issue \#103).
-% A footnote that would need two lines past the foot (the folio is there) is
-% carried.
-% One called out on the same page after a footnote that runs past the foot, and
-% that fits nowhere else, is carried too: the foot is full.
-% So is one called out after a footnote carried from the page, even where it
-% would fit at the foot: the footnotes keep their order.
+% A footnote called out after a footnote carried from the page is carried too,
+% even where it would fit at the foot: the footnotes keep their order.
+% None runs past the foot of the page: a footnote that would run past it, even by
+% a line, is carried (no other place keeps it whole and its page right when \TeX\
+% takes its line on, or a footnote of \LaTeX's own follows it at the foot).
 % The room at the foot is counted at the natural size of the page, so that
 % \TeX's own page break agrees; where it still takes a footnote's line to the
 % next page (lines that must stay together with it), the note goes with the
@@ -1817,8 +1813,9 @@
 %   runs past the foot of the margin, so the foot goes to the first footnote that
 %   fits it; on a page dense with notes that can cost a later note its page, with a
 %   warning (one note in \texttt{test-noteoverflow}).
-%   A footnote goes to the foot only whole, or whole and one line past it; one too
-%   long for that is carried with a warning that says so.
+%   A footnote goes to the foot only whole; one too long for that is carried with a
+%   warning that says so (a note let run a line past the foot couldn't be kept
+%   right when \TeX\ took its line on or a footnote of \LaTeX's own followed it).
 %   Splitting it over two pages, as \LaTeX\ splits a footnote at the foot, is
 %   deferred (issue \#104): a rest at the head of the next page's foot needs an
 %   insertion class of our own to stay correct, a rest put after a later line
@@ -5029,9 +5026,8 @@
 %
 % A margin note that doesn't fit beside its line is \textsf{didactic}'s to 
 % place, by the option |noteoverflow|: beside its line, running past the foot
-% of the margin by up to two lines; at the foot of its page if it is a footnote,
-% whole, or whole and one line past the foot; or carried to a later page, with a
-% warning.
+% of the margin by up to two lines; at the foot of its page, whole, if it is a
+% footnote; or carried to a later page, with a warning.
 % No page ends early for a note.
 % The decision is taken where the note is called out, in the kernel's special 
 % output for the note, and once only: it reads nothing from the |.aux| file,
@@ -6969,19 +6965,19 @@
 % |\@didactic@footplace|\meta{1 or 0}: a footnote that doesn't fit beside its
 % line goes to the foot of its page if it fits there whole (|1|, tried first,
 % where its version for the foot is made); if not, it may run past the foot of
-% the margin (above), and if it can't do that either (|0|) it goes to the foot
-% whole and one line past it, if only one line is missing, and is otherwise
-% carried, with the reason: that it doesn't fit at the foot whole, and how many
-% lines are left there.
+% the margin (above), and if it can't do that either (|0|) it is carried, with
+% the reason: that it doesn't fit at the foot whole, and how many lines are left
+% there.  It never runs past the foot of the page: a version for the foot counted
+% shorter than it is, so as to run a line past it, went on short with its line
+% when \TeX\ took that line to the next page, over the footnote after it there
+% (the third review's B1); and its cut can't be undone when the page is built,
+% since a footnote of \LaTeX's own after it at the foot can leave a node there
+% that \TeX\ can't take off the foot's list, behind which no check can reach.
 % It is never split over two pages: a rest at the head of the next page's foot
 % stays correct, wherever \TeX\ ends the page, only in an insertion class of
 % its own, which waits (issue \#104).
-% Two lines past the foot would reach the folio: a note that would need them
-% is carried.
 % The reason counts the lines left at the foot, or says less than a line: the
 % count rounds, and under half a line it came out as $-1$.
-% On a page where a footnote runs past the foot, the foot is full: a later
-% footnote that fits nowhere else is carried, with that reason.
 % On a page a footnote was carried from, a later footnote doesn't go to the foot
 % either, but is carried too, after it (|\if@didactic@fncarried|, set in
 % |\@didactic@decide@|, cleared with the page, |\@didactic@newpage|): a
@@ -6991,7 +6987,6 @@
 % The lines are those of the footnote font, |\@didactic@fl| (above).
 % The note's version for the foot is made first (|\@didactic@footset|, above).
 %    \begin{macrocode}
-\newif\if@didactic@footfull
 \newif\if@didactic@fncarried
 \let\@didactic@footwhy\@empty
 \newcommand\@didactic@footplace[1]{%
@@ -7005,9 +7000,6 @@
       \def\@didactic@footwhy{it fits neither beside its line nor at the foot
         (a footnote before it on the page was carried, and the footnotes keep
         their order)}%
-    \else\if@didactic@footfull
-      \def\@didactic@footwhy{it fits neither beside its line nor at the foot
-        (a footnote already runs past the foot of the page)}%
     \else
       \@didactic@footcompute
       \dimen@\dimexpr\ht\@didactic@footbox+\dp\@didactic@footbox\relax
@@ -7016,22 +7008,18 @@
           foot (the page has no room for a footnote)}%
       \else\ifdim\dimen@>\@didactic@footroom
         \ifnum#1=\z@
-          \ifdim\dimen@>\dimexpr\@didactic@footroom+\@didactic@fl+\p@\relax
-            \edef\@didactic@footwhy{it fits neither beside its line nor at
-              the foot, where it doesn't fit whole
-              (\ifnum\@didactic@flines\@didactic@footroom<\@ne
-                less than a line\else
-                \@didactic@flines\@didactic@footroom\space lines\fi\space
-              left there; it would run more than one line past it)}%
-          \else
-            \@didactic@footover
-          \fi
+          \edef\@didactic@footwhy{it fits neither beside its line nor at
+            the foot, where it doesn't fit whole
+            (\ifnum\@didactic@flines\@didactic@footroom<\@ne
+              less than a line\else
+              \@didactic@flines\@didactic@footroom\space lines\fi\space
+            left there)}%
         \fi
       \else
         \@didactic@tofoot\@didactic@footbox
         \@tempswatrue
       \fi\fi
-    \fi\fi}%
+    \fi}%
    {\ifcsname @didactic@fn@\the\@didactic@noteof\@didactic@head\endcsname
       \def\@didactic@footwhy{it fits neither beside its line nor at the foot}%
     \else
@@ -7040,37 +7028,6 @@
     \fi}}
 \newcommand\@didactic@flines[1]{%
   \number\numexpr(2*(#1)-\@didactic@fl)/(2*\@didactic@fl)\relax}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\@didactic@footover,\@didactic@overwarn}
-% A note at most one line too tall for the room (a point more, for its
-% depth) goes whole, counted exactly as tall as the room, so that \TeX's page
-% builder finds it fits and its last line stands below the foot of the page.
-% A page with no room at the foot at all, not even for the space above the
-% footnotes, takes none.
-% The warning says how much, up to a line, and why: what the margin's notes
-% took, and how many lines the foot had.
-%    \begin{macrocode}
-\newcommand\@didactic@footover{%
-  \@didactic@overwarn{\the\@didactic@noteof\@didactic@head}\@didactic@footbox
-  \@didactic@countroom\@didactic@footbox
-  \global\@didactic@footfulltrue
-  \@didactic@tofoot\@didactic@footbox
-  \@tempswatrue}
-\newcommand\@didactic@countroom[1]{%
-  \ifdim\dimexpr\ht#1+\dp#1\relax>\@didactic@footroom
-    \global\ht#1\dimexpr\@didactic@footroom-\dp#1\relax
-  \fi}
-\newcommand\@didactic@overwarn[2]{%
-  \PackageWarningNoLine{didactic}{Footnote called out at
-    \csname @didactic@ln@#1\endcsname\MessageBreak
-    on page \thepage\space runs
-    \the\dimexpr\ht#2+\dp#2-\@didactic@footroom\relax\space past the foot of
-    the page:\MessageBreak
-    the margin is full (the notes above it take \the\@didactic@stay\space
-    of \the\@didactic@room) and the foot has \@didactic@flines
-    \@didactic@footroom\space lines left}}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -7165,8 +7122,7 @@
   \ifvoid\@didactic@pullbox\else
     \insert\footins{\floatingpenalty\@MM\unvbox\@didactic@pullbox}%
   \fi
-  \global\let\@didactic@footids\@empty
-  \global\@didactic@footfullfalse}
+  \global\let\@didactic@footids\@empty}
 \let\@didactic@colread\@empty
 \newcommand\@didactic@readcol{%
   \edef\@tempa{\the\c@page}%

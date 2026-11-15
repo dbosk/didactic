@@ -15,8 +15,8 @@ Usage:
                                    test-fuzz.d/; exit 1 on an unexpected outcome;
                                    $CASES, SET:SEED each, runs only those
 
-The sets: inrun (seeds 1-40, pdflatex, the marginfix found or $MARGINFIX), tl12
-(seeds 1-20, pdflatex, TeX Live's 1.2), xe and lua (seeds 1-10, xelatex and
+The sets: inrun (seeds 1-40, 52 and 125, pdflatex, the marginfix found or
+$MARGINFIX), tl12 (seeds 1-20, pdflatex, TeX Live's 1.2), xe and lua (seeds 1-10, xelatex and
 lualatex, as inrun), stale (seeds 1-10, as inrun: a sentence added at the start,
 built from the original's .aux and from clean, the same PDF), review (the review's
 own documents, without the movers, where it found a defect).  A document is
@@ -47,7 +47,9 @@ TL12 = os.path.join(subprocess.run(["kpsewhich", "-var-value", "TEXMFDIST"],
                                    capture_output=True, text=True).stdout.strip(),
                     "tex", "latex")
 SETS = {
-    "inrun": [("pdflatex", "found", s) for s in range(1, 41)],
+    # and 52 and 125: a footnote that ran a line past the foot, and its line went on
+    # (B1's route, found by a search of seeds 41-160; carried now)
+    "inrun": [("pdflatex", "found", s) for s in list(range(1, 41)) + [52, 125]],
     "tl12": [("pdflatex", "tl12", s) for s in range(1, 21)],
     "xe": [("xelatex", "found", s) for s in range(1, 11)],
     "lua": [("lualatex", "found", s) for s in range(1, 11)],
@@ -55,12 +57,13 @@ SETS = {
     # the review's own documents (no movers) where it found B1
     "review": [("pdflatex", "tl12", 1)],
 }
-# (set, seed): why it fails.  Section 1 of the redesign (B1's fix) takes both off.
-B1 = ("B1: a footnote set at the foot a line over has its height cut; pulled to the"
-      " next foot it overprints the footnote after it")
+# (set, seed): why it fails.  (review 1 and xe 1 were B1's, a footnote cut to run a
+# line past the foot and printed over the next when its line went on; such a footnote
+# is carried now.)
 EXPECTED = {
-    ("review", 1): B1 + " (note 17, from page 1 over NOTE33x on page 2)",
-    ("xe", 1): B1 + " (note 17, from page 1 over NOTE32x on page 2)",
+    ("inrun", 52): "the mixed foot (#104): our 38 at page 3's foot with LaTeX's 41,"
+                   " put back by LaTeX behind a later margin note's line and taken with"
+                   " it to page 4, after 39, 40 and 42; named found from the last run",
 }
 TOL = 0.5  # pt: pdftotext's word boxes against TeX's widths
 

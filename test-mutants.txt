@@ -45,9 +45,9 @@
 #            boxes in footnotes, against the marginfix found or $MARGINFIX (about 30 s)
 #   noteplace test-noteplace, its rows rsvsidecap, rsvblock, mcolblock,
 #            rsvsidebefore, heldtop, heldsecond, overmoved, footback, overlimit, overtwo,
-#            aftercarry, carrymode, notplainm, notplainf, nestfn and nestmp only, against
-#            the marginfix found or $MARGINFIX (about 2 minutes a mutant, one at a time;
-#            116 s; run on 2026-11-14, before nestfn and nestmp)
+#            aftercarry, carrymode, notplainm, notplainf, nestfn, nestmp and fsoverstay
+#            only, against the marginfix found or $MARGINFIX (about 2 minutes a mutant,
+#            one at a time; 116 s; run on 2026-11-14, before nestfn, nestmp, fsoverstay)
 #   notefoot test-notefoot, its jobs waitover, warnclaim, defercarry-warn and defercarry,
 #            against $MARGINFIX (30 to 50 s; 30 s)
 #   matrix   test-noteplace, its rows mvlaterfull, fspullback, omtlaterfn, mvcarriedover,
@@ -2019,3 +2019,13 @@ Frecheck didactic.dtx
 - \newcommand\@didactic@recheck@[3]{%
 + \newcommand\@didactic@recheck@[3]{}
 + \newcommand\@didactic@recheckoff[3]{%
+
+# B1's fix: a footnote taller than the foot's room is carried, never sent to the foot
+# to run past it; sent anyway, it isn't carried (fsoverstay).
+#: noteplace
+#= killed test-noteplace
+Cwhole didactic.dtx
+-       \else\ifdim\dimen@>\@didactic@footroom
+-         \ifnum#1=\z@
++       \else\ifdim\dimen@>\maxdimen
++         \ifnum#1=\z@

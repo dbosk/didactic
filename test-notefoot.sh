@@ -104,10 +104,11 @@ job fnedge 4 "$C{fnedge}" rules beside
 job tall 8 "$C{tall}" foot nofalse reasons
 # gen: notes off their pages, each said with its reason (with the floats' rule;
 # before it, three more that a float took the room of, without one): four plain
-# margin notes on full margins (15, 18, 68, 70), a footnote too long for the foot
-# whole (48; split before #104) and one called out after a footnote that runs
-# one line past the foot, the foot being full (94).
-job gen 4 "$C{gen}" away=6 reasons nofalse \
+# margin notes on full margins (15, 18, 68, 70), three footnotes too long for the
+# foot whole (48, split before #104; 74 and 93, which ran a line past the foot
+# before the one-line-past outcome was dropped), and one called out after 93, carried
+# after it, the footnotes keeping their order (94).
+job gen 4 "$C{gen}" away=8 reasons nofalse \
   'works=only a footnote can go to the foot'
 job ownout 8 "$C{ownout}"
 # Two notes taller than the room left, and a footnote: settled within the floor
@@ -139,15 +140,14 @@ job mcol3nm 4 "$C{mcol3n}${R}{34}\\def\\testmulticols{}" nofalse nooverfull noov
 S='\def\testshortA{}'
 job waitsec 4 "$C{waitsec}${R}{36}$S" foot beside nofalse nooverfull nooverlap
 job waitsh 4 "$C{waitsh}${R}{37}$S" foot beside nofalse nooverfull nooverlap
-# waitover: the same as waitsec with the first footnote long, at 35 lines: it goes to
-# the foot a line over, the second runs past the foot of the margin, and both stay on
-# their line's page, the page ending after that line: the place to break that the
-# kernel put after the first note's special output is moved after our mark of the
-# second (\@didactic@sameline, review 3 T1; without it the second note is set on the
-# next page, found from the last run).  FOOTA here is a footnote set a line past the
-# foot (B1's outcome): the fix of B1 may move this layout, and the row is to be
-# checked again then.
-job waitover 4 "$C{waitsec}${R}{35}" foot beside nofalse nooverfull nooverlap
+# waitover: the same as waitsec with the first footnote long, at 34 lines: it goes to
+# the foot whole, the second runs past the foot of the margin, and both stay on their
+# line's page, the page ending after that line: the place to break that the kernel put
+# after the first note's special output is moved after our mark of the second
+# (\@didactic@sameline, review 3 T1; without it the second note is set on the next
+# page, found from the last run).  At 35 lines, as first written, FOOTA ran a line past
+# the foot, an outcome that is gone (a footnote that doesn't fit whole is carried).
+job waitover 4 "$C{waitsec}${R}{34}" foot beside nofalse nooverfull nooverlap
 # A passage's mode is the one where its notes are called out (review S3): a
 # footnote in {\marginnoteoverflow{carry}...} is carried, though the paragraph
 # ends after the group, where the mode is foot; and one in

@@ -62,12 +62,10 @@ called out somewhere names a place, not an internal name; no footnote found not 
               about a point below the margin's top, and the last word's box
               reaches below its baseline by the font's descent).
   at=W:P[/W:P...]  each word W is on page P (lines of a footnote at the foot).
-  below=W     W is in the text column below the foot of the text block, by more
-              than a third of a line and at most a line and a half: one line
-              past the foot of the page.
-  nobelow     no word in the text column is that far below the text block on
-              any page (no footnote runs past the foot unasked; the folio is
-              further down).
+  nobelow     no word in the text column is below the foot of the text block,
+              by more than a third of a line and at most a line and a half, on
+              any page (no footnote runs past the foot; the folio is further
+              down).
   order=A<B   A is above B on the page of A, and B is on that page.
   movedwarn   a warning says that TeX ended a page before the line of a footnote
               that had gone to its foot.
@@ -76,7 +74,6 @@ called out somewhere names a place, not an internal name; no footnote found not 
               LINEA is on the callout's page and every LINE word on it or the
               next (the note goes with its line), and movedwarn.
   has=W       W is in the text.
-  footwarnpast  a warning says that a footnote runs past the foot of the page.
   label=N:P   the label N is on page P.
   align=A:B   the positions A and B (zsavepos) are on one page and one baseline,
               within half a point (a note's first line beside its callout's).
@@ -270,23 +267,13 @@ for e in expect:
             w, p = pair.split(":")
             if str(page_of(w)) != p:
                 fails.append("%s on page %s, not %s" % (w, page_of(w), p))
-    elif e.startswith("below=") or e == "nobelow":
+    elif e == "nobelow":
         for n in range(1, len(pages) + 1):
             left = geo["odd"] if n % 2 else geo["even"]
             for w, x, y1 in bottoms[n - 1]:
                 if left - 2 <= x <= left + geo["width"] + 2 and \
                         foot + .3 * line12 < y1 <= foot + 1.5 * line12:
-                    if e == "nobelow":
-                        fails.append("page %d: %s below the text block" % (n, w))
-                    elif w.startswith(e[6:]):
-                        break
-            else:
-                continue
-            if e != "nobelow":
-                break
-        else:
-            if e != "nobelow":
-                fails.append("%s isn't one line below the text block" % e[6:])
+                    fails.append("page %d: %s below the text block" % (n, w))
     elif e.startswith("order="):
         a, b = e[6:].split("<")
         n = page_of(a)
@@ -305,8 +292,6 @@ for e in expect:
                          % " ".join(bad or ["LINEA"]))
         if not re.search(r"TeX ended page \d+ before the line of the footnote", joined):
             fails.append("no warning that TeX ended a page before a footnote's line")
-    elif e == "footwarnpast" and not re.search(r"Footnote called out at .{0,80}?runs [\d.]+pt past the foot of the page", joined):
-        fails.append("no warning that a footnote runs past the foot of the page")
     elif e.startswith("has=") and e[4:] not in out:
         fails.append("%s is not in the text" % e[4:])
     elif e.startswith("lostwarn=") and not re.search(
