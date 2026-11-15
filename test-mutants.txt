@@ -46,7 +46,7 @@
 #   noteplace test-noteplace, its rows rsvsidecap, rsvblock, mcolblock,
 #            rsvsidebefore, heldtop, heldsecond, overmoved, footback, overlimit, overtwo,
 #            aftercarry, carrymode, notplainm, notplainf, nestfn, nestmp, fsoverstay, trailm,
-#            samelinehead, fnstale and fnstaleplain only, against the marginfix found or $MARGINFIX (about 2 minutes a mutant,
+#            samelinehead, fnstale, fnstaleplain, leftorder, leftheld and leftfloat only, against the marginfix found or $MARGINFIX (about 2 minutes a mutant,
 #            one at a time; 116 s; run on 2026-11-14, before nestfn, nestmp, fsoverstay)
 #   notefoot test-notefoot, its jobs waitover, warnclaim, defercarry-warn and defercarry,
 #            against $MARGINFIX (30 to 50 s; 30 s)
@@ -1957,9 +1957,9 @@ M1tall didactic.dtx
 #= killed test-noteplace
 Fnpheld didactic.dtx
 -         {\global\advance\@didactic@stay\@didactic@deferclaim}
--         {\global\advance\@didactic@stay\@didactic@noteht}}%
+-         {\global\advance\@didactic@stay\@didactic@noteht}%
 +         {\global\advance\@didactic@stay\@didactic@deferclaim}
-+         {}}%
++         {}%
 
 # \@didactic@pull never takes a box on: a footnote put back at the head of the page stays
 # there when its line goes to the next page (fspullback).
@@ -1988,10 +1988,10 @@ Fovclear didactic.dtx
 #: matrix
 #= killed test-noteplace
 Fclosed didactic.dtx
--   \global\@didactic@stay\z@
+-   \global\let\@didactic@fnleftid\@empty
 -   \global\@didactic@closedfalse
 -   \global\@didactic@fncarriedfalse
-+   \global\@didactic@stay\z@
++   \global\let\@didactic@fnleftid\@empty
 +   \global\@didactic@fncarriedfalse
 
 # A deferrable note left for the next page counted whole there: the later footnote is sent to
@@ -2000,9 +2000,9 @@ Fclosed didactic.dtx
 #= killed test-noteplace
 Fnpclaim didactic.dtx
 -         {\global\advance\@didactic@stay\@didactic@deferclaim}
--         {\global\advance\@didactic@stay\@didactic@noteht}}%
+-         {\global\advance\@didactic@stay\@didactic@noteht}%
 +         {\global\advance\@didactic@stay\@didactic@noteht}
-+         {\global\advance\@didactic@stay\@didactic@noteht}}%
++         {\global\advance\@didactic@stay\@didactic@noteht}%
 
 # The records of LaTeX's own footnotes off: the held-over one isn't named (heldover).
 #: matrix
@@ -2121,3 +2121,23 @@ Tsamesplit didactic.dtx
 Sfnpaircall didactic.dtx
 -   \global\@didactic@fnpairtrue\@didactic@footnote{#1}\global\@didactic@fnpairfalse}
 +   \global\@didactic@fnpairtrue\@didactic@footnote{#1}\relax}
+
+# Review 4, S5-1: a footnote set at its page's foot before one carried into the page
+# that is still waiting in the margin says so; not said, the order across pages
+# breaks unwarned (leftorder, leftheld).
+#: noteplace
+#= killed test-noteplace
+Saheadwarn didactic.dtx
+-         \@didactic@aheadwarn
+-         \@didactic@tofoot\@didactic@footbox
++         \@didactic@tofoot\@didactic@footbox
+
+# The float rule claims the room of the footnotes carried to a page that will be set
+# there; without, a float sends one on behind a footnote already at the foot, past the
+# warning (leftfloat).
+#: noteplace
+#= killed test-noteplace
+Sfnclaim didactic.dtx
+-     \@didactic@claim\@didactic@fnleft
+-     \ifdim\@didactic@fnleft<\@didactic@room\else\@didactic@claim\z@\fi
++     \@didactic@claim\z@

@@ -584,6 +584,24 @@ check trailedgefno x 5 '' "kept,incol=NOTEY,nobelow" '\def\testyieldfoot{}\def\t
 check samelinehead x 9 '' "pairs" '\def\testclassopt{a4paper,twoside}\def\testpre{\usepackage{xcolor,multicol}\extrafloats{100}}\def\testfirst{}\def\testbody{\input{test-samelinehead}}'
 check samelinefill x 9 '' "pairs" '\def\testclassopt{a4paper,twoside}\def\testpre{\usepackage{xcolor,multicol}\extrafloats{100}}\def\testfirst{}\def\testbody{\vspace*{0pt plus 1fil}\input{test-samelinehead}}'
 check samelinevss x 9 '' "error=Infinite glue shrinkage found on current page,pairs" '\def\testclassopt{a4paper,twoside}\def\testpre{\usepackage{xcolor,multicol}\extrafloats{100}}\def\testfirst{}\def\testbody{\vspace*{0pt minus 1fil}\input{test-samelinehead}}'
+# Footnotes carried into a page that are more than its margin holds (review 4, S5-1):
+# a footnote called out there still goes to its page's foot, and when one carried
+# in won't be set on the page, a warning names both (leftorder: three long
+# footnotes from a passage in the mode carry, then one on page 2; leftheld: a
+# footnote carried from page 1 whose line went on to page 2, where a tall note fills
+# the margin, then one called out there; leftbl: eight long ones, then four short
+# ones over the next pages, each set before one still waiting).  When the
+# carried ones all fit the next margin, nothing is said (leftfit).  A float doesn't
+# take the room of a carried footnote that will be set on the page (leftfloat:
+# without that, marginfix split it, or with 1.2 sent it on, behind a footnote
+# already at the foot, past the warning, read when that one was placed).
+LF='\def\lfn#1{\label{c-#1}\footnote{\label{n-#1}NOTE#1x \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler}}\def\sfn#1{\label{c-#1}\footnote{\label{n-#1}NOTE#1x a short footnote.}}'
+TF='\def\testfirst{\noindent x\marginpar{TALL\par\rule{1pt}{.9\textheight}} text\par}'
+check leftorder x 9 '' "pairs,aheadwarn=1" "$LF$TF"'\def\testbody{{\marginnoteoverflow{carry}Carried one\lfn{1} two\lfn{2} three\lfn{3}.}\clearpage On page two\sfn{4} \filler\par}'
+check leftheld x 5 '' "pairs,aheadwarn=1" '\def\testtall{.99}\def\testbody{{\interlinepenalty=10000 \noindent FIRSTLINE\newline SECOND\marginpar{TALLTWO\par\rule{1pt}{.97\textheight}}\newline THIRD\label{c-1}\footnote{\label{n-1}NOTE1x LINEA gy\hfil\break LINEB gy}\newline FOURTH\newline FIFTH\newline SIXTH\par}\filler\ \filler\label{c-2}\footnote{\label{n-2}NOTE2x SECONDNOTE gy\hfil\break SECONDNOTE line two gy} \filler\par\filler\par}'
+check leftbl x 9 '' "pairs,aheadwarn=4" "$LF$TF"'\def\testbody{{\marginnoteoverflow{carry}Carried one\lfn{1} two\lfn{2} three\lfn{3} four\lfn{4} five\lfn{5} six\lfn{6} seven\lfn{7} eight\lfn{8}.}\clearpage On page two\sfn{9} \filler\ \filler\ \filler\ \filler\par\filler\ \filler\ \filler\ \filler\par and more\sfn{10} \filler\ \filler\ \filler\ \filler\par\filler\ \filler\ \filler\ \filler\par \filler\ \filler\ \filler\ \filler\par\filler\ \filler\ \filler\ \filler\par\filler\ \filler\ \filler\ \filler\par\filler\ \filler\ \filler\ \filler\par\filler\ \filler\ \filler\ \filler\par\filler\ \filler\ \filler\ \filler\par again\sfn{11} \filler\ \filler\ \filler\ \filler\par\filler\ \filler\ \filler\ \filler\par\filler\ \filler\ \filler\ \filler\par\filler\ \filler\ \filler\ \filler\par\filler\ \filler\ \filler\ \filler\par\filler\ \filler\ \filler\ \filler\par\filler\ \filler\ \filler\ \filler\par\filler\ \filler\ \filler\ \filler\par last\sfn{12} \filler\par}'
+check leftfit x 9 '' "pairs,fnorder,aheadwarn=0" "$LF$TF"'\def\testbody{{\marginnoteoverflow{carry}Carried one\sfn{1} two\sfn{2} three\sfn{3}.}\clearpage On page two\sfn{4} \filler\par}'
+check leftfloat x 9 '' "pairs,fnorder,nocontinued" "$LF$TF"'\def\testbody{{\marginnoteoverflow{carry}Carried one\label{c-1}\footnote{\label{n-1}NOTE1x \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler} and a tall one\marginpar{HUGE\par\rule{1pt}{.9\textheight}}.}\clearpage On page two\sfn{2} \filler\begin{figure}[b]\rule{1cm}{.25\textheight}\caption{FLOATB}\end{figure} \filler\par \filler\par}'
 # A footnote set directly, in a passage in the mode carry, isn't measured: one that
 # isn't plain there runs its text once, and is neither said nor counted.
 check notplaincarry x 20 '' "kept" '\def\testtall{.1}\def\testyieldfoot{}\def\testbody{{\marginnoteoverflow{carry}FIRSTLINE words\yieldnote[\par LCARRY\begin{itemize}\item one\end{itemize}] more words.} \filler\par}'

@@ -165,6 +165,12 @@
 %   regardless of load order.
 % }
 % \changes{v2.18}{2026/11/15}{%
+%   A footnote set at its page's foot before one carried from an earlier page
+%   that is still waiting in the margin says so in a warning naming both; a
+%   float doesn't take the room of footnotes carried to a page that will be set
+%   there.
+% }
+% \changes{v2.18}{2026/11/15}{%
 %   A \cs{footnotemark} and \cs{footnotetext} placed apart no longer get the
 %   records of a pair, and so no ``where LaTeX puts it'', after a footnote in a
 %   minipage or in the margin.
@@ -857,7 +863,11 @@
 % boxes for floats (``Too many unprocessed floats'') under Xe\LaTeX, where
 % carried notes pile up (issue \#103).
 % A footnote called out after a footnote carried from the page is carried too,
-% even where it would fit at the foot: the footnotes keep their order.
+% even where it would fit at the foot: on a page the footnotes keep their order.
+% Across pages a footnote stays at its own page's foot: where footnotes carried
+% from the pages before are more than this page's margin holds, one called out
+% here can be set at the foot before one still waiting in the margin, and a
+% warning names both.
 % None runs past the foot of the page: a footnote that would run past it, even by
 % a line, is carried (no other place keeps it whole and its page right when \TeX\
 % takes its line on, or a footnote of \LaTeX's own follows it at the foot).
@@ -6176,13 +6186,21 @@
 % What the notes carried to the next page take of its margin, counted when 
 % \textsf{marginfix} has built the column: the notes and skips left in its 
 % list, ours held for their lines among them.
+% With them, how far down that list its last footnote of ours ends
+% (|\@didactic@fnleft|, and its number |\@didactic@fnleftid|): if that is no
+% less than the next page's room, the footnote won't be set on that page, and a
+% footnote there that goes to the foot is set before it (|\@didactic@aheadwarn|).
 % A deferrable note left there counts at what it keeps, as at its callout
 % (|\@didactic@deferclaim|): on the next page it gives way to the notes after
 % it as it did on its own, and counted whole it would send them to the foot or
 % on where \textsf{marginfix} makes room.
 %    \begin{macrocode}
+\newdimen\@didactic@fnleft
+\let\@didactic@fnleftid\@empty
 \newcommand\@didactic@newpage{%
   \global\@didactic@stay\z@
+  \global\@didactic@fnleft\z@
+  \global\let\@didactic@fnleftid\@empty
   \global\@didactic@closedfalse
   \global\@didactic@fncarriedfalse
   \begingroup
@@ -6190,7 +6208,11 @@
       \@didactic@noteht\dimexpr\ht##1+\dp##1\relax
       \@didactic@ifdeferrable##1
         {\global\advance\@didactic@stay\@didactic@deferclaim}
-        {\global\advance\@didactic@stay\@didactic@noteht}}%
+        {\global\advance\@didactic@stay\@didactic@noteht}%
+      \ifcsname @didactic@fn@\the\@didactic@noteof##1\endcsname
+        \global\@didactic@fnleft\@didactic@stay
+        \xdef\@didactic@fnleftid{\the\@didactic@noteof##1}%
+      \fi}%
     \def\mfx@build@skip##1{\global\advance\@didactic@stay##1\relax}%
     \let\mfx@build@clear\relax
     \mfx@marginlist
@@ -7039,6 +7061,15 @@
 % footnote at this foot would come before one with a lower number, and the
 % footnotes keep their order, as \textsf{marginfix} keeps the notes in the
 % margin.
+% Across pages a footnote still goes to its own page's foot: when a footnote of
+% ours carried into the page is still waiting in the margin and won't be set on
+% this page (|\@didactic@fnleft|, from |\@didactic@newpage|, no less than the
+% room), the one going to the foot comes before it, and says so, naming both
+% (|\@didactic@aheadwarn|; review~4, S5-1).  Barring the foot instead, until the
+% waiting ones are set, kept the numbers in sequence where the margin catches
+% up, and where it doesn't, filled \LaTeX's boxes for floats and lost notes;
+% bounding the bar took a second guard on those boxes (measured on the fuzz
+% test's set |backlog|).
 % The lines are those of the footnote font, |\@didactic@fl| (above).
 % The note's version for the foot is made first (|\@didactic@footset|, above).
 %    \begin{macrocode}
@@ -7071,6 +7102,7 @@
             left there)}%
         \fi
       \else
+        \@didactic@aheadwarn
         \@didactic@tofoot\@didactic@footbox
         \@tempswatrue
       \fi\fi
@@ -7081,6 +7113,14 @@
       \def\@didactic@footwhy{it doesn't fit beside its line, and only a
         footnote can go to the foot}%
     \fi}}
+\newcommand\@didactic@aheadwarn{%
+  \ifdim\@didactic@fnleft<\@didactic@room\else
+    \PackageWarningNoLine{didactic}{Footnote called out at
+      \csname @didactic@ln@\the\@didactic@noteof\@didactic@head\endcsname
+      \MessageBreak is set at the foot of page \thepage\space before the one
+      called out\MessageBreak at \csname @didactic@ln@\@didactic@fnleftid
+      \endcsname, which is still waiting\MessageBreak in the margin}%
+  \fi}
 \newcommand\@didactic@flines[1]{%
   \number\numexpr(2*(#1)-\@didactic@fl)/(2*\@didactic@fl)\relax}
 %    \end{macrocode}
@@ -7271,6 +7311,12 @@
 % And only while they can stay, in the room and what a note may run past it:
 % where the notes carried to a page are more than its margin holds, some go on
 % whatever the float does, and holding it back would only send it further.
+% Then the claim is the footnotes of ours among them that will be set on the
+% page (|\@didactic@fnleft|, when less than the room): a float taking that room
+% after a later footnote went to the foot would send one on behind it, past the
+% warning, which was read when that footnote was placed (|\@didactic@aheadwarn|;
+% the row |leftfloat|: \textsf{marginfix} split the footnote, or with 1.2 sent it
+% on whole).
 % A wide float in the text counts the same notes.
 % A float that doesn't fit waits, as any float that doesn't fit in \LaTeX:
 % for the next column, at the top or the bottom as its placement allows, or a
@@ -7293,6 +7339,7 @@
 %    \begin{macrocode}
 \newif\if@didactic@floatclaim
 \newdimen\@didactic@reqroom
+\newdimen\@didactic@claim
 \def\@didactic@besideuse{use}
 \newcommand\@didactic@flcheck[2]{%
   \@didactic@reqroom
@@ -7300,7 +7347,12 @@
   \@didactic@flcheckspace#1#2%
   \@didactic@floatclaimfalse
   \if@twocolumn\else\ifdim\@didactic@stay>\z@
-  \ifdim\@didactic@stay>\dimexpr\@didactic@room+\@didactic@overmax\relax\else
+  \@didactic@claim\@didactic@stay
+  \ifdim\@didactic@stay>\dimexpr\@didactic@room+\@didactic@overmax\relax
+    \@didactic@claim\@didactic@fnleft
+    \ifdim\@didactic@fnleft<\@didactic@room\else\@didactic@claim\z@\fi
+  \fi
+  \ifdim\@didactic@claim>\z@
     \@didactic@floatclaimtrue
     \ifx#1\@botroom\ifdefined\mfx@besidefloats
       \ifx\mfx@besidefloats\@didactic@besideuse
@@ -7312,9 +7364,9 @@
   \fi\fi\fi
   \if@tempswa
     \if@didactic@floatclaim
-      \ifdim\@didactic@reqroom<\dimexpr\@didactic@stay+\ht\@currbox
+      \ifdim\@didactic@reqroom<\dimexpr\@didactic@claim+\ht\@currbox
           \ifdefined\marginheightadjustment-\marginheightadjustment\fi\relax
-        \@didactic@reqroom\dimexpr\@didactic@stay+\ht\@currbox
+        \@didactic@reqroom\dimexpr\@didactic@claim+\ht\@currbox
           \ifdefined\marginheightadjustment-\marginheightadjustment\fi\relax
         \ifdefined\saved@reqcolroom
           \saved@reqcolroom\@didactic@reqroom

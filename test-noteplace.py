@@ -79,6 +79,10 @@ called out somewhere names a place, not an internal name; no footnote found not 
   label=N:P   the label N is on page P.
   align=A:B   the positions A and B (zsavepos) are on one page and one baseline,
               within half a point (a note's first line beside its callout's).
+  fnorder     the notes labelled n-K, K a number, are on pages in the order of K
+              (footnotes keep the order of their numbers across pages).
+  aheadwarn=N N warnings that a footnote is set at its page's foot before one
+              still waiting in the margin.
   incol=W     W is in the text column (at the foot, not in a margin).
   inmargin=W  W is in a margin, outside the text column (not drawn into the text).
   lostwarn=F  a warning says that a margin note called out in file F (with its
@@ -269,6 +273,20 @@ for e in expect:
             w, p = pair.split(":")
             if str(page_of(w)) != p:
                 fails.append("%s on page %s, not %s" % (w, page_of(w), p))
+    elif e == "fnorder":
+        ks = sorted((int(x), int(p)) for x, p in re.findall(
+            r"\\newlabel\{n-(\d+)\}\{\{[^}]*\}\{(\d+)\}", aux))
+        bad = [(a, b) for (a, pa), (b, pb) in zip(ks, ks[1:]) if pb < pa]
+        if not ks:
+            fails.append("no labels n-K")
+        elif bad:
+            fails.append("footnotes out of order across pages: %s" % bad)
+    elif e.startswith("aheadwarn="):
+        n = len(re.findall(r"is set at the foot of page \d+ before the one called out at"
+                           r".{0,80}?, which is still waiting in the margin", joined))
+        if n != int(e[10:]):
+            fails.append("%d warnings that a footnote is set before one still waiting, "
+                         "not %s" % (n, e[10:]))
     elif e == "nobelow":
         for n in range(1, len(pages) + 1):
             left = geo["odd"] if n % 2 else geo["even"]
