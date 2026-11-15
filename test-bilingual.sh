@@ -259,6 +259,10 @@ for edition in british:EN swedish:SV ngerman:DE; do
     *"${mine}TITLE"*"${mine}TITLE"*"$want"*SHARED*) ;;
     *) fail names "$babel: not its title, block and inner block: $text" ;;
   esac
+  # the inner file is input in every outer block: once shown, twice dropped
+  # with its excluded outer block
+  [ "$(printf '%s' "$text" | command grep -o "${mine}INNER" | wc -l)" = 1 ] \
+    || fail names "$babel: ${mine}INNER isn't there exactly once"
   for other in EN SV DE; do
     [ $other = $mine ] && continue
     case "$text" in
@@ -301,11 +305,39 @@ block_document() {
 block_document '\begin{onlyin}{sv}' '\end{onlyin}'
 command grep -q "begin{onlyin}{swedish}" test-bilingual-names.log \
   || fail names "\\begin{onlyin}{sv} doesn't name \\begin{onlyin}{swedish}"
+block_document '\begin{onlyin}{klingon}' '\end{onlyin}'
+command grep -q "Unknown language .klingon." test-bilingual-names.log \
+  || fail names "\begin{onlyin}{klingon} isn't an unknown language"
 block_document '\begin{en}' '\end{en}'
 command grep -q "begin{onlyin}{english}" test-bilingual-names.log \
   || fail names "\\begin{en} doesn't name \\begin{onlyin}{english}"
 command grep -q -- "--migrate" test-bilingual-names.log \
   || fail names "\\begin{en} doesn't name --migrate"
+
+# language= takes a tag, and overrides babel's main language; a language that
+# only babel knows, not the package's table, is an edition too.
+edition_document() {
+  printf '%s\n' '\documentclass{article}' "\\usepackage[$1]{babel}" \
+    "\\usepackage$2{didactic}" '\begin{document}' \
+    '\begin{onlyin}{english}' ENEDITION '\end{onlyin}' \
+    '\begin{onlyin}{swedish}' SVEDITION '\end{onlyin}' \
+    "\\begin{onlyin}{estonian}" ETEDITION '\end{onlyin}' \
+    '\end{document}' > test-bilingual-names.tex
+  rm -f test-bilingual-names.pdf
+  ${PDFLATEX:-pdflatex} -shell-escape -interaction=nonstopmode \
+    test-bilingual-names.tex >/dev/null 2>&1
+  pdftotext test-bilingual-names.pdf - 2>/dev/null | tr -s ' \n' '  '
+}
+case "$(edition_document british,swedish,estonian,main=british '[language=sv]')" in
+  *SVEDITION*) ;;
+  *) fail names "language=sv doesn't give the Swedish edition" ;;
+esac
+for setup in "main=estonian:" "main=british:[language=estonian]"; do
+  case "$(edition_document british,swedish,estonian,${setup%%:*} "${setup#*:}")" in
+    *ETEDITION*) ;;
+    *) fail names "estonian, which only babel knows, isn't an edition ($setup)" ;;
+  esac
+done
 
 # The test documents are examples too, so the script must find nothing wrong
 # with them: no error, and no stamp in a form that it no longer reads.
