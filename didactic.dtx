@@ -4667,30 +4667,26 @@
 % included one, and decide at each start.
 %
 % What \textsf{comment} does at the end, |\AfteronlyinComment|, has to 
-% differ too, and with blocks nested by |\input| it must be the one of the 
-% block that ends: an inner block's would otherwise replace the outer one's.
-% So we keep it per depth, the depth that the cut files already count, and 
-% look it up when the block ends.
+% differ too, so each start sets it, globally, since the start is inside the 
+% group of |\begin| and the end comes after \textsf{comment} has left it.
+% Blocks nested by |\input| don't disturb it: an included block's end runs 
+% before its lines are read again from the cut file, where the inner blocks 
+% are, and an excluded block's lines are never read.
 % A block written directly inside another, in the same file, can't work: the 
 % inner block's |\end{onlyin}| ends the outer one, and the outer block's end is 
 % then left over; \texttt{didactic-sync.py} reports that, and \TeX\ stops at 
 % the end of the file.
 %    \begin{macrocode}
 \includecomment{onlyin}
-\def\AfteronlyinComment{%
-  \csname @didactic@after@\the\@didactic@cutdepth\endcsname
-}
 \def\onlyin#1{%
   \@didactic@blocktag{#1}%
   \ifx\@didactic@blockedition\@didactic@edition
-    \expandafter\gdef\csname @didactic@after@\the\@didactic@cutdepth
-      \endcsname{\CloseAndInputCutFile}%
+    \gdef\AfteronlyinComment{\CloseAndInputCutFile}%
     \def\@didactic@next{%
       \endgroup\DefaultCutFileName\SetUpCutFile\ProcessComment{onlyin}%
     }%
   \else
-    \expandafter\gdef\csname @didactic@after@\the\@didactic@cutdepth
-      \endcsname{\CloseAndInputCutFile\endgroup}%
+    \gdef\AfteronlyinComment{\CloseAndInputCutFile\endgroup}%
     \def\@didactic@next{%
       \endgroup\begingroup\DefaultCutFileName\def\ProcessCutFile{}%
       \def\ThisComment####1{}\ProcessComment{onlyin}%
