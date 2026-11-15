@@ -14,7 +14,7 @@ So that's what we record.
 On the line of each pair's first [[\begin]] stands a comment that only this
 script writes,
 \begin{minted}{text}
-\begin{onlyin}{english} % sync en=3f9c1a sv=b20e7d
+\begin{onlyin}{english} % sync english=3f9c1a swedish=b20e7d
 The cat sat.
 \end{onlyin}
 \begin{onlyin}{swedish}
@@ -23,13 +23,13 @@ Katten satt.
 \end{minted}
 holding a short hash of each side as it was when the two last said the same
 thing.
-The keys are \textsf{babel}'s language tags: [[en]], [[sv]], and [[de]] for a
-German side, since a pair may have more than two.
+The keys are the languages as the sides name them, and there's one for each
+side, since a pair may have more than two: [[ngerman=]] for a German side.
 After a change to the English side, the script reports
 \begin{minted}{text}
-contents.nw:1: sv is behind
-  en since the stamp (4f1c2ab): The [-cat-]{+dog+} sat.
-  sv now: Katten satt.
+contents.nw:1: swedish is behind
+  english since the stamp (4f1c2ab): The [-cat-]{+dog+} sat.
+  swedish now: Katten satt.
 \end{minted}
 and it goes on saying so, in every build and from every clone, until somebody
 has read the two and stamps the pair again.
@@ -48,11 +48,11 @@ The last row is a stamp that has lost its pair, see \cref{sec:sync-pairs}.
   }\label{tab:didactic-sync-states}
   \begin{tabular}{lll}
     \toprule
-    \textbf{en} & \textbf{sv} & \textbf{Report} \\
+    \textbf{english} & \textbf{swedish} & \textbf{Report} \\
     \midrule
     unchanged & unchanged & in sync \\
-    changed & unchanged & sv is behind \\
-    unchanged & changed & en is behind \\
+    changed & unchanged & swedish is behind \\
+    unchanged & changed & english is behind \\
     changed & changed & read both and stamp \\
     \multicolumn{2}{l}{no stamp} & new pair, stamp once both are written \\
     \multicolumn{2}{l}{a stamp, but no pair} & a stamp with no pair here \\
@@ -60,7 +60,7 @@ The last row is a stamp that has lost its pair, see \cref{sec:sync-pairs}.
   \end{tabular}
 \end{table}
 A pair of three languages, English, Swedish and German, gives the same with
-lists: \enquote{de and sv are behind} after a change to the English side, and
+lists: \enquote{ngerman and swedish are behind} after a change to the English side, and
 \enquote{read all and stamp} when every side has changed.
 
 The word \enquote{changed} carries a limit that the row \enquote{read both and
@@ -75,7 +75,8 @@ prevent.
 \subsection{Commands}
 
 The script has three modes, and each of the following sections builds one of
-them from the same reading of the source.
+them from the same reading of the source; a fourth, once per source, rewrites
+a source of version 2.17.
 \begin{description}
   \item[State check] [[didactic-sync.py contents.nw ...]] reports on each pair
   (\cref{sec:sync-state}).
@@ -92,6 +93,9 @@ them from the same reading of the source.
   whose stamp a branch has refreshed while only one side changed
     (\cref{sec:sync-branch}): those acceptances, for the description of a pull
     request, so that somebody can look at them.
+  \item[Migrating] [[didactic-sync.py --migrate contents.nw ...]] rewrites the
+  blocks and the stamps of version 2.17, with [[--en british]] if English is
+  to be [[british]] rather than [[english]] (\cref{sec:sync-migrate}).
 \end{description}
 
 Builds find the script with [[kpsewhich didactic-sync.py]], so it's installed
@@ -231,10 +235,10 @@ The package asks \textsf{babel} for the tag; the script can't run \TeX, so it
 has the same table as the package, of the names it knows, and a name that
 isn't in it is an error rather than a block or a string the script can't
 place.
-The tags are also the keys of a stamp, [[en=...]] and [[sv=...]], which is why
-stamps written before the names changed are still right.
+An author never writes a tag: a stamp's keys are names too
+(\cref{sec:sync-stamp}), and the tag is only what the script compares by.
 The table [[TAG_NAMES]] gives the name to suggest for a tag, the first one
-listed for it, for the message about a tag where a name belongs.
+listed for it, for the messages about a tag where a name belongs.
 
 <<imports>>=
 import re
@@ -358,6 +362,7 @@ class Block:
     last: int
     text: str
     stamp: object = None
+    name: str = ""
 
 
 @dataclass
@@ -375,6 +380,7 @@ class Reading:
     trailing_stamps: dict = field(default_factory=dict)
     old_blocks: list = field(default_factory=list)
     old_errors: set = field(default_factory=set)
+    old_stamps: set = field(default_factory=set)
     noweb: bool = True
 <<functions>>=
 def read_source(text, noweb=True):
@@ -509,6 +515,8 @@ if frame and not frame[1]:
     )
 last = end_of_block(lines, number, BLOCK, reading.errors)
 stamp = STAMP_COMMENT.search(line[match.end() :])
+if stamp:
+    note_stamp(reading, number, stamp.group("entries"))
 reading.items.append(
     Block(
         language,
@@ -516,6 +524,7 @@ reading.items.append(
         last,
         without_stamps("\n".join(lines[number + 1 : last])),
         parse_entries(stamp.group("entries"))[0] if stamp else None,
+        name,
     )
     if language
     else OTHER
@@ -947,14 +956,14 @@ def onlyin(name, text):
   return f"\\begin{{onlyin}}{{{name}}}\n{text}\n\\end{{onlyin}}\n"
 
 
-def test_onlyin_blocks_make_a_pair_with_its_stamp_by_tag(repo):
+def test_onlyin_blocks_make_a_pair_with_its_stamp_by_name(repo):
   path = repo / "contents.nw"
   path.write_text(onlyin("english", "The cat.") + onlyin("swedish", "Katten."))
   assert "contents.nw:1: new pair" in run(repo, "contents.nw").stdout
   assert run(repo, "--stamp", "contents.nw:1").returncode == 0
   first = path.read_text().splitlines()[0]
   assert re.fullmatch(
-    r"\\begin\{onlyin\}\{english\} % sync en=[0-9a-f]{6} sv=[0-9a-f]{6}", first
+    r"\\begin\{onlyin\}\{english\} % sync english=[0-9a-f]{6} swedish=[0-9a-f]{6}", first
   )
   assert run(repo, "contents.nw").returncode == 0
 
@@ -977,9 +986,9 @@ def test_three_languages_make_one_group(repo):
   )
   assert run(repo, "--stamp", "contents.nw:1").returncode == 0
   first = path.read_text().splitlines()[0]
-  assert re.search(r"% sync de=[0-9a-f]{6} en=[0-9a-f]{6} sv=[0-9a-f]{6}$", first)
+  assert re.search(r"% sync english=[0-9a-f]{6} ngerman=[0-9a-f]{6} swedish=[0-9a-f]{6}$", first)
   path.write_text(path.read_text().replace("One.", "Uno."))
-  assert "contents.nw:1: de and sv are behind" in run(repo, "contents.nw").stdout
+  assert "contents.nw:1: ngerman and swedish are behind" in run(repo, "contents.nw").stdout
   path.write_text(
     path.read_text().replace("Ett.", "Etta.").replace("Eins.", "Einz.")
   )
@@ -1009,6 +1018,71 @@ def test_a_v2_17_block_names_the_new_form(repo, old, new):
   assert result.returncode == 2
   assert f"contents.nw:1: \\begin{{{old}}}" in result.stderr
   assert f"\\begin{{onlyin}}{{{new}}}" in result.stderr
+  assert "--migrate" in result.stderr
+
+
+def test_a_stamp_is_keyed_by_the_names_as_written(repo):
+  path = repo / "contents.nw"
+  path.write_text(
+    onlyin("british", "Colour.") + onlyin("swedish", "Färg.")
+    + "Text.\n\\didactictr[british,swedish]{Grey}{Grå}\n\\sven{Ett}{One}\n"
+  )
+  for target in ("1", "8", "9"):
+    assert run(repo, "--stamp", f"contents.nw:{target}").returncode == 0
+  lines = path.read_text().splitlines()
+  assert re.search(r"\{british\} % sync british=[0-9a-f]{6} swedish=[0-9a-f]{6}$",
+                   lines[0])
+  assert re.search(r"% sync british=[0-9a-f]{6} swedish=[0-9a-f]{6}$", lines[7])
+  assert re.search(r"% sync english=[0-9a-f]{6} swedish=[0-9a-f]{6}$", lines[8])
+  path.write_text(path.read_text().replace("Colour.", "Color."))
+  assert "contents.nw:1: swedish is behind" in run(repo, "contents.nw").stdout
+
+
+def test_a_stamp_takes_any_name_of_its_language(repo):
+  path = repo / "contents.nw"
+  path.write_text(onlyin("english", "Colour.") + onlyin("swedish", "Färg."))
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  path.write_text(path.read_text().replace("{english}", "{british}"))
+  result = run(repo, "contents.nw")
+  assert result.returncode == 0, result.stdout + result.stderr
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  assert "{british} % sync british=" in path.read_text()
+
+
+@pytest.mark.parametrize(
+  "stamp, message",
+  [
+    ("british=aaaaaa english=aaaaaa swedish=bbbbbb",
+     "this stamp has two entries for one language, british= and english="),
+    ("klingon=aaaaaa swedish=bbbbbb", "unknown language klingon in this stamp"),
+  ],
+)
+def test_a_stamp_with_wrong_keys_is_an_error(repo, stamp, message):
+  (repo / "contents.nw").write_text(
+    onlyin("english", "A.").replace("\n", f" % sync {stamp}\n", 1)
+    + onlyin("swedish", "B.")
+  )
+  result = run(repo, "contents.nw")
+  assert result.returncode == 2
+  assert f"contents.nw:1: {message}" in result.stderr
+
+
+@pytest.mark.parametrize(
+  "source",
+  [
+    "\\begin{onlyin}{english} % sync en=aaaaaa sv=bbbbbb\nA.\n\\end{onlyin}\n"
+    "\\begin{onlyin}{swedish}\nB.\n\\end{onlyin}\n",
+    "\\ensv{a}{b} % sync en=aaaaaa sv=bbbbbb\n",
+  ],
+)
+def test_a_v2_17_stamp_names_the_new_form(repo, source):
+  (repo / "contents.nw").write_text(source)
+  result = run(repo, "contents.nw")
+  assert result.returncode == 2
+  assert "contents.nw:1: en=, sv= in this stamp is version 2.17's form" in (
+    result.stderr
+  )
+  assert "write english=, swedish=" in result.stderr
   assert "--migrate" in result.stderr
 @
 
@@ -1283,12 +1357,13 @@ count of the uses on its line, and nothing else.
 <<classes>>=
 @dataclass
 class Ensv:
-    """A use of `\\ensv`, its lines (0-based) and its texts by tag."""
+    """A use of `\\ensv`, its lines (0-based), its texts and names by tag."""
 
     first: int
     last: int
     sides: dict
     own: bool = False
+    names: dict = field(default_factory=dict)
 <<functions>>=
 def find_ensv(reading):
     """Return all uses of `\\ensv` in a source, in order."""
@@ -1330,7 +1405,8 @@ def find_ensv(reading):
             texts = [without_stamps(raw[open_.end : close.start])
                      for open_, close in groups]
             last = raw.count("\n", 0, groups[-1][1].start)
-            found.append(Ensv(line, last, dict(zip(tags, texts))))
+            found.append(Ensv(line, last, dict(zip(tags, texts)),
+                              names=dict(zip(tags, languages))))
     return found
 
 
@@ -1353,6 +1429,7 @@ def note_trailing_stamps(tokens, reading, raw):
             if match := STAMP_COMMENT.search(token.text):
                 line = raw.count("\n", 0, token.start)
                 reading.trailing_stamps[line] = match.group("entries")
+                note_stamp(reading, line, match.group("entries"))
 @
 
 Telling uses from mentions and definitions is a walk over the tokens that
@@ -1494,7 +1571,7 @@ true however many pairs are stamped after it.
 A block pair's stamp stands on the line of its first [[\begin]], where
 \textsf{comment} ignores whatever follows:
 \begin{minted}{text}
-\begin{onlyin}{english} % sync en=3f9c1a sv=b20e7d
+\begin{onlyin}{english} % sync english=3f9c1a swedish=b20e7d
 The cat sat.
 \end{onlyin}
 \begin{onlyin}{swedish}
@@ -1507,7 +1584,7 @@ An [[\ensv]]'s stamp stands on the line where it ends, one entry per use of
 [[\ensv]] or [[\didactictr]] that ends there, separated by semicolons, in
 the order they appear:
 \begin{minted}{text}
-\ensv{one}{ett} \ensv{two}{två} % sync en=7692c3 sv=4e07d4; en=ad0234 sv=f4e6a1
+\ensv{one}{ett} \ensv{two}{två} % sync english=7692c3 swedish=4e07d4; english=ad0234 swedish=f4e6a1
 \end{minted}
 An entry of [[-]] marks an [[\ensv]] on that line that hasn't been stamped yet,
 so that the second can be stamped before the first, and they don't change
@@ -1522,15 +1599,47 @@ with [[d}{e}]] on the next line, has the first one's stamp inside its own
 first argument, and if the stamp counted, every stamp of the first would put
 the second out of step.
 
-A stamp holds a hash per language, keyed by tag, and it's written in the
-order of the tags, so that the same sides always give the same text:
-[[en=... sv=...]], as version 2.17 wrote it, and [[de=... en=... sv=...]] with
-German.
-Stamps are compared by their hashes, so a stamp is a tuple of the pairs of a
-tag and a hash, which can be counted and looked up.
+A stamp holds a hash per side, keyed by the name the side is written in,
+[[\begin{onlyin}{british}]] or the language list of a string, and its entries
+are in the order of the names, so that the same sides always give the same
+text: [[english=... swedish=...]], and
+[[british=... ngerman=... swedish=...]] for a pair of a British, a German and
+a Swedish block.
+What a stamp is compared by is the language, though, the tag of the name, as
+the sides of a pair are: a pair can't have a British and an English side, and
+a stamp's [[english=]] and [[british=]] are one entry.
+So a stamp is a tuple of the pairs of a tag and a hash, which can be counted
+and looked up, and it remembers the names only to write them.
+
+Two places can name one language differently.
+A block's argument can change from [[english]] to [[british]] when a deck
+moves to a driver that loads [[british]], with the stamp still saying
+[[english=]]; a shared file's [[\ensv]] names [[english]] while the deck's
+blocks say [[british]].
+The stamp's key could be required to be the name written, or any name of the
+language could do.
+We take any name: the stamp's [[english=]] is the hash of a [[{british}]]
+block just as well, and the pair stays in sync.
+Requiring the written name would report every pair of a renamed block as
+changed when no text has, and the only way out would be to stamp each one
+without reading it, the very habit that the hashes exist to prevent.
+The written name comes back at the pair's next stamp, which writes the names
+the sides have.
+
+A key that isn't a name is an error, since the stamp can't be compared with
+anything.
+Two keys of one language in one stamp, [[british=]] and [[english=]], are an
+error too: one of them is the hash of nothing, and the script can't know
+which.
+Keys that are tags, [[en=]] and [[sv=]], are how version 2.17 wrote its
+stamps, and such a stamp stops the check with the same pointed message as a
+block of version 2.17: what to write, and that [[--migrate]] rewrites the file
+(\cref{sec:sync-migrate}).
+Saying nothing there would be no better than the error: the stamp's sides
+would count as new, and every pair as unstamped.
 
 <<constants>>=
-SIDE = r"[a-z]{2,3}=(?:[0-9a-f]+|-)"
+SIDE = r"[A-Za-z]+=(?:[0-9a-f]+|-)"
 ENTRY = SIDE + r"(?: " + SIDE + r")+"
 STAMP_COMMENT = re.compile(
     r"\s*%\s*sync\s+(?P<entries>" + ENTRY + r"(?:;\s*" + ENTRY + r")*)\s*$"
@@ -1539,8 +1648,10 @@ STAMP_COMMENT = re.compile(
 class Stamp(tuple):
     """The hashes of the sides, by tag, when they last said the same thing."""
 
-    def __new__(cls, hashes):
-        return super().__new__(cls, sorted(dict(hashes).items()))
+    def __new__(cls, hashes, names=None):
+        stamp = super().__new__(cls, sorted(dict(hashes).items()))
+        stamp.names = dict(names or {})
+        return stamp
 
     def get(self, tag):
         """Return the hash of the side in language `tag`, or `None`."""
@@ -1551,7 +1662,11 @@ class Stamp(tuple):
         return tuple(tag for tag, _ in self)
 
     def __str__(self):
-        return " ".join(f"{tag}={value}" for tag, value in self)
+        entries = sorted(
+            (self.names.get(tag) or TAG_NAMES.get(tag, tag), value)
+            for tag, value in self
+        )
+        return " ".join(f"{name}={value}" for name, value in entries)
 <<functions>>=
 def without_stamps(text):
     """Return `text` without the stamp comments at the ends of its lines."""
@@ -1567,9 +1682,59 @@ def parse_entries(entries):
     """Return the stamps in the text of a stamp comment; `-` gives `None`."""
     stamps = []
     for entry in entries.split(";"):
-        hashes = dict(part.split("=") for part in entry.split())
-        stamps.append(None if "-" in hashes.values() else Stamp(hashes))
+        hashes = {}
+        names = {}
+        for part in entry.split():
+            key, value = part.split("=")
+            tag = NAMES.get(key, key)
+            hashes[tag] = value
+            names[tag] = key
+        stamps.append(None if "-" in hashes.values() else Stamp(hashes, names))
     return stamps
+@
+
+The keys are checked where the stamp is read, which is where the line number
+is known.
+A stamp of version 2.17 is noted apart, for [[--migrate]], which rewrites it
+and lets that error pass; any other error makes it leave the file alone.
+
+<<constants>>=
+OLD_STAMP = (
+    "{old} in this stamp is version 2.17's form: write {new}, "
+    "or rewrite the file with didactic-sync.py --migrate"
+)
+<<functions>>=
+def note_stamp(reading, number, entries):
+    """Note the errors in the keys of a stamp comment on line `number`."""
+    errors = []
+    old = []
+    for entry in entries.split(";"):
+        seen = {}
+        for part in entry.split():
+            key = part.split("=")[0]
+            if key in NAMES:
+                if NAMES[key] in seen:
+                    errors.append(
+                        "this stamp has two entries for one language, "
+                        f"{seen[NAMES[key]]}= and {key}="
+                    )
+                seen[NAMES[key]] = key
+            elif key in TAG_NAMES:
+                if key not in old:
+                    old.append(key)
+            else:
+                errors.append(f"unknown language {key} in this stamp")
+    if old:
+        message = OLD_STAMP.format(
+            old=", ".join(f"{tag}=" for tag in old),
+            new=", ".join(f"{TAG_NAMES[tag]}=" for tag in old),
+        )
+        errors.append(message)
+        reading.old_errors.add((number, message))
+        reading.old_stamps.add(number)
+    for message in errors:
+        if (number, message) not in reading.errors:
+            reading.errors.append((number, message))
 @
 
 A stamp that no pair uses is reported: a block with a stamp and no partner, a
@@ -1587,6 +1752,7 @@ is reported in the same way.
 
 <<note a stamp on a line of its own>>=
 if match := STAMP_COMMENT.fullmatch(line):
+    note_stamp(reading, number, match.group("entries"))
     reading.stamp_lines[number] = parse_entries(match.group("entries"))[0]
 @
 
@@ -1647,10 +1813,16 @@ class Pair:
     other_begins: tuple = ()
     position: int = 0
     uses_on_line: int = 1
+    names: dict = field(default_factory=dict)
 
     def current(self):
         """Return the stamp the sides would get now."""
-        return Stamp({tag: side_hash(text) for tag, text in self.sides.items()})
+        hashes = {tag: side_hash(text) for tag, text in self.sides.items()}
+        return Stamp(hashes, self.names)
+
+    def name(self, tag):
+        """Return the name the side in language `tag` is written in."""
+        return self.names.get(tag) or TAG_NAMES.get(tag, tag)
 <<functions>>=
 def block_pairs(reading):
     """Return the groups of blocks in a source, and the stamps they don't use."""
@@ -1675,6 +1847,7 @@ def block_pairs(reading):
                 stamped[0].stamp if stamped else None,
                 is_block=True,
                 other_begins=tuple(block.first for block in group[1:]),
+                names={block.language: block.name for block in group},
             )
         )
     return pairs, unused
@@ -1725,6 +1898,7 @@ def ensv_pairs(reading):
                     stamp,
                     position=position,
                     uses_on_line=len(uses),
+                    names=use.names,
                 )
             )
     return pairs, unused
@@ -1823,7 +1997,7 @@ def test_a_stamp_whose_partner_is_gone_is_reported(repo):
 def test_a_stamp_stands_on_the_first_begin_line(repo):
   path = stamped_file(repo, ("sv", "en"))
   first = path.read_text().splitlines()[0]
-  stamp = r"\\begin\{onlyin\}\{swedish\} % sync en=[0-9a-f]{6} sv=[0-9a-f]{6}"
+  stamp = r"\\begin\{onlyin\}\{swedish\} % sync english=[0-9a-f]{6} swedish=[0-9a-f]{6}"
   assert re.fullmatch(stamp, first)
   assert path.read_text().count("\n") == 6
 
@@ -1849,7 +2023,7 @@ def test_the_blocks_of_a_pair_may_change_places(repo):
 
 def test_a_stamp_on_a_line_of_its_own_belongs_to_no_pair(repo):
   path = repo / "contents.nw"
-  path.write_text("% sync en=aaaaaa sv=bbbbbb\n" + blocks("en", "sv"))
+  path.write_text("% sync english=aaaaaa swedish=bbbbbb\n" + blocks("en", "sv"))
   result = run(repo, "contents.nw")
   assert result.returncode == 1
   assert "contents.nw:1: a stamp with no pair here" in result.stdout
@@ -1877,7 +2051,7 @@ def test_two_pairs_that_change_places_keep_their_stamps(repo):
 def test_a_comment_in_a_block_counts_as_a_change(repo):
   path = stamped_file(repo, ("en", "sv"))
   path.write_text(path.read_text().replace("The cat", "% note\nThe cat"))
-  assert "sv is behind" in run(repo, "contents.nw").stdout
+  assert "swedish is behind" in run(repo, "contents.nw").stdout
 @
 
 The same for [[\ensv]], where the difficulty is in the braces.
@@ -1894,10 +2068,10 @@ def test_ensv_with_nested_braces_is_one_pair(repo):
   assert "contents.nw:1: new pair" in run(repo, "contents.nw").stdout
   assert run(repo, "--stamp", "contents.nw:1").returncode == 0
   line = path.read_text().splitlines()[0]
-  assert re.search(r"\}\} % sync en=[0-9a-f]{6} sv=[0-9a-f]{6}$", line)
+  assert re.search(r"\}\} % sync english=[0-9a-f]{6} swedish=[0-9a-f]{6}$", line)
   assert run(repo, "contents.nw").returncode == 0
   path.write_text(path.read_text().replace("stor", "liten"))
-  assert "en is behind" in run(repo, "contents.nw").stdout
+  assert "english is behind" in run(repo, "contents.nw").stdout
 
 
 def test_a_change_after_a_nested_brace_is_seen(repo):
@@ -1905,7 +2079,7 @@ def test_a_change_after_a_nested_brace_is_seen(repo):
   path.write_text("\\ensv{a {b} c}{d {e} f}\n")
   assert run(repo, "--stamp", "contents.nw:1").returncode == 0
   path.write_text(path.read_text().replace("{b} c", "{b} x"))
-  assert "sv is behind" in run(repo, "contents.nw").stdout
+  assert "swedish is behind" in run(repo, "contents.nw").stdout
 
 
 def test_several_ensv_on_a_line_are_separate(repo):
@@ -1927,7 +2101,7 @@ def test_several_ensv_on_a_line_are_separate(repo):
 
   path.write_text(path.read_text().replace("two", "too"))
   result = run(repo, "contents.nw")
-  assert "contents.nw:1.2: sv is behind" in result.stdout
+  assert "contents.nw:1.2: swedish is behind" in result.stdout
   assert "contents.nw:1.1" not in result.stdout
   assert "[-two-]{+too+}" in result.stdout
 
@@ -1972,7 +2146,7 @@ def test_a_change_in_quoted_code_in_an_ensv_is_a_change(repo):
   path.write_text("\\ensv{Use [[foo]]}{Ta [[foo]]}\n")
   assert run(repo, "--stamp", "contents.nw:1").returncode == 0
   path.write_text(path.read_text().replace("Use [[foo]]", "Use [[bar]]"))
-  assert "sv is behind" in run(repo, "contents.nw").stdout
+  assert "swedish is behind" in run(repo, "contents.nw").stdout
 
 
 @pytest.mark.parametrize(
@@ -1998,7 +2172,7 @@ def test_stamping_an_ensv_again_replaces_its_stamp(repo):
   path.write_text("\\ensv{a}{b}\n")
   assert run(repo, "--stamp", "contents.nw:1").returncode == 0
   path.write_text(path.read_text().replace("{a}", "{x}"))
-  assert "sv is behind" in run(repo, "contents.nw").stdout
+  assert "swedish is behind" in run(repo, "contents.nw").stdout
   assert run(repo, "--stamp", "contents.nw:1").returncode == 0
   assert path.read_text().count("% sync") == 1
   assert run(repo, "contents.nw").returncode == 0
@@ -2021,7 +2195,7 @@ def test_didactictr_is_an_ensv_too(repo):
   assert "contents.nw:1: new pair" in run(repo, "contents.nw").stdout
   assert run(repo, "--stamp", "contents.nw:1").returncode == 0
   path.write_text(path.read_text().replace("Yes", "No"))
-  assert "sv is behind" in run(repo, "contents.nw").stdout
+  assert "swedish is behind" in run(repo, "contents.nw").stdout
 
 
 def test_a_comment_edit_in_an_ensv_counts_as_a_change(repo):
@@ -2029,7 +2203,7 @@ def test_a_comment_edit_in_an_ensv_counts_as_a_change(repo):
   path.write_text("\\ensv{a % one\n b}{c}\n")
   assert run(repo, "--stamp", "contents.nw:2").returncode == 0
   path.write_text(path.read_text().replace("% one", "% two"))
-  assert "sv is behind" in run(repo, "contents.nw").stdout
+  assert "swedish is behind" in run(repo, "contents.nw").stdout
 
 
 def test_ensv_may_quote_code_and_escaped_braces(repo):
@@ -2043,7 +2217,7 @@ def test_an_ensv_over_several_lines_has_its_stamp_where_it_ends(repo):
   path = repo / "contents.nw"
   path.write_text("\\ensv{one\ntwo}{ett\ntvå}\nNext.\n")
   assert run(repo, "--stamp", "contents.nw:3").returncode == 0
-  assert path.read_text().splitlines()[2].startswith("två} % sync en=")
+  assert path.read_text().splitlines()[2].startswith("två} % sync english=")
   assert run(repo, "contents.nw").returncode == 0
 
 
@@ -2097,8 +2271,8 @@ def test_the_names_and_the_stamps_come_from_the_table_of_pairs():
     match = sync.BLOCK_BEGIN.match("\\begin{onlyin}{" + name + "}")
     assert match and match.group("name") == name
   stamp = sync.Stamp({tag: "abc123" for tag in tags})
-  assert str(stamp) == "en=abc123 sv=abc123"
-  assert sync.STAMP_COMMENT.fullmatch("% sync en=- sv=- de=-")
+  assert str(stamp) == "english=abc123 swedish=abc123"
+  assert sync.STAMP_COMMENT.fullmatch("% sync english=- swedish=- ngerman=-")
   assert not sync.BLOCK_BEGIN.match("\\begin{en}")
 
 
@@ -2112,10 +2286,10 @@ def test_didactictr_takes_its_languages_as_an_option(repo):
   for name in ("1", "2", "3"):
     assert run(repo, "--stamp", f"contents.nw:{name}").returncode == 0
   text = path.read_text()
-  assert re.search(r"% sync de=[0-9a-f]{6} en=[0-9a-f]{6} sv=[0-9a-f]{6}\n", text)
+  assert re.search(r"% sync english=[0-9a-f]{6} ngerman=[0-9a-f]{6} swedish=[0-9a-f]{6}\n", text)
   assert run(repo, "contents.nw").returncode == 0
   path.write_text(text.replace("{Eins}", "{Einz}"))
-  assert "contents.nw:1: en and sv are behind" in run(repo, "contents.nw").stdout
+  assert "contents.nw:1: english and swedish are behind" in run(repo, "contents.nw").stdout
 
 
 def test_sven_has_swedish_first(repo):
@@ -2123,7 +2297,7 @@ def test_sven_has_swedish_first(repo):
   path.write_text("\\sven{Ett}{One}\n")
   assert run(repo, "--stamp", "contents.nw:1").returncode == 0
   path.write_text(path.read_text().replace("{Ett}", "{Etta}"))
-  assert "contents.nw:1: en is behind" in run(repo, "contents.nw").stdout
+  assert "contents.nw:1: english is behind" in run(repo, "contents.nw").stdout
 
 
 @pytest.mark.parametrize(
@@ -2395,7 +2569,8 @@ def pair_state(pair):
     changed = changed_sides(pair)
     if not changed:
         return IN_SYNC
-    behind = [tag for tag in pair.current().tags() if tag not in changed]
+    behind = [pair.name(tag) for tag in pair.current().tags()
+              if tag not in changed]
     if not behind:
         return BOTH_CHANGED if len(changed) == 2 else ALL_CHANGED
     verb = "is" if len(behind) == 1 else "are"
@@ -2481,7 +2656,7 @@ def test_a_changed_en_side_means_sv_is_behind(repo, order):
   path.write_text(path.read_text().replace("The cat sat.", "The dog sat."))
   result = run(repo, "contents.nw")
   assert result.returncode == 1
-  assert "sv is behind" in result.stdout
+  assert "swedish is behind" in result.stdout
   assert "[-cat-]{+dog+}" in result.stdout
   assert "Katten satt." in result.stdout
 
@@ -2492,7 +2667,7 @@ def test_a_changed_sv_side_means_en_is_behind(repo, order):
   path.write_text(path.read_text().replace("Katten", "Hunden"))
   result = run(repo, "contents.nw")
   assert result.returncode == 1
-  assert "en is behind" in result.stdout
+  assert "english is behind" in result.stdout
   assert "[-Katten-]{+Hunden+}" in result.stdout
   assert "The cat sat." in result.stdout
 
@@ -2528,7 +2703,7 @@ def test_reindenting_a_chunk_in_a_block_is_a_change(repo):
   )
   assert run(repo, "--stamp", "contents.nw:1").returncode == 0
   path.write_text(path.read_text().replace("z()", "    z()"))
-  assert "sv is behind" in run(repo, "contents.nw").stdout
+  assert "swedish is behind" in run(repo, "contents.nw").stdout
 
 
 def test_joining_lines_of_a_chunk_in_a_block_is_a_change(repo):
@@ -2539,7 +2714,7 @@ def test_joining_lines_of_a_chunk_in_a_block_is_a_change(repo):
   )
   assert run(repo, "--stamp", "contents.nw:1").returncode == 0
   path.write_text(path.read_text().replace("x\ny", "x y"))
-  assert "sv is behind" in run(repo, "contents.nw").stdout
+  assert "swedish is behind" in run(repo, "contents.nw").stdout
 
 
 def test_reindenting_verbatim_in_a_block_is_a_change(repo):
@@ -2550,7 +2725,7 @@ def test_reindenting_verbatim_in_a_block_is_a_change(repo):
   )
   assert run(repo, "--stamp", "contents.nw:1").returncode == 0
   path.write_text(path.read_text().replace("  y()", "y()"))
-  assert "sv is behind" in run(repo, "contents.nw").stdout
+  assert "swedish is behind" in run(repo, "contents.nw").stdout
 
 
 def test_rewrapping_the_prose_around_a_chunk_changes_nothing(repo):
@@ -2738,9 +2913,9 @@ def print_sides(path, pair, state):
         if language in changed and found is not None:
             commit, old = found
             change = word_diff(old.sides.get(language, ""), text)
-            print(f"  {language} since the stamp ({commit}): {change}")
+            print(f"  {pair.name(language)} since the stamp ({commit}): {change}")
         else:
-            print(f"  {language} now: {' '.join(text.split())}")
+            print(f"  {pair.name(language)} now: {' '.join(text.split())}")
 @
 
 Let's verify that the diff is against the stamp and not just the last commit,
@@ -2764,7 +2939,7 @@ def test_the_diff_shows_the_other_side_now_as_it_is(repo):
   path = stamped_file(repo, ("en", "sv"))
   path.write_text(path.read_text().replace("The cat", "The dog"))
   result = run(repo, "contents.nw")
-  assert "sv now: Katten satt." in result.stdout
+  assert "swedish now: Katten satt." in result.stdout
 
 
 @pytest.mark.parametrize(
@@ -2790,7 +2965,7 @@ def test_the_diff_follows_a_pair_into_another_file(repo):
   path.write_text("Nothing here.\n")
   commit(repo, "moved it")
   result = run(repo, "other.nw")
-  assert "sv is behind" in result.stdout
+  assert "swedish is behind" in result.stdout
   assert "[-cat-]{+dog+}" in result.stdout
 
 
@@ -2862,7 +3037,7 @@ def test_common_words_anchor_the_diff_of_a_long_side(repo):
 def test_a_stale_stamp_without_a_commit_still_reports_without_the_diff(repo):
   (repo / "contents.nw").write_text(
     blocks("en", "sv").replace(
-      "{english}\n", "{english} % sync en=000000 sv=111111\n", 1
+      "{english}\n", "{english} % sync english=000000 swedish=111111\n", 1
     )
   )
   commit(repo)
@@ -2878,7 +3053,7 @@ def test_a_stale_stamp_without_a_commit_still_reports_without_the_diff(repo):
 def test_a_stale_stamp_outside_git_still_reports(tmp_path):
   (tmp_path / "contents.nw").write_text(
     blocks("en", "sv").replace(
-      "{english}\n", "{english} % sync en=000000 sv=111111\n", 1
+      "{english}\n", "{english} % sync english=000000 swedish=111111\n", 1
     )
   )
   result = run(tmp_path, "contents.nw")
@@ -2890,7 +3065,7 @@ def test_a_stale_stamp_outside_git_still_reports(tmp_path):
 def test_a_stale_stamp_without_git_installed_still_reports(tmp_path):
   (tmp_path / "contents.nw").write_text(
     blocks("en", "sv").replace(
-      "{english}\n", "{english} % sync en=000000 sv=111111\n", 1
+      "{english}\n", "{english} % sync english=000000 swedish=111111\n", 1
     )
   )
   result = subprocess.run(
@@ -2917,7 +3092,7 @@ def test_bytes_that_are_not_utf8_are_kept_and_reported(repo):
     capture_output=True,
   )
   assert stamped.returncode == 0
-  assert b"sv P\xe5 katt." in stamped.stdout
+  assert b"swedish P\xe5 katt." in stamped.stdout
   assert b"P\xe5 katt." in path.read_bytes()
   commit(repo)
   path.write_bytes(path.read_bytes().replace(b"cat", b"dog"))
@@ -2928,7 +3103,7 @@ def test_bytes_that_are_not_utf8_are_kept_and_reported(repo):
   )
   assert result.returncode == 1
   assert b"Traceback" not in result.stderr
-  assert b"sv now: P\xe5 katt." in result.stdout
+  assert b"swedish now: P\xe5 katt." in result.stdout
 
 
 def test_a_file_in_a_subdirectory_finds_its_stamp_from_anywhere(repo):
@@ -2962,7 +3137,7 @@ def test_an_uncommitted_stamp_still_reports_without_the_diff(repo):
   assert run(repo, "--stamp", "contents.nw:1").returncode == 0
   path.write_text(path.read_text().replace("cat", "dog"))
   result = run(repo, "contents.nw")
-  assert "sv is behind" in result.stdout
+  assert "swedish is behind" in result.stdout
   assert "[-" not in result.stdout
 @
 
@@ -3065,7 +3240,8 @@ def stamp_pair(target):
         write_tr_stamp(lines, pair)
     write_text(path, mark + "\n".join(lines))
     sides = " / ".join(
-        f"{tag} {shown(text)}" for tag, text in sorted(pair.sides.items())
+        f"{pair.name(tag)} {shown(text)}"
+        for tag, text in sorted(pair.sides.items())
     )
     print(f"stamped {path}:{pair.target}: {sides}")
     <<warn if the branch check can't see [[path]]>>
@@ -3130,7 +3306,7 @@ def write_tr_stamp(lines, pair):
         stamp = old[position] if position < len(old) else None
         if position == pair.position:
             stamp = pair.current()
-        entries.append(str(stamp) if stamp else "en=- sv=-")
+        entries.append(str(stamp) if stamp else "english=- swedish=-")
     lines[pair.last] = with_stamp(line, "; ".join(entries))
 @
 
@@ -3158,7 +3334,7 @@ def test_stamping_one_pair_leaves_all_others_byte_identical(repo):
   assert len(new_lines) == len(lines)
   assert new_lines[:9] == lines[:9]
   assert new_lines[10:] == lines[10:]
-  stamp = r"  \\begin\{onlyin\}\{english\} % sync en=[0-9a-f]{6} sv=[0-9a-f]{6}\n"
+  stamp = r"  \\begin\{onlyin\}\{english\} % sync english=[0-9a-f]{6} swedish=[0-9a-f]{6}\n"
   assert re.fullmatch(stamp, new_lines[9])
 
 
@@ -3167,7 +3343,7 @@ def test_a_stamp_is_replaced_in_place(repo):
   path.write_text(path.read_text().replace("cat", "dog"))
   assert run(repo, "--stamp", "contents.nw:1").returncode == 0
   assert path.read_text().count("% sync") == 1
-  assert path.read_text().splitlines()[0].startswith("\\begin{onlyin}{swedish} % sync en=")
+  assert path.read_text().splitlines()[0].startswith("\\begin{onlyin}{swedish} % sync english=")
   assert run(repo, "contents.nw").returncode == 0
 
 
@@ -3188,7 +3364,7 @@ def test_crlf_line_ends_survive_a_stamp(repo):
   data = path.read_bytes()
   assert data.count(b"\r\n") == 6
   assert data.count(b"\n") == 6
-  assert data.startswith(b"\\begin{onlyin}{english} % sync en=")
+  assert data.startswith(b"\\begin{onlyin}{english} % sync english=")
   assert run(repo, "contents.nw").returncode == 0
 
 
@@ -3264,7 +3440,7 @@ def test_stamping_does_not_accept_a_stale_neighbour(repo):
   changed = [i for i, (a, b) in enumerate(zip(before, after)) if a != b]
   assert changed == [line - 1]
   result = run(repo, "contents.nw")
-  assert result.stdout.count("sv is behind") == 3
+  assert result.stdout.count("swedish is behind") == 3
 
 
 def test_stamping_a_leftover_stamp_removes_it(repo):
@@ -3315,7 +3491,7 @@ def test_the_names_of_a_report_stay_right_while_stamping(repo):
   for name in ("1", "15"):
     assert run(repo, "--stamp", f"a.tex:{name}").returncode == 0
   report = run(repo, "a.tex").stdout
-  assert "a.tex:8: sv is behind" in report
+  assert "a.tex:8: swedish is behind" in report
   assert "a.tex:15" not in report
 
 
@@ -3338,7 +3514,7 @@ def test_a_word_one_language_lacks_can_be_stamped(repo):
 def test_stamping_says_what_it_stamped(repo):
   (repo / "contents.nw").write_text(blocks("en", "sv"))
   result = run(repo, "--stamp", "contents.nw:1")
-  assert "stamped contents.nw:1: en The cat sat. / sv Katten satt." in (
+  assert "stamped contents.nw:1: english The cat sat. / swedish Katten satt." in (
     result.stdout
   )
 
@@ -3355,12 +3531,12 @@ def test_entries_stay_with_their_uses_when_ensv_becomes_the_files_own(repo):
   path.write_text(path.read_text().replace("{Ja}", "{Jo}"))
   assert run(repo, "--stamp", "contents.nw:2.2").returncode == 0
   first = path.read_text().splitlines()[1].split("% sync ")[1].split("; ")[0]
-  assert first != "en=- sv=-"
+  assert first != "english=- swedish=-"
 
 
 def test_removing_a_leftover_stamp_keeps_the_byte_order_mark(repo):
   path = repo / "contents.nw"
-  path.write_bytes(b"\xef\xbb\xbf% sync en=aaaaaa sv=bbbbbb\nText.\n")
+  path.write_bytes(b"\xef\xbb\xbf% sync english=aaaaaa swedish=bbbbbb\nText.\n")
   result = run(repo, "--stamp", "contents.nw:1")
   assert result.returncode == 0
   assert "moved up" in result.stdout
@@ -3369,7 +3545,7 @@ def test_removing_a_leftover_stamp_keeps_the_byte_order_mark(repo):
 
 def test_a_stamp_at_the_end_of_a_line_with_no_ensv_is_a_leftover(repo):
   path = repo / "contents.nw"
-  path.write_text("Yes % sync en=aaaaaa sv=bbbbbb\n")
+  path.write_text("Yes % sync english=aaaaaa swedish=bbbbbb\n")
   result = run(repo, "contents.nw")
   assert result.returncode == 1
   assert "contents.nw:1: a stamp with no pair here" in result.stdout
@@ -3381,7 +3557,7 @@ def test_a_surplus_entry_is_a_leftover_that_a_stamp_clears(repo):
   path = repo / "contents.nw"
   path.write_text("\\ensv{a}{b}\n")
   assert run(repo, "--stamp", "contents.nw:1").returncode == 0
-  path.write_text(path.read_text().replace("\n", "; en=111111 sv=222222\n"))
+  path.write_text(path.read_text().replace("\n", "; english=111111 swedish=222222\n"))
   result = run(repo, "contents.nw")
   assert result.returncode == 1
   assert "contents.nw:1: a stamp with no pair here" in result.stdout
@@ -3410,14 +3586,14 @@ def test_removing_a_surplus_entry_keeps_the_others(repo):
     assert run(repo, "--stamp", f"contents.nw:{name}").returncode == 0
   commit(repo, "stamps")
   path.write_text(
-    path.read_text().replace("Yes", "Yeah").replace("\n", "; en=1 sv=2\n")
+    path.read_text().replace("Yes", "Yeah").replace("\n", "; english=1 swedish=2\n")
   )
   assert "contents.nw:1: a stamp with no pair here" in run(
     repo, "contents.nw"
   ).stdout
   assert run(repo, "--stamp", "contents.nw:1").returncode == 0
   result = run(repo, "-v", "contents.nw")
-  assert "contents.nw:1.1: sv is behind" in result.stdout
+  assert "contents.nw:1.1: swedish is behind" in result.stdout
   assert "contents.nw:1.2: in sync" in result.stdout
   assert "no pair here" not in result.stdout
 
@@ -3438,7 +3614,7 @@ def test_a_stamp_above_an_ensv_line_is_a_leftover_that_can_go(repo):
 
 def test_a_stamp_in_an_ensv_over_several_lines_is_a_leftover_that_can_go(repo):
   path = repo / "contents.nw"
-  path.write_text("\\ensv{a\n% sync en=aaaaaa sv=bbbbbb\nb}{c}\n")
+  path.write_text("\\ensv{a\n% sync english=aaaaaa swedish=bbbbbb\nb}{c}\n")
   result = run(repo, "contents.nw")
   assert result.returncode == 1
   assert "contents.nw:2: a stamp with no pair here" in result.stdout
@@ -3697,7 +3873,7 @@ def print_restamped(found):
     if not found:
         print("No pair was re-stamped with only one side changed.")
     for path, old, pair, changed, certain in found:
-        languages = " and ".join(changed)
+        languages = " and ".join(pair.name(tag) for tag in changed)
         what = (
             f"re-stamped, only {languages} changed"
             if certain
@@ -3706,9 +3882,10 @@ def print_restamped(found):
         print(f"{path}:{pair.target}: {what}")
         for tag, text in sorted(pair.sides.items()):
             if tag in changed:
-                print(f"  {tag}: {word_diff(old.sides.get(tag, ''), text)}")
+                change = word_diff(old.sides.get(tag, ""), text)
+                print(f"  {pair.name(tag)}: {change}")
             else:
-                print(f"  {tag} now: {' '.join(text.split())}")
+                print(f"  {pair.name(tag)} now: {' '.join(text.split())}")
 @
 
 Let's verify the three cases that the design separates, on one file with three
@@ -3785,7 +3962,7 @@ def test_branch_check_with_three_languages(repo):
   assert run(repo, "--stamp", "contents.nw:1").returncode == 0
   commit(repo, "a German typo")
   result = run(repo, "master...HEAD")
-  assert "re-stamped, only de changed" in result.stdout
+  assert "re-stamped, only ngerman changed" in result.stdout
   assert "[-Eins-]{+Einz+}" in result.stdout
 
 
@@ -3796,9 +3973,9 @@ def test_branch_check_lists_a_one_side_restamp(repo):
   commit(repo, "a typo")
   result = run(repo, "master...HEAD")
   assert result.returncode == 0
-  assert "re-stamped, only en changed" in result.stdout
+  assert "re-stamped, only english changed" in result.stdout
   assert "[-One.-]{+Uno.+}" in result.stdout
-  assert "sv now: Ett." in result.stdout
+  assert "swedish now: Ett." in result.stdout
   assert "Two." not in result.stdout
   assert "Three." not in result.stdout
 
@@ -3850,7 +4027,7 @@ def test_branch_check_lists_a_new_pair_with_an_old_side_as_possible(repo):
   result = run(repo, "master...HEAD")
   assert result.returncode == 0
   assert "re-stamped, only" not in result.stdout
-  assert "new, or re-stamped with only en changed" in result.stdout
+  assert "new, or re-stamped with only english changed" in result.stdout
   assert "[-One.-]{+Uno.+}" in result.stdout
 
 
@@ -3868,7 +4045,7 @@ def test_branch_check_sees_a_restamp_hidden_by_a_new_equal_pair(repo):
   commit(repo, "one changed, and a new one like it was")
   result = run(repo, "master...HEAD")
   assert result.returncode == 0
-  assert "new, or re-stamped with only sv changed" in result.stdout
+  assert "new, or re-stamped with only swedish changed" in result.stdout
   assert "[-Övning-]{+Övningar+}" in result.stdout
 
 
@@ -3907,7 +4084,7 @@ def test_branch_check_lists_one_of_two_equal_pairs(repo):
   assert run(repo, "--stamp", "contents.nw:1").returncode == 0
   commit(repo, "one of them")
   result = run(repo, "master...HEAD")
-  assert result.stdout.count("re-stamped, only sv changed") == 1
+  assert result.stdout.count("re-stamped, only swedish changed") == 1
 
 
 def test_branch_check_lists_a_fix_that_makes_two_pairs_equal(repo):
@@ -3967,7 +4144,7 @@ def test_branch_check_lists_pairs_that_exchange_sides(repo):
     assert run(repo, "--stamp", f"contents.nw:{line}").returncode == 0
   commit(repo, "a three-way cycle of the en sides")
   result = run(repo, "master...HEAD")
-  assert result.stdout.count("only en changed") == 3
+  assert result.stdout.count("only english changed") == 3
 
 
 def test_stamping_a_source_says_nothing(repo):
@@ -4073,9 +4250,9 @@ def test_branch_check_lists_a_one_side_restamp_of_ensv(repo):
   stamp_at(repo, path, "Fyran")
   commit(repo, "a typo in a tr")
   result = run(repo, "master...HEAD")
-  assert "only sv changed" in result.stdout
+  assert "only swedish changed" in result.stdout
   assert "[-Fyra-]{+Fyran+}" in result.stdout
-  assert "en now: Four" in result.stdout
+  assert "english now: Four" in result.stdout
 
 
 def test_branch_check_lists_a_restamp_moved_to_another_file(repo):
@@ -4212,8 +4389,14 @@ def parse_arguments(argv):
     parser.add_argument(
         "--migrate",
         action="store_true",
-        help="rewrite the blocks of version 2.17, \\begin{onlyin}{english} and "
-        "\\begin{onlyin}{swedish}, as \\begin{onlyin}{english} and {swedish}",
+        help="rewrite the blocks of version 2.17, \\begin{en} and \\begin{sv}, "
+        "as \\begin{onlyin}{english} and {swedish}, and their stamps' keys",
+    )
+    parser.add_argument(
+        "--en",
+        metavar="NAME",
+        help="with --migrate: babel's name that version 2.17's en becomes, "
+        "such as british (default: english)",
     )
     return parser.parse_args(argv)
 
@@ -4240,11 +4423,19 @@ def main(argv=None):
 
 def run_mode(args):
     """Run the mode that the arguments ask for; return the exit status."""
+    if args.en is not None and not args.migrate:
+        print("--en goes with --migrate", file=sys.stderr)
+        return STATUS_ERROR
     if args.migrate:
         if args.stamp is not None or not args.targets:
             print("--migrate takes the files to rewrite", file=sys.stderr)
             return STATUS_ERROR
-        return migrate_files(args.targets)
+        english = args.en or "english"
+        if NAMES.get(english) != "en":
+            print(f"--en takes babel's name of English, such as british, "
+                  f"not {english}", file=sys.stderr)
+            return STATUS_ERROR
+        return migrate_files(args.targets, english)
     if args.stamp is not None:
         if args.targets or len(args.stamp) > 1:
             print("--stamp takes one pair and nothing else", file=sys.stderr)
@@ -4343,7 +4534,7 @@ def test_a_byte_order_mark_stays_first_and_hides_nothing(repo):
   assert "contents.nw:1: new pair" in run(repo, "contents.nw").stdout
   assert run(repo, "--stamp", "contents.nw:1").returncode == 0
   data = path.read_bytes()
-  assert data.startswith(mark + b"\\begin{onlyin}{english} % sync en=")
+  assert data.startswith(mark + b"\\begin{onlyin}{english} % sync english=")
   assert data.count(mark) == 1
   assert run(repo, "contents.nw").returncode == 0
 
@@ -4437,15 +4628,30 @@ Every source with blocks has to be rewritten, and [[--migrate]] does it.
 It rewrites only what the reader takes for a block of version 2.17, so a
 [[\begin{en}]] shown in a code chunk, a verbatim environment or a comment
 stays as it is, which a [[sed]] over the file wouldn't leave alone.
-What follows [[\begin{en}]] on its line is kept, a stamp included, and the
-stamp stays right: it's keyed by tag, [[en]] and [[sv]], and the texts it
-hashes don't change.
+What follows [[\begin{en}]] on its line is kept, and so is a stamp's every
+hash, since the texts they're hashes of don't change; only a stamp's keys,
+[[en=]] and [[sv=]] in version 2.17, become the names the sides are written
+in, as now (\cref{sec:sync-stamp}).
+So a source that checked clean before checks clean after.
 A file with other errors isn't touched, since its blocks can't be told
 reliably, and a second run finds nothing to rewrite.
 
+Version 2.17's [[en]] was one edition for both [[english]] and [[british]],
+and its blocks don't say which.
+[[--migrate]] writes [[english]] unless [[--en]] names another of
+\textsf{babel}'s names of English, such as [[british]] for a deck whose
+drivers load British English.
+Reading it from the source's \textsf{babel} options instead would work for
+a single file with its preamble, but a deck's contents are input by drivers,
+often several, which may not agree, and the names are only labels anyway: a
+stamp takes any name of its language, and both editions are built either way.
+So the option is explicit, and the default the one name that every document
+with English can use.
+
 <<functions>>=
-def migrate_files(paths):
+def migrate_files(paths, english="english"):
     """Rewrite the blocks of version 2.17 in files; return the exit status."""
+    renames = {"en": english, "sv": "swedish"}
     status = STATUS_OK
     for path in paths:
         if not Path(path).is_file():
@@ -4455,6 +4661,7 @@ def migrate_files(paths):
         text = read_text(path)
         mark = BYTE_ORDER_MARK if text.startswith(BYTE_ORDER_MARK) else ""
         reading = read_source(text, noweb=not path.endswith(".tex"))
+        ensv_pairs(reading)
         errors = [error for error in reading.errors
                   if error not in reading.old_errors]
         for line, message in errors:
@@ -4466,14 +4673,52 @@ def migrate_files(paths):
         for begin, end, old in reading.old_blocks:
             lines[begin] = lines[begin].replace(
                 "\\begin{" + old + "}",
-                "\\begin{onlyin}{" + OLD_BLOCKS[old] + "}",
+                "\\begin{onlyin}{" + renames[old] + "}",
                 1,
             )
             lines[end] = lines[end].replace("\\end{" + old + "}", "\\end{onlyin}")
-        if reading.old_blocks:
+        stamps = rename_old_stamps(lines, path, renames)
+        if reading.old_blocks or stamps:
             write_text(path, mark + "\n".join(lines))
-        print(f"{path}: {len(reading.old_blocks)} blocks rewritten")
+        print(f"{path}: {len(reading.old_blocks)} blocks and {stamps} stamps "
+              "rewritten")
     return status
+@
+
+A stamp's keys become the names its pair's sides have, once the blocks are
+rewritten: a block's argument, a string's language list.
+So the source is read again for its pairs, and the strings' stamps are only
+known once the strings have been read, and a stamp's entry takes the names
+of the pair that uses it, by line and, for strings, by place on the line.
+A stamp that no pair uses gets [[renames]], which is no worse, since it's
+reported as a stamp with no pair anyway.
+
+<<functions>>=
+def rename_old_stamps(lines, path, renames):
+    """Rename the tags in the stamps of version 2.17; return how many."""
+    reading = read_source("\n".join(lines), noweb=not path.endswith(".tex"))
+    names = {}
+    for pair in block_pairs(reading)[0] + ensv_pairs(reading)[0]:
+        if pair.is_block:
+            for begin in (pair.first, *pair.other_begins):
+                names[(begin, 0)] = pair.names
+        else:
+            names[(pair.last, pair.position)] = pair.names
+    for number in reading.old_stamps:
+        line = lines[number]
+        match = STAMP_COMMENT.search(line.removesuffix("\r"))
+        entries = []
+        for position, entry in enumerate(match.group("entries").split(";")):
+            known = names.get((number, position), {})
+            parts = []
+            for part in entry.split():
+                key, value = part.split("=")
+                if key not in NAMES and key in TAG_NAMES:
+                    key = known.get(key) or renames.get(key) or TAG_NAMES[key]
+                parts.append(f"{key}={value}")
+            entries.append(" ".join(sorted(parts)))
+        lines[number] = with_stamp(line, "; ".join(entries))
+    return len(reading.old_stamps)
 @
 
 Let's verify it on a source of version 2.17 with stamps and with examples of
@@ -4491,9 +4736,6 @@ V2_17_SOURCE = (
 
 def test_migrate_rewrites_real_blocks_and_keeps_their_stamps(repo):
   path = repo / "contents.nw"
-  old = V2_17_SOURCE.replace(
-    "\\begin{en}\nThe", "\\begin{en} % sync en=STAMP\nThe"
-  )
   path.write_text(V2_17_SOURCE)
   migrated = run(repo, "--migrate", "contents.nw")
   assert migrated.returncode == 0, migrated.stderr
@@ -4511,19 +4753,72 @@ def test_migrate_rewrites_real_blocks_and_keeps_their_stamps(repo):
   assert path.read_text() == text
 
 
-def test_a_v2_17_stamp_stays_valid_after_migrate(repo):
+def stamped_source(repo, english="english"):
+  """Return a source of this version with every pair stamped, in sync."""
   path = repo / "contents.nw"
-  v2_17 = (
-    "\\begin{en}\nThe cat sat.\n\\end{en}\n"
-    "\\begin{sv}\nKatten satt.\n\\end{sv}\n"
+  path.write_text(
+    onlyin(english, "The cat sat.") + onlyin("swedish", "Katten satt.")
+    + "Text.\n\\ensv{One}{Ett} \\ensv{Two}{Två}\n"
   )
-  path.write_text(onlyin("english", "The cat sat.") + onlyin("swedish", "Katten satt."))
-  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
-  stamp = path.read_text().splitlines()[0].split(" % ")[1]
-  path.write_text(v2_17.replace("\\begin{en}\n", "\\begin{en} % " + stamp + "\n", 1))
-  assert run(repo, "--migrate", "contents.nw").returncode == 0
-  assert ("% " + stamp) in path.read_text()
+  for target in ("1", "8.1", "8.2"):
+    assert run(repo, "--stamp", f"contents.nw:{target}").returncode == 0
   assert run(repo, "contents.nw").returncode == 0
+  return path.read_text()
+
+
+def as_v2_17(text):
+  """Return a source of this version as version 2.17 wrote it."""
+  for name, old in (("english", "en"), ("british", "en"), ("swedish", "sv")):
+    text = text.replace(f"\\begin{{onlyin}}{{{name}}}", f"\\begin{{{old}}}")
+    text = text.replace(f"{name}=", f"{old}=")
+  for old in ("en", "sv"):
+    text = re.sub(r"(\\begin\{" + old + r"\}.*\n(?:.*\n)*?)\\end\{onlyin\}",
+                  r"\1\\end{" + old + "}", text, count=1)
+  return text
+
+
+@pytest.mark.parametrize("english", ["english", "british"])
+def test_migrate_rewrites_stamps_and_the_source_checks_clean(repo, english):
+  new = stamped_source(repo, english)
+  old = as_v2_17(new)
+  assert "\\begin{en} % sync en=" in old and "\\end{sv}" in old
+  assert "onlyin" not in old and "english=" not in old
+  path = repo / "contents.nw"
+  path.write_text(old)
+  options = ["--en", english] if english != "english" else []
+  migrated = run(repo, "--migrate", *options, "contents.nw")
+  assert migrated.returncode == 0, migrated.stderr
+  assert "1 blocks" not in migrated.stdout
+  assert "2 blocks and 2 stamps rewritten" in migrated.stdout
+  assert path.read_text() == new
+  assert run(repo, "contents.nw").returncode == 0
+  assert run(repo, "--migrate", *options, "contents.nw").returncode == 0
+  assert path.read_text() == new
+
+
+def test_migrate_rewrites_a_stamp_on_a_block_of_this_version(repo):
+  new = stamped_source(repo, "british")
+  path = repo / "contents.nw"
+  path.write_text(new.replace("british=", "en=").replace("swedish=", "sv="))
+  assert run(repo, "contents.nw").returncode == 2
+  assert run(repo, "--migrate", "contents.nw").returncode == 0
+  assert path.read_text() == new
+
+
+@pytest.mark.parametrize(
+  "arguments, message",
+  [
+    (["--migrate", "--en", "swedish", "contents.nw"], "--en takes"),
+    (["--migrate", "--en", "klingon", "contents.nw"], "--en takes"),
+    (["--en", "british", "contents.nw"], "--en goes with --migrate"),
+  ],
+)
+def test_migrate_en_takes_a_name_of_english(repo, arguments, message):
+  (repo / "contents.nw").write_text("\\begin{en}\nA.\n\\end{en}\n")
+  result = run(repo, *arguments)
+  assert result.returncode == 2
+  assert message in result.stderr
+  assert (repo / "contents.nw").read_text() == "\\begin{en}\nA.\n\\end{en}\n"
 
 
 def test_migrate_refuses_a_malformed_file(repo):
