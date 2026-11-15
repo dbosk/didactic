@@ -1903,6 +1903,9 @@
 % \DescribeMacro{\didacticlanguage}
 % The edition is the main language of \textsf{babel}: |swedish| gives the 
 % Swedish edition, and any other language the English one.
+% So the feature needs \textsf{babel}, which this package loads anyway: a 
+% document with \textsf{polyglossia} instead stops where this package loads 
+% \textsf{babel}, with or without the bilingual feature.
 % So a driver for each edition needs to say its language only once, before 
 % the shared preamble, and a whole book, such as a Swedish book that binds 
 % some bilingual decks, gets the right edition with no further setting:
@@ -1915,8 +1918,28 @@
 % So does the command |\didacticlanguage| with the same argument, which can 
 % also be used in the document, between blocks.
 %
-% The names that \textsf{babel} sets follow by themselves: captions, 
-% \textsf{beamer}'s and this package's block titles.
+% The names that \textsf{babel} sets follow by themselves: captions, and this 
+% package's block titles, such as \enquote{Exercise}.
+% \textsf{beamer}'s own block titles, such as \enquote{Example} and 
+% \enquote{Theorem}, don't: they come from \textsf{translator}, which 
+% \textsf{beamer} and \textsf{beamerarticle} load, and which takes its 
+% languages from the options of the class, not from \textsf{babel}'s, so 
+% that the Swedish slides say \enquote{Example}.
+% The shared preamble therefore tells it, once, for both editions:
+% \begin{verbatim}
+% \uselanguage{Swedish}
+% \languagealias{swedish}{Swedish}
+% \end{verbatim}
+% Then \textsf{translator} follows \textsf{babel}'s language, so the English 
+% edition still says \enquote{Example}, and the Swedish one 
+% \enquote{Exempel}.
+% The lines need \textsf{translator}: a document with neither \textsf{beamer} 
+% nor \textsf{beamerarticle} leaves them out.
+% Giving the class the language, |\documentclass[swedish]{beamer}|, also 
+% makes \textsf{translator} Swedish, but a class option reaches every 
+% package, and it turns \textsf{cleveref}'s order, which the next paragraph 
+% is about, round: with it, the Swedish edition's |\cref| says 
+% \enquote{section} and the English one \enquote{avsnitt}.
 % The names of |\cref| don't: \textsf{cleveref} takes them from the 
 % \emph{last} language among its options.
 % Giving it both languages isn't enough, since \textsf{cleveref} adds a 
@@ -1966,6 +1989,16 @@
 %   name, then the tangled file gets both.
 %   Tangling doesn't know about languages: |notangle| tangles what's in an 
 %   excluded block as well, so a program per language tangles to two files.
+%   Two more rules come from how \texttt{noweave} writes the woven file.
+%   It writes the index of the chunks right after the file's \emph{last} 
+%   code chunk, so that chunk stands outside any block: if it's in a block, 
+%   the other edition loses the whole index, without a word unless 
+%   |\nowebchunks| or |\nowebindex| prints it.
+%   And it puts the text after a chunk's closing |@| on the same line, so 
+%   the |@| that closes a chunk in a block stands alone on its line, with 
+%   |\end{en}| on the next: |@ \end{en}| becomes a line that doesn't end 
+%   the block.
+%   \texttt{didactic-sync.py} reports both.
 % \item[Labels] A label in a block doesn't exist in the other edition, so 
 %   text outside the block can only refer to it if the partner defines the 
 %   same label, which is fine since only one of them is read.

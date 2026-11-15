@@ -49,7 +49,7 @@ check() {
 }
 
 NOTES="TITLE CHAPTER SECTION PROSE FRAMETITLE FRAME VERBATIM EXERCISE ITEM \
-  BLOCKED NOTE WHOLEFRAME CAPTION STRING"
+  BLOCKED NOTE WHOLEFRAME CAPTION STRING CHUNK"
 SLIDES="TITLE SECTION FRAMETITLE FRAME VERBATIM EXERCISE ITEM BLOCKED \
   WHOLEFRAME STRING"
 
@@ -61,6 +61,81 @@ check test-bilingual-slides-sv SV EN $SLIDES
 for job in test-bilingual-slides test-bilingual-slides-sv; do
   case "$(pdftotext "$job.pdf" -)" in
     *ENPROSE*|*SVPROSE*) fail "$job" "prose outside the frames" ;;
+  esac
+done
+
+# A woven chunk in a block: each edition has its own, and the chunk index,
+# which noweave writes after the file's last chunk, reaches both.
+for job in test-bilingual test-bilingual-sv; do
+  case "$(pdftotext "$job.pdf" -)" in
+    *SHAREDCHUNK*) ;;
+    *) fail "$job" "the shared chunk is missing" ;;
+  esac
+  entries=$(grep -c 'nwixadds' "$job.aux")
+  [ "$entries" -ge 3 ] \
+    || fail "$job" "the chunk index has $entries entries, not 3"
+done
+
+# The test notes load beamerarticle with notheorems, so their example is this
+# package's own, which follows babel anyway.  Notes without notheorems get
+# beamer's, from translator, like the slides: they need the two lines of the
+# shared preamble just as much.
+cat > test-bilingual-titles.tex <<'TITLES'
+\documentclass{memoir}
+\PassOptionsToPackage{main=swedish}{babel}
+\PassOptionsToPackage{english,swedish}{cleveref}
+\usepackage{beamerarticle}
+\input{test-bilingual-preamble.tex}
+\begin{document}
+\begin{example}NOTESEXAMPLE\end{example}
+\begin{theorem}NOTESTHEOREM\end{theorem}
+\end{document}
+TITLES
+rm -f test-bilingual-titles.pdf
+${PDFLATEX:-pdflatex} -shell-escape -interaction=nonstopmode \
+  test-bilingual-titles.tex >/dev/null 2>&1
+text=$(pdftotext test-bilingual-titles.pdf - 2>/dev/null | tr -s ' \n' '  ')
+case "$text" in
+  *Exempel*NOTESEXAMPLE*Teorem*NOTESTHEOREM*) ;;
+  *) fail titles "beamer's titles in Swedish notes without notheorems: $text" ;;
+esac
+
+# The test documents are examples too, so the script must find nothing wrong
+# with them: no error, and no stamp in a form that it no longer reads.
+for source in test-bilingual.tex test-bilingual-sv.tex \
+  test-bilingual-slides.tex test-bilingual-slides-sv.tex \
+  test-bilingual-contents.tex test-bilingual-preamble.tex \
+  test-bilingual-nested.tex test-bilingual-nested-inner.tex \
+  test-bilingual-nested-innermost.tex test-bilingual-off.tex \
+  test-bilingual-woven.nw; do
+  report=$(./didactic-sync.py --list "$source" 2>&1) \
+    || fail "$source" "didactic-sync.py finds it malformed: $report"
+  case "$report" in
+    *"no pair here"*) fail "$source" "a stamp with no pair: $report" ;;
+  esac
+done
+
+# beamer's own block titles, such as Example, come from translator, which
+# follows babel only with the two lines that the documentation gives; this
+# package's titles, such as Exercise, follow babel by themselves.
+for job in test-bilingual test-bilingual-slides; do
+  text=$(pdftotext "$job.pdf" -)
+  case "$text" in
+    *Example*) ;;
+    *) fail "$job" "beamer's block title is not English" ;;
+  esac
+  case "$text" in
+    *Exempel*) fail "$job" "a Swedish block title in the English edition" ;;
+  esac
+done
+for job in test-bilingual-sv test-bilingual-slides-sv; do
+  text=$(pdftotext "$job.pdf" -)
+  case "$text" in
+    *Exempel*) ;;
+    *) fail "$job" "beamer's block title is not Swedish" ;;
+  esac
+  case "$text" in
+    *Example*) fail "$job" "an English block title in the Swedish edition" ;;
   esac
 done
 

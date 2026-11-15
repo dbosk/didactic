@@ -1,0 +1,31 @@
+% A literate source with code chunks in blocks, woven into the test-bilingual
+% notes (test-bilingual-contents.tex inputs it).  noweave writes the chunk
+% index after the file's last code chunk, so where that chunk stands decides
+% whether both editions get the index: test-bilingual.sh counts its entries
+% in each edition's .aux.
+
+<<[[shared.py]]>>=
+print("SHAREDCHUNK")
+@
+
+\begin{en} % sync en=d00efb sv=f05749
+ENPROSE before a chunk of its own.
+
+<<[[en.py]]>>=
+print("ENCHUNK")
+@
+\end{en}
+\begin{sv}
+SVPROSE before a chunk of its own.
+
+<<[[sv.py]]>>=
+print("SVCHUNK")
+@
+\end{sv}
+
+The file's last chunk stands outside the blocks, as the documentation says, so
+that the chunk index, which noweave writes after it, is in both editions.
+
+<<[[shared.py]]>>=
+print("the end")
+@
