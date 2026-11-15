@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}[2021/06/01]
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/11/15 v2.17.1 didactic]
+  [2026/11/15 v2.17.2 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -156,6 +156,11 @@
 %   when it's loaded.
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
+% }
+% \changes{v2.17.2}{2026/11/15}{%
+%   With \textsf{cleveref}'s option \texttt{capitalise}, the names of this 
+%   package's environments are capitalised in \texttt{\textbackslash cref} 
+%   too, as \textsf{cleveref}'s own are (\#107).
 % }
 % \changes{v2.17.1}{2026/11/15}{%
 %   With \textsf{translator}, which \textsf{beamer} and 
@@ -1977,6 +1982,20 @@
 % as above, and the shared preamble loads it without a language.
 % Names set in the preamble with |\crefname| depend on the edition too, and 
 % can use |\ensv|.
+% That holds for \textsf{cleveref}'s own types; this package sets the names 
+% of its own environments at the start of the document, which replaces 
+% names given for them in the preamble.
+% A document's own name for one of them, |\crefname{exercise}{...}{...}|, 
+% therefore goes in |\AtBeginDocument|, where it wins whether it's written 
+% before or after this package is loaded.
+% The driver can also give \textsf{cleveref} |capitalise| for one edition 
+% only, |\PassOptionsToPackage{capitalise}{cleveref}|, for 
+% \enquote{Section~1.2} in mid-sentence in English and \enquote{avsnitt~1.2} 
+% in Swedish.
+% Since version~2.17.2 the names of this package's environments follow it too: 
+% with |capitalise|, |\cref| says \enquote{Exercise~1} beside 
+% \enquote{Section~1.2}, and without it \enquote{övningsuppgift~1} beside 
+% \enquote{avsnitt~1.2}, in the singular and the plural.
 %
 % The blocks are built on the \textsf{comment} package, which reads a block 
 % line by line and writes it to a file, or skips it, so a block can hold 
@@ -4237,12 +4256,32 @@
 % Since the |refname| and |Refname| options of |thmtools| doesn't seem to work
 % we will add the necessary |\crefname| and |\Crefname| commands at the
 % beginning of the document, for both |beamer| and non-|beamer| case.
+%
+% \textsf{cleveref}'s option |capitalise| only chooses among the names it 
+% derives itself: a name given with |\crefname| is used as it stands.
+% So with |capitalise| we give |\crefname| the capitalised names, which is 
+% what the option asks for, and otherwise the lowercase ones, as before.
+% Letting \textsf{cleveref} derive the lowercase name from |\Crefname| 
+% instead doesn't work here: it puts |\MakeLowercase| before the name, which 
+% then takes |\GetTranslationWarn| alone as its argument, and the reference 
+% fails with \enquote{Argument of \textbackslash GetTranslationWarn has an 
+% extra \}}; and \textsf{thmtools} has already set |\crefname| from 
+% |refname| anyway.
+% An abbreviation given as the lowercase name, such as \enquote{ex.} beside 
+% \enquote{Example}, is used without |capitalise| only; with it, |\cref| 
+% says \enquote{Example}, like |\Cref|.
 %    \begin{macrocode}
     \AtBeginDocument{%
       \@ifpackageloaded{cleveref}{%
-        \crefname{#1}
-          {\GetTranslationWarn{#5}}
-          {\GetTranslationWarn{#6}}
+        \if@cref@capitalise
+          \crefname{#1}
+            {\GetTranslationWarn{#7}}
+            {\GetTranslationWarn{#8}}
+        \else
+          \crefname{#1}
+            {\GetTranslationWarn{#5}}
+            {\GetTranslationWarn{#6}}
+        \fi
         \Crefname{#1}
           {\GetTranslationWarn{#7}}
           {\GetTranslationWarn{#8}}

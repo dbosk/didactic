@@ -159,6 +159,43 @@ case "$(pdftotext test-bilingual-ownlines.pdf - 2>/dev/null)" in
   *) fail nobilingual "translator was set up, or the deck didn't build" ;;
 esac
 
+# cleveref's capitalise reaches this package's names too: the English edition
+# with it says "Exercise 1" mid-sentence, beside cleveref's own "Section", and
+# the Swedish edition without it "övningsuppgift 1" beside "avsnitt", as the
+# decks are built.
+for edition in british:swedish,english:capitalise swedish:english,swedish:; do
+  babel=${edition%%:*} rest=${edition#*:}
+  order=${rest%%:*} capitalise=${rest#*:}
+  cat > test-bilingual-cref.tex <<CREF
+\documentclass{memoir}
+\PassOptionsToPackage{main=$babel}{babel}
+\PassOptionsToPackage{$order}{cleveref}
+\PassOptionsToPackage{$capitalise}{cleveref}
+\usepackage[noamsthm,notheorems]{beamerarticle}
+\input{test-bilingual-preamble.tex}
+\begin{document}
+\section{S}\label{sec:cref}
+\begin{exercise}\label{ex:one}A.\end{exercise}
+\begin{exercise}\label{ex:two}B.\end{exercise}
+MID \cref{ex:one} beside \cref{sec:cref}. PLURAL \cref{ex:one,ex:two}.
+\end{document}
+CREF
+  rm -f test-bilingual-cref.pdf
+  for pass in 1 2; do
+    ${PDFLATEX:-pdflatex} -shell-escape -interaction=nonstopmode \
+      test-bilingual-cref.tex >/dev/null 2>&1
+  done
+  text=$(pdftotext test-bilingual-cref.pdf - 2>/dev/null | tr -s ' \n' '  ')
+  case $babel in
+    british) want="MID Exercise 1 beside Section*PLURAL Exercises 1 and 2" ;;
+    swedish) want="MID övningsuppgift 1 beside avsnitt*PLURAL övningsuppgifterna 1 och 2" ;;
+  esac
+  case "$text" in
+    *$want*) ;;
+    *) fail cref "$babel, ${capitalise:-no capitalise}: $text" ;;
+  esac
+done
+
 # The test documents are examples too, so the script must find nothing wrong
 # with them: no error, and no stamp in a form that it no longer reads.
 for source in test-bilingual.tex test-bilingual-sv.tex \

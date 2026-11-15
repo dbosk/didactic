@@ -85,6 +85,7 @@ didactic.pdf: ${SRC} didactic.sty
 	grep -q 'a frame title is a run-in heading' didactic.gls
 	grep -q 'Adds bilingual documents' didactic.gls
 	grep -q 'translator' didactic.gls
+	grep -q 'capitalise' didactic.gls
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
 	! grep -E 'Empty bibliography|Citation .*undefined|could not be found' didactic.log
@@ -658,6 +659,7 @@ clean:
 	${RM} test-bilingual-woven.tex
 	${RM} test-bilingual-titles.tex test-bilingual-titles.pdf
 	${RM} test-bilingual-ownlines.tex test-bilingual-ownlines.pdf
+	${RM} test-bilingual-cref.tex test-bilingual-cref.pdf
 	${RM} test-bilingual-stamp.pdf test-bilingual-stamp.unq
 	${RM} test-bilingual-import.pdf test-bilingual-import.unq
 	${RM} $(addsuffix .unq,${TEST_BILINGUAL}) test-bilingual-off.unq
