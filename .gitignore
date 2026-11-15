@@ -16,6 +16,8 @@ test-bilingual-woven.tex
 test-bilingual-titles.tex
 test-bilingual-ownlines.tex
 test-bilingual-cref.tex
+test-bilingual-names.tex
+test-bilingual-names.d
 ltxobj
 test.pdf
 test.unq
