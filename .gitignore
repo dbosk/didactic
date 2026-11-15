@@ -406,6 +406,7 @@ test-biburl-memoir.unq
 test-biburl-memoir.bib
 test-marginfix-interface-*.pdf
 test-marginfix-interface-*.unq
+test-marginfix-interface-changed.d
 # the note suites' jobs (their .aux, .log and the like are ignored above)
 *.aux.old
 test-noteplace-*.pdf

@@ -164,6 +164,12 @@
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
 % }
+% \changes{v2.18}{2026/11/15}{%
+%   A footnote with space of its own after its last line is plain, the space
+%   set after its last line and counted in its height; at the end of the
+%   document a warning says
+%   how many footnotes weren't plain, their text having run three times.
+% }
 % \changes{v2.18}{2026/11/14}{%
 %   A float gives way to the margin notes already decided for its page (it
 %   waits, where it would take the room they need).  A footnote in
@@ -814,7 +820,12 @@
 % between its lines, a paragraph too long for that line) isn't \emph{plain},
 % and the log says so, as information, with the place and what it has: its
 % text runs three times, whether it overflows or not, once as above and twice
-% more, quietly, for the margin and the foot.
+% more, quietly, for the margin and the foot; at the end of the document a
+% warning says how many footnotes weren't plain.
+% Space of its own after its last line (a |\vspace| or |\par\smallskip| at its
+% end) doesn't make it so: it is set after the last line, in the margin and at
+% the foot, and where the note goes is decided by its height with the space, at
+% its natural size.
 % Before each of those two its \LaTeX\ counters are set back (all that
 % |\include| keeps), so they come out as once, and \textsf{biblatex} records
 % nothing in them; any other state its text changes (an acronym's first use, a
@@ -6303,6 +6314,7 @@
       \PackageInfo{didactic}{Footnote called out at \@didactic@hboxat
         \MessageBreak isn't plain: it has \@didactic@whynot;\MessageBreak
         its text runs three times, for the margin and the foot}%
+      \global\advance\@didactic@npcount\@ne
       \@didactic@fallback{#1}%
     \fi
     \@didactic@hboxmargin
@@ -6476,6 +6488,16 @@
 % after a penalty; those go, since the lines are set again as paragraphs.
 % Anything else in the box, a mark, an insertion, a |\write| or a colour
 % between the lines, and the note isn't plain.
+% Glue after the last line, space of the note's own at its end, is kept as a
+% piece of its own (|\@didactic@pt|), set after the last line as it was, in
+% the margin and at the foot, so the boxes the decision measures hold it, at its
+% natural size (the box at the foot is the one put there, its glue set, so the
+% foot gets no credit for the space's shrink); it used to make the note not plain (the one note
+% not plain in the real documents measured was such a one; review 3, S2).
+% Each note found not plain is counted (|\@didactic@npcount|), and the end of
+% the document says how many, once: the Info lines name them, and a note
+% found not plain by mistake would run its text three times without a word.
+% A note set directly (|noteoverflow=carry|) isn't measured and isn't counted.
 % What failed first is kept (|\@didactic@notplain|), and the log says it, once
 % per note that isn't plain, as information: the reader can't act on it, but a
 % note found not plain by mistake would run its text three times without a
@@ -6485,6 +6507,12 @@
 % |B| a line the text broke, |E| the end.
 %    \begin{macrocode}
 \newif\if@didactic@plain
+\newcount\@didactic@npcount
+\AtEndDocument{\ifnum\@didactic@npcount>\z@
+  \PackageWarningNoLine{didactic}{\the\@didactic@npcount\space
+    \ifnum\@didactic@npcount=\@ne footnote wasn't\else footnotes weren't\fi
+    \space plain:\MessageBreak their text ran three times, for the margin and
+    the foot;\MessageBreak the log's Info lines name them}\fi}
 \let\@didactic@curpieces\@empty
 \let\@didactic@whynot\@empty
 \newcommand\@didactic@notplain[1]{%
@@ -6519,7 +6547,8 @@
     \let\@didactic@next\@didactic@plainloop
   \else\ifnum\lastnodetype=11
     \ifx\@didactic@belowht\relax
-      \@didactic@notplain{space of its own at its end}
+      \xdef\@didactic@curpieces{\noexpand\@didactic@pt{\the\lastskip}%
+        \unexpanded\expandafter{\@didactic@curpieces}}%
     \else\ifx\@didactic@pend\relax
       \xdef\@didactic@pend{\the\lastskip}%
     \else
@@ -6613,9 +6642,11 @@
 \newcommand\@didactic@pc[2]{%
   \unhcopy#1\relax
   \if#2P\par\fi}
+\newcommand\@didactic@pt[1]{\par\vskip#1\relax}
 \newcommand\@didactic@freepieces[1]{%
   \begingroup
     \def\@didactic@pc##1##2{\@didactic@boxput{##1}}%
+    \def\@didactic@pt##1{}%
     #1%
   \endgroup}
 \newcommand\@didactic@keep{%

@@ -549,6 +549,27 @@ check fsoverpullfn x 5 '' "carried,$WH,nobelow,noreason=past the foot of the pag
 check fsoverpullmn x 5 '' "carried,$WH,nobelow,noreason=past the foot of the page,pairs" "${FSO%\}}$LMN}"
 check fsoverstay x 5 '' "carried,$WH,nobelow,noreason=past the foot of the page" '\def\testtall{.99}\def\testbody{FIRSTLINE \filler\ end\label{callout-y}'"$(fn 2)"' \filler\ \filler\par}'
 check fsoverlatex x 5 '' "carried,$WH,nobelow,noreason=past the foot of the page" '\def\testtall{.99}\def\testbody{FIRSTLINE \filler\ end\label{callout-y}'"$(fn 2)"' and {\footnotesatfoot\footnote{LATEXFN a footnote of LaTeX'"'"'s own.}} \filler\par}'
+# A footnote whose only departure from paragraphs is space of its own at its end
+# (\par\vspace) is plain: measured without it, set with it, in the margin (trailm) and
+# at the foot (trailf), so that the note after it starts where LaTeX puts it (its
+# first word's height, as the fallback set it before, which ran the text three
+# times: review 3, S2).
+TRP='\def\testpre{\usepackage{zref-savepos,zref-abspage}\csname zref@addprop\endcsname{savepos}{abspage}}'
+check trailm x 20 '' "kept,notplain=0,ypos=nb:333.77" "$TRP"'\def\testyieldfoot{}\def\testtall{.1}\def\testbody{FIRSTLINE words\yieldnote[ with space of its own at its end.\par\vspace{12pt}] and more\footnote{NEXTB\zsavepos{nb} the next one.} \filler\par}'
+check trailf x 20 '' "kept,notplain=0,incol=NOTEY,ypos=nb:137.69" "$TRP"'\def\testyieldfoot{}\def\testbody{FIRSTLINE words\yieldnote[ with space of its own at its end.\par\vspace{12pt}] and more\footnote{NEXTB\zsavepos{nb} the next one.} \filler\par}'
+# At the edge the trailing space counts: the decision reads the note as it is set,
+# space and all (\@didactic@noteht, the foot's version), so a footnote whose text fits
+# the margin's room left and whose text and space don't goes to the foot (trailedgem;
+# without the space it stays in the margin, trailedgemno), and one whose text fits the
+# foot and whose text and space don't is carried (trailedgef; without, trailedgefno).
+TRSP='with space of its own at its end.\par\vspace{12pt}'
+check trailedgem x 20 '' "kept,incol=NOTEY,nobelow" '\def\testyieldfoot{}\def\testtall{.944}\def\testbody{FIRSTLINE words\yieldnote[ '"$TRSP"'] and more \filler\par}'
+check trailedgemno x 20 '' "kept,inmargin=NOTEY" '\def\testyieldfoot{}\def\testtall{.944}\def\testbody{FIRSTLINE words\yieldnote[ with space of its own at its end.] and more \filler\par}'
+check trailedgef x 5 '' "carried,$WH,nobelow" '\def\testyieldfoot{}\def\testtall{.99}\def\testbody{FIRSTLINE \filler\ end\yieldnote[ '"$TRSP"'] \filler\ \filler\par}'
+check trailedgefno x 5 '' "kept,incol=NOTEY,nobelow" '\def\testyieldfoot{}\def\testtall{.99}\def\testbody{FIRSTLINE \filler\ end\yieldnote[ with space of its own at its end.] \filler\ \filler\par}'
+# A footnote set directly, in a passage in the mode carry, isn't measured: one that
+# isn't plain there runs its text once, and is neither said nor counted.
+check notplaincarry x 20 '' "kept" '\def\testtall{.1}\def\testyieldfoot{}\def\testbody{{\marginnoteoverflow{carry}FIRSTLINE words\yieldnote[\par LCARRY\begin{itemize}\item one\end{itemize}] more words.} \filler\par}'
 # A footnote set at the foot as LaTeX sets it (\footnotesatfoot) is left to TeX; one
 # that doesn't fit at a foot that ours has filled is taken to the next page by TeX,
 # and named a run later (latexfoot); one that TeX splits over two pages, begun on its

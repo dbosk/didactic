@@ -70,6 +70,8 @@ called out somewhere names a place, not an internal name; no footnote found not 
   movedwarn   a warning says that TeX ended a page before the line of a footnote
               that had gone to its foot.
   allreasons  every warning that a note is set on a later page gives a reason;
+  ypos=L:Y    the saved position L (zsavepos) is at Y pt from the page's bottom,
+              within 0.1pt;
   pullok      if the callout went to a later page than page 1 (TeX's own break),
               LINEA is on the callout's page and every LINE word on it or the
               next (the note goes with its line), and movedwarn.
@@ -347,6 +349,16 @@ for e in expect:
             fails.append("%s and %s not on one baseline: page %s y %.2fpt, page %s y %.2fpt"
                          % (a, b, pa.get("abspage"), int(pa["posy"]) / 65536,
                             pb.get("abspage"), int(pb["posy"]) / 65536))
+    elif e.startswith("ypos="):
+        # a saved position's height on its page, in pt from the page's bottom
+        # (zsavepos), within 0.1pt of the value given
+        n, v = e[5:].split(":")
+        pos = {k: dict(re.findall(r"\\(posy|abspage)\{(-?\d+)\}", w)) for k, w in
+               re.findall(r"\\zref@newlabel\{([^}]*)\}\{(.*)\}$", aux, re.M)}
+        if "posy" not in pos.get(n, {}):
+            fails.append("no saved position %s" % n)
+        elif abs(int(pos[n]["posy"]) / 65536 - float(v)) > 0.1:
+            fails.append("%s at y %.2fpt, not %spt" % (n, int(pos[n]["posy"]) / 65536, v))
     elif e.startswith("label="):
         n, p = e[6:].split(":")
         if label(n) != p:
@@ -420,6 +432,12 @@ NOTPLAIN = len(re.findall(r"isn't plain", testlog.joined(job + ".log")))
 WANTPLAIN = int(next((a[9:] for a in expect if a.startswith("notplain=")), 0))
 if NOTPLAIN != WANTPLAIN:
     fails.append(f"{NOTPLAIN} notes not plain, {WANTPLAIN} declared")
+# the end of the document says how many footnotes weren't plain, as many as the
+# Info lines, and nothing when all were
+END = re.search(r"(\d+) footnotes? (?:wasn't|weren't) plain", testlog.joined(job + ".log"))
+if (int(END[1]) if END else 0) != NOTPLAIN:
+    fails.append(f"the end of the document says {END[1] if END else 'nothing'} of the "
+                 f"{NOTPLAIN} notes not plain")
 facts["club"], facts["widow"], facts["warned"], facts["logged"] = club(), widow(), warned, logged
 print(("FAIL: " + "; ".join(fails) if fails else "PASS") + " " + str(facts))
 sys.exit(1 if fails else 0)

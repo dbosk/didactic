@@ -45,8 +45,8 @@
 #            boxes in footnotes, against the marginfix found or $MARGINFIX (about 30 s)
 #   noteplace test-noteplace, its rows rsvsidecap, rsvblock, mcolblock,
 #            rsvsidebefore, heldtop, heldsecond, overmoved, footback, overlimit, overtwo,
-#            aftercarry, carrymode, notplainm, notplainf, nestfn, nestmp and fsoverstay
-#            only, against the marginfix found or $MARGINFIX (about 2 minutes a mutant,
+#            aftercarry, carrymode, notplainm, notplainf, nestfn, nestmp, fsoverstay and
+#            trailm only, against the marginfix found or $MARGINFIX (about 2 minutes a mutant,
 #            one at a time; 116 s; run on 2026-11-14, before nestfn, nestmp, fsoverstay)
 #   notefoot test-notefoot, its jobs waitover, warnclaim, defercarry-warn and defercarry,
 #            against $MARGINFIX (30 to 50 s; 30 s)
@@ -2029,3 +2029,23 @@ Cwhole didactic.dtx
 -         \ifnum#1=\z@
 +       \else\ifdim\dimen@>\maxdimen
 +         \ifnum#1=\z@
+
+# Review 3, S2: the footnotes found not plain counted for one warning at the end of the
+# document; not counted, it says nothing (notplainm).
+#: noteplace
+#= killed test-noteplace
+Snpcount didactic.dtx
+-       \global\advance\@didactic@npcount\@ne
+-       \@didactic@fallback{#1}%
++       \@didactic@fallback{#1}%
+
+# S2: space of a footnote's own after its last line taken off for the measure and set
+# again; not, the note isn't plain and runs its text three times (trailm, trailf).
+#: noteplace
+#= killed test-noteplace
+Strail didactic.dtx
+-     \ifx\@didactic@belowht\relax
+-       \xdef\@didactic@curpieces{\noexpand\@didactic@pt{\the\lastskip}%
+-         \unexpanded\expandafter{\@didactic@curpieces}}%
++     \ifx\@didactic@belowht\relax
++       \@didactic@notplain{space of its own at its end}%

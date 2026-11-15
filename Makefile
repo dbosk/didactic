@@ -765,6 +765,7 @@ release: didactic.tar.gz didactic.pdf didactic.sty
 clean:
 	${RM} didactic.sty didactic.pdf
 	${RM} -R test-fuzz.d
+	${RM} -R test-marginfix-interface-changed.d
 	${RM} didactic.log
 	${RM} didactic.aux didactic.glo didactic.idx didactic.log
 	${RM} didactic.gls didactic.glg
