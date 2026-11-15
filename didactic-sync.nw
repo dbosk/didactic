@@ -275,10 +275,10 @@ OLD_BLOCKS = {"en": "english", "sv": "swedish"}
 
 The test of whether a line opens a block is what \LaTeX\ will do with it, and
 that's less obvious in a literate source than it looks.
-The deck on \LaTeX\ will show [[\begin{onlyin}{english}]] in a code chunk, and
-a chunk is shown by [[minted]], which never sees it as a command, so it isn't a block;
-the same goes for a [[minted]] environment in the prose, and for a line that's
-commented out.
+The deck on \LaTeX\ will show [[\begin{onlyin}{english}]] in a code chunk,
+and a chunk is shown by [[minted]], which never sees it as a command, so it
+isn't a block; the same goes for a [[minted]] environment in the prose, and for
+a line that's commented out.
 A pair that the script invents in such a place would ask for a stamp that
 makes no sense, and a stamp written into a chunk would change the program.
 
