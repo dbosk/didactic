@@ -8,7 +8,7 @@
 print("SHAREDCHUNK")
 @
 
-\begin{onlyin}{english} % sync en=d00efb sv=f05749
+\begin{onlyin}{english} % sync english=d00efb swedish=f05749
 ENPROSE before a chunk of its own.
 
 <<[[en.py]]>>=
