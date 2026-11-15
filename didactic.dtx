@@ -1982,6 +1982,12 @@
 % as above, and the shared preamble loads it without a language.
 % Names set in the preamble with |\crefname| depend on the edition too, and 
 % can use |\ensv|.
+% That holds for \textsf{cleveref}'s own types; this package sets the names 
+% of its own environments at the start of the document, which replaces 
+% names given for them in the preamble.
+% A document's own name for one of them, |\crefname{exercise}{...}{...}|, 
+% therefore goes in |\AtBeginDocument|, where it wins whether it's written 
+% before or after this package is loaded.
 % The driver can also give \textsf{cleveref} |capitalise| for one edition 
 % only, |\PassOptionsToPackage{capitalise}{cleveref}|, for 
 % \enquote{Section~1.2} in mid-sentence in English and \enquote{avsnitt~1.2} 
