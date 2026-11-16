@@ -1909,6 +1909,13 @@
 % |british| and |english| are one language: what decides is the language 
 % tag that \textsf{babel} gives each, |en| for both, which this package and 
 % the script compare by and an author never writes.
+% This package asks \textsf{babel}, so a name that \textsf{babel} doesn't 
+% know, in a block or a string, is an error in the build: |{englsh}| is 
+% caught there.
+% \texttt{didactic-sync.py} can't ask \textsf{babel}; it knows a fixed table 
+% of names, in which |english|, |british| and |american| are one language, 
+% and a name that isn't in it, |estonian|, is a language of its own there, 
+% with a note, so a typo passes the script and stops the build.
 % The comment on the first |\begin| line, which \textsf{comment} ignores, 
 % is written by the script \texttt{didactic-sync.py}, which is the subject 
 % of \cref{sec:didactic-sync}.
@@ -1927,9 +1934,12 @@
 % Without the option the languages are English and Swedish, and 
 % |\ensv{English}{Svenska}| and |\sven{Svenska}{English}| are the short 
 % forms, whose names give the order of the arguments.
-% A list that names one language twice, |[english,british]|, is an error 
-% for \texttt{didactic-sync.py}; the package takes the text of the first 
-% name whose language is the edition's and ignores the other.
+% A list that names one language twice, |[english,british]|, is an error, 
+% in the build where the string is typeset and in \texttt{didactic-sync.py}, 
+% since only one of the two texts could ever be printed.
+% A string with fewer texts than languages takes whatever follows as its 
+% last text, since the build can't tell a text from the next word; 
+% \texttt{didactic-sync.py} reports it (exit~2).
 % A string with no text for the edition, such as |\ensv| in a German 
 % edition, is an error where it's typeset, which names the edition and the 
 % string's languages: a shared file used by a German edition needs a German 
@@ -1951,6 +1961,9 @@
 % The edition is the main language of \textsf{babel}, whichever it is, by 
 % its tag: |british| gives the English edition, |swedish| the Swedish one, 
 % |ngerman| the German one.
+% A document that gives \textsf{babel} no language at all gets the English 
+% edition, as in version~2.17, since English is \LaTeX's own language: its 
+% fixed words, \enquote{Contents} and \enquote{Figure}, are English already.
 % So the feature needs \textsf{babel}, which this package loads anyway: a 
 % document with \textsf{polyglossia} instead stops where this package loads 
 % \textsf{babel}, with or without the bilingual feature.
@@ -1963,7 +1976,8 @@
 % \input{preamble.tex}
 % \end{verbatim}
 % The option |language| overrides that, with a language's name, 
-% |language=swedish|; a tag, |language=sv|, is an error that names the name.
+% |language=swedish|; a tag, |language=sv|, is an error that names the name, 
+% and the edition is then \textsf{babel}'s main language.
 % So does the command |\didacticlanguage| with the same argument, which can 
 % also be used in the document, between blocks.
 %
@@ -2048,9 +2062,16 @@
 %   ignored.
 % \item[No block in a block] Every block ends with |\end{onlyin}|, so a 
 %   block can't stand inside another in the same file: the inner block's end 
-%   ends the outer one, and \TeX\ stops at the end of the file with the 
-%   error above.
-%   \texttt{didactic-sync.py} reports it at the inner block.
+%   ends the outer one.
+%   What follows depends on the edition.
+%   Where the outer block is included, its lines up to the inner block's end 
+%   are read again with the inner block's beginning but not its end, and 
+%   \TeX\ stops: \enquote{File ended while scanning use of} |\next|.
+%   Where it's excluded, the text after the inner block's end is printed, the 
+%   outer block's end is left over, \enquote{\cs{begin}\{document\} ended by 
+%   \cs{end}\{onlyin\}}, and the edition loses the outer block's beginning 
+%   and the inner block, with that error but no stop.
+%   \texttt{didactic-sync.py} reports it at the inner block, exit~2.
 %   A block may input a file that holds blocks, see below.
 % \item[Frames] A frame holding a block is |[fragile]|, because the body of 
 %   any other frame has been read as an argument already.
@@ -2130,12 +2151,23 @@
 % document with |\begin{en}| stops with an error that names the form to 
 % write.
 % Its stamps had the keys |en=| and |sv=|, which the script now refuses in 
-% the same way, and the option |language=en| or |language=sv| is an error 
-% too: it's |language=english| or |language=swedish| now.
+% the same way, and the option |language=en| or |language=sv|, and 
+% |\didacticlanguage{en}|, are errors too, in the build and in the script: 
+% it's |language=english| or |language=swedish| now.
 % \texttt{didactic-sync.py --migrate} \meta{file}\dots\ rewrites a source: 
 % each real block, not the examples in code chunks, verbatim environments or 
-% comments, and the keys of each stamp, |english=| and |swedish=|, with 
-% their hashes as they were, so a source that was in sync still is.
+% comments, the keys of each stamp, |english=| and |swedish=|, with their 
+% hashes as they were, so a source that was in sync still is, and the 
+% language settings, in |\usepackage[...]{didactic}|, 
+% |\PassOptionsToPackage{...}{didactic}| and |\didacticlanguage|.
+% A file that has an environment |en|, |sv| or |onlyin| of its own, or loads 
+% this package with |nobilingual|, is left alone, with a note, since its 
+% |\begin{en}| isn't this package's; the script sees only what the file 
+% itself says, not a driver's |nobilingual|.
+% Migrate a deck when its pairs are in sync, if it can be: the script still 
+% shows the word diff of a pair that was behind at the migration, by finding 
+% the stamp in version~2.17's form in the history, but a deck in sync has 
+% nothing to find.
 % Version~2.17's |en| meant |english| and |british| alike, and 
 % |--migrate --en british| writes |british| instead of |english|, in the 
 % blocks and in their stamps; |\ensv| stays |english|, which is the same 
@@ -2145,8 +2177,8 @@
 % or the default for one shared between drivers that differ.
 % A second run changes nothing.
 % The order is: install this version and the script with it, then run 
-% |--migrate| over each deck's sources, change |language=| in the drivers 
-% that set it, rebuild both editions and commit.
+% |--migrate| over each deck's sources and its drivers, rebuild both 
+% editions and commit.
 % Until then a deck stops in the build and in the script (exit~2), so 
 % nothing is half migrated without a word.
 % |\ensv| and |\didactictr{..}{..}| work as before.
@@ -4720,9 +4752,11 @@
 % before its lines are read again from the cut file, where the inner blocks 
 % are, and an excluded block's lines are never read.
 % A block written directly inside another, in the same file, can't work: the 
-% inner block's |\end{onlyin}| ends the outer one, and the outer block's end is 
-% then left over; \texttt{didactic-sync.py} reports that, and \TeX\ stops at 
-% the end of the file.
+% inner block's |\end{onlyin}| ends the outer one.
+% Where the outer block is included, \TeX\ stops at the end of the cut file; 
+% where it's excluded, the outer block's end is left over, an error, and the 
+% edition loses text (\cref{sec:bilingual}); \texttt{didactic-sync.py} reports 
+% it at the inner block.
 %    \begin{macrocode}
 \includecomment{onlyin}
 \def\onlyin#1{%
