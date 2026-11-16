@@ -201,6 +201,8 @@
 %   LaTeX puts it''; an ordinary footnote of \LaTeX's own (in
 %   \cs{footnotesatfoot}) that \TeX\ sets on another page is not, as in \LaTeX,
 %   and \cs{footnote} is left as the class and \textsf{beamerarticle} define it.
+%   A footnote in nested \texttt{multicols}, or in \texttt{multicols} in a
+%   margin note or a footnote, is lost, as in \LaTeX, with a warning.
 % }
 % \changes{v2.19}{2026/11/14}{%
 %   With \TeX~Live's \textsf{marginfix} 1.2, a margin note on a page that also
@@ -961,6 +963,9 @@
 % \textsf{didactic}'s called out before it that were carried to a later page (a
 % carried footnote keeps \textsf{didactic}'s later ones off the foot, not
 % \textsf{multicol}'s); each footnote off its mark's page is named.
+% A footnote in a |multicols| inside another, or in |multicols| inside a margin
+% note or a footnote, is lost, as with \textsf{memoir} and \textsf{multicol}
+% alone; with \textsf{memoir} a warning says so.
 % Any other margin note there is lost, as in \LaTeX, but with a warning.
 % With \TeX~Live's \textsf{marginfix} 1.2 all of this works, with these
 % differences: every line with a margin note may end a page there, so a line
@@ -2971,10 +2976,11 @@
       \ifpatchable{\m@mscapend@fbox}{\end{minipage}}{%
         \ifpatchable{\m@mscapopboxes}{\usebox{\m@mscap@fbox}}{%
           \booltrue{@didactic@scappatch}}{}}{}}{}%
-    \def\@didactic@scapwarn{%
+    \gdef\@didactic@scapwarn{%
       \PackageWarningNoLine{didactic}{%
         Can't patch memoir's side captions; option\MessageBreak
-        sidecapalign=caption has no effect}}%
+        sidecapalign=caption has no effect}%
+      \global\let\@didactic@scapwarn\relax}%
     \ifbool{@didactic@scappatch}{%
       \patchcmd{\m@mscapstart@fbox}
         {\begin{minipage}[c]{\m@mscapmainwidth}}
@@ -8030,7 +8036,15 @@
 % counts on its first), numbered apart from the margin notes ($-2k-1$), and the
 % run after warns where their pages differ (|\@didactic@recheck|), saying that
 % \LaTeX\ set it there: records for the warning only, which a settled build has
-% too.  They are written by |\@footnotemark| and |\@footnotetext|, redefined for
+% too.  A footnote in a |multicols| inside another, or in |multicols| in a
+% margin note or a footnote, is lost, as \LaTeX\ loses it with \textsf{memoir}
+% and \textsf{multicol} alone; the hook knows where it is (|\@didactic@mclost|,
+% from its nesting, from |\ifinner| or from a footnote of ours in progress), and
+% the footnote's mark says so in a warning, with no record (review~5's look at
+% 5182811): once for a footnote of ours whose text runs more than once, by that
+% footnote's place (|\@didactic@hboxat|), so that two such footnotes called out
+% on one input line give one warning.
+% They are written by |\@footnotemark| and |\@footnotetext|, redefined for
 % the environment only, in its own hook, once: not again in a |multicols| inside
 % it, where the copies would be the redefinitions and call themselves (review~5,
 % the last look: ``TeX capacity exceeded''; |\@didactic@inmcol|, local to the
@@ -8054,9 +8068,21 @@
 % \textsf{didactic}'s code side by side uses too), which is no note.
 %    \begin{macrocode}
 \let\@didactic@inmcol\relax
+\let\@didactic@mclost\relax
 \newcommand\@didactic@mcolfoot{%
   \ifdefined\footnotesatfoot\footnotesatfoot\fi
-  \if@didactic@memoir\if@didactic@noteplace\ifx\@didactic@inmcol\relax
+  \if@didactic@memoir\if@didactic@noteplace
+  \ifx\@didactic@inmcol\relax\else
+    \def\@didactic@mclost{nested multicols}%
+  \fi
+  \ifx\@didactic@inmcol\relax
+    \ifinner\@tempswatrue\else\@tempswafalse\fi
+    \if@didactic@isfn\@tempswatrue\fi
+    \if@tempswa
+      \def\@didactic@mclost{multicols in a margin note or a footnote}%
+    \fi
+  \fi
+  \ifx\@didactic@inmcol\relax
     \let\@didactic@inmcol\@empty
     \let\@didactic@mc@fnmark\@footnotemark
     \def\@footnotemark{\@didactic@mc@fnmark\@didactic@mc@mark}%
@@ -8069,6 +8095,19 @@
 \newcommand\@didactic@mc@id{-\the\numexpr2*\@didactic@mcn+1\relax}
 \newcommand\@didactic@mc@mark{%
   \global\let\@didactic@mc@fm\@empty
+  \ifx\@didactic@mclost\relax\else\ifx\@mpfn\@didactic@fnname
+    % once for a footnote of ours whose text runs more than once (not plain):
+    % by the place of that footnote, kept for its runs (\@didactic@hboxat)
+    \if@didactic@isfn
+      \ifcsname @didactic@mcl@\@didactic@hboxat\endcsname\else
+        \expandafter\gdef\csname @didactic@mcl@\@didactic@hboxat\endcsname{}%
+        \@didactic@mclwarn
+      \fi
+    \else
+      \@didactic@mclwarn
+    \fi
+  \fi\fi
+  \ifx\@didactic@mclost\relax
   \ifinner\else\ifx\@mpfn\@didactic@fnname\ifx\@captype\@undefined
     \global\advance\@didactic@mcn\@ne
     \xdef\@didactic@mc@fm{\@thefnmark}%
@@ -8076,7 +8115,10 @@
       \@didactic@writepage{\string\@didactic@rc
         {\@didactic@mc@id}{\thepage}{\@didactic@here}{}}%
     \fi
-  \fi\fi\fi}
+  \fi\fi\fi\fi}
+\newcommand\@didactic@mclwarn{%
+  \PackageWarning{didactic}{A footnote in \@didactic@mclost\space is
+    lost:\MessageBreak LaTeX can't set it}}
 \newcommand\@didactic@mc@note{%
   \ifx\@didactic@mc@fm\@empty\else
     \edef\@tempa{\@thefnmark}%
@@ -12915,7 +12957,8 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \def\@didactic@nwkeepwarning{%
   \PackageWarningNoLine{didactic}{%
     Can't patch noweb's code chunks; option\MessageBreak
-    keepleadin has no effect on them}}
+    keepleadin has no effect on them}%
+  \global\let\@didactic@nwkeepwarning\relax}
 \AtBeginDocument{%
   \ifdefined\nwbegincode
     \chardef\@didactic@atcatcode\catcode`\@

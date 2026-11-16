@@ -77,6 +77,8 @@ called out somewhere names a place, not an internal name; no footnote found not 
               next (the note goes with its line), and movedwarn.
   has=W       W is in the text.
   hasnot=W    W is not in the text.
+  warns=T     a warning of didactic's says T (spaces as in one line).
+  warns1=T    exactly one warning of didactic's says T.
   once=W      W is in the text exactly once.
   label=N:P   the label N is on page P.
   align=A:B   the positions A and B (zsavepos) are on one page and one baseline,
@@ -317,6 +319,14 @@ for e in expect:
             fails.append("no warning that TeX ended a page before a footnote's line")
     elif e.startswith("has=") and e[4:] not in out:
         fails.append("%s is not in the text" % e[4:])
+    elif e.startswith("warns1=") and len(re.findall(
+            r"Package didactic Warning: [^\n]*" + re.escape(e[7:]), joined.replace(
+                "Package didactic Warning:", "\nPackage didactic Warning:"))) != 1:
+        fails.append("not exactly one warning of didactic's says '%s'" % e[7:])
+    elif e.startswith("warns=") and not re.search(
+            r"Package didactic Warning: [^\n]*" + re.escape(e[6:]), joined.replace(
+                "Package didactic Warning:", "\nPackage didactic Warning:")):
+        fails.append("no warning of didactic's says '%s'" % e[6:])
     elif e.startswith("hasnot=") and e[7:] in html.unescape(out):
         fails.append("%s is in the text" % e[7:])
     elif e.startswith("once=") and html.unescape(out).count(e[5:]) != 1:

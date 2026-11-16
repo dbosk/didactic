@@ -5,8 +5,9 @@ Reads didactic.dtx (or the file given), takes the code (the lines between
 \\begin{macrocode} and \\end{macrocode}), and finds each call of \\patchcmd,
 \\apptocmd, \\pretocmd and their xpatch kin (\\xpatchcmd, \\xapptocmd,
 \\xpretocmd).  Its failure branch, the last argument, must warn or take a
-fallback: one that is empty, or only \\relax, fails the test, since a patch
-that doesn't take then goes unnoticed (review 5's last look: the \\apptocmd of
+fallback: it must call one of WARNS, a warning or a fallback named with its
+reason; one that is empty, only \\relax or \\@empty, or only sets a flag fails the
+test, since a patch that doesn't take then goes unnoticed (review 5's last look: the \\apptocmd of
 \\MFX@copyclass, refused by etoolbox from inside a macro, never took, and
 nothing said so).  Exit 1 and the calls' lines if any; exit 0 and "PASS" with
 the number of calls otherwise.
@@ -18,6 +19,10 @@ import re
 import sys
 
 ARGS = {"patchcmd": 5, "apptocmd": 4, "pretocmd": 4}
+# what a failure branch may call: LaTeX's warnings and errors, and didactic's
+# macros that warn by name (each says so once)
+WARNS = ["\\PackageWarning", "\\PackageWarningNoLine", "\\PackageError",
+         "\\@didactic@patchwarn", "\\@didactic@scapwarn", "\\@didactic@nwkeepwarning"]
 
 
 def code_of(text):
@@ -91,8 +96,10 @@ def check(text):
             # an argument that can't be read (an unbalanced group, the end of the
             # code): a FAIL that says so, not a pass and not a traceback
             bad.append((lineno(m.start()), m[0], target, "its arguments can't be read"))
-        elif (args[-1] or "").strip() in ("", "\\relax"):
-            bad.append((lineno(m.start()), m[0], target, "has an empty failure branch"))
+        elif not any(re.search(re.escape(w) + r"(?![A-Za-z@])", args[-1] or "")
+                     for w in WARNS):
+            bad.append((lineno(m.start()), m[0], target,
+                        "has a failure branch that doesn't warn"))
     return calls, bad
 
 
@@ -102,15 +109,21 @@ def selftest():
         return doc + "%    \\begin{macrocode}\n" + code + "\n%    \\end{macrocode}\n"
     cases = [
         ("a patch with a warning in its failure branch passes",
-         dtx("\\patchcmd\\x{a}{b}{}{\\warn}"), 1, 0),
+         dtx("\\patchcmd\\x{a}{b}{}{\\PackageWarning{d}{x}}"), 1, 0),
+        ("one with didactic's own warning passes",
+         dtx("\\pretocmd\\x{a}{}{\\@didactic@patchwarn\\x}"), 1, 0),
+        ("one that is only \\@empty fails",
+         dtx("\\patchcmd\\x{a}{b}{}{\\@empty}"), 1, 1),
+        ("one that only sets a flag fails",
+         dtx("\\patchcmd\\x{a}{b}{}{\\booltrue{failed}}"), 1, 1),
         ("an empty failure branch fails",
          dtx("\\patchcmd\\x{a}{b}{}{}"), 1, 1),
         ("one that is only \\relax fails",
          dtx("\\apptocmd\\x{a}{}{ \\relax }"), 1, 1),
         ("a call spread over lines, with comments at their ends, is read",
-         dtx("\\patchcmd{\\x}%\n  {a}%\n  {b}{}%\n  {\\warn}%"), 1, 0),
+         dtx("\\patchcmd{\\x}%\n  {a}%\n  {b}{}%\n  {\\PackageWarning{d}{x}}%"), 1, 0),
         ("a nested group in the failure branch is one argument",
-         dtx("\\pretocmd\\x{a}{}{\\iftrue{\\warn{x}}\\fi}"), 1, 0),
+         dtx("\\pretocmd\\x{a}{}{\\iftrue{\\PackageWarning{d}{x}}\\fi}"), 1, 0),
         ("an xpatch call counts",
          dtx("\\xpatchcmd\\x{a}{b}{}{}"), 1, 1),
         ("a call in a comment of the code doesn't count",
@@ -118,7 +131,7 @@ def selftest():
         ("a call in the documentation doesn't count",
          dtx("\\relax", doc="% |\\patchcmd\\x{a}{b}{}{}|\n"), 0, 0),
         ("arguments that can't be read fail, said so",
-         dtx("\\patchcmd\\x{a}{b}{}{\\warn"), 1, 1),
+         dtx("\\patchcmd\\x{a}{b}{}{\\PackageWarning{d}{x}"), 1, 1),
     ]
     bad = 0
     for what, text, ncalls, nbad in cases:
@@ -138,7 +151,7 @@ def main():
     if bad:
         for n, cmd, target, why in bad:
             print(f"didactic patches test: FAIL {path}:{n}: {cmd} of {target} {why}")
-        print(f"didactic patches test: {len(bad)} of {calls} patches say nothing when they fail")
+        print(f"didactic patches test: {len(bad)} of {calls} patches don't warn when they fail")
         return 1
     print(f"didactic patches test: PASS ({calls} patches, each says when it fails)")
     return 0
