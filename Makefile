@@ -167,7 +167,8 @@ test-run.pdf: test-run.tex didactic.sty ${TEST_RUN_EXAMPLES}
 
 # Two jobs of one document, the notes and the slides, each rebuilt alone in
 # either order while a program's output changes: neither loses a transcript to
-# the other (issue #118); see the script.  pdflatex, as the decks are built.
+# the other (issue #118); see the script.  Under pdflatex, as the decks are
+# built, not the default engine above, so make all doesn't run it under xelatex.
 # The stamp says that it passed.
 test-runjobs.d/passed: test-runjobs.sh test-runjobs-contents.tex \
 		test-runjobs-notes.tex test-runjobs-slides.tex didactic.sty
@@ -176,6 +177,7 @@ test-runjobs.d/passed: test-runjobs.sh test-runjobs-contents.tex \
 
 # The path by which minted finds a transcript: directories named with % # ~,
 # a space and a non-ASCII letter, and a build that is moved; see the script.
+# Under pdflatex too, as the decks.
 test-runpaths.d/passed: test-runpaths.sh test-runjobs-contents.tex \
 		test-runjobs-notes.tex didactic.sty
 	sh test-runpaths.sh "pdflatex ${LATEXFLAGS}" "${PYTHONTEX}"

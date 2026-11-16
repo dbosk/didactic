@@ -15,7 +15,8 @@
 #           PythonTeX run there, \setpythontexoutputdir{.} and
 #           \setpythontexworkingdir{..}, as decks do.
 # Where PythonTeX runs in the build directory it runs with --rerun=always, as
-# the decks' makefiles run it.
+# the decks' makefiles run it.  Then it reruns everything anyway, so only the
+# shared layout checks that a changed program alone makes PythonTeX rerun it.
 # In each, removing what the build made (pythontex-files-*, ltxobj or build-*)
 # must remove every transcript: none is left in the document's directory.
 # Jobs that share PythonTeX's output directory share its own files too, so they
