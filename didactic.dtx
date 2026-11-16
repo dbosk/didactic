@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}[2021/06/01]
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/11/14 v2.18 didactic]
+  [2026/11/16 v2.19 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -164,29 +164,29 @@
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
 % }
-% \changes{v2.18}{2026/11/15}{%
+% \changes{v2.19}{2026/11/15}{%
 %   With \cs{nofiles}, a warning says once that a margin note set on another
 %   page than its callout can't always be named, the names said a run later
 %   coming from the \texttt{.aux} file.
 % }
-% \changes{v2.18}{2026/11/15}{%
+% \changes{v2.19}{2026/11/15}{%
 %   A footnote set at its page's foot before one carried from an earlier page
 %   that is still waiting in the margin says so in a warning naming both; a
 %   float doesn't take the room of footnotes carried to a page that will be set
 %   there.
 % }
-% \changes{v2.18}{2026/11/15}{%
+% \changes{v2.19}{2026/11/15}{%
 %   A second note in a line no longer waits for the next page, unwarned, when
 %   the page so far ends with a heading's space before that line: the place to
 %   break after the first note is found as the last, by \TeX's own rule.
 % }
-% \changes{v2.18}{2026/11/15}{%
+% \changes{v2.19}{2026/11/15}{%
 %   A footnote with space of its own after its last line is plain, the space
 %   set after its last line and counted in its height; at the end of the
 %   document a warning says
 %   how many footnotes weren't plain, their text having run three times.
 % }
-% \changes{v2.18}{2026/11/14}{%
+% \changes{v2.19}{2026/11/14}{%
 %   A float gives way to the margin notes already decided for its page (it
 %   waits, where it would take the room they need).  A footnote in
 %   \textsf{multicol}'s columns goes to the foot under the columns, as an
@@ -195,20 +195,20 @@
 %   from the last run'', from records each run writes to the \texttt{.aux}
 %   file for that only.
 % }
-% \changes{v2.18}{2026/11/14}{%
+% \changes{v2.19}{2026/11/14}{%
 %   With \textsf{memoir}, a footnote in \textsf{multicol}'s columns that is set
 %   at the foot of another page than its mark's is named a run later, ``where
 %   LaTeX puts it''; an ordinary footnote of \LaTeX's own (in
-%   |\footnotesatfoot|) that \TeX\ sets on another page is not, as in \LaTeX,
-%   and |\footnote| is left as the class and \textsf{beamerarticle} define it.
+%   \cs{footnotesatfoot}) that \TeX\ sets on another page is not, as in \LaTeX,
+%   and \cs{footnote} is left as the class and \textsf{beamerarticle} define it.
 % }
-% \changes{v2.18}{2026/11/14}{%
+% \changes{v2.19}{2026/11/14}{%
 %   With \TeX~Live's \textsf{marginfix} 1.2, a margin note on a page that also
 %   holds \textsf{multicol}'s columns is set in the margin: 1.2 draws a page's
 %   margin at |\columnwidth|, a column's width there, and so into the text;
 %   \textsf{didactic} sets |\columnwidth| to the text's width while it does.
 % }
-% \changes{v2.18}{2026/11/14}{%
+% \changes{v2.19}{2026/11/14}{%
 %   \texttt{noteoverflow} is decided by \textsf{didactic} itself, where the
 %   note is called out, in one run: \texttt{foot} (the default) or
 %   \texttt{carry}; \texttt{break} is gone, since no page ends early for a note
@@ -5788,7 +5788,7 @@
 % (|\Mfx@inject@insert|, from 1.5 on) is not a note and gets no number; it
 % comes as |\@marbox|, a macro that names that box, so we compare what it
 % expands to (comparing the macro itself never matched, and those entries were
-% numbered and decided as notes of no height until v2.18).
+% numbered and decided as notes of no height until v2.19).
 % The rest of a note \textsf{marginfix} splits gets the number of its note, 
 % less a million, so that it goes with the note's line but can be told from 
 % the note (|\@didactic@ifrest|): it continues a note set on its page.
@@ -6867,7 +6867,7 @@
 % A note with a list, a display, space of its own between its lines, a rule or
 % a box between them, anything else than lines of paragraphs, isn't: for it the
 % text runs twice more, quietly, once for the margin and once for the foot, as
-% before version~2.18 (|\@didactic@fallback|).
+% before version~2.19 (|\@didactic@fallback|).
 % Its counters are set back each time and \textsf{biblatex} records nothing
 % those times, but other state its text changes (an acronym's first use, a
 % citation seen) has been changed by the first run, and the two that are
@@ -7268,7 +7268,7 @@
 %
 % \begin{macro}{\@didactic@fallback}
 % A note that isn't plain is set twice more, after the measure, as before
-% version~2.18: for the foot, as \textsf{memoir} sets a footnote there, into a
+% version~2.19: for the foot, as \textsf{memoir} sets a footnote there, into a
 % box of the pool, and for the margin; both quietly, with the counters as they
 % were before the measure, and with \textsf{biblatex}'s trackers off and
 % nothing written to the |.aux| file (|\@didactic@blxfootnote|); the counters
