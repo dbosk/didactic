@@ -625,16 +625,21 @@ check latexsplit x 8 '' "noreason=where LaTeX puts it,fnrecords=0,at=LATEXFN:1/L
 # \@footnotetext, redefined in the environment's own hook, which every syntax of
 # \footnote reaches parsed (review 5): memoir with beamerarticle (mcolfn), beamer's
 # overlay specification (mcolover: its text, nothing of it in the body), memoir's
-# number (mcolnum), with hyperref (mcolhyper); a \footnotemark with its
-# \footnotetext[1] after a second mark in the columns: each mark its record, the
-# text none, being another mark's (mcolapart); a footnote in a minipage there none (mcolmini); with article no hook
-# is set (mcolart).
+# number (mcolnum), with hyperref (mcolhyper); two \footnotemark and then
+# \footnotetext[1] in the columns: each mark its record, the text none, being
+# another mark's (mcolapart); a footnote in a minipage there none (mcolmini); in
+# multicols inside multicols the hook doesn't redefine its own redefinitions
+# (mcolnested: "TeX capacity exceeded" before, review 5's last look, NL1; the
+# footnote's text is lost there, as with memoir and multicol alone, without
+# didactic; master v2.17.2 stops with "Float(s) lost"); with article no hook is set
+# (mcolart).
 check mcolfn x 20 '' "once=MCFN,fnrecords=1" "$MC"'\def\testbody{\begin{multicols}{2}FIRSTLINE words\footnote{MCFN in the columns.} \filler\ \filler\end{multicols}}'
 check mcolover x 20 '' "once=MCOVER,hasnot=2->,fnrecords=1" "$MC"'\def\testbody{\begin{multicols}{2}FIRSTLINE words\footnote<2->{MCOVER in the columns, on slide two.} \filler\ \filler\end{multicols}}'
 check mcolnum x 20 '' "once=MCNUM,fnrecords=1" "$MC"'\def\testbody{\begin{multicols}{2}FIRSTLINE words\footnote[7]{MCNUM numbered seven.} \filler\ \filler\end{multicols}}'
 check mcolhyper x 20 '' "once=MCHYP,fnrecords=1" "$MC"'\def\testpre{\usepackage{multicol,hyperref}}\def\testbody{\begin{multicols}{2}FIRSTLINE words\footnote{MCHYP with hyperref.} \filler\ \filler\end{multicols}}'
 check mcolapart x 20 '' "once=MCAPART,noreason=where LaTeX puts it,fnrecords=2" "$MC"'\def\testbody{\begin{multicols}{2}FIRSTLINE words\footnotemark\ and more\footnotemark\ \filler\footnotetext[1]{MCAPART the first mark'"'"'s text.} \filler\end{multicols}}'
 check mcolmini x 20 '' "once=MCMINI,noreason=wasn't printed,fnrecords=0" "$MC"'\def\testbody{\begin{multicols}{2}FIRSTLINE \begin{minipage}{.8\linewidth}MINI\footnote{MCMINI in a minipage.}\end{minipage} \filler\ \filler\end{multicols}}'
+check mcolnested x 20 '' "hasnot=MCNEST,fnrecords=1" "$MC"'\def\testbody{\begin{multicols}{2}FIRSTLINE \filler\begin{multicols}{2}INNER words\footnote{MCNEST in nested columns.} \filler\end{multicols}\filler\end{multicols}}'
 check mcolart x 20 '' "once=MCART,fnrecords=0" "$ART$MC"'\def\testbody{\begin{multicols}{2}FIRSTLINE words\footnote{MCART in the columns.} \filler\ \filler\end{multicols}}'
 # Any other margin note in multicols is lost, as in LaTeX, but with a warning.
 check mcolnote x 20 '' "mcolwarn${M12:+,lostwarn=test-noteplace.tex,noreason=taller than the margin,foundlast=1}" "$MC"'\def\testbody{\begin{multicols}{2}FIRSTLINE\marginpar{MCOLMARGIN} \filler\ \filler\end{multicols}}'

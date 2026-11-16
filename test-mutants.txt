@@ -59,7 +59,7 @@
 #            Live's 1.2 whatever $MARGINFIX is (24 s; 44 s)
 #   footwide test-footwide, its cases rigid, oneline and beyond only (CASES), under its
 #            three engines and with hyperref, against the marginfix found or $MARGINFIX
-#   fuzz     test-fuzz, its documents inrun 16, tl12 16 and xe 9 only (CASES), against
+#   fuzz     test-fuzz, its documents inrun 16, tl12 16, xe 9 and backlog 17 only (CASES), against
 #            $MARGINFIX and TeX Live's 1.2 (15 s; 16 s, run alone on 2026-11-14).  MARGINFIX
 #            must be the marginfix this version needs: with the fork's integration as it
 #            was before (v1.6 of 2026/10/22), the baseline is red, inrun 16 and xe 9 with
@@ -2154,3 +2154,19 @@ Sfnwrap didactic.dtx
 + \newcommand\@didactic@numbernotes{%
 +   \let\@didactic@footnote\footnote
 +   \long\def\footnote##1{\@didactic@footnote{##1}}%
+
+# survives: review 5's last look, NL2, has two guards, each of which alone keeps fuzz
+# backlog seed 17 right: a split \ltnote's rest now carries its note's number less a
+# million (\MFX@copyclass wrapped, the \apptocmd never took), so it is a rest; and the
+# footnotes left over at a page are the entries \@didactic@ifours takes for waiting
+# notes of ours, which skips rests and deferrable notes.  Without this one the rest is
+# still a rest of a note that is no footnote, and nothing is named; no row brings a
+# box with an old number to a rest that the first guard would miss.
+#: fuzz
+#= survived
+Sleftours didactic.dtx
+-       \@didactic@ifours##1{%
+-         \ifcsname @didactic@fn@\the\@didactic@noteof##1\endcsname
++       \@firstofone{%
++         \ifcsname @didactic@fn@\the\@didactic@noteof##1\endcsname
+

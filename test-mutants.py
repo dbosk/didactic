@@ -65,7 +65,7 @@ PHONY = {"test-biburl", "test-noteoverflow-foot", "test-noteplace", "test-footwi
          "test-noteplace-tl12"}
 # the job of a phony target that the group runs ($CASES of its script)
 CASES = {"footcite": "default", "hbox": "hbox", "footwide": "rigid oneline beyond",
-         "fuzz": "inrun:16 tl12:16 xe:9", "noteplace": "rsvsidecap rsvblock mcolblock rsvsidebefore heldtop heldsecond overmoved"
+         "fuzz": "inrun:16 tl12:16 xe:9 backlog:17", "noteplace": "rsvsidecap rsvblock mcolblock rsvsidebefore heldtop heldsecond overmoved"
          " footback overlimit overtwo aftercarry carrymode notplainm notplainf"
          " nestfn nestmp fsoverstay trailm samelinehead leftorder leftheld leftfloat"
          " nofiles mcolfn bfnover bfnsec",

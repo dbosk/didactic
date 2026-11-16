@@ -16,11 +16,58 @@
   \AddToHook{begindocument}{%
     \patchcmd\@specialoutput{\unvbox\@holdpg\@next}{\unvbox\@holdpg\relax\@next}{}{}}
 \fi
+% \testpatchfail: \end@float made a macro with a parameter whose body names a
+% control sequence with spaces in its name, which etoolbox can't read back, so
+% it won't patch it: the warning must name \end@float (the document has no float
+% to end)
+\ifdefined\testpatchfail
+  \def\testendfloat#1{\def\end@float##1{#1}}
+  \AddToHook{begindocument}{%
+    \expandafter\let\csname test end float\endcsname\end@float
+    \expandafter\testendfloat\expandafter{\csname test end float\endcsname}}
+\fi
 % the list of waiting notes as marginfix builds the margin from it
 \AtBeginDocument{\ifdefined\MFX@combinefloats@before
   \pretocmd\MFX@combinefloats@before
     {\ifx\mfx@marginlist\@empty\else
        \typeout{interface-list: \meaning\mfx@marginlist\space:end}\fi}{}{}\fi}
+% what didactic changes in marginfix's and the kernel's macros, each checked to be
+% there (a patch that doesn't take, or a wrapper that is lost, said by name):
+% "didactic-patches: ok", or "didactic-patches: missing" and the names; only when
+% didactic places notes (its interface found)
+\newcommand\testin[2]{% <macro> <name of ours it must contain>
+  \edef\testm{\meaning#1}\edef\testn{\expandafter\string\csname#2\endcsname}%
+  \edef\testx{\noexpand\in@{\testn}{\testm}}\testx
+  \ifin@\else\xdef\testmissing{\testmissing\space#2}\fi}
+\let\testmissing\@empty
+\AddToHook{begindocument/end}{\if@didactic@noteplace
+  \testin\@xympar{@didactic@tagnote}%
+  \testin\@specialoutput{@didactic@callout}%
+  \testin\@specialoutput{@didactic@floatroom}%
+  \testin\@specialoutput{@didactic@reinserts}%
+  \testin\end@float{@didactic@floatat}%
+  \ifx\@flcheckspace\@didactic@flcheck\else
+    \xdef\testmissing{\testmissing\space @didactic@flcheck}\fi
+  \testin\MFX@combinefloats@before{@didactic@readcol}%
+  % \@makecol: the hook build/column/before where the kernel has it (its code
+  % logged, for the script to read), else the macro itself
+  \edef\testm{\meaning\@makecol}%
+  \edef\testx{\noexpand\in@{\detokenize{build/column/before}}{\testm}}\testx
+  \ifin@\typeout{didactic-makecol: hook}\LogHook{build/column/before}%
+  \else\testin\@makecol{@didactic@colfeet}\fi
+  % \MFX@copyclass gives the rest the note's number less a million: two boxes of
+  % the pool, the first numbered as note 5 is, then given back
+  \ifdefined\MFX@copyclass
+    \@next\testa\@freelist{\@next\testb\@freelist{%
+      \global\count\testa-6\relax \global\count\testb\z@
+      \MFX@copyclass\testb\testa
+      \ifnum\count\testb=-1000006 \else
+        \xdef\testmissing{\testmissing\space MFX@copyclass's number
+          (\the\count\testb)}\fi
+      \@cons\@freelist\testb}{}\@cons\@freelist\testa}{}%
+  \fi
+  \typeout{didactic-patches: \ifx\testmissing\@empty ok\else
+    missing\testmissing\fi}\fi}
 \makeatother
 \begin{document}
 Text\marginpar{NOTE} and more text.

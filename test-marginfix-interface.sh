@@ -17,6 +17,12 @@
 #           a warning naming what is missing; either way said
 #   broken  the kernel's \@specialoutput changed so that didactic can't patch it:
 #           carry, and a warning naming it
+#   patchfail  \end@float made a macro etoolbox can't read back, so it won't patch
+#           it: the warning names \end@float, and the check of didactic's changes
+#           finds \@didactic@floatat missing
+# and for found, xelatex, lualatex, tl12 and old (when ok): every change of
+# didactic's to marginfix's and the kernel's macros is there ("didactic-patches:
+# ok"; red on 2e3c8bd, where \MFX@copyclass's patch had never taken)
 src=test-marginfix-interface
 status=0
 # $MARGINFIX: a directory with the marginfix.sty to test against, put first on
@@ -73,7 +79,28 @@ l=$(line $src-broken)
 echo "$l" | grep -q '^didactic-interface: carry.*@specialoutput' \
   && tr -d '\n' < $src-broken.log | grep -q 'Package didactic Warning:.*@specialoutput'
 say broken $? "($l)"
-for j in found xelatex lualatex tl12 old broken; do
+# each change of didactic's to marginfix's and the kernel's macros is there, where
+# didactic places notes: "didactic-patches: ok" (the document checks each), and
+# \@didactic@colfeet in the hook build/column/before when \@makecol uses it
+patches() { # <job>
+  python3 testlog.py grep '^didactic-patches: ok' "$1.log" > /dev/null || return 1
+  if python3 testlog.py grep '^didactic-makecol: hook' "$1.log" > /dev/null; then
+    grep -q '@didactic@colfeet' "$1.log" || return 1
+  fi
+  return 0
+}
+for j in found xelatex lualatex tl12; do
+  patches $src-$j; say "$j patches" $? "($(python3 testlog.py grep '^didactic-patches: ' $src-$j.log | head -1))"
+done
+if line $src-old | grep -q '^didactic-interface: ok'; then
+  patches $src-old; say "old patches" $? "($(python3 testlog.py grep '^didactic-patches: ' $src-old.log | head -1))"
+fi
+# a patch that doesn't take says so by name: \end@float made unpatchable
+build $src-patchfail '\def\testpatchfail{}'
+tr -d '\n' < $src-patchfail.log | grep -q "Package didactic Warning: Couldn't patch \\\\end@float" \
+  && python3 testlog.py grep '^didactic-patches: missing.*@didactic@floatat' $src-patchfail.log > /dev/null
+say patchfail $? "($(python3 testlog.py grep '^didactic-patches: ' $src-patchfail.log | head -1))"
+for j in found xelatex lualatex tl12 old broken patchfail; do
   n=$(grep -c '^!' $src-$j.log); [ "$n" = 0 ] || { say "$j errors" 1 "($n)"; }
 done
 exit $status

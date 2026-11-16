@@ -63,7 +63,7 @@ tests: didactic.sty test.pdf test-marginfix-interface test-footcite.pdf \
 	test-format.pdf test-oldkernel-title.pdf test-biburl check \
 	test-noteplace test-noteplace-tl12 test-footreuse-spread \
 	test-noteoverflow-foot test-notefoot test-notefoot-tl12 test-footwide \
-	test-testlog test-sync check-bilingual test-fuzz test-settle
+	test-testlog test-sync check-bilingual test-fuzz test-settle test-patches
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -675,6 +675,12 @@ test-notefoot-tl12: test-notefoot.tex test-notefoot.sh test-notefoot.py testlog.
 # checked by their outcome (test-fuzz.py): margin-inrun or $(MARGINFIX), TeX Live's
 # 1.2, xelatex, lualatex, a stale .aux; first the checker's own rules on made-up
 # documents (selftest, no TeX).  About 11 minutes on one job.
+# every patch of the package says when it fails (test-patches.py reads the dtx)
+.PHONY: test-patches
+test-patches: test-patches.py didactic.dtx
+	python3 test-patches.py selftest
+	python3 test-patches.py
+
 .PHONY: test-fuzz
 test-fuzz: test-fuzz.py testlog.py didactic.sty
 	python3 test-fuzz.py selftest

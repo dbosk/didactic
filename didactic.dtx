@@ -880,8 +880,9 @@
 % pdf\LaTeX\ and Lua\LaTeX\ are not affected; |noteoverflow=carry| sets the note
 % directly, as without \textsf{didactic}.
 % A document whose margin overflows on every page can run out of \LaTeX's
-% boxes for floats (``Too many unprocessed floats'') under Xe\LaTeX, where
-% carried notes pile up (issue \#103).
+% boxes for floats (``Too many unprocessed floats''), and notes are lost, where
+% carried notes pile up: seen under Xe\LaTeX, and under pdf\LaTeX\ with
+% \TeX~Live's \textsf{marginfix} 1.2 (issue \#103).
 % A footnote called out after a footnote carried from the page is carried too,
 % even where it would fit at the foot: on a page the footnotes keep their order.
 % Across pages a footnote stays at its own page's foot: where footnotes carried
@@ -2935,18 +2936,19 @@
       \ifpatchable{\m@mscapend@fbox}{\end{minipage}}{%
         \ifpatchable{\m@mscapopboxes}{\usebox{\m@mscap@fbox}}{%
           \booltrue{@didactic@scappatch}}{}}{}}{}%
+    \def\@didactic@scapwarn{%
+      \PackageWarningNoLine{didactic}{%
+        Can't patch memoir's side captions; option\MessageBreak
+        sidecapalign=caption has no effect}}%
     \ifbool{@didactic@scappatch}{%
       \patchcmd{\m@mscapstart@fbox}
         {\begin{minipage}[c]{\m@mscapmainwidth}}
-        {\begin{varwidth}[c]{\m@mscapmainwidth}}{}{}%
-      \patchcmd{\m@mscapend@fbox}{\end{minipage}}{\end{varwidth}}{}{}%
+        {\begin{varwidth}[c]{\m@mscapmainwidth}}{}{\@didactic@scapwarn}%
+      \patchcmd{\m@mscapend@fbox}{\end{minipage}}{\end{varwidth}}{}%
+        {\@didactic@scapwarn}%
       \patchcmd{\m@mscapopboxes}
-        {\usebox{\m@mscap@fbox}}{\@didactic@scapbox}{}{}%
-    }{%
-      \PackageWarningNoLine{didactic}{%
-        Can't patch memoir's side captions; option\MessageBreak
-        sidecapalign=caption has no effect}%
-    }}
+        {\usebox{\m@mscap@fbox}}{\@didactic@scapbox}{}{\@didactic@scapwarn}%
+    }{\@didactic@scapwarn}}
   {off}{}%
 }[\PackageWarningNoLine{didactic}{%
     Unknown value `\@didactic@sidecapalign'\MessageBreak
@@ -5792,6 +5794,21 @@
 % The rest of a note \textsf{marginfix} splits gets the number of its note, 
 % less a million, so that it goes with the note's line but can be told from 
 % the note (|\@didactic@ifrest|): it continues a note set on its page.
+% \textsf{marginfix} makes the rest in a box of the pool (|\MFX@copyclass|),
+% whose |\count| still holds the number of the note that box last held; so we
+% wrap |\MFX@copyclass| to set it (in |\@didactic@numbernotes|).  Before
+% review~5's last look that was an |\apptocmd| in |\@didactic@numbernotes|,
+% which never took: \textsf{etoolbox} refuses to patch a macro with
+% parameters from inside another macro (its trace: ``nested patching command
+% and parameters in patch''), and the failure branch was empty.  So a rest
+% carried an old note's number, and a split |\ltnote|'s rest left over for the
+% next page was named as a footnote still waiting (the fuzz test's backlog
+% seed~17).
+% Whether an entry of \textsf{marginfix}'s list is a note of ours that waits,
+% not a rest nor a deferrable note, which \textsf{marginfix} moves by design,
+% is one test (|\@didactic@ifours|), for the carried notes' warnings and for
+% the footnotes left over at a page (|\@didactic@carrywarn|,
+% |\@didactic@newpage|), so that the two can't drift apart.
 % A note called out where the mode is |carry| is marked so
 % (|\@didactic@cc@|\meta{note}), for |\@didactic@decide|: the mode is read
 % where a note is called out.
@@ -5840,6 +5857,11 @@
   \else
     \expandafter\@secondoftwo
   \fi}
+\newcommand\@didactic@ifours[1]{%
+  \@didactic@ifrest#1\@secondoftwo{%
+    \@didactic@ifdeferrable#1\@secondoftwo{%
+      \ifnum\@didactic@noteof#1>\z@
+        \expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}}}
 \newcommand\@didactic@ifrest[1]{%
   \ifnum\count#1<-1000000
     \expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
@@ -6737,10 +6759,11 @@
       \@didactic@ifdeferrable##1
         {\global\advance\@didactic@stay\@didactic@deferclaim}
         {\global\advance\@didactic@stay\@didactic@noteht}%
-      \ifcsname @didactic@fn@\the\@didactic@noteof##1\endcsname
-        \global\@didactic@fnleft\@didactic@stay
-        \xdef\@didactic@leftfns{\@didactic@leftfns\the\@didactic@noteof##1,}%
-      \fi}%
+      \@didactic@ifours##1{%
+        \ifcsname @didactic@fn@\the\@didactic@noteof##1\endcsname
+          \global\@didactic@fnleft\@didactic@stay
+          \xdef\@didactic@leftfns{\@didactic@leftfns\the\@didactic@noteof##1,}%
+        \fi}{}}%
     \def\mfx@build@skip##1{\global\advance\@didactic@stay##1\relax}%
     \let\mfx@build@clear\relax
     \mfx@marginlist
@@ -6795,8 +6818,7 @@
   \begingroup
     \let\@didactic@left\@empty
     \def\mfx@build@note##1##2##3{%
-      \@didactic@ifrest##1{}{\@didactic@ifdeferrable##1{}{%
-      \ifnum\@didactic@noteof##1>\z@
+      \@didactic@ifours##1{%
         \xdef\@didactic@left{\@didactic@left,\the\@didactic@noteof##1,}%
         \ifnum\@didactic@noteof##1>\@didactic@pagelast\else
         \ifcsname @didactic@cp@\the\@didactic@noteof##1\endcsname\else
@@ -6820,8 +6842,7 @@
           \xdef\@didactic@carried{%
             \unexpanded\expandafter{\@didactic@carried}%
             \noexpand\@didactic@set{\the\@didactic@noteof##1}}%
-        \fi\fi
-      \fi}}}%
+        \fi\fi}{}}%
     \let\mfx@build@skip\@gobble
     \let\mfx@build@clear\relax
     \mfx@marginlist
@@ -7975,7 +7996,10 @@
 % run after warns where their pages differ (|\@didactic@recheck|), saying that
 % \LaTeX\ set it there: records for the warning only, which a settled build has
 % too.  They are written by |\@footnotemark| and |\@footnotetext|, redefined for
-% the environment only, in its own hook, where every syntax of |\footnote|
+% the environment only, in its own hook, once: not again in a |multicols| inside
+% it, where the copies would be the redefinitions and call themselves (review~5,
+% the last look: ``TeX capacity exceeded''; |\@didactic@inmcol|, local to the
+% outer environment's group, so also not in a |minipage| or a float inside it), where every syntax of |\footnote|
 % (\textsf{memoir}'s, \textsf{beamerarticle}'s, \textsf{hyperref}'s) arrives
 % parsed; |\footnote| itself is never wrapped (review~5: a wrapper that read its
 % argument took beamer's |<2->| for the text, and a plain one broke in a
@@ -7994,14 +8018,16 @@
 % \textsf{marginfix} puts in the margin for itself (|\blockmargin|, which
 % \textsf{didactic}'s code side by side uses too), which is no note.
 %    \begin{macrocode}
+\let\@didactic@inmcol\relax
 \newcommand\@didactic@mcolfoot{%
   \ifdefined\footnotesatfoot\footnotesatfoot\fi
-  \if@didactic@memoir\if@didactic@noteplace
+  \if@didactic@memoir\if@didactic@noteplace\ifx\@didactic@inmcol\relax
+    \let\@didactic@inmcol\@empty
     \let\@didactic@mc@fnmark\@footnotemark
     \def\@footnotemark{\@didactic@mc@fnmark\@didactic@mc@mark}%
     \let\@didactic@mc@fntext\@footnotetext
     \long\def\@footnotetext##1{\@didactic@mc@fntext{\@didactic@mc@note##1}}%
-  \fi\fi}
+  \fi\fi\fi}
 \newcount\@didactic@mcn
 \def\@didactic@fnname{footnote}
 \let\@didactic@mc@fm\@empty
@@ -8056,21 +8082,38 @@
 % The changes themselves, at the end of |\begin{document}|, once the check 
 % above has found every name; otherwise no note is numbered and 
 % \textsf{marginfix} does as it does alone.
+% A patch that doesn't take says so (|\@didactic@patchwarn|), naming what it
+% patched: a silent one, |\MFX@copyclass|'s (below), went unnoticed while
+% this version was made,
+% and \texttt{test-patches.py} fails on any patch of the package whose failure
+% branch is empty.  What we add to \textsf{marginfix}'s macros is a wrapper,
+% not a patch: \textsf{etoolbox} won't patch a macro with parameters from
+% inside another macro (its trace says ``nested patching command and
+% parameters in patch'').  \texttt{test-marginfix-interface} checks, for each
+% \textsf{marginfix} and engine, that each change is there.
 %    \begin{macrocode}
+\newcommand\@didactic@patchwarn[1]{%
+  \PackageWarningNoLine{didactic}{Couldn't patch \string#1, although\MessageBreak
+    its names were found: margin notes may be placed\MessageBreak
+    wrongly; please report it}}
 \newcommand\@didactic@numbernotes{%
-  \pretocmd\@xympar{\@didactic@tagnote}{}{}%
+  \pretocmd\@xympar{\@didactic@tagnote}{}{\@didactic@patchwarn\@xympar}%
   \patchcmd\@specialoutput{\unvbox\@holdpg\@next\@currbox\@currlist}
-    {\@didactic@callout\@next\@currbox\@currlist}{}{}%
+    {\@didactic@callout\@next\@currbox\@currlist}{}%
+    {\@didactic@patchwarn\@specialoutput}%
   \patchcmd\@specialoutput{\@reinserts\@addtocurcol}
-    {\@didactic@floatroom\@didactic@reinserts\@addtocurcol}{}{}%
+    {\@didactic@floatroom\@didactic@reinserts\@addtocurcol}{}%
+    {\@didactic@patchwarn\@specialoutput}%
   \let\@didactic@flcheckspace\@flcheckspace
   \let\@flcheckspace\@didactic@flcheck
-  \pretocmd\end@float{\@didactic@floatat}{}{}%
+  \pretocmd\end@float{\@didactic@floatat}{}{\@didactic@patchwarn\end@float}%
   \patchcmd\@specialoutput{\@reinserts\@addmarginpar}
-    {\@didactic@reinserts\@addmarginpar}{}{}%
+    {\@didactic@reinserts\@addmarginpar}{}%
+    {\@didactic@patchwarn\@specialoutput}%
   \ifpatchable{\@makecol}{\UseHook{build/column/before}}%
     {\AddToHook{build/column/before}{\if@twocolumn\else\@didactic@colfeet\fi}}%
-    {\pretocmd\@makecol{\if@twocolumn\else\@didactic@colfeet\fi}{}{}}%
+    {\pretocmd\@makecol{\if@twocolumn\else\@didactic@colfeet\fi}{}%
+      {\@didactic@patchwarn\@makecol}}%
   \let\@didactic@MFX@combinefloats@before\MFX@combinefloats@before
   \def\MFX@combinefloats@before{%
     \@didactic@readcol\@didactic@sift
@@ -8090,10 +8133,12 @@
     \fi
   \fi
   \ifdefined\MFX@copyclass
-    \apptocmd\MFX@copyclass{%
+    \let\@didactic@mfxcopyclass\MFX@copyclass
+    \def\MFX@copyclass##1##2{%
+      \@didactic@mfxcopyclass##1##2%
       \global\count##1\count##2\relax
       \ifnum\count##1<-1000000 \else\ifnum\count##1<\m@ne
-        \global\advance\count##1-1000000 \fi\fi}{}{}%
+        \global\advance\count##1-1000000 \fi\fi}%
   \fi}
 %    \end{macrocode}
 % \end{macro}
@@ -12780,16 +12825,16 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \ifpatchable{\nwbegincode}{\@begincode}{%
       \ifpatchable{\@begincode}{\@@par\penalty\nwcodepenalty}{%
         \patchcmd{\nwbegincode}{\@begincode}
-          {\@didactic@nwkeep\@begincode}{}{}%
+          {\@didactic@nwkeep\@begincode}{}{\@didactic@nwkeepwarning}%
         \patchcmd{\@begincode}{\trivlist}
           {\trivlist\@didactic@nwtie}{}{\@didactic@nwkeepwarning}%
         \patchcmd{\nwbegincode}{\topsep}
-          {\@didactic@keep@notelist\topsep}{}{}%
+          {\@didactic@keep@notelist\topsep}{}{\@didactic@nwkeepwarning}%
         \patchcmd{\@begincode}{\@@par\penalty\nwcodepenalty}
           {\@didactic@keep@nwbefore\@@par\@didactic@keep@nwmiddle
             \penalty\@didactic@nwfirstpenalty
             \let\@didactic@nwfirstpenalty\nwcodepenalty
-            \@didactic@keep@nwafter}{}{}%
+            \@didactic@keep@nwafter}{}{\@didactic@nwkeepwarning}%
       }{\@didactic@nwkeepwarning}%
     }{\@didactic@nwkeepwarning}%
     \catcode`\@\@didactic@atcatcode

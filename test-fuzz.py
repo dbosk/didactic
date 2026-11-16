@@ -19,7 +19,7 @@ The sets: inrun (seeds 1-40, 52 and 125, pdflatex, the marginfix found or
 $MARGINFIX), tl12 (seeds 1-20, pdflatex, TeX Live's 1.2), xe and lua (seeds 1-10, xelatex and
 lualatex, as inrun), stale (seeds 1-10, as inrun: a sentence added at the start,
 built from the original's .aux and from clean, the same PDF), review (the review's
-own documents, without the movers, where it found a defect), backlog (seeds 1-10,
+own documents, without the movers, where it found a defect), backlog (seeds 1-10 and 17,
 as inrun, with passages in the mode carry whose long footnotes are more than a
 page's margin holds).  A document is
 built until its .aux settles (at most seven runs, a run limit of 300 s).
@@ -59,7 +59,9 @@ SETS = {
     # the review's own documents (no movers) where it found B1
     "review": [("pdflatex", "tl12", 1)],
     # long footnotes carried in a row, more than a page's margin holds (review 4, S5-1)
-    "backlog": [("pdflatex", "found", s) for s in range(1, 11)],
+    # and 17: a split \ltnote's rest with a stale number named as a waiting footnote
+    # (review 5's last look, NL2)
+    "backlog": [("pdflatex", "found", s) for s in list(range(1, 11)) + [17]],
 }
 # (set, seed): why it fails.  (review 1 and xe 1 were B1's, a footnote cut to run a
 # line past the foot and printed over the next when its line went on; such a footnote
