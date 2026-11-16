@@ -404,6 +404,14 @@ small_document '\usepackage[british]{babel}
 command grep -q "Unknown language .klingon." test-bilingual-names.log \
   || fail names "\\didactictr[english,klingon] isn't an unknown language"
 
+text=$(small_document '\usepackage[british]{babel}
+\newenvironment{en}{OWNEN}{}
+\usepackage{didactic}' '\begin{en}
+\end{en}')
+case "$text" in *OWNEN*) ;; *) fail names "a document's own environment en is lost: $text" ;; esac
+[ "$(command grep -c '^!' test-bilingual-names.log)" = 0 ] \
+  || fail names "a document's own environment en gives an error"
+
 # The test documents are examples too, so the script must find nothing wrong
 # with them: no error, and no stamp in a form that it no longer reads.
 # test-bilingual-off.tex loads the package with nobilingual and has its own
