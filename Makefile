@@ -95,6 +95,7 @@ didactic.pdf: ${SRC} didactic.sty
 	grep -q 'Adds bilingual documents' didactic.gls
 	grep -q 'translator' didactic.gls
 	grep -q 'capitalise' didactic.gls
+	grep -q 'babel. does' didactic.gls
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
 	! ${TESTLOG} grep 'Empty bibliography|Citation .*undefined|could not be found' didactic.log
@@ -817,6 +818,7 @@ clean:
 	${RM} test-bilingual-titles.tex test-bilingual-titles.pdf
 	${RM} test-bilingual-ownlines.tex test-bilingual-ownlines.pdf
 	${RM} test-bilingual-cref.tex test-bilingual-cref.pdf
+	${RM} -R test-bilingual-names.tex test-bilingual-names.pdf test-bilingual-names.d
 	${RM} test-bilingual-stamp.pdf test-bilingual-stamp.unq
 	${RM} test-bilingual-import.pdf test-bilingual-import.unq
 	${RM} $(addsuffix .unq,${TEST_BILINGUAL}) test-bilingual-off.unq
