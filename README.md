@@ -70,7 +70,10 @@ For the package:
   across pages too. `test-fuzz` and the note suites need the marginfix this
   version needs, installed or given by `MARGINFIX`: on a machine whose
   installed marginfix is that older build they fail until both are installed
-  together.
+  together. Updating only one of the two: an older didactic (v2.17 or earlier)
+  with this marginfix places notes as marginfix does alone, a note that doesn't
+  fit carried with marginfix's warning, and its `noteoverflow=break` has no
+  effect; this didactic with that older build gives the wrong order above.
 - `minted` 3 (with its `latexminted`) and `pythontex`, and LaTeX run with
   `-shell-escape`.
 - `comment`, for the bilingual blocks (in TeX Live), unless the option

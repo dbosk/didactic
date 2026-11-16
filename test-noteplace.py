@@ -76,6 +76,8 @@ called out somewhere names a place, not an internal name; no footnote found not 
               LINEA is on the callout's page and every LINE word on it or the
               next (the note goes with its line), and movedwarn.
   has=W       W is in the text.
+  hasnot=W    W is not in the text.
+  once=W      W is in the text exactly once.
   label=N:P   the label N is on page P.
   align=A:B   the positions A and B (zsavepos) are on one page and one baseline,
               within half a point (a note's first line beside its callout's).
@@ -100,6 +102,7 @@ called out somewhere names a place, not an internal name; no footnote found not 
               that reaches into the margin).
 Prints one line, "PASS" or "FAIL" with what failed, and the facts.
 """
+import html
 import re
 import subprocess
 import sys
@@ -314,6 +317,11 @@ for e in expect:
             fails.append("no warning that TeX ended a page before a footnote's line")
     elif e.startswith("has=") and e[4:] not in out:
         fails.append("%s is not in the text" % e[4:])
+    elif e.startswith("hasnot=") and e[7:] in html.unescape(out):
+        fails.append("%s is in the text" % e[7:])
+    elif e.startswith("once=") and html.unescape(out).count(e[5:]) != 1:
+        fails.append("%s is in the text %d times, not once"
+                     % (e[5:], html.unescape(out).count(e[5:])))
     elif e.startswith("lostwarn=") and not re.search(
             r"Margin note called out at " + re.escape(e[9:]) + r":\d+ on page \d+ wasn't printed",
             joined):

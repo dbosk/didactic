@@ -239,15 +239,17 @@ def judge(name, tex, aux, rawlog, log, bbox):
     "TeX ended page P" for a note on P + 1; "found from the last run" names it only
     where its foot also holds a footnote of LaTeX's own or multicol's (the mixed
     foot, #104: INFO), since otherwise it is the record net catching what nothing
-    foresaw; for LaTeX's and multicol's, the one that says that
-    LaTeX set it there ("where LaTeX puts it").  A note warned as not printed that
-    is printed fails.  Footnotes keep their order across pages when both of
-    a pair are didactic's, without exception: the known mixed foot (a later line
-    takes a foot that also holds LaTeX's own footnotes to the next page, named a
-    run late; #104 is its cure) fails here, and a seed that shows it goes into
-    EXPECTED with that reason (none of the sets does).  A pair with a footnote of LaTeX's own or
+    foresaw; for multicol's, the one that says that LaTeX set it there ("where
+    LaTeX puts it"); one of LaTeX's own that TeX sets on another page is LaTeX's,
+    named by nothing (didactic names only multicol's, review 5): INFO, counted.  A
+    note warned as not printed that is printed fails.  Footnotes keep their order
+    across pages when both of a pair are didactic's, but for a footnote set before
+    one still waiting with the warning that names both (INFO): the known mixed foot
+    (a later line takes a foot that also holds LaTeX's own footnotes to the next
+    page, named a run late; #104 is its cure) fails here, and a seed that shows it
+    goes into EXPECTED with that reason.  A pair with a footnote of LaTeX's own or
     multicol's is in order or else every note of it that is off its anchor's page
-    is named.  Two words that overlap fail, but for TeX's overfull line: a word of
+    is named, LaTeX's own counting as named.  Two words that overlap fail, but for TeX's overfull line: a word of
     the text whose right edge lies past the text's right edge (the edge most lines
     of the page end at), over a word in the margin, by no more than an Overfull
     \\hbox of a paragraph in the log is wide, less TOL (0.5pt, pdftotext's boxes
@@ -336,14 +338,19 @@ def judge(name, tex, aux, rawlog, log, bbox):
                         return True
         return False
 
-    away, lost = [], []
+    away, lost, latexoff = [], [], []
     for K in sorted(lineof, key=int):
         a, n = anchor(K), pg.get("n-" + K)
         if n is None:
             lost.append(K)
             continue
         if a != n and "\\ltnote" not in src[lineof[K] - 1] and not is_named(K):
-            away.append((K, lineof[K], kind[K], a, n))
+            # a footnote of LaTeX's own that TeX sets on another page: LaTeX's, unnamed
+            # (review 5: didactic names only multicol's)
+            if kind[K] == "latex":
+                latexoff.append((K, a, n))
+            else:
+                away.append((K, lineof[K], kind[K], a, n))
     # a warning's pages are the labels'
     for K in lineof:
         for ln in lines_of(K):
@@ -386,7 +393,7 @@ def judge(name, tex, aux, rawlog, log, bbox):
                     bad.append((a, b))
             else:
                 off = [K for K in (a, b) if anchor(K) != pg.get("n-" + K)]
-                if all(is_named(K) for K in off):
+                if all(is_named(K) or kind[K] == "latex" for K in off):
                     info.setdefault(f"{ka} after {kb}", []).append((a, b))
                 else:
                     bad.append((a, b))
@@ -395,6 +402,9 @@ def judge(name, tex, aux, rawlog, log, bbox):
                      + ", ".join(f"{a} ({kind[a]}) after {b} ({kind[b]})" for a, b in bad[:5]))
     for k, v in sorted(info.items()):
         probs.append(f"INFO {k}: {len(v)} pairs, e.g. {v[:3]}")
+    if latexoff:
+        probs.append(f"INFO LaTeX's own off its page: {len(latexoff)} footnotes, e.g. "
+                     f"{latexoff[:3]}")
     for K, n, L in sorted(set(lastinfo), key=lambda x: int(x[0])):
         probs.append(f"INFO mixed foot: {K} named found from the last run, on page {n}, "
                      f"whose foot holds {L} ({kind[L]})")
@@ -616,8 +626,12 @@ def selftest():
         ("the same with the warning's pages wrong fails",
          synthetic([(1, "latex", 1, 2), (2, "ours", 1, 1)], [(1, "TeX", 1, 3)]),
          lambda r: has(r, "says 1->3")),
-        ("the same unnamed fails",
+        ("the same unnamed is INFO, LaTeX's own off its page",
          synthetic([(1, "latex", 1, 2), (2, "ours", 1, 1)]),
+         lambda r: not fails(r) and has(r, "INFO LaTeX's own off its page: 1")
+         and has(r, "INFO latex after ours")),
+        ("multicol's off its page unnamed fails",
+         synthetic([(1, "multicol", 1, 2), (2, "ours", 1, 1)]),
          lambda r: has(r, "out of order") and has(r, "away")),
         ("multicol set a page early, named, is INFO",
          synthetic([(1, "ours", 2, 2), (2, "multicol", 2, 1)], [(2, "multicol", 2, 1)]),

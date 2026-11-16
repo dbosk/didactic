@@ -67,8 +67,8 @@ PHONY = {"test-biburl", "test-noteoverflow-foot", "test-noteplace", "test-footwi
 CASES = {"footcite": "default", "hbox": "hbox", "footwide": "rigid oneline beyond",
          "fuzz": "inrun:16 tl12:16 xe:9", "noteplace": "rsvsidecap rsvblock mcolblock rsvsidebefore heldtop heldsecond overmoved"
          " footback overlimit overtwo aftercarry carrymode notplainm notplainf"
-         " nestfn nestmp fsoverstay trailm samelinehead fnstale fnstaleplain"
-         " leftorder leftheld leftfloat nofiles",
+         " nestfn nestmp fsoverstay trailm samelinehead leftorder leftheld leftfloat"
+         " nofiles mcolfn bfnover bfnsec",
          "notefoot": "waitover warnclaim defercarry-warn defercarry",
          "noteplace12": "nestfn nestmp mcolnote",
          "matrix": "mvlaterfull fspullback omtlaterfn mvcarriedover mvdeferclaim heldover"}

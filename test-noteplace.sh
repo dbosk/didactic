@@ -480,10 +480,10 @@ check heldtopmn x 3 '' "kept,align=cl:nt,pairs,exactwarn" "$ALONE$HP${HT%\}}$LMN
 # split there, is held over by TeX to the next page's foot, where it makes a mixed
 # foot with one of didactic's (NOTEY, at the foot: the margin is full); a later
 # margin note's line there then goes to the page after, and LaTeX puts the foot
-# back after that line, so both footnotes go on with it.  Both are named a run
-# later: LaTeX's ("where LaTeX puts it") and didactic's ("found from the last run").
+# back after that line, so both footnotes go on with it.  didactic's is named a run
+# later ("found from the last run"); LaTeX's isn't named, as in LaTeX (review 5).
 HELD='\def\testfirst{\noindent\rule{1cm}{\dimexpr\textheight-4\baselineskip\relax}\par\noindent FIRSTLINE words{\footnotesatfoot\interfootnotelinepenalty=10000 \footnote{LATEXFN a long footnote of LaTeX'"'"'s own, \filler\ \filler\ \filler\ \filler}} more.\par\newpage\noindent x\marginpar{TALLB\par\rule{1pt}{.97\textheight}} text \yieldnote{} and words.\par\noindent\rule{1cm}{\dimexpr\textheight-\testroom\baselineskip\relax}\par{\interlinepenalty=10000 \noindent LATERA\marginpar{LATERNOTE}\newline LATERB\newline LATERC\newline LATERD\par}}\def\testyieldfoot{}'
-check heldover x 12 '' "foundlast=1,reason=where LaTeX puts it,at=LATEXFN:3/NOTEY:3/LATERA:3" "$HELD"
+check heldover x 12 '' "foundlast=1,noreason=where LaTeX puts it,fnrecords=0,at=LATEXFN:3/NOTEY:3/LATERA:3" "$HELD"
 # Review 3, T1: rows for what no row pinned, each red under its mutant in
 # test-mutants.txt (the overhang's limit: overlimit above; sameline: test-notefoot's
 # waitover; the deferrable claim: test-notefoot's defercarry and warnclaim).
@@ -607,39 +607,35 @@ check leftheld x 5 '' "pairs,aheadwarn=1" '\def\testtall{.99}\def\testbody{{\int
 check leftbl x 9 '' "pairs,aheadwarn=4" "$LF$TF"'\def\testbody{{\marginnoteoverflow{carry}Carried one\lfn{1} two\lfn{2} three\lfn{3} four\lfn{4} five\lfn{5} six\lfn{6} seven\lfn{7} eight\lfn{8}.}\clearpage On page two\sfn{9} \filler\ \filler\ \filler\ \filler\par\filler\ \filler\ \filler\ \filler\par and more\sfn{10} \filler\ \filler\ \filler\ \filler\par\filler\ \filler\ \filler\ \filler\par \filler\ \filler\ \filler\ \filler\par\filler\ \filler\ \filler\ \filler\par\filler\ \filler\ \filler\ \filler\par\filler\ \filler\ \filler\ \filler\par\filler\ \filler\ \filler\ \filler\par\filler\ \filler\ \filler\ \filler\par again\sfn{11} \filler\ \filler\ \filler\ \filler\par\filler\ \filler\ \filler\ \filler\par\filler\ \filler\ \filler\ \filler\par\filler\ \filler\ \filler\ \filler\par\filler\ \filler\ \filler\ \filler\par\filler\ \filler\ \filler\ \filler\par\filler\ \filler\ \filler\ \filler\par\filler\ \filler\ \filler\ \filler\par last\sfn{12} \filler\par}'
 check leftfit x 9 '' "pairs,fnorder,aheadwarn=0" "$LF$TF"'\def\testbody{{\marginnoteoverflow{carry}Carried one\sfn{1} two\sfn{2} three\sfn{3}.}\clearpage On page two\sfn{4} \filler\par}'
 check leftfloat x 9 '' "pairs,fnorder,nocontinued" "$LF$TF"'\def\testbody{{\marginnoteoverflow{carry}Carried one\label{c-1}\footnote{\label{n-1}NOTE1x \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler} and a tall one\marginpar{HUGE\par\rule{1pt}{.9\textheight}}.}\clearpage On page two\sfn{2} \filler\begin{figure}[b]\rule{1cm}{.25\textheight}\caption{FLOATB}\end{figure} \filler\par \filler\par}'
+# The warning is said when the page is built, its room final (review 5): two footnotes
+# carried into page 2 take a little more than its margin when footnote 3 goes to the
+# foot, but a later margin note there runs past the foot of the margin, which gives
+# the margin the room to set them both: no warning (leftgrow, the reviewer's ao244).
+check leftgrow x 9 '' "pairs,aheadwarn=0" '\def\testfirst{\noindent x\marginpar{TALL\par\rule{1pt}{.95\textheight}} text\par\noindent\rule{1cm}{.8\textheight}\par}\def\testbody{{\marginnoteoverflow{carry}Carried one\label{c-1}\footnote{\label{n-1}NOTE1x\par\rule{1pt}{360pt}} and two\label{c-2}\footnote{\label{n-2}NOTE2x\par\rule{1pt}{244pt}}.}\clearpage On page two X\label{c-3}\footnote{\label{n-3}NOTE3x a short footnote called out on page two.} and a short margin note Y\label{c-4}\marginpar{\label{n-4}NOTE4x Y}. More text.\par}'
 # A footnote set directly, in a passage in the mode carry, isn't measured: one that
 # isn't plain there runs its text once, and is neither said nor counted.
 check notplaincarry x 20 '' "kept" '\def\testtall{.1}\def\testyieldfoot{}\def\testbody{{\marginnoteoverflow{carry}FIRSTLINE words\yieldnote[\par LCARRY\begin{itemize}\item one\end{itemize}] more words.} \filler\par}'
-# A footnote set at the foot as LaTeX sets it (\footnotesatfoot) is left to TeX; one
-# that doesn't fit at a foot that ours has filled is taken to the next page by TeX,
-# and named a run later (latexfoot); one that TeX splits over two pages, begun on its
-# mark's page, is not (latexsplit).
-check latexfoot x 5 '' "kept,reason=where LaTeX puts it" '\def\testyieldfoot{}\def\testbody{FIRSTLINE words\yieldnote[\par TWO\par THREE] more words, {\footnotesatfoot\footnote{LATEXFN at the foot of a page, a footnote of LaTeX'"'"'s own.}} and words. \filler\par}'
-check latexsplit x 8 '' "noreason=where LaTeX puts it,at=LATEXFN:1/LATEXEND:2" '\def\testbody{FIRSTLINE words, {\footnotesatfoot\footnote{LATEXFN a long footnote of LaTeX'"'"'s own, \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ LATEXEND}} and words. \filler\par}'
-# Records only for a footnote whose mark and text \footnote makes together: none
-# for a \footnotemark and its \footnotetext apart, on another page (fnapart: two
-# marks, then two \footnotetext[n]; fnfloat: the mark in a float), none for a
-# footnote whose text can't reach the foot (fnbox: in a minipage, in a tabular),
-# none for \thanks; one for a heading's footnote beside its short form, none for a
-# caption's (in a float); and once with hyperref (fnhyper).
-check fnapart x 30 '' "noreason=where LaTeX puts it,fnrecords=0,at=FNTA:2/FNTB:2" '\def\testbody{\footnotesatfoot FIRSTLINE words\footnotemark\ and words\footnotemark\ and more. \filler\newpage TEXTS\footnotetext[1]{FNTA the first.}\footnotetext[2]{FNTB the second.} \filler\par}'
-check fnfloat x 30 '' "noreason=where LaTeX puts it,fnrecords=0,at=FLT:1" '\def\testbody{\footnotesatfoot FIRSTLINE words. \begin{figure}[p]\centering FLOATBODY\footnotemark\caption{Cap}\end{figure} \filler\par TEXTS\footnotetext{FLT the float'"'"'s note, apart.} \filler\par}'
-check fnbox x 30 '' "noreason=wasn't printed,noreason=where LaTeX puts it,fnrecords=0,at=MINIFN:1" '\def\testbody{\footnotesatfoot FIRSTLINE words.\par\begin{minipage}{.5\textwidth}MINI words\footnote{MINIFN in the minipage.}\end{minipage}\par\begin{tabular}{l}TAB cell\footnote{TABFN in a tabular.}\\\end{tabular}\par \filler\par}'
-check fnthanks x 30 '' "noreason=wasn't printed,noreason=where LaTeX puts it,fnrecords=1,at=THANKS:2/HEADFN:2" '\def\testbody{\footnotesatfoot\title{TITLE\thanks{THANKS a note to the title.}}\author{A}\date{}\maketitle \section[Short]{HEADX\footnote{HEADFN of the heading.}} FIRSTLINE words. \begin{figure}[h]\centering FIG\caption[Short]{CAP\footnote{CAPFN of the caption.}}\end{figure} \filler\par}'
-# A footnote whose text took neither the foot nor the margin (in a minipage) left the
-# flag of a pair set for a later \footnotemark placed apart from its text (review 4,
-# S5-2: "where LaTeX puts it" for a mark and text the author put on two pages):
-# the flag holds only within one \footnote (fnstale; fnstaleplain, a footnote in the
-# margin before the mark instead).
-check fnstale x 30 '' "noreason=where LaTeX puts it,fnrecords=0,at=APART:2" '\def\testbody{\begin{minipage}{.5\linewidth}MINI\footnote{MININOTE in a minipage.}\end{minipage}\par{\footnotesatfoot FIRSTLINE words with a mark\footnotemark{} and its text apart.} \filler\newpage{\footnotesatfoot TEXTS\footnotetext{APART the text of the mark, on purpose.}} \filler\par}'
-check fnstaleplain x 30 '' "noreason=where LaTeX puts it,fnrecords=0,at=APART:2" '\def\testtall{.3}\def\testbody{PLAIN\footnote{PLAINNOTE in the margin.}\par{\footnotesatfoot FIRSTLINE words with a mark\footnotemark{} and its text apart.} \filler\newpage{\footnotesatfoot TEXTS\footnotetext{APART the text of the mark, on purpose.}} \filler\par}'
-# The same in two columns, with memoir (a footnote of its own at the foot gets its
-# records) and with article, where didactic sets no footnote and the hooks aren't
-# set: memoir's names in them must not reach another class (fnapartart).
-FNTWO='\def\testbody{\ifdefined\footnotesatfoot\footnotesatfoot\fi FIRSTLINE words\footnotemark\ and words\footnotemark\ and more, and a footnote\footnote{PAIRFN made whole.} too. \filler\clearpage TEXTS\footnotetext[1]{FNTA the first.}\footnotetext[2]{FNTB the second.} \filler\par}'
-check fnaparttwo x 30 '' "noreason=where LaTeX puts it,at=FNTA:2/PAIRFN:1,fnrecords=1" '\def\testclassopt{a4paper,twocolumn}'"$FNTWO"
-check fnapartart x 30 '' "noreason=where LaTeX puts it,at=FNTA:2/PAIRFN:1,fnrecords=0" "$ART"'\def\testclassopt{a4paper,twocolumn}'"$FNTWO"
-check fnhyper x 5 '' "kept,reason=where LaTeX puts it,fnrecords=1" '\def\testpre{\usepackage{hyperref}}\def\testyieldfoot{}\def\testbody{FIRSTLINE words\yieldnote[\par TWO\par THREE] more words, {\footnotesatfoot\footnote{LATEXFN at the foot of a page, a footnote of LaTeX'"'"'s own.}} and words. \filler\par}'
+# A footnote set at the foot as LaTeX sets it (\footnotesatfoot) is left to TeX, and
+# named by no warning and given no records, as in LaTeX (review 5): one that doesn't
+# fit at a foot that ours has filled and is taken to the next page by TeX
+# (latexfoot), one that TeX splits over two pages (latexsplit).
+check latexfoot x 5 '' "kept,noreason=where LaTeX puts it,fnrecords=0" '\def\testyieldfoot{}\def\testbody{FIRSTLINE words\yieldnote[\par TWO\par THREE] more words, {\footnotesatfoot\footnote{LATEXFN at the foot of a page, a footnote of LaTeX'"'"'s own.}} and words. \filler\par}'
+check latexsplit x 8 '' "noreason=where LaTeX puts it,fnrecords=0,at=LATEXFN:1/LATEXEND:2" '\def\testbody{FIRSTLINE words, {\footnotesatfoot\footnote{LATEXFN a long footnote of LaTeX'"'"'s own, \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ LATEXEND}} and words. \filler\par}'
+# A footnote in multicol's columns gets its records from \@footnotemark and
+# \@footnotetext, redefined in the environment's own hook, which every syntax of
+# \footnote reaches parsed (review 5): memoir with beamerarticle (mcolfn), beamer's
+# overlay specification (mcolover: its text, nothing of it in the body), memoir's
+# number (mcolnum), with hyperref (mcolhyper); a \footnotemark with its
+# \footnotetext[1] after a second mark in the columns: each mark its record, the
+# text none, being another mark's (mcolapart); a footnote in a minipage there none (mcolmini); with article no hook
+# is set (mcolart).
+check mcolfn x 20 '' "once=MCFN,fnrecords=1" "$MC"'\def\testbody{\begin{multicols}{2}FIRSTLINE words\footnote{MCFN in the columns.} \filler\ \filler\end{multicols}}'
+check mcolover x 20 '' "once=MCOVER,hasnot=2->,fnrecords=1" "$MC"'\def\testbody{\begin{multicols}{2}FIRSTLINE words\footnote<2->{MCOVER in the columns, on slide two.} \filler\ \filler\end{multicols}}'
+check mcolnum x 20 '' "once=MCNUM,fnrecords=1" "$MC"'\def\testbody{\begin{multicols}{2}FIRSTLINE words\footnote[7]{MCNUM numbered seven.} \filler\ \filler\end{multicols}}'
+check mcolhyper x 20 '' "once=MCHYP,fnrecords=1" "$MC"'\def\testpre{\usepackage{multicol,hyperref}}\def\testbody{\begin{multicols}{2}FIRSTLINE words\footnote{MCHYP with hyperref.} \filler\ \filler\end{multicols}}'
+check mcolapart x 20 '' "once=MCAPART,noreason=where LaTeX puts it,fnrecords=2" "$MC"'\def\testbody{\begin{multicols}{2}FIRSTLINE words\footnotemark\ and more\footnotemark\ \filler\footnotetext[1]{MCAPART the first mark'"'"'s text.} \filler\end{multicols}}'
+check mcolmini x 20 '' "once=MCMINI,noreason=wasn't printed,fnrecords=0" "$MC"'\def\testbody{\begin{multicols}{2}FIRSTLINE \begin{minipage}{.8\linewidth}MINI\footnote{MCMINI in a minipage.}\end{minipage} \filler\ \filler\end{multicols}}'
+check mcolart x 20 '' "once=MCART,fnrecords=0" "$ART$MC"'\def\testbody{\begin{multicols}{2}FIRSTLINE words\footnote{MCART in the columns.} \filler\ \filler\end{multicols}}'
 # Any other margin note in multicols is lost, as in LaTeX, but with a warning.
 check mcolnote x 20 '' "mcolwarn${M12:+,lostwarn=test-noteplace.tex,noreason=taller than the margin,foundlast=1}" "$MC"'\def\testbody{\begin{multicols}{2}FIRSTLINE\marginpar{MCOLMARGIN} \filler\ \filler\end{multicols}}'
 # What marginfix puts in the margin for itself (\blockmargin, \unblockmargin) is no
@@ -736,6 +732,32 @@ PY
 vgap vgapvspace '\noindent VGLA \filler\par\vspace{2\baselineskip}\vgnote{\marginpar{VGNOTE}}VGLB \filler\par VGLC \filler\par'
 vgap vgapenv '\noindent VGLA \filler\begin{quote}VGLQ \filler\end{quote}\vgnote{\begin{marginfigure}\rule{1cm}{1cm}\caption{VGNFIG}\end{marginfigure}}VGLB \filler\par VGLC \filler\par'
 vgap vgapthanks '\title{VGLT\vgnote{\thanks{VGNOTE in the title.}}}\author{VGLAU}\date{VGLD}\maketitle VGLB \filler\par VGLC \filler\par'
+
+# Footnotes in the syntaxes and places of a deck's source, with memoir and beamerarticle
+# (review 5): what master v2.17.2 does with each is the expectation, its one error
+# among it (a note in a heading is lost; in a caption or a margin note's text, the
+# float or margin note with it; \item's label takes no margin note).  That is master's
+# behaviour, older than this branch (#111), not the behaviour wanted: the rows only
+# hold didactic to doing no worse than master.  beamer's overlay
+# specification (bfnover, bfnoverframe: the text where it was, nothing of it in the body);
+# in a heading or caption without a short title, a moving argument (beamerarticle's
+# \footnote is robust there; bfnsec, bfnsecfoot, bfnchap, bfncap), with one (bfnsecshort,
+# bfncapshort); in a list item's label (bfnitem); in a margin note's text (bfnmarg, bfnlt).
+# With 1.2 a lost margin note is named a run later, "wasn't printed".  They guard
+# against wrapping \footnote again (mutant Sfnwrap): on 646094a, whose wrapper read
+# the argument, bfnover, bfnoverframe, bfnsec, bfnsecfoot, bfnchap and bfncap fail.
+BF='\def\testtall{.3}'
+check bfnover x 20 '' "once=OVERLAYNOTE,hasnot=2->" "$BF"'\def\testbody{FIRSTLINE words\footnote<2->{OVERLAYNOTE on slide two and later.} more. \filler\par}'
+check bfnoverframe x 20 '' "once=OVERFRAME,hasnot=2->" "$BF"'\def\testbody{FIRSTLINE words\footnote<2->[frame]{OVERFRAME on slide two, at the frame.} more. \filler\par}'
+check bfnsec x 20 '' "error=Float(s) lost,has=TITLEX${M12:+,foundlast=2}" "$BF"'\def\testbody{\section{TITLEX\footnote{TITLENOTE of the heading.}} FIRSTLINE \filler\par}'
+check bfnsecfoot x 20 '' "error=Float(s) lost,has=TITLEX${M12:+,foundlast=2}" "$BF"'\def\testbody{{\footnotesatfoot\section{TITLEX\footnote{TITLENOTE of the heading.}}} FIRSTLINE \filler\par}'
+check bfnsecshort x 20 '' "once=TITLENOTE" "$BF"'\def\testbody{\section[Short]{TITLEX\footnote{TITLENOTE of the heading.}} FIRSTLINE \filler\par}'
+check bfnchap x 20 '' "error=Float(s) lost,has=CHAPX${M12:+,foundlast=1}" "$BF"'\def\testbody{\chapter{CHAPX\footnote{CHAPNOTE of the chapter.}} FIRSTLINE \filler\par}'
+check bfncap x 20 '' "error=Float(s) lost" "$BF"'\def\testbody{FIRSTLINE \filler\par\begin{figure}[h]\centering FIG\caption{CAPX\footnote{CAPNOTE of the caption.}}\end{figure} \filler\par}'
+check bfncapshort x 20 '' "error=Float(s) lost" "$BF"'\def\testbody{FIRSTLINE \filler\par\begin{figure}[h]\centering FIG\caption[Short]{CAPX\footnote{CAPNOTE of the caption.}}\end{figure} \filler\par}'
+check bfnitem x 20 '' "error=Not in outer par mode,has=ITEMX${M12:+,foundlast=1}" "$BF"'\def\testbody{FIRSTLINE \filler\begin{description}\item[ITEMX\footnote{ITEMNOTE of the label.}] words \filler\end{description}}'
+check bfnmarg x 20 '' "error=Float(s) lost${M12:+,foundlast=1}" "$BF"'\def\testbody{FIRSTLINE words\marginpar{MARGX\footnote{MARGNOTE in a margin note.}} \filler\par}'
+check bfnlt x 20 '' "error=Float(s) lost${M12:+,foundlast=1}" "$BF"'\def\testbody{FIRSTLINE words\ltnote{LTX\footnote{LTNOTE in a teacher'"'"'s note.}} \filler\par}'
 
 # Under \nofiles no .aux is written, so nothing can be named a run later; mixfoot's
 # document (a mixed foot taken on to the next page, named only a run later) says so,
