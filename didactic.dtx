@@ -1921,7 +1921,9 @@
 % of \cref{sec:didactic-sync}.
 % Its keys are the names the blocks are written in, and any name of a 
 % language will do for it: a block changed from |{english}| to |{british}| 
-% keeps its stamp.
+% keeps its stamp, and its word diff.
+% A key that names no side of its pair, a typo such as |swedsh=|, is an 
+% error.
 %
 % \DescribeMacro{\didactictr}
 % \DescribeMacro{\ensv}
@@ -2160,10 +2162,16 @@
 % hashes as they were, so a source that was in sync still is, and the 
 % language settings, in |\usepackage[...]{didactic}|, 
 % |\PassOptionsToPackage{...}{didactic}| and |\didacticlanguage|.
+% It reads them as \LaTeX\ does: a setting or a definition shown as an 
+% example, in |\verb|, |\mintinline|, noweb's |[[...]]|, a chunk, a verbatim 
+% environment or a comment, is left as it is, and an option list may run 
+% over several lines.
 % A file that has an environment |en|, |sv| or |onlyin| of its own, or loads 
 % this package with |nobilingual|, is left alone, with a note, since its 
 % |\begin{en}| isn't this package's; the script sees only what the file 
 % itself says, not a driver's |nobilingual|.
+% A file is rewritten only if the result reads without an error, so a 
+% migrated file never has a block of version~2.17 beside a new one.
 % Migrate a deck when its pairs are in sync, if it can be: the script still 
 % shows the word diff of a pair that was behind at the migration, by finding 
 % the stamp in version~2.17's form in the history, but a deck in sync has 
