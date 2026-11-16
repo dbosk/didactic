@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}[2021/06/01]
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/11/15 v2.17.2 didactic]
+  [2026/11/16 v2.18 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -156,6 +156,14 @@
 %   when it's loaded.
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
+% }
+% \changes{v2.18}{2026/11/16}{%
+%   Bilingual documents name languages as \textsf{babel} does, in blocks, 
+%   \texttt{\textbackslash begin\{onlyin\}\{swedish\}}, in the option 
+%   \texttt{language} and in stamps; \texttt{\textbackslash didactictr} 
+%   takes a list of languages.
+%   Removes \texttt{en} and \texttt{sv}; \texttt{didactic-sync.py 
+%   --migrate} rewrites a source (\#105).
 % }
 % \changes{v2.17.2}{2026/11/15}{%
 %   With \textsf{cleveref}'s option \texttt{capitalise}, the names of this 
@@ -1873,37 +1881,74 @@
 %
 % \subsection{Bilingual documents}\label{sec:bilingual}
 %
-% One source can hold two editions of a text, in English and in Swedish: 
-% the material that doesn't depend on the language (code, runs, figures, 
-% the structure) is written once and only the prose is written twice.
-% Other pairs of languages are the subject of dbosk/didactic\#105.
+% One source can hold editions of a text in several languages, such as 
+% English and Swedish: the material that doesn't depend on the language 
+% (code, runs, figures, the structure) is written once and only the prose is 
+% written for each.
+% Languages are named as \textsf{babel} names them.
 %
-% \DescribeEnv{en}
-% \DescribeEnv{sv}
-% Prose comes in pairs of blocks, one paragraph or one list per block:
+% \DescribeEnv{onlyin}
+% Prose comes in pairs of blocks, one paragraph or one list per block, each 
+% in the language that its argument names:
 % \begin{verbatim}
-% \begin{en} % sync en=3f9c1a sv=b20e7d
+% \begin{onlyin}{english} % sync english=3f9c1a swedish=b20e7d
 % The program prints one line.
-% \end{en}
-% \begin{sv}
+% \end{onlyin}
+% \begin{onlyin}{swedish}
 % Programmet skriver ut en rad.
-% \end{sv}
+% \end{onlyin}
 % \end{verbatim}
-% Either language may come first.
-% Two blocks form a pair when only blank lines and comments lie between 
-% them; a block with no partner next to it belongs to one edition only.
+% Either language may come first, and a pair may have more than two, an 
+% English, a Swedish and a German block.
+% Blocks of different languages form a pair when only blank lines and 
+% comments lie between them; a block with no partner next to it belongs to 
+% one edition only.
+% The argument is \textsf{babel}'s name of the language, |english|, 
+% |british|, |swedish|, |ngerman|; a tag such as |sv| there is an error that 
+% names the name to write.
+% |british| and |english| are one language: what decides is the language 
+% tag that \textsf{babel} gives each, |en| for both, which this package and 
+% the script compare by and an author never writes.
+% This package asks \textsf{babel}, so a name that \textsf{babel} doesn't 
+% know, in a block or a string, is an error in the build: |{englsh}| is 
+% caught there.
+% \texttt{didactic-sync.py} can't ask \textsf{babel}; it knows a fixed table 
+% of names, in which |english|, |british| and |american| are one language, 
+% and a name that isn't in it, |estonian|, is a language of its own there, 
+% with a note, so a typo passes the script and stops the build.
 % The comment on the first |\begin| line, which \textsf{comment} ignores, 
 % is written by the script \texttt{didactic-sync.py}, which is the subject 
 % of \cref{sec:didactic-sync}.
+% Its keys are the names the blocks are written in, and any name of a 
+% language will do for it: a block changed from |{english}| to |{british}| 
+% keeps its stamp, and its word diff.
+% A key that names no side of its pair, a typo such as |swedsh=|, is an 
+% error.
 %
-% \DescribeMacro{\ensv}
 % \DescribeMacro{\didactictr}
-% Short strings use |\ensv{English}{Svenska}|: frame titles, section titles, 
-% captions, list items, the title of the document.
-% The name gives the order of the arguments, English first.
-% |\didactictr| is the same command under a name that no other package takes.
-% A document doesn't redefine it either: \texttt{didactic-sync.py} reports 
-% that as an error, since the file could no longer be checked.
+% \DescribeMacro{\ensv}
+% \DescribeMacro{\sven}
+% Short strings use |\didactictr[|\meta{languages}|]|, followed by a text 
+% for each language: frame titles, section titles, captions, list items, the 
+% title of the document.
+% |\didactictr[english,swedish,ngerman]{One}{Ett}{Eins}| gives the 
+% edition's text.
+% Without the option the languages are English and Swedish, and 
+% |\ensv{English}{Svenska}| and |\sven{Svenska}{English}| are the short 
+% forms, whose names give the order of the arguments.
+% A list that names one language twice, |[english,british]|, is an error, 
+% in the build where the string is typeset and in \texttt{didactic-sync.py}, 
+% since only one of the two texts could ever be printed.
+% A string with fewer texts than languages takes whatever follows as its 
+% last text, since the build can't tell a text from the next word; 
+% \texttt{didactic-sync.py} reports it (exit~2).
+% A string with no text for the edition, such as |\ensv| in a German 
+% edition, is an error where it's typeset, which names the edition and the 
+% string's languages: a shared file used by a German edition needs a German 
+% text in every string, |\didactictr[english,swedish,ngerman]|.
+% |\didactictr| is a name that no other package takes, and a document 
+% doesn't redefine it either: \texttt{didactic-sync.py} reports that as an 
+% error, since the file could no longer be checked.
 % It's expandable, so it's safe in moving arguments: the table of contents, 
 % the bookmarks and the headline of the slides only ever see the edition's 
 % language.
@@ -1915,8 +1960,12 @@
 %
 % \DescribeOpt{language}
 % \DescribeMacro{\didacticlanguage}
-% The edition is the main language of \textsf{babel}: |swedish| gives the 
-% Swedish edition, and any other language the English one.
+% The edition is the main language of \textsf{babel}, whichever it is, by 
+% its tag: |british| gives the English edition, |swedish| the Swedish one, 
+% |ngerman| the German one.
+% A document that gives \textsf{babel} no language at all gets the English 
+% edition, as in version~2.17, since English is \LaTeX's own language: its 
+% fixed words, \enquote{Contents} and \enquote{Figure}, are English already.
 % So the feature needs \textsf{babel}, which this package loads anyway: a 
 % document with \textsf{polyglossia} instead stops where this package loads 
 % \textsf{babel}, with or without the bilingual feature.
@@ -1928,7 +1977,9 @@
 % \PassOptionsToPackage{english,swedish}{cleveref}
 % \input{preamble.tex}
 % \end{verbatim}
-% The option |language=en| or |language=sv| overrides that.
+% The option |language| overrides that, with a language's name, 
+% |language=swedish|; a tag, |language=sv|, is an error that names the name, 
+% and the edition is then \textsf{babel}'s main language.
 % So does the command |\didacticlanguage| with the same argument, which can 
 % also be used in the document, between blocks.
 %
@@ -1964,7 +2015,7 @@
 % \end{verbatim}
 % say the same again, which is harmless, and can go.
 % \textsf{translator} follows \textsf{babel}, not the edition: with the 
-% option |language=sv| and English as \textsf{babel}'s main language, the 
+% option |language=swedish| and English as \textsf{babel}'s main language, the 
 % titles are English, like \textsf{babel}'s captions.
 % Don't give the class the language instead, |\documentclass[swedish]{beamer}|: 
 % a class option reaches every package, and it turns \textsf{cleveref}'s 
@@ -2005,11 +2056,25 @@
 % of a macro, can't.)
 % Reading line by line also gives the rules for using them:
 % \begin{description}
-% \item[The end of a block] |\end{en}| and |\end{sv}| stand alone on their 
-%   line, in the first column, or the block doesn't end and \TeX\ runs to the 
-%   end of the file: \enquote{File ended while scanning use of} |\next| or 
+% \item[The end of a block] |\end{onlyin}| stands alone on its line, in 
+%   the first column, or the block doesn't end and \TeX\ runs to the end of 
+%   the file: \enquote{File ended while scanning use of} |\next| or 
 %   |\ProcessCommentLine|.
-%   |\begin{en}| may be indented, but the rest of its line is ignored.
+%   |\begin{onlyin}{english}| may be indented, but the rest of its line is 
+%   ignored.
+% \item[No block in a block] Every block ends with |\end{onlyin}|, so a 
+%   block can't stand inside another in the same file: the inner block's end 
+%   ends the outer one.
+%   What follows depends on the edition.
+%   Where the outer block is included, its lines up to the inner block's end 
+%   are read again with the inner block's beginning but not its end, and 
+%   \TeX\ stops: \enquote{File ended while scanning use of} |\next|.
+%   Where it's excluded, the text after the inner block's end is printed, the 
+%   outer block's end is left over, \enquote{\cs{begin}\{document\} ended by 
+%   \cs{end}\{onlyin\}}, and the edition loses the outer block's beginning 
+%   and the inner block, with that error but no stop.
+%   \texttt{didactic-sync.py} reports it at the inner block, exit~2.
+%   A block may input a file that holds blocks, see below.
 % \item[Frames] A frame holding a block is |[fragile]|, because the body of 
 %   any other frame has been read as an argument already.
 %   On the slides, a block in any other frame ends the run with one of the 
@@ -2041,8 +2106,8 @@
 %   |\nowebchunks| or |\nowebindex| prints it.
 %   And it puts the text after a chunk's closing |@| on the same line, so 
 %   the |@| that closes a chunk in a block stands alone on its line, with 
-%   |\end{en}| on the next: |@ \end{en}| becomes a line that doesn't end 
-%   the block.
+%   |\end{onlyin}| on the next: |@ \end{onlyin}| becomes a line that doesn't 
+%   end the block.
 %   \texttt{didactic-sync.py} reports both.
 % \item[Labels] A label in a block doesn't exist in the other edition, so 
 %   text outside the block can only refer to it if the partner defines the 
@@ -2052,14 +2117,16 @@
 % error in a block is reported at a line of that file.
 % A block can input a file that holds blocks: those use 
 % \meta{jobname}|-1.cut| and so on, one file per depth.
+% An inner block of the edition's language is shown, of another language 
+% dropped, and in an excluded block nothing is read at all.
 % They aren't in a group, so definitions in a block stay in force after it, 
 % and a block may even open an environment that it doesn't close.
 %
 % \DescribeOpt{nobilingual}
-% The names |en|, |sv|, |\ensv| and, through \textsf{comment}, |\comment| 
-% are free in the packages that this package is used with, but a document 
-% might define them for itself, as might a package: \textsf{changes} has a 
-% |\comment|.
+% The names |onlyin|, |\ensv|, |\sven| and, through \textsf{comment}, 
+% |\comment| are free in the packages that this package is used with, but a 
+% document might define them for itself, as might a package: 
+% \textsf{changes} has a |\comment|.
 % (This package defines no |\tr|, which \textsf{physics} has for the trace.)
 % If |\ensv| is taken when this package is loaded, it stays as it is, with a 
 % warning, and the command is available as |\didactictr|.
@@ -2068,8 +2135,9 @@
 % reads the uses there as pairs, so such a document is best checked with its 
 % strings written as |\didactictr| (\cref{sec:sync-tr}; the script's limits 
 % are collected in dbosk/didactic\#106).
-% If |\en|, |\sv| or a command |\comment| is taken, then \textsf{comment} would 
-% overwrite it and the document would break somewhere else, so that's an error.
+% If |\onlyin| or a command |\comment| is taken, then \textsf{comment} 
+% would overwrite it and the document would break somewhere else, so that's 
+% an error.
 % An environment |comment| is replaced by one that drops its contents.
 % That's what those of \textsf{verbatim} and \textsf{memoir} do anyway; any 
 % other gets a warning, since its contents would be lost if it printed them.
@@ -2077,6 +2145,51 @@
 % loads a package that does, \LaTeX\ says so itself.
 % In all these cases, or if the document doesn't want any of this, the option 
 % |nobilingual| leaves the names, and \textsf{comment}, alone.
+%
+% \subsubsection{From version 2.17}
+%
+% Version~2.17 had the environments |en| and |sv|, and they're gone: a block 
+% is |\begin{onlyin}{english}| or |\begin{onlyin}{swedish}| now, and a 
+% document with |\begin{en}| stops with an error that names the form to 
+% write.
+% Its stamps had the keys |en=| and |sv=|, which the script now refuses in 
+% the same way, and the option |language=en| or |language=sv|, and 
+% |\didacticlanguage{en}|, are errors too, in the build and in the script: 
+% it's |language=english| or |language=swedish| now.
+% \texttt{didactic-sync.py --migrate} \meta{file}\dots\ rewrites a source: 
+% each real block, not the examples in code chunks, verbatim environments or 
+% comments, the keys of each stamp, |english=| and |swedish=|, with their 
+% hashes as they were, so a source that was in sync still is, and the 
+% language settings, in |\usepackage[...]{didactic}|, 
+% |\PassOptionsToPackage{...}{didactic}| and |\didacticlanguage|.
+% It reads them as \LaTeX\ does: a setting or a definition shown as an 
+% example, in |\verb|, |\mintinline|, noweb's |[[...]]|, a chunk, a verbatim 
+% environment or a comment, is left as it is, and an option list may run 
+% over several lines.
+% A file that has an environment |en|, |sv| or |onlyin| of its own, or loads 
+% this package with |nobilingual|, is left alone, with a note, since its 
+% |\begin{en}| isn't this package's; the script sees only what the file 
+% itself says, not a driver's |nobilingual|.
+% A file is rewritten only if the result reads without an error, so a 
+% migrated file never has a block of version~2.17 beside a new one.
+% Migrate a deck when its pairs are in sync, if it can be: the script still 
+% shows the word diff of a pair that was behind at the migration, by finding 
+% the stamp in version~2.17's form in the history, but a deck in sync has 
+% nothing to find.
+% Version~2.17's |en| meant |english| and |british| alike, and 
+% |--migrate --en british| writes |british| instead of |english|, in the 
+% blocks and in their stamps; |\ensv| stays |english|, which is the same 
+% language, so either is right, and both editions build either way.
+% A deck chooses by what its blocks should say: the name its drivers give 
+% \textsf{babel}, |--en british| for a deck whose drivers load |british|, 
+% or the default for one shared between drivers that differ.
+% A second run changes nothing.
+% The order is: install this version and the script with it, then run 
+% |--migrate| over each deck's sources and its drivers, rebuild both 
+% editions and commit.
+% Until then a deck stops in the build and in the script (exit~2), so 
+% nothing is half migrated without a word.
+% |\ensv| and |\didactictr{..}{..}| work as before.
 %
 % \StopEventually{}
 %
@@ -2337,8 +2450,8 @@
 %
 % \begin{option}{language}
 % \begin{option}{nobilingual}
-% The |language| option chooses the edition of a bilingual document, |en| or 
-% |sv|.
+% The |language| option chooses the edition of a bilingual document, by 
+% \textsf{babel}'s name of a language, such as |swedish|.
 % By default it's |auto|, which means that we follow \textsf{babel}, see 
 % \cref{sec:impl-bilingual}.
 % Then |nobilingual|, which turns all of that off.
@@ -4424,12 +4537,13 @@
 %
 % \subsection{Bilingual documents}\label{sec:impl-bilingual}
 %
-% We build the two blocks on \textsf{comment}, the package that can include 
-% or skip verbatim material: it reads the lines one by one, and doesn't 
-% tokenize them as \TeX\ text before it has decided.
-% It defines |\comment| and, through the blocks, |\en| and |\sv| without 
-% looking whether they're taken, and the document then fails far from the cause 
-% with something like \enquote{Extra \textbackslash endgroup}, so we look first.
+% We build the blocks on \textsf{comment}, the package that can include or 
+% skip verbatim material: it reads the lines one by one, and doesn't tokenize 
+% them as \TeX\ text before it has decided.
+% It defines |\comment| and, through the block environment, |\onlyin| 
+% without looking whether they're taken, and the document then fails far from 
+% the cause with something like \enquote{Extra \textbackslash endgroup}, so we 
+% look first.
 % An environment |comment| has an end, a command doesn't.
 % The environments |comment| of \textsf{verbatim} and \textsf{memoir} drop 
 % their contents, just as the one that replaces them does.
@@ -4443,8 +4557,8 @@
     \string#1 is already defined, and bilingual documents would overwrite 
     it.\MessageBreak Load didactic with the option nobilingual%
   }{%
-    The environments en and sv use the comment package, which defines
-    \string\comment, \string\en\space and \string\sv.%
+    The environment onlyin uses the comment package, which defines
+    \string\comment\space and \string\onlyin.%
   }%
 }
 \@ifpackageloaded{comment}{}{%
@@ -4464,8 +4578,7 @@
     \fi
   \fi
 }
-\ifdefined\en\@didactic@nametaken\en\fi
-\ifdefined\sv\@didactic@nametaken\sv\fi
+\ifdefined\onlyin\@didactic@nametaken\onlyin\fi
 \RequirePackage{comment}
 %    \end{macrocode}
 % \textsf{comment} writes each block that it includes to a file and inputs 
@@ -4511,65 +4624,332 @@
 }
 %    \end{macrocode}
 %
-% \begin{macro}{\didacticlanguage}
-% Choosing the edition is then a matter of which block is included, and 
-% which argument |\ensv| returns.
+% \subsubsection{Languages and editions}
+%
+% A language is named as \textsf{babel} names it, and two names can mean one 
+% language: |british| and |english|.
+% What tells languages apart is their tag, which \textsf{babel} gives as 
+% \texttt{identification/language.tag.bcp47}: |en| for both of those, |sv| for 
+% |swedish|, |de| for |ngerman|.
+% \textsf{babel} knows the tags of the languages it has loaded, but a string 
+% such as |\ensv| names |english| also in a document that has loaded only 
+% |british|.
+% So we keep a table of names and tags, the same as the one in 
+% \texttt{didactic-sync.py}, which can't ask \textsf{babel}, and let 
+% \textsf{babel}'s own tag replace ours for each language it has loaded, 
+% including one it has made with |\babelprovide| as its main language.
+% For each tag we also keep the first name we have for it, for the error that 
+% names the name to write where a tag stands.
+% The table is a set of macros, |\@didactic@tag@|\meta{name}, so that a string 
+% can look a tag up in expansion.
 %    \begin{macrocode}
+\newcommand\@didactic@deftag[2]{%
+  \expandafter\def\csname @didactic@tag@#1\endcsname{#2}%
+  \@ifundefined{@didactic@name@#2}{%
+    \expandafter\def\csname @didactic@name@#2\endcsname{#1}%
+  }{}%
+}
+\@didactic@deftag{english}{en}\@didactic@deftag{british}{en}
+\@didactic@deftag{american}{en}\@didactic@deftag{UKenglish}{en}
+\@didactic@deftag{USenglish}{en}\@didactic@deftag{canadian}{en}
+\@didactic@deftag{australian}{en}\@didactic@deftag{newzealand}{en}
+\@didactic@deftag{swedish}{sv}\@didactic@deftag{ngerman}{de}
+\@didactic@deftag{german}{de}\@didactic@deftag{austrian}{de}
+\@didactic@deftag{naustrian}{de}\@didactic@deftag{swissgerman}{de}
+\@didactic@deftag{nswissgerman}{de}\@didactic@deftag{french}{fr}
+\@didactic@deftag{francais}{fr}\@didactic@deftag{acadian}{fr}
+\@didactic@deftag{canadien}{fr}\@didactic@deftag{spanish}{es}
+\@didactic@deftag{italian}{it}\@didactic@deftag{dutch}{nl}
+\@didactic@deftag{danish}{da}\@didactic@deftag{finnish}{fi}
+\@didactic@deftag{norsk}{nb}\@didactic@deftag{nynorsk}{nn}
+\@didactic@deftag{portuguese}{pt}\@didactic@deftag{brazilian}{pt}
+\@didactic@deftag{polish}{pl}
+\newcommand\@didactic@babeltag[1]{%
+  \getlocaleproperty*\@tempa{#1}{identification/language.tag.bcp47}%
+  \ifx\@tempa\relax\else
+    \expandafter\let\csname @didactic@tag@#1\endcsname\@tempa
+    \@ifundefined{@didactic@name@\@tempa}{%
+      \expandafter\def\csname @didactic@name@\@tempa\endcsname{#1}%
+    }{}%
+  \fi
+}
+\@for\@tempb:=\bbl@loaded\do{%
+  \expandafter\@didactic@babeltag\expandafter{\@tempb}%
+}
+\expandafter\@didactic@babeltag\expandafter{\bbl@main@language}
+%    \end{macrocode}
+%
+% \begin{macro}{\didacticlanguage}
+% The edition is a tag, but it's chosen by a language's name, as everything 
+% else is: an author never writes a tag.
+% A tag in its place is an error that names the name to write, as for a 
+% block's argument, and so is a name that \textsf{babel} doesn't know.
+% After such an error the edition stays as it was, and if there was none 
+% yet, because the option |language| had it, it's \textsf{babel}'s main 
+% language, as if the option weren't there: one error, not one for every 
+% block and every string of an edition that doesn't exist.
+% We keep the name that chose the edition, for the messages, which name it as 
+% the author did.
+%    \begin{macrocode}
+\newcommand\@didactic@edition{}
+\newcommand\@didactic@editionname{}
 \newcommand\didacticlanguage[1]{%
-  \IfStrEqCase{#1}{%
-    {en}{%
-      \includecomment{en}%
-      \excludecomment{sv}%
-      \let\@didactic@tr\@firstoftwo
-    }%
-    {sv}{%
-      \excludecomment{en}%
-      \includecomment{sv}%
-      \let\@didactic@tr\@secondoftwo
-    }%
-  }[\PackageError{didactic}{Unknown language `#1'}{Use en or sv.}]%
+  \ifcsname @didactic@tag@#1\endcsname
+    \edef\@didactic@edition{\csname @didactic@tag@#1\endcsname}%
+    \edef\@didactic@editionname{#1}%
+  \else
+    \ifcsname @didactic@name@#1\endcsname
+      \PackageError{didactic}{%
+        The language is babel's name, not the tag `#1':\MessageBreak
+        write \csname @didactic@name@#1\endcsname
+      }{The edition stays as it was.}%
+    \else
+      \PackageError{didactic}{Unknown language `#1'}{%
+        Use babel's name of a language, such as swedish.%
+      }%
+    \fi
+    \ifdefempty\@didactic@edition{\@didactic@mainedition}{}%
+  \fi
 }
 %    \end{macrocode}
 % \end{macro}
 %
-% By default we follow the main language of \textsf{babel}, so that a driver 
-% has only one thing to set.
+% The main language of \textsf{babel} gives the edition by default.
+% A document that loads no language at all has \textsf{babel}'s |nil| as 
+% its main language, whose tag is |und|, undetermined, and no edition would 
+% match it, so every string would be an error and every block dropped.
+% Its edition is English, as in version~2.17, since English is \LaTeX's own 
+% language: the fixed words of such a document, \enquote{Contents} and 
+% \enquote{Figure}, are English already.
+%    \begin{macrocode}
+\newcommand\@didactic@mainedition{%
+  \ifdefstring{\bbl@main@language}{nil}{%
+    \def\@didactic@edition{en}\def\@didactic@editionname{english}%
+  }{%
+    \didacticlanguage{\bbl@main@language}%
+  }%
+}
+%    \end{macrocode}
+%
+% By default we follow the main language of \textsf{babel}, whichever it is, 
+% so that a driver has only one thing to set.
 % \textsf{babel} has settled that when it was loaded, which is at the latest 
 % at the top of this package.
 %    \begin{macrocode}
 \ifdefstring{\@didactic@language}{auto}{%
-  \IfStrEq{\bbl@main@language}{swedish}
-    {\didacticlanguage{sv}}
-    {\didacticlanguage{en}}%
+  \@didactic@mainedition
 }{%
   \didacticlanguage{\@didactic@language}%
 }
 %    \end{macrocode}
 %
-% \begin{macro}{\ensv}
-% \begin{macro}{\didactictr}
-% The command has to expand to the text itself and nothing else, so that it 
-% survives moving arguments: \textsf{hyperref} can't put anything but text in 
-% a bookmark.
-% That's why it isn't robust and only expands to one of its arguments.
-% The short name was |\tr| at first, but \textsf{physics} has a |\tr| for 
-% the trace, and a physics teacher may want both; no package we know of has 
-% an |\ensv|.
-% We don't overwrite an |\ensv| that's there already, it's likely a 
-% package's, and overwriting it would break the document at some unrelated 
-% place.
+% \begin{environment}{onlyin}
+% A block is |\begin{onlyin}{|\meta{language}|}|, and it's included if its 
+% language's tag is the edition's, and skipped otherwise.
+% \textsf{comment} gives an environment its behaviour by name: 
+% |\includecomment| or |\excludecomment| define what starts it and what ends 
+% it.
+% One environment that's included or excluded depending on its argument needs 
+% both, so we let \textsf{comment} set up the end of |onlyin| once, as an 
+% included one, and decide at each start.
+%
+% What \textsf{comment} does at the end, |\AfteronlyinComment|, has to 
+% differ too, so each start sets it, globally, since the start is inside the 
+% group of |\begin| and the end comes after \textsf{comment} has left it.
+% Blocks nested by |\input| don't disturb it: an included block's end runs 
+% before its lines are read again from the cut file, where the inner blocks 
+% are, and an excluded block's lines are never read.
+% A block written directly inside another, in the same file, can't work: the 
+% inner block's |\end{onlyin}| ends the outer one.
+% Where the outer block is included, \TeX\ stops at the end of the cut file; 
+% where it's excluded, the outer block's end is left over, an error, and the 
+% edition loses text (\cref{sec:bilingual}); \texttt{didactic-sync.py} reports 
+% it at the inner block.
 %    \begin{macrocode}
-\newcommand\didactictr[2]{\@didactic@tr{#1}{#2}}
-\@ifundefined{ensv}{%
-  \let\ensv\didactictr
-}{%
-  \PackageWarningNoLine{didactic}{%
-    \string\ensv\space is already defined, keeping that 
-    definition.\MessageBreak
-    Use \string\didactictr\space for bilingual strings%
-  }%
+\includecomment{onlyin}
+\def\onlyin#1{%
+  \@didactic@blocktag{#1}%
+  \ifx\@didactic@blockedition\@didactic@edition
+    \gdef\AfteronlyinComment{\CloseAndInputCutFile}%
+    \def\@didactic@next{%
+      \endgroup\DefaultCutFileName\SetUpCutFile\ProcessComment{onlyin}%
+    }%
+  \else
+    \gdef\AfteronlyinComment{\CloseAndInputCutFile\endgroup}%
+    \def\@didactic@next{%
+      \endgroup\begingroup\DefaultCutFileName\def\ProcessCutFile{}%
+      \def\ThisComment####1{}\ProcessComment{onlyin}%
+    }%
+  \fi
+  \@didactic@next
 }
 %    \end{macrocode}
+% The language is \textsf{babel}'s name of it.
+% A tag in its place is an error that names the name to write, as is a name 
+% we don't know; such a block is skipped.
+%    \begin{macrocode}
+\def\@didactic@blocktag#1{%
+  \ifcsname @didactic@tag@#1\endcsname
+    \edef\@didactic@blockedition{\csname @didactic@tag@#1\endcsname}%
+  \else
+    \let\@didactic@blockedition\relax
+    \ifcsname @didactic@name@#1\endcsname
+      \PackageError{didactic}{%
+        \string\begin{onlyin}{#1} has a tag where babel's name\MessageBreak
+        belongs: write 
+        \string\begin{onlyin}{\csname @didactic@name@#1\endcsname}%
+      }{The block is skipped.}%
+    \else
+      \PackageError{didactic}{%
+        Unknown language `#1' in \string\begin{onlyin}%
+      }{Use the name babel gives the language, such as swedish.}%
+    \fi
+  \fi
+}
+%    \end{macrocode}
+% \end{environment}
+%
+% \begin{environment}{en}
+% \begin{environment}{sv}
+% Version~2.17 had the environments |en| and |sv|.
+% They're gone, and a document that still has them stops with the form to 
+% write and the way to rewrite a whole file.
+% We don't take the names if a document or a package has them already.
+%    \begin{macrocode}
+\newcommand\@didactic@oldblock[2]{%
+  \PackageError{didactic}{%
+    The environment #1 is gone since version 2.18:\MessageBreak
+    write \string\begin{onlyin}{#2}; didactic-sync.py\MessageBreak
+    --migrate rewrites a file%
+  }{The block is printed as it stands.}%
+}
+\@ifundefined{en}{%
+  \newenvironment{en}{\@didactic@oldblock{en}{english}}{}%
+}{}
+\@ifundefined{sv}{%
+  \newenvironment{sv}{\@didactic@oldblock{sv}{swedish}}{}%
+}{}
+%    \end{macrocode}
+% \end{environment}
+% \end{environment}
+%
+% \begin{macro}{\didactictr}
+% \begin{macro}{\ensv}
+% \begin{macro}{\sven}
+% A string is |\didactictr[|\meta{languages}|]{|\meta{text}|}|\dots, with a 
+% text for each language in the list, and English and Swedish when there's no 
+% list.
+% It has to expand to the edition's text and nothing else, so that it 
+% survives moving arguments: \textsf{hyperref} can't put anything but text in 
+% a bookmark.
+% That's why it isn't robust, and why it reads its texts itself, one per 
+% language, by expansion: \textsf{xparse} can't take a number of arguments 
+% that depends on another argument.
+% It takes the text of the first language whose tag is the edition's.
+% A string with no text for the edition is an error, at the place where it's 
+% typeset, that names the edition and the string's languages: the macro that 
+% gives the error is robust, so it's written as it stands into a table of 
+% contents and gives the error again there.
+%    \begin{macrocode}
+\DeclareRobustCommand\@didactic@nostring[1]{%
+  \PackageError{didactic}{%
+    This string has no text for the edition (\@didactic@editionname):%
+    \MessageBreak its languages are #1%
+  }{Give it a text in the edition's language.}%
+}
+%    \end{macrocode}
+% The string's list is checked the same way, as it's expanded, and what's 
+% wrong is an error in the same way, where the string is typeset.
+% A name that \textsf{babel} doesn't know is an error, since its text could 
+% never be printed and it's likely a typo; \texttt{didactic-sync.py}, which 
+% can't ask \textsf{babel}, takes it for a language of its own.
+% Two names of one language are an error too, as they are for the script, 
+% since only the first one's text could ever be printed.
+% The check compares each name with those after it, which is cheap for the 
+% two or three languages that a string has.
+%    \begin{macrocode}
+\DeclareRobustCommand\@didactic@unknownstring[1]{%
+  \PackageError{didactic}{Unknown language `#1' in a string}{%
+    Use the name babel gives the language, and load it in babel.%
+  }%
+}
+\DeclareRobustCommand\@didactic@twotexts[1]{%
+  \PackageError{didactic}{%
+    This string has two texts for one language:\MessageBreak
+    its languages are #1%
+  }{Only the first of the two would ever be printed.}%
+}
+\ExplSyntaxOn
+\cs_new:Npn \__didactic_tag:n #1
+  { \cs_if_exist_use:cF { @didactic@tag@ \tl_trim_spaces:n {#1} } { ? } }
+\cs_new:Npn \__didactic_tr:nn #1#2
+  {
+    \__didactic_check:nw {#1} #1 , \q_stop
+    \__didactic_tr_text:nnnnw {#1} { 0 } { } {#2} #1 , \q_stop
+  }
+\cs_new:Npn \__didactic_check:nw #1 #2 , #3 \q_stop
+  {
+    \tl_if_blank:nF {#2}
+      {
+        \cs_if_exist:cTF { @didactic@tag@ \tl_trim_spaces:n {#2} }
+          { \__didactic_check_twice:nnw {#1} {#2} #3 , \q_stop }
+          { \tl_trim_spaces_apply:nN {#2} \@didactic@unknownstring }
+      }
+    \tl_if_blank:nF {#3} { \__didactic_check:nw {#1} #3 \q_stop }
+  }
+\cs_new:Npn \__didactic_check_twice:nnw #1#2 #3 , #4 \q_stop
+  {
+    \tl_if_blank:nF {#3}
+      {
+        \str_if_eq:eeTF { \__didactic_tag:n {#2} } { \__didactic_tag:n {#3} }
+          { \@didactic@twotexts {#1} }
+          { \__didactic_check_twice:nnw {#1} {#2} #4 \q_stop }
+      }
+  }
+\cs_new:Npn \__didactic_tr_text:nnnnw #1#2#3#4 #5 , #6 \q_stop
+  {
+    \int_compare:nNnTF {#2} = { 0 }
+      {
+        \str_if_eq:eeTF { \__didactic_tag:n {#5} } { \@didactic@edition }
+          { \__didactic_tr_rest:nnnn {#1} { 1 } {#4} {#6} }
+          { \__didactic_tr_rest:nnnn {#1} { 0 } { } {#6} }
+      }
+      { \__didactic_tr_rest:nnnn {#1} {#2} {#3} {#6} }
+  }
+\cs_new:Npn \__didactic_tr_rest:nnnn #1#2#3#4
+  {
+    \tl_if_empty:nTF {#4}
+      { \int_compare:nNnTF {#2} = { 1 } {#3} { \@didactic@nostring {#1} } }
+      { \__didactic_tr_read:nnnnn {#1} {#2} {#3} {#4} }
+  }
+\cs_new:Npn \__didactic_tr_read:nnnnn #1#2#3#4#5
+  { \__didactic_tr_text:nnnnw {#1} {#2} {#3} {#5} #4 \q_stop }
+\NewExpandableDocumentCommand \didactictr { O{english,swedish} m }
+  { \__didactic_tr:nn {#1} {#2} }
+\ExplSyntaxOff
+%    \end{macrocode}
+% |\ensv| has English first, |\sven| Swedish first.
+% The short name was |\tr| at first, but \textsf{physics} has a |\tr| for 
+% the trace, and a physics teacher may want both; no package we know of has 
+% an |\ensv| or an |\sven|.
+% We don't overwrite one that's there already, it's likely a package's, and 
+% overwriting it would break the document at some unrelated place.
+%    \begin{macrocode}
+\newcommand\@didactic@shortstring[2]{%
+  \@ifundefined{#1}{%
+    \expandafter\def\csname #1\endcsname{\didactictr[#2]}%
+  }{%
+    \PackageWarningNoLine{didactic}{%
+      \expandafter\string\csname #1\endcsname\space is already defined, 
+      keeping that definition.\MessageBreak
+      Use \string\didactictr[#2] for bilingual strings%
+    }%
+  }%
+}
+\@didactic@shortstring{ensv}{english,swedish}
+\@didactic@shortstring{sven}{swedish,english}
+%    \end{macrocode}
+% \end{macro}
 % \end{macro}
 % \end{macro}
 %

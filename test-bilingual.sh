@@ -196,8 +196,226 @@ CREF
   esac
 done
 
+# Blocks and strings in babel's names: a block is \begin{onlyin}{<name>}, and
+# the edition is babel's main language, by its tag, whichever it is.  The same
+# source in three editions, British (English), Swedish and German; a block
+# named english belongs to the British edition.
+mkdir -p test-bilingual-names.d
+cat > test-bilingual-names.d/inner.tex <<'INNER'
+\begin{onlyin}{english}
+ENINNER
+\end{onlyin}
+\begin{onlyin}{swedish}
+SVINNER
+\end{onlyin}
+\begin{onlyin}{ngerman}
+DEINNER
+\end{onlyin}
+INNER
+names_document() {
+  cat > test-bilingual-names.tex <<NAMES
+\documentclass{article}
+\usepackage[english,british,swedish,ngerman,main=$1]{babel}
+\usepackage{hyperref}
+\usepackage{didactic}
+\begin{document}
+\tableofcontents
+\section{\didactictr[english,swedish,ngerman]{ENTITLE}{SVTITLE}{DETITLE}}
+\begin{onlyin}{english}
+ENBLOCK
+\input{test-bilingual-names.d/inner}
+\end{onlyin}
+\begin{onlyin}{swedish}
+SVBLOCK
+\input{test-bilingual-names.d/inner}
+\end{onlyin}
+\begin{onlyin}{ngerman}
+DEBLOCK
+\input{test-bilingual-names.d/inner}
+\end{onlyin}
+SHARED $2
+\end{document}
+NAMES
+  rm -f test-bilingual-names.pdf test-bilingual-names.aux \
+    test-bilingual-names.toc test-bilingual-names.out
+  for pass in 1 2; do
+    ${PDFLATEX:-pdflatex} -shell-escape -interaction=nonstopmode \
+      test-bilingual-names.tex >/dev/null 2>&1
+  done
+}
+for edition in british:EN swedish:SV ngerman:DE; do
+  babel=${edition%%:*} mine=${edition#*:}
+  names_document $babel \
+    '\ensv{ENPAIR}{SVPAIR}\sven{SVSVEN}{ENSVEN}\didactictr{ENOLD}{SVOLD}'
+  if [ $babel = ngerman ]; then
+    # those three strings have no German text: errors, checked below
+    :
+  elif command grep -q '^!' test-bilingual-names.log; then
+    fail names "$babel: $(command grep -m1 '^!' test-bilingual-names.log)"
+  fi
+  text=$(pdftotext test-bilingual-names.pdf - 2>/dev/null | tr -s ' \n' '  ')
+  want="${mine}BLOCK ${mine}INNER"
+  case "$text" in
+    *"${mine}TITLE"*"${mine}TITLE"*"$want"*SHARED*) ;;
+    *) fail names "$babel: not its title, block and inner block: $text" ;;
+  esac
+  # the inner file is input in every outer block: once shown, twice dropped
+  # with its excluded outer block
+  [ "$(printf '%s' "$text" | command grep -o "${mine}INNER" | wc -l)" = 1 ] \
+    || fail names "$babel: ${mine}INNER isn't there exactly once"
+  for other in EN SV DE; do
+    [ $other = $mine ] && continue
+    case "$text" in
+      *"${other}BLOCK"*|*"${other}INNER"*|*"${other}TITLE"*)
+        fail names "$babel: the ${other} edition's text" ;;
+    esac
+  done
+  bookmarks=$(sed 's/\\000//g' test-bilingual-names.out 2>/dev/null)
+  case "$bookmarks" in
+    *"${mine}TITLE"*) ;;
+    *) fail names "$babel: the bookmark isn't ${mine}TITLE: $bookmarks" ;;
+  esac
+  case $babel in
+    british) want="ENPAIRENSVENENOLD" ;;
+    swedish) want="SVPAIRSVSVENSVOLD" ;;
+    ngerman) want="" ;;
+  esac
+  case "$text" in
+    *"SHARED $want"*) ;;
+    *) fail names "$babel: the strings aren't $want: $text" ;;
+  esac
+done
+# A string with no text for the edition stops, naming its languages.
+command grep -q "no text for the edition (ngerman)" test-bilingual-names.log \
+  || fail names "\\ensv in the German edition isn't an error"
+command grep -q "english and swedish\|english,swedish" test-bilingual-names.log \
+  || fail names "the error doesn't name the string's languages"
+
+# A tag where babel's name belongs, and a block of version 2.17, stop with
+# the form to write.
+block_document() {
+  printf '%s\n' '\documentclass{article}' \
+    '\usepackage[british,swedish]{babel}' '\usepackage{didactic}' \
+    '\begin{document}' "$1" X "$2" '\end{document}' \
+    > test-bilingual-names.tex
+  rm -f test-bilingual-names.pdf
+  ${PDFLATEX:-pdflatex} -shell-escape -interaction=nonstopmode \
+    test-bilingual-names.tex >/dev/null 2>&1
+}
+block_document '\begin{onlyin}{sv}' '\end{onlyin}'
+command grep -q "begin{onlyin}{swedish}" test-bilingual-names.log \
+  || fail names "\\begin{onlyin}{sv} doesn't name \\begin{onlyin}{swedish}"
+if pdftotext test-bilingual-names.pdf - 2>/dev/null | grep -q X; then
+  fail names "\\begin{onlyin}{sv} isn't skipped"
+fi
+block_document '\begin{onlyin}{klingon}' '\end{onlyin}'
+command grep -q "Unknown language .klingon." test-bilingual-names.log \
+  || fail names "\\begin{onlyin}{klingon} isn't an unknown language"
+block_document '\begin{en}' '\end{en}'
+command grep -q "begin{onlyin}{english}" test-bilingual-names.log \
+  || fail names "\\begin{en} doesn't name \\begin{onlyin}{english}"
+command grep -q -- "--migrate" test-bilingual-names.log \
+  || fail names "\\begin{en} doesn't name --migrate"
+block_document '\begin{sv}' '\end{sv}'
+command grep -q "begin{onlyin}{swedish}" test-bilingual-names.log \
+  || fail names "\\begin{sv} doesn't name \\begin{onlyin}{swedish}"
+# a list of languages may have spaces after its commas (the edition is
+# swedish, babel's last language)
+block_document '\didactictr[english, swedish]{ENSPACE}{SVSPACE}' ''
+pdftotext test-bilingual-names.pdf - 2>/dev/null | grep -q SVSPACE \
+  || fail names "\\didactictr[english, swedish] has no Swedish text"
+
+# language= takes babel's name, and overrides babel's main language; a tag is
+# an error that names the name, there and in \didacticlanguage; a language
+# that only babel knows, not the package's table, is an edition too.
+edition_document() {
+  printf '%s\n' '\documentclass{article}' "\\usepackage[$1]{babel}" \
+    "\\usepackage$2{didactic}" '\begin{document}' \
+    '\begin{onlyin}{english}' ENEDITION '\end{onlyin}' \
+    '\begin{onlyin}{swedish}' SVEDITION '\end{onlyin}' \
+    "\\begin{onlyin}{estonian}" ETEDITION '\end{onlyin}' \
+    '\end{document}' > test-bilingual-names.tex
+  rm -f test-bilingual-names.pdf
+  ${PDFLATEX:-pdflatex} -shell-escape -interaction=nonstopmode \
+    test-bilingual-names.tex >/dev/null 2>&1
+  pdftotext test-bilingual-names.pdf - 2>/dev/null | tr -s ' \n' '  '
+}
+case "$(edition_document british,swedish,estonian,main=british '[language=swedish]')" in
+  *SVEDITION*) ;;
+  *) fail names "language=swedish doesn't give the Swedish edition" ;;
+esac
+edition_document british,swedish '[language=sv]' >/dev/null
+command grep -A1 "not the tag .sv." test-bilingual-names.log \
+  | grep -q "write swedish" || fail names "language=sv doesn't name swedish"
+block_document '\didacticlanguage{en}' ''
+command grep -A1 "not the tag .en." test-bilingual-names.log \
+  | grep -q "write english" || fail names "\\didacticlanguage{en} doesn't name english"
+edition_document british,swedish '[language=klingon]' >/dev/null
+command grep -q "Unknown language .klingon." test-bilingual-names.log \
+  || fail names "language=klingon isn't an unknown language"
+for setup in "main=estonian:" "main=british:[language=estonian]"; do
+  case "$(edition_document british,swedish,estonian,${setup%%:*} "${setup#*:}")" in
+    *ETEDITION*) ;;
+    *) fail names "estonian, which only babel knows, isn't an edition ($setup)" ;;
+  esac
+done
+
+# What the package decides by itself: an edition after a wrong language=,
+# a document with no babel language, a main language that babel provides,
+# and the strings that name a language twice or one babel doesn't know.
+small_document() {
+  printf '%s\n' '\documentclass{article}' "$1" '\begin{document}' "$2" \
+    '\end{document}' > test-bilingual-names.tex
+  rm -f test-bilingual-names.pdf
+  ${PDFLATEX:-pdflatex} -shell-escape -interaction=nonstopmode \
+    test-bilingual-names.tex >/dev/null 2>&1
+  pdftotext test-bilingual-names.pdf - 2>/dev/null | tr -s ' \n' '  '
+}
+errors() { command grep -c "Package didactic Error" test-bilingual-names.log; }
+text=$(small_document '\usepackage[british,swedish,main=british]{babel}
+\usepackage[language=sv]{didactic}' '\ensv{ENWRONG}{SVWRONG}')
+[ "$(errors)" = 1 ] \
+  || fail names "language=sv gives $(errors) errors, not the one that names swedish"
+case "$text" in *ENWRONG*) ;; *) fail names "language=sv isn't babel's main language: $text" ;; esac
+text=$(small_document '\usepackage{didactic}' '\ensv{ENPLAIN}{SVPLAIN}
+\begin{onlyin}{english}
+ENBLOCKPLAIN
+\end{onlyin}')
+case "$text" in
+  *ENPLAIN*ENBLOCKPLAIN*) ;;
+  *) fail names "with no babel language the edition isn't English: $text" ;;
+esac
+[ "$(errors)" = 0 ] || fail names "with no babel language: $(errors) errors"
+text=$(small_document '\usepackage[british]{babel}
+\babelprovide[import,main]{icelandic}
+\usepackage{didactic}' '\begin{onlyin}{icelandic}
+ISBLOCK
+\end{onlyin}')
+case "$text" in *ISBLOCK*) ;; *) fail names "a main language from \\babelprovide isn't an edition: $text" ;; esac
+[ "$(errors)" = 0 ] || fail names "a main language from \\babelprovide: $(errors) errors"
+small_document '\usepackage[british]{babel}
+\usepackage{didactic}' 'X\didactictr[english,british]{FIRST}{SECOND}' >/dev/null
+command grep -q "two texts for one language" test-bilingual-names.log \
+  || fail names "\\didactictr[english,british] isn't an error"
+command grep -q "^l\.[0-9]* X" test-bilingual-names.log \
+  || fail names "\\didactictr[english,british]'s error doesn't give its line"
+small_document '\usepackage[british]{babel}
+\usepackage{didactic}' '\didactictr[english,klingon]{ENK}{KLK}' >/dev/null
+command grep -q "Unknown language .klingon." test-bilingual-names.log \
+  || fail names "\\didactictr[english,klingon] isn't an unknown language"
+
+text=$(small_document '\usepackage[british]{babel}
+\newenvironment{en}{OWNEN}{}
+\usepackage{didactic}' '\begin{en}
+\end{en}')
+case "$text" in *OWNEN*) ;; *) fail names "a document's own environment en is lost: $text" ;; esac
+[ "$(command grep -c '^!' test-bilingual-names.log)" = 0 ] \
+  || fail names "a document's own environment en gives an error"
+
 # The test documents are examples too, so the script must find nothing wrong
 # with them: no error, and no stamp in a form that it no longer reads.
+# test-bilingual-off.tex loads the package with nobilingual and has its own
+# environment en, which the script leaves alone with a note.
 for source in test-bilingual.tex test-bilingual-sv.tex \
   test-bilingual-slides.tex test-bilingual-slides-sv.tex \
   test-bilingual-contents.tex test-bilingual-preamble.tex \
@@ -267,7 +485,7 @@ taken() {
     "\\documentclass{${CLASS:-article}}\\usepackage[british]{babel}$1\\begin{document}${2:-x}\\end{document}" \
     >/dev/null 2>&1
 }
-for name in comment en sv; do
+for name in comment onlyin; do
   taken "\\newcommand\\$name[1]{#1}\\usepackage{didactic}"
   grep -q "Package didactic Error.*\\\\$name" test-bilingual-taken.log \
     || fail taken "no error for $name"
@@ -367,9 +585,9 @@ mkdir -p test-bilingual-stamp.d
 for variant in plain stamped; do
   case $variant in
     plain) stamp= ;;
-    stamped) stamp=' % sync en=3f9c1a sv=b20e7d' ;;
+    stamped) stamp=' % sync english=3f9c1a swedish=b20e7d' ;;
   esac
-  printf '\\begin{en}%s\nENSTAMPED\n\\end{en}\n\\begin{sv}\nSVSTAMPED\n\\end{sv}\nAFTER\n' \
+  printf '\\begin{onlyin}{english}%s\nENSTAMPED\n\\end{onlyin}\n\\begin{onlyin}{swedish}\nSVSTAMPED\n\\end{onlyin}\nAFTER\n' \
     "$stamp" > test-bilingual-stamp.d/$variant.tex
 done
 # A fragile frame ends at an \end{frame} on a line of its own, so the
