@@ -46,7 +46,8 @@
 #   noteplace test-noteplace, its rows rsvsidecap, rsvblock, mcolblock,
 #            rsvsidebefore, heldtop, heldsecond, overmoved, footback, overlimit, overtwo,
 #            aftercarry, carrymode, notplainm, notplainf, nestfn, nestmp, fsoverstay, trailm,
-#            samelinehead, fnstale, fnstaleplain, leftorder, leftheld and leftfloat only, against the marginfix found or $MARGINFIX (about 2 minutes a mutant,
+#            samelinehead, fnstale, fnstaleplain, leftorder, leftheld, leftfloat and nofiles
+#            only, against the marginfix found or $MARGINFIX (about 2 minutes a mutant,
 #            one at a time; 116 s; run on 2026-11-14, before nestfn, nestmp, fsoverstay)
 #   notefoot test-notefoot, its jobs waitover, warnclaim, defercarry-warn and defercarry,
 #            against $MARGINFIX (30 to 50 s; 30 s)
@@ -2141,3 +2142,13 @@ Sfnclaim didactic.dtx
 -     \@didactic@claim\@didactic@fnleft
 -     \ifdim\@didactic@fnleft<\@didactic@room\else\@didactic@claim\z@\fi
 +     \@didactic@claim\z@
+
+# Review 4, S5-3: with \nofiles nothing can be named a run later, and the first note
+# says so once; not said, a mixed foot taken on goes unsaid (nofiles).
+#: noteplace
+#= killed test-noteplace
+Snofiles didactic.dtx
+-   \else
+-     \@didactic@nofiles
+-   \fi}
++   \fi}

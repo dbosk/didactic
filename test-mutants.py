@@ -67,7 +67,7 @@ CASES = {"footcite": "default", "hbox": "hbox", "footwide": "rigid oneline beyon
          "fuzz": "inrun:16 tl12:16 xe:9", "noteplace": "rsvsidecap rsvblock mcolblock rsvsidebefore heldtop heldsecond overmoved"
          " footback overlimit overtwo aftercarry carrymode notplainm notplainf"
          " nestfn nestmp fsoverstay trailm samelinehead fnstale fnstaleplain"
-         " leftorder leftheld leftfloat",
+         " leftorder leftheld leftfloat nofiles",
          "notefoot": "waitover warnclaim defercarry-warn defercarry",
          "noteplace12": "nestfn nestmp mcolnote",
          "matrix": "mvlaterfull fspullback omtlaterfn mvcarriedover mvdeferclaim heldover"}

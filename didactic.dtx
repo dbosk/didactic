@@ -165,6 +165,11 @@
 %   regardless of load order.
 % }
 % \changes{v2.18}{2026/11/15}{%
+%   With \cs{nofiles}, a warning says once that a margin note set on another
+%   page than its callout can't always be named, the names said a run later
+%   coming from the \texttt{.aux} file.
+% }
+% \changes{v2.18}{2026/11/15}{%
 %   A footnote set at its page's foot before one carried from an earlier page
 %   that is still waiting in the margin says so in a warning naming both; a
 %   float doesn't take the room of footnotes carried to a page that will be set
@@ -890,7 +895,9 @@
 % and the note itself are printed on; a note printed on another page than its
 % callout that no warning of that run named is warned about in the next run,
 % ``found from the last run''.  So none goes unsaid, though such a one is said
-% a run late (a settled build has it).  Two cases are known to be said that
+% a run late (a settled build has it); with |\nofiles|, which writes no |.aux|
+% file, nothing can be said a run late, and a warning says so once, at the
+% first note.  Two cases are known to be said that
 % way, with \textsf{memoir}: footnotes in \textsf{multicol}'s columns that it
 % sets at the foot of another page (below), and the following.
 % A foot that holds a footnote of \LaTeX's own (one in |\footnotesatfoot| or in
@@ -5348,6 +5355,10 @@
 % mixes our footnotes with \LaTeX's own, which a later line takes to the next
 % page (|\@didactic@footback|), footnotes in |multicols|
 % (|\@didactic@mcolfoot|), and any case the placement didn't foresee.
+% With |\nofiles| there is no |.aux| file to record in, and none of those can
+% be named: the first note says so, once (|\@didactic@nofiles|; review~4, S5-3:
+% before, only the warning about headings and listings said what |\nofiles|
+% takes, and a mixed foot taken to the next page went unsaid).
 % The callout's record is a |\write| in the callout's line, put where the
 % kernel puts its own mark of the note, before its penalty: it is shipped with
 % the line, and it adds no place to break and changes no hyphenation, since the
@@ -5396,7 +5407,14 @@
     \@didactic@rnbox\@currbox
     \@didactic@ifdeferrable\@marbox
       {\immediate\write\@auxout{\string\@didactic@rd{\the\@didactic@noteid}}}{}%
+  \else
+    \@didactic@nofiles
   \fi}
+\newcommand\@didactic@nofiles{%
+  \PackageWarningNoLine{didactic}{With \string\nofiles, a margin note set on
+    another page\MessageBreak than its callout can't always be named:\MessageBreak
+    the names said a run later come from the .aux file}%
+  \global\let\@didactic@nofiles\relax}
 \newcommand\@didactic@rnwrite[1]{%
   \if@filesw
     \@didactic@writepage{\string\@didactic@rn{#1}{\thepage}}%

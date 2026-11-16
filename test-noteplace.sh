@@ -732,6 +732,27 @@ vgap vgapvspace '\noindent VGLA \filler\par\vspace{2\baselineskip}\vgnote{\margi
 vgap vgapenv '\noindent VGLA \filler\begin{quote}VGLQ \filler\end{quote}\vgnote{\begin{marginfigure}\rule{1cm}{1cm}\caption{VGNFIG}\end{marginfigure}}VGLB \filler\par VGLC \filler\par'
 vgap vgapthanks '\title{VGLT\vgnote{\thanks{VGNOTE in the title.}}}\author{VGLAU}\date{VGLD}\maketitle VGLB \filler\par VGLC \filler\par'
 
+# Under \nofiles no .aux is written, so nothing can be named a run later; mixfoot's
+# document (a mixed foot taken on to the next page, named only a run later) says so,
+# once (review 4, S5-3), and has no error.
+if [ -z "$CASES" ] || case " $CASES " in *" nofiles "*) true;; *) false;; esac; then
+  j=$job-nofiles
+  if [ -z "$RECHECK" ]; then
+    rm -f "$j.aux"
+    for i in 1 2; do
+      run "$j" x 9 '' '\nofiles\def\testyieldfoot{}\def\testbody{FIRSTLINE words\yieldnote{} more words, {\footnotesatfoot\footnote{LATEXFN at the foot.}} and words. \filler\par{\interlinepenalty=10000 \noindent LATERA\marginpar{LATERNOTE} \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\par}}'
+    done
+  fi
+  errors=$(grep -c '^!' "$j.log")
+  said=$(python3 -c 'import sys, testlog; print(testlog.joined(sys.argv[1]).count("With \\nofiles, a margin note set on another page"))' "$j.log")
+  if [ "$errors$said" = 01 ] && [ ! -f "$j.aux" ]; then
+    echo "didactic noteplace test: nofiles PASS"
+  else
+    echo "didactic noteplace test: nofiles FAIL (errors: $errors, the warning said $said times, .aux: $([ -f "$j.aux" ] && echo yes || echo no))"
+    status=1
+  fi
+fi
+
 # Under beamer the notes are off: no errors.
 if [ -z "$CASES" ] || case " $CASES " in *" slides "*) true;; *) false;; esac; then
   [ -n "$RECHECK" ] || rm -f "$job-slides.aux"
