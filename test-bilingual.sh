@@ -286,7 +286,7 @@ for edition in british:EN swedish:SV ngerman:DE; do
   esac
 done
 # A string with no text for the edition stops, naming its languages.
-command grep -q "no text for the edition.*de" test-bilingual-names.log \
+command grep -q "no text for the edition (ngerman)" test-bilingual-names.log \
   || fail names "\\ensv in the German edition isn't an error"
 command grep -q "english and swedish\|english,swedish" test-bilingual-names.log \
   || fail names "the error doesn't name the string's languages"
@@ -359,6 +359,50 @@ for setup in "main=estonian:" "main=british:[language=estonian]"; do
     *) fail names "estonian, which only babel knows, isn't an edition ($setup)" ;;
   esac
 done
+
+# What the package decides by itself: an edition after a wrong language=,
+# a document with no babel language, a main language that babel provides,
+# and the strings that name a language twice or one babel doesn't know.
+small_document() {
+  printf '%s\n' '\documentclass{article}' "$1" '\begin{document}' "$2" \
+    '\end{document}' > test-bilingual-names.tex
+  rm -f test-bilingual-names.pdf
+  ${PDFLATEX:-pdflatex} -shell-escape -interaction=nonstopmode \
+    test-bilingual-names.tex >/dev/null 2>&1
+  pdftotext test-bilingual-names.pdf - 2>/dev/null | tr -s ' \n' '  '
+}
+errors() { command grep -c "Package didactic Error" test-bilingual-names.log; }
+text=$(small_document '\usepackage[british,swedish,main=british]{babel}
+\usepackage[language=sv]{didactic}' '\ensv{ENWRONG}{SVWRONG}')
+[ "$(errors)" = 1 ] \
+  || fail names "language=sv gives $(errors) errors, not the one that names swedish"
+case "$text" in *ENWRONG*) ;; *) fail names "language=sv isn't babel's main language: $text" ;; esac
+text=$(small_document '\usepackage{didactic}' '\ensv{ENPLAIN}{SVPLAIN}
+\begin{onlyin}{english}
+ENBLOCKPLAIN
+\end{onlyin}')
+case "$text" in
+  *ENPLAIN*ENBLOCKPLAIN*) ;;
+  *) fail names "with no babel language the edition isn't English: $text" ;;
+esac
+[ "$(errors)" = 0 ] || fail names "with no babel language: $(errors) errors"
+text=$(small_document '\usepackage[british]{babel}
+\babelprovide[import,main]{icelandic}
+\usepackage{didactic}' '\begin{onlyin}{icelandic}
+ISBLOCK
+\end{onlyin}')
+case "$text" in *ISBLOCK*) ;; *) fail names "a main language from \\babelprovide isn't an edition: $text" ;; esac
+[ "$(errors)" = 0 ] || fail names "a main language from \\babelprovide: $(errors) errors"
+small_document '\usepackage[british]{babel}
+\usepackage{didactic}' 'X\didactictr[english,british]{FIRST}{SECOND}' >/dev/null
+command grep -q "two texts for one language" test-bilingual-names.log \
+  || fail names "\\didactictr[english,british] isn't an error"
+command grep -q "^l\.[0-9]* X" test-bilingual-names.log \
+  || fail names "\\didactictr[english,british]'s error doesn't give its line"
+small_document '\usepackage[british]{babel}
+\usepackage{didactic}' '\didactictr[english,klingon]{ENK}{KLK}' >/dev/null
+command grep -q "Unknown language .klingon." test-bilingual-names.log \
+  || fail names "\\didactictr[english,klingon] isn't an unknown language"
 
 # The test documents are examples too, so the script must find nothing wrong
 # with them: no error, and no stamp in a form that it no longer reads.

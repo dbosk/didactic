@@ -4643,12 +4643,20 @@
 % The edition is a tag, but it's chosen by a language's name, as everything 
 % else is: an author never writes a tag.
 % A tag in its place is an error that names the name to write, as for a 
-% block's argument, and the edition stays as it was.
+% block's argument, and so is a name that \textsf{babel} doesn't know.
+% After such an error the edition stays as it was, and if there was none 
+% yet, because the option |language| had it, it's \textsf{babel}'s main 
+% language, as if the option weren't there: one error, not one for every 
+% block and every string of an edition that doesn't exist.
+% We keep the name that chose the edition, for the messages, which name it as 
+% the author did.
 %    \begin{macrocode}
 \newcommand\@didactic@edition{}
+\newcommand\@didactic@editionname{}
 \newcommand\didacticlanguage[1]{%
   \ifcsname @didactic@tag@#1\endcsname
     \edef\@didactic@edition{\csname @didactic@tag@#1\endcsname}%
+    \edef\@didactic@editionname{#1}%
   \else
     \ifcsname @didactic@name@#1\endcsname
       \PackageError{didactic}{%
@@ -4660,10 +4668,28 @@
         Use babel's name of a language, such as swedish.%
       }%
     \fi
+    \ifdefempty\@didactic@edition{\@didactic@mainedition}{}%
   \fi
 }
 %    \end{macrocode}
 % \end{macro}
+%
+% The main language of \textsf{babel} gives the edition by default.
+% A document that loads no language at all has \textsf{babel}'s |nil| as 
+% its main language, whose tag is |und|, undetermined, and no edition would 
+% match it, so every string would be an error and every block dropped.
+% Its edition is English, as in version~2.17, since English is \LaTeX's own 
+% language: the fixed words of such a document, \enquote{Contents} and 
+% \enquote{Figure}, are English already.
+%    \begin{macrocode}
+\newcommand\@didactic@mainedition{%
+  \ifdefstring{\bbl@main@language}{nil}{%
+    \def\@didactic@edition{en}\def\@didactic@editionname{english}%
+  }{%
+    \didacticlanguage{\bbl@main@language}%
+  }%
+}
+%    \end{macrocode}
 %
 % By default we follow the main language of \textsf{babel}, whichever it is, 
 % so that a driver has only one thing to set.
@@ -4671,7 +4697,7 @@
 % at the top of this package.
 %    \begin{macrocode}
 \ifdefstring{\@didactic@language}{auto}{%
-  \didacticlanguage{\bbl@main@language}%
+  \@didactic@mainedition
 }{%
   \didacticlanguage{\@didactic@language}%
 }
@@ -4785,15 +4811,59 @@
 %    \begin{macrocode}
 \DeclareRobustCommand\@didactic@nostring[1]{%
   \PackageError{didactic}{%
-    This string has no text for the edition (\@didactic@edition):\MessageBreak
-    its languages are #1%
+    This string has no text for the edition (\@didactic@editionname):%
+    \MessageBreak its languages are #1%
   }{Give it a text in the edition's language.}%
+}
+%    \end{macrocode}
+% The string's list is checked the same way, as it's expanded, and what's 
+% wrong is an error in the same way, where the string is typeset.
+% A name that \textsf{babel} doesn't know is an error, since its text could 
+% never be printed and it's likely a typo; \texttt{didactic-sync.py}, which 
+% can't ask \textsf{babel}, takes it for a language of its own.
+% Two names of one language are an error too, as they are for the script, 
+% since only the first one's text could ever be printed.
+% The check compares each name with those after it, which is cheap for the 
+% two or three languages that a string has.
+%    \begin{macrocode}
+\DeclareRobustCommand\@didactic@unknownstring[1]{%
+  \PackageError{didactic}{Unknown language `#1' in a string}{%
+    Use the name babel gives the language, and load it in babel.%
+  }%
+}
+\DeclareRobustCommand\@didactic@twotexts[1]{%
+  \PackageError{didactic}{%
+    This string has two texts for one language:\MessageBreak
+    its languages are #1%
+  }{Only the first of the two would ever be printed.}%
 }
 \ExplSyntaxOn
 \cs_new:Npn \__didactic_tag:n #1
   { \cs_if_exist_use:cF { @didactic@tag@ \tl_trim_spaces:n {#1} } { ? } }
 \cs_new:Npn \__didactic_tr:nn #1#2
-  { \__didactic_tr_text:nnnnw {#1} { 0 } { } {#2} #1 , \q_stop }
+  {
+    \__didactic_check:nw {#1} #1 , \q_stop
+    \__didactic_tr_text:nnnnw {#1} { 0 } { } {#2} #1 , \q_stop
+  }
+\cs_new:Npn \__didactic_check:nw #1 #2 , #3 \q_stop
+  {
+    \tl_if_blank:nF {#2}
+      {
+        \cs_if_exist:cTF { @didactic@tag@ \tl_trim_spaces:n {#2} }
+          { \__didactic_check_twice:nnw {#1} {#2} #3 , \q_stop }
+          { \tl_trim_spaces_apply:nN {#2} \@didactic@unknownstring }
+      }
+    \tl_if_blank:nF {#3} { \__didactic_check:nw {#1} #3 \q_stop }
+  }
+\cs_new:Npn \__didactic_check_twice:nnw #1#2 #3 , #4 \q_stop
+  {
+    \tl_if_blank:nF {#3}
+      {
+        \str_if_eq:eeTF { \__didactic_tag:n {#2} } { \__didactic_tag:n {#3} }
+          { \@didactic@twotexts {#1} }
+          { \__didactic_check_twice:nnw {#1} {#2} #4 \q_stop }
+      }
+  }
 \cs_new:Npn \__didactic_tr_text:nnnnw #1#2#3#4 #5 , #6 \q_stop
   {
     \int_compare:nNnTF {#2} = { 0 }
