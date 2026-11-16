@@ -1,0 +1,15 @@
+% The source shared by test-runjobs-notes.tex and test-runjobs-slides.tex, two
+% jobs of one document as in a deck.  test-runjobs.sh writes the programs and
+% test-runjobs-layout.tex, and runs the jobs; see its header.  The notes run a
+% program first that the slides don't show, so the run both jobs show has
+% different instance numbers in the two jobs.
+\mode<article>{%
+  \section{Only in the notes}
+  \runpython{runjobs-only.py}
+}
+
+\begin{frame}[fragile]
+  \frametitle{In both jobs}
+  \runpython{runjobs-prog.py}
+  \codebycode{python}{runjobs-prog.py}{python}{runjobs-only.py}
+\end{frame}

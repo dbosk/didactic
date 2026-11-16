@@ -46,8 +46,13 @@ says what it needs and how to run the tests; this file is for working on it.
   until they settle and checked by their outcome, after `selftest`, the
   checker's rules on made-up documents (a new rule gets its cases there, both
   sides); its EXPECTED lists the cases that fail for a known reason, and the run
-  fails if one of them passes. About 9 minutes; run it with the marginfix this
+  fails if one of them passes. About 11 minutes; run it with the marginfix this
   version needs (`MARGINFIX`).
+- `test-runjobs.sh` (several minutes): the notes and slides jobs of one
+  document, in three build layouts, each rebuilt alone in either order while a
+  program's output changes. didactic's transcripts are in PythonTeX's output
+  directory, per job (#118); `test-runpaths.sh` checks the path minted gets
+  (odd directory names, a moved build).
 - Bilingual documents: `didactic-sync.py` is a literate program,
   `didactic-sync.nw` (tangled and woven by the Makefile, never edited as
   `.py`); `make test-sync` runs its pytest tests, and `make check-bilingual`
