@@ -158,13 +158,12 @@
 %   regardless of load order.
 % }
 % \changes{v2.19}{2026/11/15}{%
-%   Bilingual documents name languages as \textsf{babel} does: a block is 
-%   \texttt{\textbackslash begin\{onlyin\}\{swedish\}}, the edition is 
-%   \textsf{babel}'s main language, whichever it is, by its tag, and 
-%   \texttt{\textbackslash didactictr} takes its languages as an option, 
-%   with a text for each; \texttt{\textbackslash sven} is new.
-%   Removes the environments \texttt{en} and \texttt{sv}; 
-%   \texttt{didactic-sync.py --migrate} rewrites a source (\#105).
+%   Bilingual documents name languages as \textsf{babel} does, in blocks, 
+%   \texttt{\textbackslash begin\{onlyin\}\{swedish\}}, in the option 
+%   \texttt{language} and in stamps; \texttt{\textbackslash didactictr} 
+%   takes a list of languages.
+%   Removes \texttt{en} and \texttt{sv}; \texttt{didactic-sync.py 
+%   --migrate} rewrites a source (\#105).
 % }
 % \changes{v2.17.2}{2026/11/15}{%
 %   With \textsf{cleveref}'s option \texttt{capitalise}, the names of this 
@@ -1892,7 +1891,7 @@
 % Prose comes in pairs of blocks, one paragraph or one list per block, each 
 % in the language that its argument names:
 % \begin{verbatim}
-% \begin{onlyin}{english} % sync en=3f9c1a sv=b20e7d
+% \begin{onlyin}{english} % sync english=3f9c1a swedish=b20e7d
 % The program prints one line.
 % \end{onlyin}
 % \begin{onlyin}{swedish}
@@ -1908,10 +1907,14 @@
 % |british|, |swedish|, |ngerman|; a tag such as |sv| there is an error that 
 % names the name to write.
 % |british| and |english| are one language: what decides is the language 
-% tag that \textsf{babel} gives each, |en| for both.
+% tag that \textsf{babel} gives each, |en| for both, which this package and 
+% the script compare by and an author never writes.
 % The comment on the first |\begin| line, which \textsf{comment} ignores, 
 % is written by the script \texttt{didactic-sync.py}, which is the subject 
 % of \cref{sec:didactic-sync}.
+% Its keys are the names the blocks are written in, and any name of a 
+% language will do for it: a block changed from |{english}| to |{british}| 
+% keeps its stamp.
 %
 % \DescribeMacro{\didactictr}
 % \DescribeMacro{\ensv}
@@ -1956,8 +1959,8 @@
 % \PassOptionsToPackage{english,swedish}{cleveref}
 % \input{preamble.tex}
 % \end{verbatim}
-% The option |language| overrides that, with a language's name or its tag, 
-% |language=swedish| or |language=sv|.
+% The option |language| overrides that, with a language's name, 
+% |language=swedish|; a tag, |language=sv|, is an error that names the name.
 % So does the command |\didacticlanguage| with the same argument, which can 
 % also be used in the document, between blocks.
 %
@@ -1993,7 +1996,7 @@
 % \end{verbatim}
 % say the same again, which is harmless, and can go.
 % \textsf{translator} follows \textsf{babel}, not the edition: with the 
-% option |language=sv| and English as \textsf{babel}'s main language, the 
+% option |language=swedish| and English as \textsf{babel}'s main language, the 
 % titles are English, like \textsf{babel}'s captions.
 % Don't give the class the language instead, |\documentclass[swedish]{beamer}|: 
 % a class option reaches every package, and it turns \textsf{cleveref}'s 
@@ -2123,17 +2126,24 @@
 % is |\begin{onlyin}{english}| or |\begin{onlyin}{swedish}| now, and a 
 % document with |\begin{en}| stops with an error that names the form to 
 % write.
+% Its stamps had the keys |en=| and |sv=|, which the script now refuses in 
+% the same way, and the option |language=en| or |language=sv| is an error 
+% too: it's |language=english| or |language=swedish| now.
 % \texttt{didactic-sync.py --migrate} \meta{file}\dots\ rewrites a source: 
 % each real block, not the examples in code chunks, verbatim environments or 
-% comments, with what follows the |\begin| on its line, so the stamps stay 
-% where they are; they're keyed by tag, |en| and |sv|, and stay right.
+% comments, and the keys of each stamp, |english=| and |swedish=|, with 
+% their hashes as they were, so a source that was in sync still is.
+% Version~2.17's |en| meant |english| and |british| alike, and 
+% |--migrate --en british| writes |british| instead of |english|, in the 
+% blocks and in their stamps; |\ensv| stays |english|, which is the same 
+% language, so either is right, and both editions build either way.
 % A second run changes nothing.
 % The order is: install this version and the script with it, then run 
-% |--migrate| over each deck's sources, rebuild both editions and commit.
+% |--migrate| over each deck's sources, change |language=| in the drivers 
+% that set it, rebuild both editions and commit.
 % Until then a deck stops in the build and in the script (exit~2), so 
 % nothing is half migrated without a word.
-% |\ensv|, |\didactictr{..}{..}| and the option |language=en| or |sv| work 
-% as before.
+% |\ensv| and |\didactictr{..}{..}| work as before.
 %
 % \StopEventually{}
 %
@@ -2394,8 +2404,8 @@
 %
 % \begin{option}{language}
 % \begin{option}{nobilingual}
-% The |language| option chooses the edition of a bilingual document, |en| or 
-% |sv|.
+% The |language| option chooses the edition of a bilingual document, by 
+% \textsf{babel}'s name of a language, such as |swedish|.
 % By default it's |auto|, which means that we follow \textsf{babel}, see 
 % \cref{sec:impl-bilingual}.
 % Then |nobilingual|, which turns all of that off.
