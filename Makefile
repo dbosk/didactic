@@ -54,7 +54,7 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-marginfloat-inorder.pdf test-marginfloat-hidden.pdf \
 	${TEST_FLOATORDER:=.pdf} test-marginfloat-include.pdf \
 	test-format.pdf test-oldkernel-title.pdf test-biburl check \
-	didactic-sync.py test-sync check-bilingual
+	didactic-sync.py test-sync check-bilingual test-runjobs.d/passed
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -87,6 +87,7 @@ didactic.pdf: ${SRC} didactic.sty
 	grep -q 'translator' didactic.gls
 	grep -q 'capitalise' didactic.gls
 	grep -q 'babel. does' didactic.gls
+	grep -q 'no longer remove each other' didactic.gls
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
 	! grep -E 'Empty bibliography|Citation .*undefined|could not be found' didactic.log
@@ -162,6 +163,14 @@ test-run.pdf: test-run.tex didactic.sty ${TEST_RUN_EXAMPLES}
 	-${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	${PYTHONTEX} test-run
 	${PDFLATEX} ${LATEXFLAGS} $<
+
+# Two jobs of one document, the notes and the slides, each rebuilt alone in
+# either order while a program's output changes: neither loses a transcript to
+# the other (issue #118); see the script.  The stamp says that it passed.
+test-runjobs.d/passed: test-runjobs.sh test-runjobs-contents.tex \
+		test-runjobs-notes.tex test-runjobs-slides.tex didactic.sty
+	sh test-runjobs.sh "${PDFLATEX} ${LATEXFLAGS}" "${PYTHONTEX}"
+	touch $@
 
 test-note-heading.pdf: test-note-heading.tex didactic.sty
 	${PDFLATEX} ${LATEXFLAGS} $<
@@ -636,6 +645,7 @@ clean:
 	${RM} test-run.pdf test-run.aux test-run.log test-run.unq
 	${RM} test-run.pytxcode test-run.pytxmcr test-run.pytxpyg
 	${RM} -R pythontex-files-test-run _minted-test-run
+	${RM} -R test-runjobs.d
 	${RM} test-note-heading.pdf test-note-heading.aux test-note-heading.log
 	${RM} test-note-heading.unq
 	${RM} test-sidecap.pdf test-sidecap.aux test-sidecap.log test-sidecap.unq

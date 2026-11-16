@@ -32,6 +32,10 @@ says what it needs and how to run the tests; this file is for working on it.
   merely builds checks nothing. New checks go into `all`.
 - `test-keep-parted.tex`: lead-ins and what they lead into, parted only with a
   warning. `test-keep-sweep.py`: page breaks room by room against plain LaTeX.
+- `test-runjobs.sh` (about 4 minutes): the notes and slides jobs of one
+  document, in three build layouts, each rebuilt alone in either order while a
+  program's output changes. didactic's transcripts are in PythonTeX's output
+  directory, per job (#118).
 - Bilingual documents: `didactic-sync.py` is a literate program,
   `didactic-sync.nw` (tangled and woven by the Makefile, never edited as
   `.py`); `make test-sync` runs its pytest tests, and `make check-bilingual`
