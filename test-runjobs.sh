@@ -14,6 +14,8 @@
 #   dirs    a build directory per job, -output-directory=build-<job>, with
 #           PythonTeX run there, \setpythontexoutputdir{.} and
 #           \setpythontexworkingdir{..}, as decks do.
+# Where PythonTeX runs in the build directory it runs with --rerun=always, as
+# the decks' makefiles run it.
 # In each, removing what the build made (pythontex-files-*, ltxobj or build-*)
 # must remove every transcript: none is left in the document's directory.
 # Jobs that share PythonTeX's output directory share its own files too, so they
@@ -46,7 +48,10 @@ tex() { # job
 		test-runjobs-$1.tex >/dev/null
 }
 pytex() { # job
-	(cd $(build $1) && $PYTHONTEX test-runjobs-$1 >/dev/null)
+	case $layout in
+	shared) $PYTHONTEX test-runjobs-$1 ;;
+	*) (cd $(build $1) && $PYTHONTEX --rerun=always test-runjobs-$1) ;;
+	esac >/dev/null
 }
 # A last pass, since minted leaves a placeholder where its cache lacks the code.
 full() { tex $1; pytex $1; tex $1; tex $1; }

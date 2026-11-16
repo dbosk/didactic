@@ -166,10 +166,11 @@ test-run.pdf: test-run.tex didactic.sty ${TEST_RUN_EXAMPLES}
 
 # Two jobs of one document, the notes and the slides, each rebuilt alone in
 # either order while a program's output changes: neither loses a transcript to
-# the other (issue #118); see the script.  The stamp says that it passed.
+# the other (issue #118); see the script.  pdflatex, as the decks are built.
+# The stamp says that it passed.
 test-runjobs.d/passed: test-runjobs.sh test-runjobs-contents.tex \
 		test-runjobs-notes.tex test-runjobs-slides.tex didactic.sty
-	sh test-runjobs.sh "${PDFLATEX} ${LATEXFLAGS}" "${PYTHONTEX}"
+	sh test-runjobs.sh "pdflatex ${LATEXFLAGS}" "${PYTHONTEX}"
 	touch $@
 
 test-note-heading.pdf: test-note-heading.tex didactic.sty
