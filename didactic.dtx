@@ -1927,6 +1927,9 @@
 % Without the option the languages are English and Swedish, and 
 % |\ensv{English}{Svenska}| and |\sven{Svenska}{English}| are the short 
 % forms, whose names give the order of the arguments.
+% A list that names one language twice, |[english,british]|, is an error 
+% for \texttt{didactic-sync.py}; the package takes the text of the first 
+% name whose language is the edition's and ignores the other.
 % A string with no text for the edition, such as |\ensv| in a German 
 % edition, is an error where it's typeset, which names the edition and the 
 % string's languages: a shared file used by a German edition needs a German 
@@ -2137,6 +2140,9 @@
 % |--migrate --en british| writes |british| instead of |english|, in the 
 % blocks and in their stamps; |\ensv| stays |english|, which is the same 
 % language, so either is right, and both editions build either way.
+% A deck chooses by what its blocks should say: the name its drivers give 
+% \textsf{babel}, |--en british| for a deck whose drivers load |british|, 
+% or the default for one shared between drivers that differ.
 % A second run changes nothing.
 % The order is: install this version and the script with it, then run 
 % |--migrate| over each deck's sources, change |language=| in the drivers 
