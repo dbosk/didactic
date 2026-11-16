@@ -662,11 +662,11 @@ test-notefoot-tl12: test-notefoot.tex test-notefoot.sh test-notefoot.py testlog.
 
 # random documents dense with margin notes and footnotes, with what moves a line
 # after its note was placed (a paragraph that can't break, a display, a heading's
-# keep, a passage in the mode carry, multicol's columns, LaTeX's own footnotes),
-# built until they settle and checked by their outcome (test-fuzz.py): margin-inrun
-# or $(MARGINFIX), TeX Live's 1.2, xelatex, lualatex, a stale .aux; first the
-# checker's own rules on made-up documents (selftest, no TeX).  About
-# 9 minutes on one job.
+# keep, a passage in the mode carry, multicol's columns, LaTeX's own footnotes, and
+# in the set backlog long footnotes carried in a row), built until they settle and
+# checked by their outcome (test-fuzz.py): margin-inrun or $(MARGINFIX), TeX Live's
+# 1.2, xelatex, lualatex, a stale .aux; first the checker's own rules on made-up
+# documents (selftest, no TeX).  About 11 minutes on one job.
 .PHONY: test-fuzz
 test-fuzz: test-fuzz.py testlog.py didactic.sty
 	python3 test-fuzz.py selftest

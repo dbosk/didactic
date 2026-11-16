@@ -8,7 +8,7 @@ after a note at the foot, and a footnote of LaTeX's own (\\footnotesatfoot) afte
 ours.
 
 Usage:
-  test-fuzz.py gen SEED            print the document of SEED
+  test-fuzz.py gen SEED [backlog]  print the document of SEED (of the set backlog)
   test-fuzz.py check DIR/NAME      check a built document; PASS or the problems
   test-fuzz.py selftest            the checker's rules on made-up documents, no TeX
   test-fuzz.py run [SET...]        build and check the sets (all if none), in
@@ -19,7 +19,9 @@ The sets: inrun (seeds 1-40, 52 and 125, pdflatex, the marginfix found or
 $MARGINFIX), tl12 (seeds 1-20, pdflatex, TeX Live's 1.2), xe and lua (seeds 1-10, xelatex and
 lualatex, as inrun), stale (seeds 1-10, as inrun: a sentence added at the start,
 built from the original's .aux and from clean, the same PDF), review (the review's
-own documents, without the movers, where it found a defect).  A document is
+own documents, without the movers, where it found a defect), backlog (seeds 1-10,
+as inrun, with passages in the mode carry whose long footnotes are more than a
+page's margin holds).  A document is
 built until its .aux settles (at most seven runs, a run limit of 300 s).
 
 The check (each item a problem): an error in the log; a note on another page
@@ -56,6 +58,8 @@ SETS = {
     "stale": [("pdflatex", "found", s) for s in range(1, 11)],
     # the review's own documents (no movers) where it found B1
     "review": [("pdflatex", "tl12", 1)],
+    # long footnotes carried in a row, more than a page's margin holds (review 4, S5-1)
+    "backlog": [("pdflatex", "found", s) for s in range(1, 11)],
 }
 # (set, seed): why it fails.  (review 1 and xe 1 were B1's, a footnote cut to run a
 # line past the foot and printed over the next when its line went on; such a footnote
@@ -71,9 +75,11 @@ W = ("alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi "
      "omicron pi rho sigma tau upsilon").split()
 
 
-def gen(seed, opts=(), movers=True):
+def gen(seed, opts=(), movers=True, backlog=False):
     """A random memoir document with didactic, dense with notes; without the
-    movers, the review's document of that seed."""
+    movers, the review's document of that seed; with backlog (the set backlog),
+    also passages in the mode carry whose long footnotes are more than a page's
+    margin holds."""
     R = random.Random(seed)
     k = 0
 
@@ -196,6 +202,14 @@ def gen(seed, opts=(), movers=True):
                 out.append(fn(n=1, body=w2(R2.choice([3, 6, 10, 18]))))
                 out.append("{\\footnotesatfoot " + w2(4))
                 out.append(fn(n=1, body=w2(6)) + "}")
+            elif backlog and m < .045:
+                # a passage in the mode carry with long footnotes, more than a page's
+                # margin holds, so that some go on past the next page (review 4, S5-1)
+                out.append("{\\marginnoteoverflow{carry}% long carry")
+                for _ in range(R2.randint(4, 8)):
+                    out.append(w2(3))
+                    out.append(fn(n=1, body=w2(R2.randint(150, 260))))
+                out.append("}")
     out.append("\\end{document}")
     return "\n".join(out) + "\n"
 
@@ -221,9 +235,13 @@ def judge(name, tex, aux, rawlog, log, bbox):
     multicol's columns).  A \\footnotetext's note is compared with the label put at
     the \\footnotetext (t-K), where it is anchored, not with the mark's.  A note on
     another page than its anchor must be named by a warning whose pages match the
-    labels: for didactic's, one that says it is set on another page (in the run or
-    found from the last run); for LaTeX's and multicol's, the one that says that
-    LaTeX set it there ("where LaTeX puts it").  Footnotes keep their order across pages when both of
+    labels: for didactic's, one that says it is set on another page in the run, or
+    "TeX ended page P" for a note on P + 1; "found from the last run" names it only
+    where its foot also holds a footnote of LaTeX's own or multicol's (the mixed
+    foot, #104: INFO), since otherwise it is the record net catching what nothing
+    foresaw; for LaTeX's and multicol's, the one that says that
+    LaTeX set it there ("where LaTeX puts it").  A note warned as not printed that
+    is printed fails.  Footnotes keep their order across pages when both of
     a pair are didactic's, without exception: the known mixed foot (a later line
     takes a foot that also holds LaTeX's own footnotes to the next page, named a
     run late; #104 is its cure) fails here, and a seed that shows it goes into
@@ -233,8 +251,9 @@ def judge(name, tex, aux, rawlog, log, bbox):
     the text whose right edge lies past the text's right edge (the edge most lines
     of the page end at), over a word in the margin, by no more than an Overfull
     \\hbox of a paragraph in the log is wide, less TOL (0.5pt, pdftotext's boxes
-    against TeX's widths); TeX warns of that line, and didactic places no note
-    there.  (xe seed 2 has one: "Overfull \\hbox (9.93341pt too wide) in paragraph
+    against TeX's widths), the Overfull logged after k pages were shipped (the
+    log's page marks) and the overlap on page k + 1 or k + 2; TeX warns of that
+    line, and didactic places no note there.  (xe seed 2 has one: "Overfull \\hbox (9.93341pt too wide) in paragraph
     at lines 154--158", into a margin note; didactic v2.17 on master gives the same
     line for that document.)  The exceptions are lines starting INFO, counted by
     kind."""
@@ -270,27 +289,51 @@ def judge(name, tex, aux, rawlog, log, bbox):
     for m in re.finditer(r"Footnote called out at ([^\s:]+):(\d+)( in multicols)? on page (\d+) "
                          r"is set at the foot of page (\d+), where (LaTeX) puts it", log):
         named.setdefault(int(m[2]), []).append((m[4], m[5], m[6]))
-    for m in re.finditer(r"line of the footnote called out at ([^\s:]+):(\d+)", log):
-        named.setdefault(int(m[2]), []).append((None, None, "moved"))
-    for m in re.finditer(r"(?:Margin note|Footnote) called out at ([^\s:]+):(\d+)[^\n]{0,40}?"
-                         r"on page (\d+) (?:may be set on|wasn't)", log):
-        named.setdefault(int(m[2]), []).append((m[3], None, "other"))
+    # TeX ended page P before the footnote's line: the note goes with its line to P + 1
+    for m in re.finditer(r"TeX ended page (\d+) before the line of the footnote called out "
+                         r"at ([^\s:]+):(\d+)", log):
+        named.setdefault(int(m[3]), []).append((m[1], str(int(m[1]) + 1), "moved"))
+    # not printed: names nothing; a note so named that is printed is a problem below
+    unprinted = {int(m[2]) for m in re.finditer(
+        r"Margin note called out(?: at ([^\s:]+):(\d+))?[^\n]{0,40}?on page \d+[^\n]{0,20}? "
+        r"wasn't printed", log) if m[2]}
 
     def lines_of(K):
         ln = lineof[K]
         return [ln, ln + 1] if pg.get("t-" + K) else [ln]
 
-    def is_named(K, how=None):
-        """Whether K, off its anchor's page, is named with the pages the labels have."""
+    # "Footnote called out at Y is set at the foot of page P before the one called out
+    # at X, which is still waiting in the margin": by Y's line, (P, X's line)
+    ahead = {}
+    for m in re.finditer(r"Footnote called out at [^\s:]+:(\d+) is set at the foot of page "
+                         r"(\d+) before the one called out at [^\s:]+:(\d+), which is still "
+                         r"waiting in the margin", log):
+        ahead.setdefault(int(m[1]), []).append((m[2], int(m[3])))
+    # a page's foot that holds a footnote of LaTeX's own or multicol's: (page, its K)
+    mixed = {}
+    for L in lineof:
+        if kind[L] in ("latex", "multicol") and pg.get("n-" + L):
+            mixed.setdefault(pg["n-" + L], L)
+    lastinfo = []
+
+    def is_named(K):
+        """Whether K, off its anchor's page, is named with the pages the labels have:
+        in the run, or found from the last run where its foot also holds a footnote
+        of LaTeX's own or multicol's (the mixed foot, #104: INFO); found from the
+        last run otherwise is the record net catching something unforeseen, and
+        names nothing here.  TeX ended page P names a note on P + 1."""
         a, n = anchor(K), pg.get("n-" + K)
         for ln in lines_of(K):
             for p, q, h in named.get(ln, []):
-                if how and h not in how:
-                    continue
-                if h == "moved" or p is None:
-                    return True
-                if p == a and (q is None or q == n):
-                    return True
+                if h == "moved":
+                    if q == n:
+                        return True
+                elif p == a and q == n:
+                    if h != "last":
+                        return True
+                    if n in mixed:
+                        lastinfo.append((K, n, mixed[n]))
+                        return True
         return False
 
     away, lost = [], []
@@ -305,11 +348,19 @@ def judge(name, tex, aux, rawlog, log, bbox):
     for K in lineof:
         for ln in lines_of(K):
             for p, q, h in named.get(ln, []):
-                if q is not None and (p, q) != (anchor(K), pg.get("n-" + K)):
+                if h == "moved":
+                    if q != pg.get("n-" + K):
+                        probs.append(f"the warning for line {ln} says TeX ended page {p}, so "
+                                     f"the note is on {q}; the label {pg.get('n-' + K)}")
+                elif (p, q) != (anchor(K), pg.get("n-" + K)):
                     probs.append(f"the warning for line {ln} says {p}->{q}, the labels "
                                  f"{anchor(K)}->{pg.get('n-' + K)}")
     if lost:
         probs.append(f"notes without their label (lost?): {lost}")
+    printed = [K for K in lineof if pg.get("n-" + K)
+               and any(ln in unprinted for ln in lines_of(K))]
+    if printed:
+        probs.append(f"warned as not printed, but printed: {printed}")
     if away:
         probs.append(f"away, and no warning names it with its pages: {away}")
     # order across pages
@@ -323,7 +374,16 @@ def judge(name, tex, aux, rawlog, log, bbox):
                 continue
             ka, kb = kind[a], kind[b]
             if ka == "ours" and kb == "ours":
-                bad.append((a, b))
+                # b set at its foot before a, still waiting: named by the warning on b,
+                # with b's page and a waiting footnote at or after a set later
+                if any(p == pg.get("n-" + b) and any(
+                        lineof[X] == xl or pg.get("t-" + X) and lineof[X] + 1 == xl
+                        for X in lineof if int(X) >= int(a)
+                        and pg.get("n-" + X, "0").isdigit() and int(pg["n-" + X]) > pb)
+                       for ln in lines_of(b) for p, xl in ahead.get(ln, [])):
+                    info.setdefault("ours set before ours still waiting", []).append((a, b))
+                else:
+                    bad.append((a, b))
             else:
                 off = [K for K in (a, b) if anchor(K) != pg.get("n-" + K)]
                 if all(is_named(K) for K in off):
@@ -335,13 +395,24 @@ def judge(name, tex, aux, rawlog, log, bbox):
                      + ", ".join(f"{a} ({kind[a]}) after {b} ({kind[b]})" for a, b in bad[:5]))
     for k, v in sorted(info.items()):
         probs.append(f"INFO {k}: {len(v)} pairs, e.g. {v[:3]}")
+    for K, n, L in sorted(set(lastinfo), key=lambda x: int(x[0])):
+        probs.append(f"INFO mixed foot: {K} named found from the last run, on page {n}, "
+                     f"whose foot holds {L} ({kind[L]})")
     mg = re.search(r"didactic-margin: odd=([\d.]+) even=([\d.]+) width=([\d.]+)", log)
     if mg is None:
         probs.append("no line didactic-margin in the log: the margin isn't known")
         return name, probs
     odd, even, mw = float(mg[1]), float(mg[2]), float(mg[3])
-    overfull = [float(x) for x in re.findall(
-        r"(?m)^Overfull \\hbox \(([\d.]+)pt too wide\) in paragraph", rawlog)]
+    # each Overfull \hbox of a paragraph with the pages shipped before it in the log
+    # (TeX's page marks, [1, [2, ...): its lines are on the next page or the one after
+    overfull, shipped = [], 0
+    for m in re.finditer(r"(?m)^Overfull \\hbox \(([\d.]+)pt too wide\) in paragraph"
+                         r"|\[(\d+)(?=[\]\s{<])", rawlog):
+        if m[2] is not None:
+            if int(m[2]) == shipped + 1:
+                shipped += 1
+        else:
+            overfull.append((float(m[1]), shipped))
     seen = {}
     for n, page in enumerate(re.findall(r"<page[^>]*>(.*?)</page>", bbox, re.S), 1):
         ws = [(float(a), float(b), float(c), float(d), t) for a, b, c, d, t in
@@ -371,7 +442,7 @@ def judge(name, tex, aux, rawlog, log, bbox):
         for a, b in pairs:
             body, other = (a, b) if not inmarg(a) else (b, a)
             past = (body[2] - edge) * 72.27 / 72 if edge is not None else 0
-            wide = [x for x in overfull if x >= past - TOL]
+            wide = [x for x, k in overfull if x >= past - TOL and k + 1 <= n <= k + 2]
             if not inmarg(body) and inmarg(other) and past > TOL and wide:
                 over.setdefault((body, past, min(wide)), []).append(other[4])
             else:
@@ -432,7 +503,7 @@ def one(setname, engine, mfx, seed):
     os.makedirs(os.path.join(d, "_minted"))
     shutil.copy(os.path.join(HERE, "didactic.sty"), d)
     name = f"fz{seed}"
-    open(os.path.join(d, name + ".tex"), "w").write(gen(seed, movers=setname != "review"))
+    open(os.path.join(d, name + ".tex"), "w").write(gen(seed, movers=setname != "review", backlog=setname == "backlog"))
     probs = []
     if not build(d, name, engine, mfx):
         probs.append("doesn't settle in seven runs")
@@ -459,7 +530,8 @@ def one(setname, engine, mfx, seed):
 
 MOVERS = [("unbreakable", "\\interlinepenalty=10000"), ("display", "\\begin{matrix}"),
           ("keep", "\\subsection{Kept"), ("carry", "\\marginnoteoverflow{carry}"),
-          ("multicols", "\\begin{multicols}"), ("mixed foot", "\\footnotesatfoot")]
+          ("multicols", "\\begin{multicols}"), ("mixed foot", "\\footnotesatfoot"),
+          ("long carry", "% long carry")]
 
 
 def synthetic(notes, warn=(), extra=(), raw="", margin=305):
@@ -467,6 +539,9 @@ def synthetic(notes, warn=(), extra=(), raw="", margin=305):
     page[, \footnotetext page]), kind ours, latex or multicol; warn are (K, how,
     from page, to page), how set (didactic's, "is set on page"), TeX or multicol
     (LaTeX's "where LaTeX puts it", with "in multicols" for multicol);
+    how may also be ahead (set at the foot of page p before q, still waiting:
+    q is a note's K), last ("is set on page" found from the last run), moved
+    ("TeX ended page" from page, to page unused) or lost ("wasn't printed");
     extra are words (page, x0, y0, x1, y1, text) beside the notes' (each note's
     word spans the text, x 50 to 300, so the text's edge is at 300; the margin
     starts at x margin); raw is put in the log as written."""
@@ -490,6 +565,20 @@ def synthetic(notes, warn=(), extra=(), raw="", margin=305):
         if how == "set":
             log.append(f"Package didactic Warning: Margin note called out at fz.tex:{line[K]}"
                        f" on page {p} is set on page {q}: why")
+        elif how == "ahead":
+            log.append(f"Package didactic Warning: Footnote called out at fz.tex:{line[K]} is"
+                       f" set at the foot of page {p} before the one called out at"
+                       f" fz.tex:{line[q]}, which is still waiting in the margin.")
+        elif how == "last":
+            log.append(f"Package didactic Warning: Margin note called out at fz.tex:{line[K]}"
+                       f" on page {p} is set on page {q} (found from the last run): nothing"
+                       " said so in that run.")
+        elif how == "moved":
+            log.append(f"Package didactic Warning: TeX ended page {p} before the line of the"
+                       f" footnote called out at fz.tex:{line[K]}, which had gone to its foot")
+        elif how == "lost":
+            log.append(f"Package didactic Warning: Margin note called out at fz.tex:{line[K]}"
+                       f" on page {p} wasn't printed (found from the last run)")
         else:
             mc = " in multicols" if how == "multicol" else ""
             log.append(f"Package didactic Warning: Footnote called out at fz.tex:{line[K]}{mc}"
@@ -542,6 +631,37 @@ def selftest():
          synthetic([(1, "ours", 1, 2, 2)]), lambda r: not r),
         ("... and off that label's page, unnamed, fails",
          synthetic([(1, "ours", 1, 3, 2)]), lambda r: has(r, "away")),
+        # a footnote set at its foot before one still waiting, warned
+        ("(ours, ours) out of order, the early one warned with both places, is INFO",
+         synthetic([(1, "ours", 1, 2), (2, "ours", 1, 1)], [(1, "set", 1, 2), (2, "ahead", 1, 1)]),
+         lambda r: not fails(r) and has(r, "INFO ours set before ours still waiting")),
+        ("... the warning's page not the early one's fails",
+         synthetic([(1, "ours", 1, 2), (2, "ours", 1, 1)], [(1, "set", 1, 2), (2, "ahead", 2, 1)]),
+         lambda r: has(r, "out of order across pages: 1 (ours) after 2 (ours)")),
+        ("... the warning naming one not set later fails",
+         synthetic([(1, "ours", 1, 2), (2, "ours", 1, 1), (3, "ours", 1, 1)],
+                   [(1, "set", 1, 2), (2, "ahead", 1, 3)]),
+         lambda r: has(r, "out of order across pages: 1 (ours) after 2 (ours)")),
+        # the namings, by their pages
+        ("ours off its page, named only found from the last run, fails",
+         synthetic([(1, "ours", 1, 2)], [(1, "last", 1, 2)]), lambda r: has(r, "away")),
+        ("... with a footnote of LaTeX's own at that foot, is INFO mixed foot",
+         synthetic([(1, "ours", 1, 2), (2, "latex", 2, 2)], [(1, "last", 1, 2)]),
+         lambda r: not fails(r) and has(r, "INFO mixed foot: 1 named found from the last "
+                                           "run, on page 2, whose foot holds 2 (latex)")),
+        ("... with LaTeX's own on another page's foot, fails",
+         synthetic([(1, "ours", 1, 2), (2, "latex", 1, 1)], [(1, "last", 1, 2)]),
+         lambda r: has(r, "away")),
+        ("TeX ended page 1 names a note on page 2",
+         synthetic([(1, "ours", 1, 2)], [(1, "moved", 1, None)]), lambda r: not r),
+        ("... but not one on page 3",
+         synthetic([(1, "ours", 1, 3)], [(1, "moved", 1, None)]),
+         lambda r: has(r, "away") and has(r, "says TeX ended page 1")),
+        ("a note warned as not printed that is printed fails",
+         synthetic([(1, "ours", 1, 1)], [(1, "lost", 1, None)]),
+         lambda r: has(r, "warned as not printed, but printed: ['1']")),
+        ("... and printed on its page without the warning passes",
+         synthetic([(1, "ours", 1, 1)]), lambda r: not r),
         # words over words
         ("a line past the edge over a margin note, the log's Overfull as wide, is INFO",
          synthetic([(1, "ours", 1, 1)], extra=over + marg,
@@ -554,6 +674,14 @@ def selftest():
         ("... narrower by more than TOL fails",
          synthetic([(1, "ours", 1, 1)], extra=over + marg,
                    raw="Overfull \\hbox (10.4pt too wide) in paragraph at lines 1--2\n"),
+         lambda r: has(r, "p1 overlap")),
+        ("... the Overfull before page 1 is shipped (page mark [1 after it) is INFO",
+         synthetic([(1, "ours", 1, 1)], extra=over + marg,
+                   raw="Overfull \\hbox (11.0pt too wide) in paragraph at lines 1--2\n[1]\n"),
+         lambda r: not fails(r) and has(r, "INFO TeX's overfull line")),
+        ("... the Overfull only after page 1 is shipped fails",
+         synthetic([(1, "ours", 1, 1)], extra=over + marg,
+                   raw="[1]\nOverfull \\hbox (11.0pt too wide) in paragraph at lines 1--2\n"),
          lambda r: has(r, "p1 overlap")),
         ("... with no Overfull in the log fails",
          synthetic([(1, "ours", 1, 1)], extra=over + marg), lambda r: has(r, "p1 overlap")),
@@ -600,7 +728,7 @@ def selftest():
 def movers_line(setname):
     """How many of a set's documents have each mover."""
     cases = SETS[setname]
-    docs = [gen(seed, movers=setname != "review") for _, _, seed in cases]
+    docs = [gen(seed, movers=setname != "review", backlog=setname == "backlog") for _, _, seed in cases]
     counts = ", ".join(f"{name} {sum(1 for d in docs if mark in d)}" for name, mark in MOVERS)
     return f"didactic fuzz test: {setname}: documents with each mover: {counts} (of {len(docs)})"
 
@@ -656,7 +784,7 @@ def run(sets):
 
 if __name__ == "__main__":
     if sys.argv[1:2] == ["gen"]:
-        sys.stdout.write(gen(int(sys.argv[2])))
+        sys.stdout.write(gen(int(sys.argv[2]), backlog=sys.argv[3:4] == ["backlog"]))
     elif sys.argv[1:2] == ["check"]:
         try:
             name, probs = check(sys.argv[2])

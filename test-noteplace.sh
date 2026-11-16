@@ -459,6 +459,11 @@ FSP='\def\testtall{.99}\def\testbody{{\interlinepenalty=10000 \noindent FIRSTLIN
 OMT='\def\testfirst{\noindent\rule{1cm}{\dimexpr\textheight-2\baselineskip\relax}\par\noindent FIRSTLINE end\yieldnote[\par\rule{1pt}{\dimexpr\textheight-.5\baselineskip\relax}\par SIX] \[ \begin{matrix} a\\ b\\ c\\ d \end{matrix} \] after \filler\par}'
 MVC="${MOVED#\\def\\testtall{.1\}}"; MVC="${MVC/\\yieldnote\{\}/\\yieldnote[\\par\\rule\{1pt\}\{6\\baselineskip\}]}"
 DEFM='\def\testbody{{\interlinepenalty=10000 \noindent FIRSTLINE\newline SECOND\newline THIRD\marginpar{\marginnotedeferrable DEFER\label{n-d1}}\label{c-d1}\newline FOURTH\par}}'
+# Nine of these pin a layout only, no mutant tried turns them red (3ff0ab9): mvlaterfn
+# (its family's mechanism is carried by mvlaterfull), fspulllaterfn and fspulllatermn
+# (by fspullback), mvcarried, mvcarriedfn and mvcarriedmn (by mvcarriedover, and for a
+# footnote after a carried one, leftheld), mvdefer, mvdeferfn and mvdefermn (by
+# mvdeferclaim).  The others here are checks of their own.
 check mvlaterfn x 3 '' "kept,pairs,exactwarn" "${MOVED%\}}$LFN}"
 check fspulllaterfn x 5 '' "pullok,pairs,exactwarn${NOT12:+,label=callout-y:2}" "${FSP%\}}$LFN}"
 check fspulllatermn x 5 '' "pullok,pairs,exactwarn${NOT12:+,label=callout-y:2}" "${FSP%\}}$LMN}"

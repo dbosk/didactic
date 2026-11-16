@@ -13,6 +13,7 @@ Exit status: 0 every mutant did what test-mutants.txt says it does, 1 otherwise.
 """
 import argparse
 import concurrent.futures
+import hashlib
 import os
 import re
 import shutil
@@ -216,6 +217,27 @@ def run(m, top, files, refs, timeout):
         shutil.rmtree(d, ignore_errors=True)
 
 
+def marginfix_found():
+    """Which marginfix the groups run against: $MARGINFIX's (the tests put it first on
+    TEXINPUTS) or the one found, its path and its \\ProvidesPackage line; a baseline
+    that is red with another marginfix then says why (the one in a texmf tree can be
+    older than margin-inrun)."""
+    env = dict(os.environ)
+    if env.get("MARGINFIX"):
+        env["TEXINPUTS"] = os.path.abspath(env["MARGINFIX"]) + "//:" + env.get("TEXINPUTS", "")
+    path = subprocess.run(["kpsewhich", "marginfix.sty"], env=env, capture_output=True,
+                          text=True).stdout.strip()
+    line = "?"
+    if path:
+        text = open(path, "rb").read()
+        m = re.search(r"\\ProvidesPackage\{marginfix\}%?\s*\[([^\]]*)\]",
+                      text.decode(errors="replace"))
+        # the line alone doesn't tell builds apart (margin-inrun says v1.5 too)
+        line = (m[1] if m else "no \\ProvidesPackage line") + \
+            ", sha256 " + hashlib.sha256(text).hexdigest()[:12]
+    return f"marginfix: {path or 'not found'} [{line}]"
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--jobs", type=int, default=2)
@@ -238,6 +260,7 @@ def main():
         for m in mutants:
             print(m["label"], m["group"], m["expected"])
         return 0
+    print(marginfix_found(), flush=True)
     files = tracked()
     top = tempfile.mkdtemp(prefix="didactic-mutants-", dir=a.dir)
     ok = True
