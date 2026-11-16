@@ -662,15 +662,31 @@ text, with a note that says why.
 Only what the file itself says counts, since the script reads one file; a
 driver that loads the package with [[nobilingual]] and inputs this file
 doesn't, and the file is read as one with blocks.
-A definition shown in a chunk or a verbatim environment, or commented out,
-isn't the file's, so we look at the lines the way [[read_source]] does,
-before it reads the blocks, since a definition can come after a use.
+A definition shown as an example isn't the file's: in a chunk or a verbatim
+environment, commented out, or inline, [[\verb|\newenvironment{en}...|]],
+[[\mintinline]] or noweb's quoting.
+So we look at the code that \LaTeX\ reads: the lines that [[read_source]]
+doesn't skip, read by the same lexer as the strings (\cref{sec:sync-tr}),
+with what it takes for verbatim or a comment blanked out, which keeps every
+other character in its place on its line.
+That's done before the blocks are read, since a definition can come after a
+use, and over the file as one text, since an option list can run over
+several lines, [[\usepackage[%]] with [[language=sv]] on the next.
+
+A file that defines [[en]] or [[sv]] has both as its own.
+Version~2.17 refused to load its blocks beside a document's own [[\en]] or
+[[\sv]], so such a file never had blocks of that version under either name,
+and rewriting the one environment that it didn't define would leave a pair
+half in each form.
 
 The same look finds the language settings of version 2.17, which took a tag,
 [[language=sv]] or [[\didacticlanguage{en}]], where a name belongs now.
 Each is an error with the form to write, as a block of version 2.17 is, so
 that a deck that isn't migrated stops in the script as it does in the build,
-and [[--migrate]] rewrites it; its place on the line is kept for that.
+and [[--migrate]] rewrites it; its place, a line and a column, is kept for
+that.
+A file under [[nobilingual]] has no editions, so its settings are left alone
+too.
 
 <<note what the file takes for itself, and its old language settings>>=
 scan_own_and_settings(reading)
@@ -698,10 +714,13 @@ PACKAGE_OPTIONS = re.compile(
 )
 OLD_LANGUAGE_OPTION = re.compile(r"(?<![A-Za-z])language\s*=\s*(en|sv)(?![A-Za-z])")
 OLD_LANGUAGE_COMMAND = re.compile(r"\\didacticlanguage\s*\{\s*(en|sv)\s*\}")
-UNESCAPED_PERCENT = re.compile(r"(?<!\\)%")
 OWN_ENVIRONMENT = (
     "this file defines the environment {0}, so its \\begin{{{0}}} is its own "
     "and is left alone here"
+)
+OWN_OLD_BLOCKS = (
+    "this file defines the environment {0}, so its environments en and sv "
+    "are its own and are left alone here"
 )
 OWN_NOBILINGUAL = (
     "this file loads didactic with nobilingual, so its environments en, sv "
@@ -717,40 +736,59 @@ OLD_SETTING = {
 <<functions>>=
 def scan_own_and_settings(reading):
     """Note the file's own environments and its old language settings."""
-    shown = None
-    nobilingual = False
-    for number, raw in enumerate(reading.lines):
-        line = raw.rstrip("\r")
-        if shown is None and not COMMENT.match(line):
-            code = UNESCAPED_PERCENT.split(line, maxsplit=1)[0]
-            for match in DEFINITION.finditer(code):
-                name = match.group(1) or match.group(2)
-                if name not in reading.own:
-                    reading.own.add(name)
-                    reading.notes.append((number, OWN_ENVIRONMENT.format(name)))
-            if NOBILINGUAL.search(code) and not nobilingual:
-                nobilingual = True
-                reading.notes.append((number, OWN_NOBILINGUAL))
-            note_old_settings(reading, number, code)
-        shown = next_shown(line, shown)
-    if nobilingual:
+    lines = code_lines(reading)
+    code = "\n".join(lines)
+    starts = [0]
+    for line in lines:
+        starts.append(starts[-1] + len(line) + 1)
+
+    def place(offset):
+        number = bisect.bisect_right(starts, offset) - 1
+        return number, offset - starts[number]
+
+    for match in DEFINITION.finditer(code):
+        name = match.group(1) or match.group(2)
+        if name not in reading.own:
+            names = {"en", "sv"} if name in OLD_BLOCKS else {name}
+            reading.own |= names
+            note = OWN_OLD_BLOCKS if name in OLD_BLOCKS else OWN_ENVIRONMENT
+            reading.notes.append((place(match.start())[0], note.format(name)))
+    if match := NOBILINGUAL.search(code):
         reading.own |= {"en", "sv", BLOCK}
-        reading.settings.clear()
-
-
-def note_old_settings(reading, number, code):
-    """Note where a line sets the language in version 2.17's form."""
+        reading.notes.append((place(match.start())[0], OWN_NOBILINGUAL))
+        return
     for match in PACKAGE_OPTIONS.finditer(code):
         group = "listed" if match.group("listed") is not None else "passed"
         for option in OLD_LANGUAGE_OPTION.finditer(match.group(group)):
-            start = match.start(group) + option.start(1)
+            number, column = place(match.start(group) + option.start(1))
             reading.settings.append(
-                (number, start, start + 2, option.group(1), "option")
+                (number, column, column + 2, option.group(1), "option")
             )
     for match in OLD_LANGUAGE_COMMAND.finditer(code):
+        number, column = place(match.start(1))
         reading.settings.append(
-            (number, match.start(1), match.end(1), match.group(1), "command")
+            (number, column, column + 2, match.group(1), "command")
         )
+
+
+def code_lines(reading):
+    """Return the lines with all that LaTeX doesn't read as code blanked."""
+    lines = []
+    shown = None
+    for raw in reading.lines:
+        line = raw.rstrip("\r")
+        if shown is None and not COMMENT.match(line):
+            characters = list(line)
+            for token in tokens_of_line(line, 0, reading.noweb):
+                if token.kind in ("verbatim", "comment"):
+                    characters[token.start : token.end] = " " * (
+                        token.end - token.start
+                    )
+            lines.append("".join(characters))
+        else:
+            lines.append(" " * len(line))
+        shown = next_shown(line, shown)
+    return lines
 <<check a line of a block>>=
 match = INDENTED_END.match(line)
 if match and match.group(1) == language:
@@ -1840,6 +1878,30 @@ is known.
 A stamp of version 2.17 is noted apart, for [[--migrate]], which rewrites it
 and lets that error pass; any other error makes it leave the file alone.
 
+A key must name the language of one of its pair's sides, by tag, as the
+comparison goes: [[english=]] for a British side will do, [[swedsh=]] won't.
+Since a name outside the table is a language of its own, a typo in a key
+would otherwise be a side that has gone, and the pair would only be reported
+as changed, with nothing to say why.
+A key of a side that really has gone, a German block taken out, is the same
+error, and [[--stamp]] writes the stamp anew once the pair has been read.
+
+<<constants>>=
+STRAY_KEY = (
+    "{key}= in this stamp names no side of its pair, whose languages are "
+    "{sides}: is it a typo? --stamp writes the stamp anew"
+)
+<<functions>>=
+def check_stamp_keys(reading, line, stamp, names):
+    """Report the keys of a stamp that name no side of its pair."""
+    for tag in stamp.tags():
+        if tag not in names:
+            message = STRAY_KEY.format(
+                key=stamp.names.get(tag, tag),
+                sides=", ".join(sorted(names.values())),
+            )
+            if (line, message) not in reading.errors:
+                reading.errors.append((line, message))
 <<constants>>=
 OLD_STAMP = (
     "{old} in this stamp is version 2.17's form: write {new}, "
@@ -1911,6 +1973,7 @@ A change that happens to keep it goes unseen, but with 24 bits that's about
 one change in 17 million.
 
 <<imports>>=
+import bisect
 import hashlib
 <<constants>>=
 HASH_LENGTH = 6
@@ -1978,6 +2041,9 @@ def block_pairs(reading):
             continue
         stamped = [block for block in group if block.stamp]
         unused += [block.first for block in stamped[1:]]
+        if stamped:
+            check_stamp_keys(reading, stamped[0].first, stamped[0].stamp,
+                             {block.language: block.name for block in group})
         pairs.append(
             Pair(
                 str(group[0].first + 1),
@@ -2029,6 +2095,8 @@ def ensv_pairs(reading):
             if len(uses) > 1:
                 target += f".{position + 1}"
             stamp = stamps[position] if position < len(stamps) else None
+            if stamp:
+                check_stamp_keys(reading, line, stamp, use.names)
             pairs.append(
                 Pair(
                     target,
@@ -2975,16 +3043,23 @@ hash.
 That check also rules out a commit that removed the stamp, and a stamp that
 was written by hand.
 
-A stamp of a deck that has been migrated (\cref{sec:sync-migrate}) was
-written in version 2.17's spelling, [[en=... sv=...]], and the only commit
-with its new spelling is the migration, which wrote it as a rewrite.
-If the pair was behind when the deck was migrated, that commit doesn't have
-the stamped texts, and searching only the new spelling would lose the diff of
-exactly the pairs with work waiting.
-So a stamp of English and Swedish is searched in both spellings, the new one
-first, and a file at an old commit is read as [[--migrate]] would rewrite it,
-which turns its blocks of version 2.17 into blocks again; a file that needs
-nothing is read as it is.
+The stamp isn't searched as it's spelt now, though.
+A deck that has been migrated (\cref{sec:sync-migrate}) wrote its stamps in
+version 2.17's spelling, [[en=... sv=...]], and the only commit with the new
+spelling is the migration, which rewrote them; a block renamed from
+[[{english}]] to [[{british}]], key and all, has the same stamp under another
+key.
+If the pair was behind at the rename, that commit doesn't have the stamped
+texts, and searching the spelling of today would lose the diff of exactly the
+pairs with work waiting.
+What doesn't change is the hashes, so we search one of them, as the value of
+any key: [[git log --pickaxe-regex -S]] with a key of any name.
+A rewrite of the keys keeps the number of occurrences, so it isn't listed at
+all, and the commit that wrote the hash is; the hashes of the other sides are
+checked when the pair is found there, as before.
+A file at an old commit is read as [[--migrate]] would rewrite it, which
+turns its blocks of version 2.17 into blocks again; a file that needs nothing
+is read as it is.
 If nothing is found, the stamp stands outside of history: it isn't committed
 yet, or it has been made up, or this isn't a git repository at all.
 It's still as stale as it was, so the report is given anyway without the diff.
@@ -3024,39 +3099,30 @@ def text_at_stamp(path, pair):
     root = top_of(Path(path).resolve().parent)
     if root is None:
         return None
-    for spelling in stamp_spellings(pair.stamp):
-        log = git(
-            root,
-            "log",
-            f"-S{spelling}",
-            f"--format={COMMIT_MARK}%h",
-            "--name-only",
-            "-z",
-            "HEAD",
-        )
-        if log is None:
-            return None
-        commit = None
-        for entry in log.split("\0"):
-            name = entry.lstrip("\n")
-            if name.startswith("\x01"):
-                commit = name[1:]
-            elif name:
-                pairs = pairs_in_commit(root, commit, name)
-                found = stamped_pair(pairs, pair.stamp)
-                if found:
-                    return commit, found
+    side = pair.stamp[0][1]
+    log = git(
+        root,
+        "log",
+        "--pickaxe-regex",
+        f"-S[A-Za-z][A-Za-z0-9_-]*={side}([^0-9a-f]|$)",
+        f"--format={COMMIT_MARK}%h",
+        "--name-only",
+        "-z",
+        "HEAD",
+    )
+    if log is None:
+        return None
+    commit = None
+    for entry in log.split("\0"):
+        name = entry.lstrip("\n")
+        if name.startswith("\x01"):
+            commit = name[1:]
+        elif name:
+            pairs = pairs_in_commit(root, commit, name)
+            found = stamped_pair(pairs, pair.stamp)
+            if found:
+                return commit, found
     return None
-
-
-def stamp_spellings(stamp):
-    """Return the ways a stamp can have been written: now, and in v2.17."""
-    spellings = [str(stamp)]
-    if set(stamp.tags()) <= set(OLD_BLOCKS):
-        old = " ".join(f"{tag}={value}" for tag, value in stamp)
-        if old not in spellings:
-            spellings.append(old)
-    return spellings
 
 
 def stamped_pair(pairs, stamp):
@@ -4872,6 +4938,13 @@ read the same way (\cref{sec:sync-diff}).
 The language settings are rewritten first, by their places on the line, which
 the other rewrites don't move; then the blocks; then the stamps, whose keys
 depend on the blocks' new names.
+The result is read again, and if it has an error, the file is left as it was
+and the error is reported, with the line numbers of the rewrite, which are
+the file's own: a stamp of version 2.17 on its blocks can't be checked
+before they're blocks, and a key in it that names no side, [[swedsh=]], shows
+only then.
+So a file that [[--migrate]] rewrites is one the check reads without an
+error, never one with an old block beside a new one.
 
 <<functions>>=
 def migrate_text(text, name, english="english"):
@@ -4879,6 +4952,7 @@ def migrate_text(text, name, english="english"):
     renames = {"en": english, "sv": "swedish"}
     mark = BYTE_ORDER_MARK if text.startswith(BYTE_ORDER_MARK) else ""
     reading = read_source(text, noweb=not name.endswith(".tex"))
+    block_pairs(reading)
     ensv_pairs(reading)
     errors = [error for error in reading.errors
               if error not in reading.old_errors]
@@ -4896,7 +4970,13 @@ def migrate_text(text, name, english="english"):
         lines[end] = lines[end].replace("\\end{" + old + "}", "\\end{onlyin}")
     stamps = rename_old_stamps(lines, name, renames)
     counts = (len(reading.old_blocks), stamps, len(reading.settings))
-    return mark + "\n".join(lines), counts, [], reading.notes
+    new = mark + "\n".join(lines)
+    after = read_source(new, noweb=not name.endswith(".tex"))
+    block_pairs(after)
+    ensv_pairs(after)
+    if after.errors:
+        return text, (0, 0, 0), after.errors, reading.notes
+    return new, counts, [], reading.notes
 @
 
 A stamp's keys become the names its pair's sides have, once the blocks are
@@ -5042,7 +5122,8 @@ def test_migrate_en_takes_a_name_of_english(repo, arguments, message):
     ("\\NewDocumentEnvironment{onlyin}{m}{}{}\n"
      "\\begin{onlyin}{english}\nA.\n\\end{onlyin}\n",
      "this file defines the environment onlyin"),
-    ("\\usepackage[british]{babel}\n\\usepackage[draft,nobilingual]{didactic}\n"
+    ("\\usepackage[british]{babel}\n"
+     "\\usepackage[draft,nobilingual,language=en]{didactic}\n"
      "\\begin{en}\nA.\n\\end{en}\n\\begin{sv}\nB.\n\\end{sv}\n",
      "this file loads didactic with nobilingual"),
   ],
@@ -5119,6 +5200,126 @@ def test_migrate_rewrites_the_language_settings(repo):
     "Text \\didacticlanguage{swedish} more.\n"
   )
   assert run(repo, "contents.tex").returncode == 0
+
+
+V2_17_PAIR = "\\begin{en}\nA\n\\end{en}\n\\begin{sv}\nB\n\\end{sv}\n"
+
+
+@pytest.mark.parametrize(
+  "first_line",
+  [
+    "Write \\verb|\\newenvironment{en}{x}{}| to define it.\n",
+    "Use \\verb|\\usepackage[nobilingual]{didactic}| if needed.\n",
+    "Or \\mintinline{latex}{\\let\\en\\relax} first.\n",
+  ],
+)
+def test_a_definition_shown_inline_is_not_the_files_own(repo, first_line):
+  path = repo / "contents.tex"
+  path.write_text(first_line + V2_17_PAIR)
+  result = run(repo, "contents.tex")
+  assert result.returncode == 2
+  assert "contents.tex:2: \\begin{en} is version 2.17's form" in result.stderr
+  assert "its own" not in result.stderr
+  assert run(repo, "--migrate", "contents.tex").returncode == 0
+  assert path.read_text() == first_line + (
+    "\\begin{onlyin}{english}\nA\n\\end{onlyin}\n"
+    "\\begin{onlyin}{swedish}\nB\n\\end{onlyin}\n"
+  )
+
+
+@pytest.mark.parametrize(
+  "name, source",
+  [
+    ("contents.tex", "Write \\verb|\\didacticlanguage{en}| in v2.17.\n"),
+    ("contents.nw", "Write [[\\usepackage[language=sv]{didactic}]] in v2.17.\n"),
+    ("contents.tex",
+     "Write \\mintinline{latex}{\\didacticlanguage{en}} in v2.17.\n"),
+  ],
+)
+def test_a_language_setting_shown_inline_is_left_alone(repo, name, source):
+  path = repo / name
+  path.write_text(source)
+  result = run(repo, name)
+  assert result.returncode == 0, result.stderr
+  assert run(repo, "--migrate", name).returncode == 0
+  assert path.read_text() == source
+
+
+def test_an_option_list_over_several_lines_is_seen(repo):
+  path = repo / "contents.tex"
+  path.write_text("\\usepackage[%\n  draft,\n  language=sv\n]{didactic}\n")
+  result = run(repo, "contents.tex")
+  assert result.returncode == 2
+  assert "contents.tex:3: language=sv is version 2.17's form" in result.stderr
+  assert run(repo, "--migrate", "contents.tex").returncode == 0
+  assert path.read_text() == (
+    "\\usepackage[%\n  draft,\n  language=swedish\n]{didactic}\n"
+  )
+
+
+@pytest.mark.parametrize(
+  "source",
+  [
+    V2_17_PAIR,
+    "Write \\verb|\\newenvironment{en}{x}{}| to define it.\n" + V2_17_PAIR,
+    "Use \\verb|\\usepackage[nobilingual]{didactic}| if needed.\n" + V2_17_PAIR,
+    "\\newenvironment{en}{}{}\n" + V2_17_PAIR,
+    "\\newenvironment{sv}{}{}\n" + V2_17_PAIR,
+    "\\usepackage[nobilingual]{didactic}\n" + V2_17_PAIR,
+  ],
+)
+def test_a_migrated_file_is_never_half_migrated(repo, source):
+  path = repo / "contents.tex"
+  path.write_text(source)
+  assert run(repo, "--migrate", "contents.tex").returncode == 0
+  lines = [line.lstrip() for line in path.read_text().splitlines()]
+  new = any(line.startswith("\\begin{onlyin}") for line in lines)
+  old = any(line.startswith(("\\begin{en}", "\\begin{sv}")) for line in lines)
+  assert not (new and old), path.read_text()
+
+
+@pytest.mark.parametrize(
+  "source",
+  [
+    "\\begin{onlyin}{english} % sync english=aaaaaa swedsh=bbbbbb\nA.\n"
+    "\\end{onlyin}\n\\begin{onlyin}{swedish}\nB.\n\\end{onlyin}\n",
+    "\\ensv{a}{b} % sync english=aaaaaa swedsh=bbbbbb\n",
+  ],
+)
+def test_a_stamp_key_must_name_a_side_of_its_pair(repo, source):
+  (repo / "contents.nw").write_text(source)
+  result = run(repo, "contents.nw")
+  assert result.returncode == 2
+  assert "contents.nw:1: swedsh= in this stamp names no side of its pair" in (
+    result.stderr
+  )
+
+
+def test_a_pair_renamed_after_its_stamp_keeps_its_diff(repo):
+  path = repo / "contents.nw"
+  path.write_text(stamped_source(repo))
+  commit(repo, "stamped")
+  path.write_text(path.read_text().replace("The cat sat.", "The dog sat."))
+  commit(repo, "behind")
+  path.write_text(path.read_text().replace("english", "british"))
+  commit(repo, "renamed, stamp key and all")
+  result = run(repo, "contents.nw")
+  assert "contents.nw:1: swedish is behind" in result.stdout
+  assert "british since the stamp (" in result.stdout
+  assert "[-cat-]{+dog+}" in result.stdout
+
+
+def test_migrate_refuses_a_file_with_a_stray_stamp_key(repo):
+  path = repo / "contents.tex"
+  source = (
+    "\\begin{en} % sync en=aaaaaa swedsh=bbbbbb\nA\n\\end{en}\n"
+    "\\begin{sv}\nB\n\\end{sv}\n"
+  )
+  path.write_text(source)
+  result = run(repo, "--migrate", "contents.tex")
+  assert result.returncode == 2
+  assert "swedsh= in this stamp names no side of its pair" in result.stderr
+  assert path.read_text() == source
 
 
 def test_migrate_refuses_a_malformed_file(repo):
