@@ -362,13 +362,13 @@ done
 
 # The test documents are examples too, so the script must find nothing wrong
 # with them: no error, and no stamp in a form that it no longer reads.
-# test-bilingual-off.tex isn't one: under nobilingual it has an environment
-# onlyin of its own, which the script takes for a block without a language.
+# test-bilingual-off.tex loads the package with nobilingual and has its own
+# environment en, which the script leaves alone with a note.
 for source in test-bilingual.tex test-bilingual-sv.tex \
   test-bilingual-slides.tex test-bilingual-slides-sv.tex \
   test-bilingual-contents.tex test-bilingual-preamble.tex \
   test-bilingual-nested.tex test-bilingual-nested-inner.tex \
-  test-bilingual-nested-innermost.tex \
+  test-bilingual-nested-innermost.tex test-bilingual-off.tex \
   test-bilingual-woven.nw; do
   report=$(./didactic-sync.py --list "$source" 2>&1) \
     || fail "$source" "didactic-sync.py finds it malformed: $report"
@@ -409,8 +409,8 @@ pdftotext test-bilingual-sv.pdf - | grep -q 'see avsnitt' \
 
 pdftotext test-bilingual-off.pdf - | grep -q 'own ensv: x y' \
   || fail test-bilingual-off "own \\ensv is gone"
-pdftotext test-bilingual-off.pdf - | grep -q 'own onlyin' \
-  || fail test-bilingual-off "own onlyin is gone"
+pdftotext test-bilingual-off.pdf - | grep -q 'own en' \
+  || fail test-bilingual-off "own en is gone"
 
 nested=$(pdftotext test-bilingual-nested.pdf -)
 for word in NESTEDFIRST NESTEDINNER NESTEDINNERMOST NESTEDINNEREND NESTEDLAST \
