@@ -54,7 +54,8 @@ all: didactic.sty didactic.pdf didactic.tar.gz test.pdf test-footcite.pdf \
 	test-marginfloat-inorder.pdf test-marginfloat-hidden.pdf \
 	${TEST_FLOATORDER:=.pdf} test-marginfloat-include.pdf \
 	test-format.pdf test-oldkernel-title.pdf test-biburl check \
-	didactic-sync.py test-sync check-bilingual test-runjobs.d/passed
+	didactic-sync.py test-sync check-bilingual test-runjobs.d/passed \
+	test-runpaths.d/passed
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -171,6 +172,13 @@ test-run.pdf: test-run.tex didactic.sty ${TEST_RUN_EXAMPLES}
 test-runjobs.d/passed: test-runjobs.sh test-runjobs-contents.tex \
 		test-runjobs-notes.tex test-runjobs-slides.tex didactic.sty
 	sh test-runjobs.sh "pdflatex ${LATEXFLAGS}" "${PYTHONTEX}"
+	touch $@
+
+# The path by which minted finds a transcript: directories named with % # ~,
+# a space and a non-ASCII letter, and a build that is moved; see the script.
+test-runpaths.d/passed: test-runpaths.sh test-runjobs-contents.tex \
+		test-runjobs-notes.tex didactic.sty
+	sh test-runpaths.sh "pdflatex ${LATEXFLAGS}" "${PYTHONTEX}"
 	touch $@
 
 test-note-heading.pdf: test-note-heading.tex didactic.sty
@@ -646,7 +654,7 @@ clean:
 	${RM} test-run.pdf test-run.aux test-run.log test-run.unq
 	${RM} test-run.pytxcode test-run.pytxmcr test-run.pytxpyg
 	${RM} -R pythontex-files-test-run _minted-test-run
-	${RM} -R test-runjobs.d
+	${RM} -R test-runjobs.d test-runpaths.d
 	${RM} test-note-heading.pdf test-note-heading.aux test-note-heading.log
 	${RM} test-note-heading.unq
 	${RM} test-sidecap.pdf test-sidecap.aux test-sidecap.log test-sidecap.unq

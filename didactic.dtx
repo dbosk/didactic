@@ -162,6 +162,8 @@
 %   directory for the job, not to its working directory, so that two jobs 
 %   of one document, such as the notes and the slides, no longer remove 
 %   each other's files (\#118).
+%   \texttt{\textbackslash didacticinputminted} reads its file name 
+%   verbatim.
 % }
 % \changes{v2.18}{2026/11/16}{%
 %   Bilingual documents name languages as \textsf{babel} does, in blocks, 
@@ -1127,7 +1129,16 @@
 % That holds as long as the jobs don't share PythonTeX's output directory, 
 % say with |\setpythontexoutputdir{.}| and one |-output-directory| for both: 
 % then they share PythonTeX's own files as well, and a job typeset after the 
-% other's PythonTeX run, without one of its own, shows the other's output.
+% other's PythonTeX run, without one of its own, shows the other's output 
+% silently, with no error and no warning.
+%
+% |minted| is given the path of each file relative to PythonTeX's working 
+% directory, which must be the directory \LaTeX{} runs in, as before: the 
+% document's directory by default, or |..| from a build directory with 
+% |\setpythontexworkingdir{..}|.
+% So a directory can be renamed or moved, build and all, and typeset again 
+% without a PythonTeX run.
+% A |%| in the name of the |-output-directory| stops |minted| itself.
 %
 % Versions before 2.18.1 wrote these files to PythonTeX's working 
 % directory, the document's directory by default.
@@ -1136,6 +1147,9 @@
 % |didactic_run_code| still writes the program it runs, 
 % |didactic_code_|\meta{hash}|.py|, to the working directory, since the 
 % command line shows its name; PythonTeX deletes it in the same way.
+% Those files are shared by the jobs, which matters only if the jobs run 
+% PythonTeX at the same time, as with |make -j|: one job's run can then 
+% delete a program while the other job runs it.
 %
 % A use worth knowing from try-first teaching: let the students try 
 % something first, show the second version, and then repeat the first one 
@@ -5486,10 +5500,25 @@ except ImportError:
 % (Jobs that share an output directory share PythonTeX's own files as well, 
 % so they can't be built alone in any order anyway.)
 %
-% PythonTeX writes our code as a script in its output directory and runs 
-% it from the directory it started in, so the script's path, |__file__|, is 
-% the output directory relative to that directory: the path by which 
-% \LaTeX{} inputs PythonTeX's own files there, and the one we give |minted|.
+% PythonTeX writes our code as a script in its output directory, so the 
+% script's path, |__file__|, gives the output directory: absolute since 
+% Python~3.9, relative to the directory PythonTeX started in before that.
+%
+% |minted| looks for the file from the directory \LaTeX{} runs in, not in 
+% \LaTeX's |-output-directory|: it finds the file with |kpsewhich|, which 
+% doesn't search there.
+% Before, the file was in PythonTeX's working directory and |minted| got 
+% its bare name, which assumed that PythonTeX's working directory is the 
+% one \LaTeX{} runs in.
+% We keep that assumption and give |minted| the path relative to the 
+% working directory, |build/didactic_output_|\meta{hash}|.txt| when the 
+% output directory is |build| there.
+% A relative path keeps working when the directory is moved or renamed and 
+% typeset again without a PythonTeX run, and it doesn't contain the names 
+% of the directories above it, which may have characters that \TeX{} 
+% reads as commands, like |%|, |#| and |~|.
+% Only when there is no relative path, as from one drive to another on 
+% Windows, do we give the absolute path.
 %
 % Code in the document may change the working directory of PythonTeX, for
 % instance to read files relative to an included part of a book.
@@ -5510,8 +5539,12 @@ except ImportError:
 % imported.
 % So we print |\didacticinputminted|, which takes the same arguments as
 % |\inputminted| but empties the import path while reading the file.
+% It reads the file name verbatim, so that a |#| or a |~| in the name of 
+% the output directory is a character of the path.
+% This works since PythonTeX inputs our output from its file when the 
+% command is used, and not as the argument of another command.
 %    \begin{macrocode}
-\NewDocumentCommand{\didacticinputminted}{O{} m m}{%
+\NewDocumentCommand{\didacticinputminted}{O{} m v}{%
   \begingroup
     \let\import@path\@empty
     \inputminted[#1]{#2}{#3}%
@@ -5524,11 +5557,10 @@ except ImportError:
 \begin{pycode}
 DIDACTIC_WORKDIR = os.getcwd()
 try:
-  DIDACTIC_OUTPUTDIR_TEX = os.path.dirname(__file__) or os.curdir
   DIDACTIC_OUTPUTDIR = os.path.normpath(
-    os.path.join(pytex.docdir, DIDACTIC_OUTPUTDIR_TEX))
+    os.path.join(pytex.docdir, os.path.dirname(__file__)))
 except NameError:
-  DIDACTIC_OUTPUTDIR_TEX, DIDACTIC_OUTPUTDIR = os.curdir, DIDACTIC_WORKDIR
+  DIDACTIC_OUTPUTDIR = DIDACTIC_WORKDIR
 
 def didactic_write_file(content, /, prefix, suffix, *,
                         directory=DIDACTIC_WORKDIR):
@@ -5550,11 +5582,16 @@ def didactic_write_output(content, /, prefix, suffix):
   """
   Write `content` as `didactic_write_file` does, but in PythonTeX's output
   directory for this job (`DIDACTIC_OUTPUTDIR`), for LaTeX to input. Return
-  the path by which LaTeX finds the file.
+  the path by which LaTeX finds the file: relative to the directory PythonTeX
+  started in (`DIDACTIC_WORKDIR`), or absolute if there is no relative path.
   """
-  filename = didactic_write_file(content, prefix, suffix,
-                                 directory=DIDACTIC_OUTPUTDIR)
-  return os.path.normpath(os.path.join(DIDACTIC_OUTPUTDIR_TEX, filename))
+  path = os.path.join(DIDACTIC_OUTPUTDIR,
+                      didactic_write_file(content, prefix, suffix,
+                                          directory=DIDACTIC_OUTPUTDIR))
+  try:
+    return os.path.relpath(path, DIDACTIC_WORKDIR)
+  except ValueError:
+    return path
 
 def didactic_track(kind, /, *paths):
   """

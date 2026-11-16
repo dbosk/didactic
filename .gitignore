@@ -28,6 +28,7 @@ test-footcite-twoside.unq
 test-run.pdf
 test-run.unq
 test-runjobs.d
+test-runpaths.d
 test-note-heading.pdf
 test-note-heading.unq
 test-keep.pdf
