@@ -12,6 +12,10 @@ test-bilingual*.unq
 test-bilingual-import.d
 test-bilingual-stamp.d
 test-bilingual-stamp.tex
+test-bilingual-woven.tex
+test-bilingual-titles.tex
+test-bilingual-ownlines.tex
+test-bilingual-cref.tex
 ltxobj
 test.pdf
 test.unq

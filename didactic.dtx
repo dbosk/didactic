@@ -231,6 +231,20 @@
 %   checks the names of \textsf{marginfix} and the kernel it relies on and
 %   falls back to \texttt{carry}, with a warning, when one is missing.
 % }
+% \changes{v2.17.2}{2026/11/15}{%
+%   With \textsf{cleveref}'s option \texttt{capitalise}, the names of this 
+%   package's environments are capitalised in \texttt{\textbackslash cref} 
+%   too, as \textsf{cleveref}'s own are (\#107).
+% }
+% \changes{v2.17.1}{2026/11/15}{%
+%   With \textsf{translator}, which \textsf{beamer} and 
+%   \textsf{beamerarticle} load, and Swedish in \textsf{babel}, sets 
+%   \textsf{translator} up to follow \textsf{babel}'s language, so that 
+%   \textsf{beamer}'s block titles are Swedish in the Swedish edition with no 
+%   lines in the preamble.
+%   That holds for any document with Swedish in \textsf{babel}, bilingual or 
+%   not, unless the option \texttt{nobilingual} is given.
+% }
 % \changes{v2.17}{2026/11/13}{%
 %   Adds bilingual documents: the environments \texttt{en} and \texttt{sv}, 
 %   \texttt{\textbackslash ensv}, \texttt{\textbackslash didactictr}, 
@@ -2164,6 +2178,9 @@
 % \DescribeMacro{\didacticlanguage}
 % The edition is the main language of \textsf{babel}: |swedish| gives the 
 % Swedish edition, and any other language the English one.
+% So the feature needs \textsf{babel}, which this package loads anyway: a 
+% document with \textsf{polyglossia} instead stops where this package loads 
+% \textsf{babel}, with or without the bilingual feature.
 % So a driver for each edition needs to say its language only once, before 
 % the shared preamble, and a whole book, such as a Swedish book that binds 
 % some bilingual decks, gets the right edition with no further setting:
@@ -2176,8 +2193,45 @@
 % So does the command |\didacticlanguage| with the same argument, which can 
 % also be used in the document, between blocks.
 %
-% The names that \textsf{babel} sets follow by themselves: captions, 
-% \textsf{beamer}'s and this package's block titles.
+% The names that \textsf{babel} sets follow by themselves: captions, and this 
+% package's block titles, such as \enquote{Exercise}.
+% So do \textsf{beamer}'s own block titles, such as \enquote{Example} and 
+% \enquote{Theorem}, since version~2.17.1.
+% They come from \textsf{translator}, which \textsf{beamer} and 
+% \textsf{beamerarticle} load, and which takes its languages from the options 
+% of the class, not from \textsf{babel}'s.
+% When \textsf{translator} is loaded and \textsf{babel} has Swedish, this 
+% package tells it at the end of the preamble that Swedish is one of its 
+% languages and that \textsf{babel}'s |swedish| is its |Swedish|; from then 
+% on it follows \textsf{babel}'s language, so the English edition says 
+% \enquote{Example} and the Swedish one \enquote{Exempel}, in the slides and 
+% in the notes.
+% The author has nothing to add for that.
+% It isn't only for bilingual documents: any document that loads this 
+% package, \textsf{translator} and Swedish in \textsf{babel} gets it, a 
+% Swedish deck with no blocks at all or an article that loads 
+% \textsf{translator} itself.
+% And it makes all of \textsf{translator}'s words Swedish, not only the block 
+% titles: |\sectionpage| says \enquote{Avsnitt}, and a corollary is a 
+% \enquote{Korollarium}.
+% With the option |nobilingual|, which leaves the languages alone, there's no 
+% such set-up: a Swedish deck with it needs the two lines below in its 
+% preamble for Swedish titles.
+% The two lines that the documentation of version~2.17 asked for in the 
+% shared preamble,
+% \begin{verbatim}
+% \uselanguage{Swedish}
+% \languagealias{swedish}{Swedish}
+% \end{verbatim}
+% say the same again, which is harmless, and can go.
+% \textsf{translator} follows \textsf{babel}, not the edition: with the 
+% option |language=sv| and English as \textsf{babel}'s main language, the 
+% titles are English, like \textsf{babel}'s captions.
+% Don't give the class the language instead, |\documentclass[swedish]{beamer}|: 
+% a class option reaches every package, and it turns \textsf{cleveref}'s 
+% order, which the next paragraph is about, round: with it, the Swedish 
+% edition's |\cref| says \enquote{section} and the English one 
+% \enquote{avsnitt}.
 % The names of |\cref| don't: \textsf{cleveref} takes them from the 
 % \emph{last} language among its options.
 % Giving it both languages isn't enough, since \textsf{cleveref} adds a 
@@ -2189,6 +2243,20 @@
 % as above, and the shared preamble loads it without a language.
 % Names set in the preamble with |\crefname| depend on the edition too, and 
 % can use |\ensv|.
+% That holds for \textsf{cleveref}'s own types; this package sets the names 
+% of its own environments at the start of the document, which replaces 
+% names given for them in the preamble.
+% A document's own name for one of them, |\crefname{exercise}{...}{...}|, 
+% therefore goes in |\AtBeginDocument|, where it wins whether it's written 
+% before or after this package is loaded.
+% The driver can also give \textsf{cleveref} |capitalise| for one edition 
+% only, |\PassOptionsToPackage{capitalise}{cleveref}|, for 
+% \enquote{Section~1.2} in mid-sentence in English and \enquote{avsnitt~1.2} 
+% in Swedish.
+% Since version~2.17.2 the names of this package's environments follow it too: 
+% with |capitalise|, |\cref| says \enquote{Exercise~1} beside 
+% \enquote{Section~1.2}, and without it \enquote{övningsuppgift~1} beside 
+% \enquote{avsnitt~1.2}, in the singular and the plural.
 %
 % The blocks are built on the \textsf{comment} package, which reads a block 
 % line by line and writes it to a file, or skips it, so a block can hold 
@@ -2227,6 +2295,16 @@
 %   name, then the tangled file gets both.
 %   Tangling doesn't know about languages: |notangle| tangles what's in an 
 %   excluded block as well, so a program per language tangles to two files.
+%   Two more rules come from how \texttt{noweave} writes the woven file.
+%   It writes the index of the chunks right after the file's \emph{last} 
+%   code chunk, so that chunk stands outside any block: if it's in a block, 
+%   the other edition loses the whole index, without a word unless 
+%   |\nowebchunks| or |\nowebindex| prints it.
+%   And it puts the text after a chunk's closing |@| on the same line, so 
+%   the |@| that closes a chunk in a block stands alone on its line, with 
+%   |\end{en}| on the next: |@ \end{en}| becomes a line that doesn't end 
+%   the block.
+%   \texttt{didactic-sync.py} reports both.
 % \item[Labels] A label in a block doesn't exist in the other edition, so 
 %   text outside the block can only refer to it if the partner defines the 
 %   same label, which is fine since only one of them is read.
@@ -4481,12 +4559,32 @@
 % Since the |refname| and |Refname| options of |thmtools| doesn't seem to work
 % we will add the necessary |\crefname| and |\Crefname| commands at the
 % beginning of the document, for both |beamer| and non-|beamer| case.
+%
+% \textsf{cleveref}'s option |capitalise| only chooses among the names it 
+% derives itself: a name given with |\crefname| is used as it stands.
+% So with |capitalise| we give |\crefname| the capitalised names, which is 
+% what the option asks for, and otherwise the lowercase ones, as before.
+% Letting \textsf{cleveref} derive the lowercase name from |\Crefname| 
+% instead doesn't work here: it puts |\MakeLowercase| before the name, which 
+% then takes |\GetTranslationWarn| alone as its argument, and the reference 
+% fails with \enquote{Argument of \textbackslash GetTranslationWarn has an 
+% extra \}}; and \textsf{thmtools} has already set |\crefname| from 
+% |refname| anyway.
+% An abbreviation given as the lowercase name, such as \enquote{ex.} beside 
+% \enquote{Example}, is used without |capitalise| only; with it, |\cref| 
+% says \enquote{Example}, like |\Cref|.
 %    \begin{macrocode}
     \AtBeginDocument{%
       \@ifpackageloaded{cleveref}{%
-        \crefname{#1}
-          {\GetTranslationWarn{#5}}
-          {\GetTranslationWarn{#6}}
+        \if@cref@capitalise
+          \crefname{#1}
+            {\GetTranslationWarn{#7}}
+            {\GetTranslationWarn{#8}}
+        \else
+          \crefname{#1}
+            {\GetTranslationWarn{#5}}
+            {\GetTranslationWarn{#6}}
+        \fi
         \Crefname{#1}
           {\GetTranslationWarn{#7}}
           {\GetTranslationWarn{#8}}
@@ -4774,10 +4872,44 @@
     Use \string\didactictr\space for bilingual strings%
   }%
 }
-\fi
 %    \end{macrocode}
 % \end{macro}
 % \end{macro}
+%
+% \textsf{beamer}'s own block titles, such as \enquote{Example} and 
+% \enquote{Theorem}, in the slides and, through \textsf{beamerarticle}, in 
+% the notes, come from \textsf{translator}.
+% That takes its languages from the options of the class, not from 
+% \textsf{babel}'s, so with Swedish as \textsf{babel}'s main language they 
+% would still be English.
+% Told that Swedish is one of its languages, and that \textsf{babel}'s 
+% |swedish| is its |Swedish|, it follows \textsf{babel}'s language instead, 
+% in both editions: that's what its own class option |swedish| does.
+% It loads its dictionaries at the start of the document, so we tell it at 
+% the end of the preamble, which also catches a \textsf{translator} loaded 
+% after this package.
+% Without \textsf{translator}, or without Swedish in \textsf{babel}, there 
+% is nothing to do.
+% Swedish is in \textsf{babel} when its captions are, which is so whether it 
+% came as an option or through |\babelprovide|; a test of \textsf{babel}'s 
+% options would miss the latter.
+% Without the test, a document without Swedish would get the same output, 
+% and no error, but \textsf{translator} would load Swedish dictionaries for 
+% nothing.
+% An author who tells it the same in the preamble, as the documentation of 
+% version~2.17 asked, has it said twice, which \textsf{translator} reads as 
+% once.
+%    \begin{macrocode}
+\AtEndPreamble{%
+  \@ifpackageloaded{translator}{%
+    \ifcsname captionsswedish\endcsname
+      \uselanguage{Swedish}%
+      \languagealias{swedish}{Swedish}%
+    \fi
+  }{}%
+}
+\fi
+%    \end{macrocode}
 %
 % \subsection{Coloured blocks}
 %
