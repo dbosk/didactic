@@ -31,7 +31,8 @@
 %      "$ python3 examples/readdata.py examples/data.txt" and the same line
 %   15 explicit \runbasedir{test-basedir}: same as the second run in 14
 %   16 the session changes directory with os.chdir: the plain run still
-%      shows the data, and its output file is written next to this file;
+%      shows the data, and its output file is written to PythonTeX's output
+%      directory, pythontex-files-test-run, not to test-basedir;
 %      the base directory is still taken from here, not from test-basedir,
 %      so the second run shows the data too
 \documentclass[a4paper]{memoir}
