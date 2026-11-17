@@ -37,16 +37,42 @@
 #            -enumitem, and the sweep in variants m, s, k, m3, c, k3 and a, against their
 #            references (5 to 9 minutes; 7)
 #   biburl   test-biburl, which builds test-biburl-overfull and test-biburl-breaks (in
-#            five modes, under xelatex, pdflatex and lualatex) (1 to 2 minutes; 1.5);
+#            five modes, under pdflatex and lualatex) (1 to 2 minutes; 1.5);
 #            with the Makefile's engines, as the target chooses them
-# All with pdflatex, for speed, where make all uses xelatex, but title with xelatex: its
-# check reads a letter inside a picture, whose box depends on the engine.
+#   footcite test-noteoverflow-foot, its job default only (CASES=default), against the
+#            marginfix found or $MARGINFIX (about 1 minute)
+#   hbox     test-noteoverflow-foot, its job hbox only (CASES=hbox): the warnings of
+#            boxes in footnotes, against the marginfix found or $MARGINFIX (about 30 s)
+#   noteplace test-noteplace, its rows rsvsidecap, rsvblock, mcolblock,
+#            rsvsidebefore, heldtop, heldsecond, overmoved, footback, overlimit, overtwo,
+#            aftercarry, carrymode, notplainm, notplainf, nestfn, nestmp, fsoverstay, trailm,
+#            samelinehead, leftorder, leftheld, leftfloat, nofiles, mcolfn, bfnover and
+#            bfnsec only, against the marginfix found or $MARGINFIX (about 2 minutes a mutant,
+#            one at a time; 116 s; run on 2026-11-14, before nestfn, nestmp, fsoverstay)
+#   notefoot test-notefoot, its jobs waitover, warnclaim, defercarry-warn and defercarry,
+#            against $MARGINFIX (30 to 50 s; 30 s)
+#   matrix   test-noteplace, its rows mvlaterfull, fspullback, omtlaterfn, mvcarriedover,
+#            mvdeferclaim and heldover only (the line-moves matrix; heldtopfn and heldtopmn
+#            are killed by Mheldtop with the rest of heldtop's), against the marginfix found
+#            or $MARGINFIX (46 to 63 s; 51 s)
+#   noteplace12 test-noteplace-tl12, its rows nestfn, nestmp and mcolnote only, with TeX
+#            Live's 1.2 whatever $MARGINFIX is (24 s; 44 s)
+#   footwide test-footwide, its cases rigid, oneline and beyond only (CASES), under its
+#            three engines and with hyperref, against the marginfix found or $MARGINFIX
+#   fuzz     test-fuzz, its documents inrun 16, tl12 16, xe 9 and backlog 17 only (CASES), against
+#            $MARGINFIX and TeX Live's 1.2 (15 s; 16 s, run alone on 2026-11-14).  MARGINFIX
+#            must be the marginfix this version needs: with the fork's integration as it
+#            was before (v1.6 of 2026/10/22), the baseline is red, inrun 16 and xe 9 with
+#            margin notes out of order
+# All with pdflatex, the Makefile's default since #72.  The title group's check reads a
+# letter inside a picture by its vertical centre, not by its box, which depends on the
+# engine: its three mutants are killed under xelatex too (PDFLATEX=xelatex make mutants).
 #
 # A kill needs a named reason: the targets are named, and a full disk is an ERROR.  A
 # mutant that breaks a build also fails, so these keep the document compiling.
 #
 # Not run against these mutants: the sweep's variants s3 and e, test-keep-stale,
-# test-keep-chapter, and the rest of make all.
+# test-keep-chapter, and the rest of make tests.
 #
 # Code that no test kills is marked survived below, with the reason.
 
@@ -1548,10 +1574,10 @@ u_counters didactic.dtx
 #: biburl
 #= killed test-biburl
 u_textwidth didactic.dtx
--   \dimen@\linewidth
--   \ifdim\hsize<\dimen@ \dimen@\hsize \fi
-+   \dimen@\textwidth
-+   \relax
+-     \dimen@\linewidth
+-     \ifdim\hsize<\dimen@ \dimen@\hsize \fi
++     \dimen@\textwidth
++     \relax
 
 # the document's own \UrlLeft not called (review of round 1)
 #: biburl
@@ -1625,3 +1651,522 @@ u_nolook didactic.dtx
 u_probeopen didactic.dtx
 -         \ifnum\@didactic@url@open>\@ne
 +         \ifnum\z@>\@ne
+
+# ===== A footnote at the foot, set once =====
+
+# The measure runs a footnote's text outside memoir's \@footnotetext, so it marks it as
+# a footnote's for biblatex itself; without that, a \textcite in a plain footnote makes
+# footnotes of its own inside the measure (an arithmetic overflow and lost notes before
+# the guard).  The guard against notes made in a measure catches it: no error, no note
+# lost or unwarned, the two footnotes with a \textcite are found not plain, and the job
+# fails by that count (test-noteoverflow-foot-default, every footnote plain).
+#: footcite
+#= killed test-noteoverflow-foot
+Mblxmeasure didactic.dtx
+-       \ifcsdef{etb@tgl@blx@footnote}{\toggletrue{blx@footnote}}{}%
+-       \noindent\ignorespaces#1\par
++       \noindent\ignorespaces#1\par
+
+# The two breaks the review of the one-pass placement found that rsvsidecap and rsvblock
+# couldn't catch (first pass, test gaps): the wide float's rule taken out, which only a
+# note called out before the float on its page shows (rsvsidebefore: the note goes on to
+# the next page), and marginfix's injected box taken for a note, which mcolblock shows (a
+# warning that a note in multicols is lost).
+#: noteplace
+#= killed test-noteplace
+Mrsvroom didactic.dtx
+-   \expandafter\ifx\csname mfx@wide@\number\@currbox\endcsname\relax\else
+-     \ifdim\@pageht<\@didactic@stay \@pageht\@didactic@stay \fi
+-   \fi}
++   }
+
+#: noteplace
+#= killed test-noteplace
+Mrsvinj didactic.dtx
+-     \expandafter\ifx#1\Mfx@inject@insert
+-       \expandafter\expandafter\expandafter\@firstoftwo
+-     \else
+-       \expandafter\expandafter\expandafter\@secondoftwo
+-     \fi
++     \expandafter\@secondoftwo
+
+# A note held for its line on the next page is set as marginfix sets a note carried to a
+# page, at \MFX@minus@inf: its first line on the text's first.  Held at 0pt, as marginfix's
+# own hold releases its notes, its top is at the margin's top instead, \topskip less its
+# first line's height higher (the row heldtop; the branch's code had it right from step 2,
+# so the row was never red on it).
+#: noteplace
+#= killed test-noteplace
+Mheldtop didactic.dtx
+-          \noexpand\mfx@build@note\noexpand##1\noexpand##2{\MFX@minus@inf}}%
++          \noexpand\mfx@build@note\noexpand##1\noexpand##2{0pt}}%
+
+# The document's own \emergencystretch wins over bibemergencystretch: the bibliography sets
+# its 3em only where the stretch is 0pt.  Without the test, the bibliography overrides a
+# stretch the document set (the cases before:::0:2em:2em and after:::0:2em:2em, whose
+# expectation is the document's 2em, taken where the document set it).
+#: biburl
+#= killed test-biburl
+Bstretchown didactic.dtx
+-       \ifdim\emergencystretch=\z@
+-         \setlength\emergencystretch{\@didactic@bibemergencystretch}%
+-       \fi}%
++         \setlength\emergencystretch{\@didactic@bibemergencystretch}}%
+
+# The measure's own lines, as wide as TeX allows, end quietly by the kernel's para/end hook;
+# without it, a note with a list and a forced break says an Underfull \hbox of badness 10000
+# that no printed line has (hbox's note G).  And the fallback's copy for the foot is quiet
+# again after memoir's \@preamfntext, whose \@parboxrestore sets \sloppy; without that, a box
+# in a note that isn't plain says its warning twice, from the measure and from that copy
+# (hbox's note F).
+#: hbox
+#= killed test-noteoverflow-foot
+Hmeasureend didactic.dtx
+- \AddToHook{para/end}{\if@didactic@inmeasure\ifdim\hsize=\maxdimen
+-   \@didactic@quiet\fi\fi}
++ \AddToHook{para/end}{}
+
+#: hbox
+#= killed test-noteoverflow-foot
+Hfootcopy didactic.dtx
+-           \rule\z@\footnotesep\ignorespaces\foottextfont\@didactic@quiet #1%
++           \rule\z@\footnotesep\ignorespaces\foottextfont #1%
+
+# The fallback's version for the margin, set quietly: without that, note G (a list, not
+# plain, in the margin of page 3) has TeX's words as well as didactic's.
+#: hbox
+#= killed test-noteoverflow-foot
+Hfallmargin didactic.dtx
+-   \@didactic@footmargin{\@didactic@blxfootnote\@didactic@quiet
+-     \interlinepenalty\interfootnotelinepenalty#1\@didactic@quiet}%
++   \@didactic@footmargin{\@didactic@blxfootnote
++     \interlinepenalty\interfootnotelinepenalty#1}%
+
+# The quiet setting again after the note's text, before its last paragraph ends, in the
+# fallback's versions for the margin and for the foot: a note whose text sets \fussy (H,
+# I) would have that paragraph's lines said by TeX too, twice for H, printed in the
+# margin, and for I from its version for the margin, not printed (Hfalltrail), or twice
+# from its version for the foot, printed (Hfoottrail).
+#: hbox
+#= killed test-noteoverflow-foot
+Hfalltrail didactic.dtx
+-     \interlinepenalty\interfootnotelinepenalty#1\@didactic@quiet}%
++     \interlinepenalty\interfootnotelinepenalty#1}%
+
+#: hbox
+#= killed test-noteoverflow-foot
+Hfoottrail didactic.dtx
+-           \@finalstrut\strutbox\@didactic@quiet}%
++           \@finalstrut\strutbox}%
+
+# A footnote with a line wider than TeX allows (test-footwide's rigid, oneline and beyond):
+# what didactic says of an overfull line is found by halving from the line's width up to
+# \maxdimen, in 31 turns.  A midpoint that never moves would have run on for ever when the
+# loop waited for the gap to close; it now ends with a wrong amount, which rigid's row
+# compares with TeX's.  Half the sum, as before, passes TeX's limit: an error each turn.
+# Reading the line's natural width, where it is larger than TeX allows: "Dimension too
+# large" (oneline).  A line wider than \maxdimen however it shrinks is said to be wider by
+# more than an amount (beyond).
+#: footwide
+#= killed test-footwide
+Hmidlo didactic.dtx
+-           \dimen@\dimexpr\@didactic@hboxlo
+-             +(\@didactic@hboxhi-\@didactic@hboxlo)/2\relax
++           \dimen@\dimexpr\@didactic@hboxlo\relax
+
+#: footwide
+#= killed test-footwide
+Hmidsum didactic.dtx
+-           \dimen@\dimexpr\@didactic@hboxlo
+-             +(\@didactic@hboxhi-\@didactic@hboxlo)/2\relax
++           \dimen@\dimexpr(\@didactic@hboxlo+\@didactic@hboxhi)/2\relax
+
+#: footwide
+#= killed test-footwide
+Hnatural didactic.dtx
+-       \@didactic@hboxhi\maxdimen
++       \setbox4\hbox{\unhcopy\tw@}\@didactic@hboxhi\wd4
+
+#: footwide
+#= killed test-footwide
+Hmorethan didactic.dtx
+-       (more than \the\dimexpr\maxdimen-\wd\tw@\relax\space too wide)}%
++       (\the\dimexpr\maxdimen-\wd\tw@\relax\space too wide)}%
+
+# A note decided for one page whose line TeX's break takes to the next, and which is
+# carried from there (test-noteplace's overmoved): its warning says why, that its line
+# went on, as it has no reason of its own.
+#: noteplace
+#= killed test-noteplace
+Cmovedwhy didactic.dtx
+-             \ifcsname @didactic@dn@\the\@didactic@noteof##1\endcsname
++             \ifcsname @didactic@dn@none\endcsname
+
+# S1: a footnote carried bars the foot to didactic's later footnotes on its page, in
+# every carrying branch (\@didactic@carry); without it a later footnote goes to the foot
+# of the page and is printed before the carried one (test-fuzz: inrun 16, tl12 16, xe 9,
+# each "footnotes out of order across pages", ours after ours).
+#: fuzz
+#= killed test-fuzz
+S1fncarried didactic.dtx
+-   \ifcsname @didactic@fn@\the\@didactic@noteof\@didactic@head\endcsname
+-     \global\@didactic@fncarriedtrue
+-   \fi}
++   }
+
+# Review 3, T1: five things no row pinned, each with a row now.
+# footback: our foot left to the kernel's \@reinserts goes on with a later margin note's
+# line to the next page (test-noteplace's footback).
+#: noteplace
+#= killed test-noteplace
+Tfootback didactic.dtx
+-     \if@didactic@allours
+-       \insert\footins{\floatingpenalty\@MM\unvcopy\footins}%
++     \iffalse
++       \insert\footins{\floatingpenalty\@MM\unvcopy\footins}%
+
+# sameline: the place to break after the first note's special output stays before our mark
+# of the second note in the line, and the page ends there: the second is set on the next
+# page, its line staying (test-notefoot's waitover).
+#: notefoot
+#= killed test-notefoot
+Tsameline didactic.dtx
+- \newcommand\@didactic@sameline{%
+-   \global\@didactic@samelinedfalse
+-   \begingroup
++ \newcommand\@didactic@sameline{\global\@didactic@samelinedfalse}
++ \newcommand\@didactic@samelineoff{%
++   \global\@didactic@samelinedfalse
++   \begingroup
+
+# The overhang's limit, three lines: a note that misses by two lines and a half runs over
+# (test-noteplace's overlimit).
+#: noteplace
+#= killed test-noteplace
+Tover3 didactic.dtx
+- \newcommand\@didactic@overmax{2\@didactic@keep@L}
++ \newcommand\@didactic@overmax{3\@didactic@keep@L}
+
+# The overhang's limit, one line: a note that misses by two is carried (overtwo).
+#: noteplace
+#= killed test-noteplace
+Tover1 didactic.dtx
+- \newcommand\@didactic@overmax{2\@didactic@keep@L}
++ \newcommand\@didactic@overmax{1\@didactic@keep@L}
+
+# The after-carry guard of the decision: a short note after a carried one is decided to
+# stay, and marginfix carries it with a warning of its own, without a reason (aftercarry).
+#: noteplace
+#= killed test-noteplace
+Tguard didactic.dtx
+- \newcommand\@didactic@decide@{%
+-   \@tempswafalse
+-   \if@didactic@closed\else
++ \newcommand\@didactic@decide@{%
++   \@tempswafalse
++   \iffalse\else
+
+# The after-carry guard of the overhang: a note after a carried one runs over
+# (carrymode, aftercarry).
+#: noteplace
+#= killed test-noteplace
+Toverguard didactic.dtx
+- \newcommand\@didactic@ifover@{%
+-   \if@didactic@closed\expandafter\@secondoftwo\else
++ \newcommand\@didactic@ifover@{%
++   \iffalse\expandafter\@secondoftwo\else
+
+# The deferrable claim at nothing: the notes after a deferrable one are found to fit, and
+# marginfix moves them on (test-notefoot's warnclaim and defercarry-warn).
+#: notefoot
+#= killed test-notefoot
+Tclaim didactic.dtx
+- \newcommand\@didactic@deferclaim{%
+-   \ifdefined\mfx@priority
++ \newcommand\@didactic@deferclaim{\z@}
++ \newcommand\@didactic@deferclaimoff{%
++   \ifdefined\mfx@priority
+
+# The deferrable claim whole, as if the note stayed (the reviewer's Mdeferclaim): the
+# notes after it are carried where marginfix would set them (test-notefoot's defercarry).
+#: notefoot
+#= killed test-notefoot
+Tclaimwhole didactic.dtx
+- \newcommand\@didactic@deferclaim{%
+-   \ifdefined\mfx@priority
++ \newcommand\@didactic@deferclaim{\@didactic@noteht}
++ \newcommand\@didactic@deferclaimoff{%
++   \ifdefined\mfx@priority
+
+# Review 3, T5: a footnote that isn't plain runs its text three times, its LaTeX counters
+# set back before the second and third; not before the copy for the foot, a counter in it
+# steps twice there (notplainf).
+#: noteplace
+#= killed test-noteplace
+Tctfoot didactic.dtx
+-   \global\let\@thefnmark\@didactic@markbefore
+-   \@didactic@ctbefore
+-   \@didactic@boxget\@didactic@cbox
++   \global\let\@thefnmark\@didactic@markbefore
++   \@didactic@boxget\@didactic@cbox
+
+# Not before the copy for the margin, it steps twice there (notplainm).
+#: noteplace
+#= killed test-noteplace
+Tctmargin didactic.dtx
+-   \global\let\@thefnmark\@didactic@markbefore
+-   \@didactic@ctbefore
+-   \@didactic@footmargin
++   \global\let\@thefnmark\@didactic@markbefore
++   \@didactic@footmargin
+
+# Review 3, M1: a note's record without its callout's (a note nested in another) read as if
+# it had one: a garbled warning and an extra error (nestfn, nestmp).
+#: noteplace
+#= killed test-noteplace
+M1rcguard didactic.dtx
+-         \ifcsname @didactic@rc@\the\@tempcnta\endcsname
+-           \expandafter\expandafter\expandafter\@didactic@recheck@
++         \ifcsname @didactic@rn@\the\@tempcnta\endcsname
++           \expandafter\expandafter\expandafter\@didactic@recheck@
+
+# M1: the hbox check's width plus \hfuzz not held at \maxdimen: in a note nested in a
+# footnote being measured \hfuzz is \maxdimen, and the sum overflows (nestfn).  It joins
+# the check's \maxdimen guards (Hmidlo, Hmidsum, Hnatural, Hmorethan; test-footwide's
+# rigid, oneline and beyond).
+#: noteplace
+#= killed test-noteplace
+M1clamp didactic.dtx
+-     \setbox4\hbox to\ifdim\wd\tw@>\dimexpr\maxdimen-\@didactic@hfz\relax
+-       \maxdimen\else\dimexpr\wd\tw@+\@didactic@hfz\relax\fi{\unhcopy\tw@}%
++     \setbox4\hbox to\dimexpr\wd\tw@+\@didactic@hfz\relax{\unhcopy\tw@}%
+
+# M1: the lost-note net says "taller than the margin" of every note it finds not printed
+# (nestfn, nestmp and mcolnote with TeX Live's 1.2: the net is 1.2's, group noteplace12).
+#: noteplace12
+#= killed test-noteplace-tl12
+M1tall didactic.dtx
+- \newcommand\@didactic@tallflag[1]{%
+-   \ifcsname @didactic@tl@#1\endcsname t\fi}
++ \newcommand\@didactic@tallflag[1]{t}
+
+# The line-moves matrix (review 3): each outcome family's row red under a break of what it
+# names.  The notes marginfix holds for the next page not counted there
+# (\@didactic@newpage): a later footnote decided to stay is carried by marginfix without a
+# reason (mvlaterfull).
+#: matrix
+#= killed test-noteplace
+Fnpheld didactic.dtx
+-         {\global\advance\@didactic@stay\@didactic@deferclaim}
+-         {\global\advance\@didactic@stay\@didactic@noteht}%
++         {\global\advance\@didactic@stay\@didactic@deferclaim}
++         {}%
+
+# \@didactic@pull never takes a box on: a footnote put back at the head of the page stays
+# there when its line goes to the next page (fspullback).
+#: matrix
+#= killed test-noteplace
+Fpull didactic.dtx
+-     \ifnum\@tempcnta>\@didactic@colast
+-       \global\setbox\@didactic@pullbox
++     \ifnum\@tempcnta<\z@
++       \global\setbox\@didactic@pullbox
+
+# The overhang's record not cleared once applied (omtlaterfn).
+#: matrix
+#= killed test-noteplace
+Fovclear didactic.dtx
+-       \global\advance\marginheightadjustment\@didactic@ovd
+-     \fi
+-     \global\@didactic@ovid\z@
+-   \fi}
++       \global\advance\marginheightadjustment\@didactic@ovd
++     \fi
++   \fi}
+
+# The margin closed by a carry not opened again on the next page: a later note there that
+# would run over is carried (mvcarriedover).
+#: matrix
+#= killed test-noteplace
+Fclosed didactic.dtx
+-   \global\let\@didactic@leftfns\@empty
+-   \global\@didactic@closedfalse
+-   \global\@didactic@fncarriedfalse
++   \global\let\@didactic@leftfns\@empty
++   \global\@didactic@fncarriedfalse
+
+# A deferrable note left for the next page counted whole there: the later footnote is sent to
+# the foot (mvdeferclaim).
+#: matrix
+#= killed test-noteplace
+Fnpclaim didactic.dtx
+-         {\global\advance\@didactic@stay\@didactic@deferclaim}
+-         {\global\advance\@didactic@stay\@didactic@noteht}%
++         {\global\advance\@didactic@stay\@didactic@noteht}
++         {\global\advance\@didactic@stay\@didactic@noteht}%
+
+# The run-late check of our notes silent: the mixed foot's footnote of ours isn't named
+# (heldover).
+#: matrix
+#= killed test-noteplace
+Frecheck didactic.dtx
+- \newcommand\@didactic@recheck@[3]{%
++ \newcommand\@didactic@recheck@[3]{}
++ \newcommand\@didactic@recheckoff[3]{%
+
+# B1's fix: a footnote taller than the foot's room is carried, never sent to the foot
+# to run past it; sent anyway, it isn't carried (fsoverstay).
+#: noteplace
+#= killed test-noteplace
+Cwhole didactic.dtx
+-       \else\ifdim\dimen@>\@didactic@footroom
+-         \ifnum#1=\z@
++       \else\ifdim\dimen@>\maxdimen
++         \ifnum#1=\z@
+
+# Review 3, S2: the footnotes found not plain counted for one warning at the end of the
+# document; not counted, it says nothing (notplainm).
+#: noteplace
+#= killed test-noteplace
+Snpcount didactic.dtx
+-       \global\advance\@didactic@npcount\@ne
+-       \@didactic@fallback{#1}%
++       \@didactic@fallback{#1}%
+
+# S2: space of a footnote's own after its last line taken off for the measure and set
+# again; not, the note isn't plain and runs its text three times (trailm, trailf).
+#: noteplace
+#= killed test-noteplace
+Strail didactic.dtx
+-     \ifx\@didactic@belowht\relax
+-       \xdef\@didactic@curpieces{\noexpand\@didactic@pt{\the\lastskip}%
+-         \unexpanded\expandafter{\@didactic@curpieces}}%
++     \ifx\@didactic@belowht\relax
++       \@didactic@notplain{space of its own at its end}%
+
+# Seed 1: the split of the page so far for a second note in a line takes the last place to
+# break by TeX's rule of equal costs; the old split, to the least height the page packs to,
+# took a cheaper place before a heading, and the second note waited for the next page,
+# unwarned (test-noteplace's samelinehead; inrun only: under 1.2 that page breaks elsewhere).
+#: noteplace
+#= killed test-noteplace
+Tsamesplit didactic.dtx
+- \newcommand\@didactic@sameline{%
+-   \global\@didactic@samelinedfalse
+-   \begingroup
+-     \vbadness\@M \vfuzz\maxdimen
+-     \splitmaxdepth\maxdimen \splittopskip\z@skip
+-     \setbox\z@\vbox{\unvcopy\@holdpg\kern12000\p@}%
+-     \setbox\tw@\vsplit\z@ to\dimexpr\ht\z@+\dp\z@-4000\p@\relax
+-     \setbox\z@\vbox{\unvbox\z@\unkern}%
+-     \ifdim\dimexpr\ht\z@+\dp\z@\relax=\z@
+-       \setbox4\vbox{\unvcopy\tw@\unvcopy\z@}%
+-       \ifdim\dimexpr\ht4+\dp4\relax=\dimexpr\ht\@holdpg+\dp\@holdpg\relax
+-         \global\setbox\@holdpg\box4
+-         \global\@didactic@samelinedtrue
+-       \fi
+-     \fi
+-   \endgroup}
++ \newdimen\@didactic@shlo
++ \newdimen\@didactic@shhi
++ \newcommand\@didactic@sameline{%
++   \global\@didactic@samelinedfalse
++   \begingroup
++     \vbadness\@M \vfuzz\maxdimen
++     \splitmaxdepth\maxdimen \splittopskip\z@skip
++     \setbox\z@\vbox{\unvcopy\@holdpg\kern1sp}%
++     \@didactic@shhi\ht\z@
++     \setbox4\vbox to\dimexpr\ht\z@-1sp\relax{\unvcopy\z@}%
++     \ifnum\badness<1000000
++       \setbox4\vbox to\z@{\unvcopy\z@}%
++       \ifnum\badness<1000000
++         \setbox\z@\box\voidb@x
++       \else
++         \@didactic@shlo\z@
++         \loop\ifdim\dimexpr\@didactic@shhi-\@didactic@shlo\relax>\@ne sp
++           \dimen@\dimexpr(\@didactic@shlo+\@didactic@shhi)/2\relax
++           \setbox4\vbox to\dimen@{\unvcopy\z@}%
++           \ifnum\badness=1000000
++             \@didactic@shlo\dimen@\else\@didactic@shhi\dimen@\fi
++         \repeat
++       \fi
++     \fi
++     \ifvoid\z@\else
++       \setbox\tw@\vsplit\z@ to\dimexpr\@didactic@shhi-1sp\relax
++     \fi
++     \ifvoid\z@\else
++       \ifdim\dimexpr\ht\z@+\dp\z@\relax=\z@
++         \setbox4\vbox{\unvcopy\tw@\unvcopy\z@}%
++         \ifdim\dimexpr\ht4+\dp4\relax=\dimexpr\ht\@holdpg+\dp\@holdpg\relax
++           \global\setbox\@holdpg\box4
++           \global\@didactic@samelinedtrue
++         \fi
++       \fi
++     \fi
++   \endgroup}
+
+# Review 4, S5-1: a footnote set at its page's foot before one carried into the page
+# that is still waiting in the margin says so; not said, the order across pages
+# breaks unwarned (leftorder, leftheld).
+#: noteplace
+#= killed test-noteplace
+Saheadwarn didactic.dtx
+-   \endgroup
+-   \@didactic@aheadwarn}
++   \endgroup}
+
+# The float rule claims the room of the footnotes carried to a page that will be set
+# there; without, a float sends one on behind a footnote already at the foot, past the
+# warning (leftfloat).
+#: noteplace
+#= killed test-noteplace
+Sfnclaim didactic.dtx
+-     \@didactic@claim\@didactic@fnleft
+-     \ifdim\@didactic@fnleft<\@didactic@room\else\@didactic@claim\z@\fi
++     \@didactic@claim\z@
+
+# Review 4, S5-3: with \nofiles nothing can be named a run later, and the first note
+# says so once; not said, a mixed foot taken on goes unsaid (nofiles).
+#: noteplace
+#= killed test-noteplace
+Snofiles didactic.dtx
+-   \else
+-     \@didactic@nofiles
+-   \fi}
++   \fi}
+
+# Review 5: footnotes in multicol's columns get their records from \@footnotemark and
+# \@footnotetext, redefined in the environment's hook; without, none (mcolfn).
+#: noteplace
+#= killed test-noteplace
+Smcolhook didactic.dtx
+-     \let\@didactic@mc@fnmark\@footnotemark
+-     \def\@footnotemark{\@didactic@mc@fnmark\@didactic@mc@mark}%
++     \let\@didactic@mc@fnmark\@footnotemark
+
+# Review 5: \footnote is never wrapped; a wrapper that reads its argument takes
+# beamer's <2-> for the text (bfnover) and, being no robust command, breaks in a
+# heading (bfnsec).
+#: noteplace
+#= killed test-noteplace
+Sfnwrap didactic.dtx
+- \newcommand\@didactic@numbernotes{%
++ \newcommand\@didactic@numbernotes{%
++   \let\@didactic@footnote\footnote
++   \long\def\footnote##1{\@didactic@footnote{##1}}%
+
+# survives: review 5's last look, NL2, has two guards, each of which alone keeps fuzz
+# backlog seed 17 right: a split \ltnote's rest now carries its note's number less a
+# million (\MFX@copyclass wrapped, the \apptocmd never took), so it is a rest; and the
+# footnotes left over at a page are the entries \@didactic@ifours takes for waiting
+# notes of ours, which skips rests and deferrable notes.  Without this one the rest is
+# still a rest of a note that is no footnote, and nothing is named; no row brings a
+# box with an old number to a rest that the first guard would miss.
+#: fuzz
+#= survived
+Sleftours didactic.dtx
+-       \@didactic@ifours##1{%
+-         \ifcsname @didactic@fn@\the\@didactic@noteof##1\endcsname
++       \@firstofone{%
++         \ifcsname @didactic@fn@\the\@didactic@noteof##1\endcsname
+

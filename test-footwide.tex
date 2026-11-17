@@ -1,0 +1,142 @@
+% Test of noteoverflow=foot (didactic): a footnote that goes to the foot is set
+% there as a footnote at the foot is, in the width of the text, and its text runs
+% once; and which footnotes are plain (set once, into a line per paragraph, and
+% broken for the margin and the foot) and which aren't.  The margin is filled by
+% a tall note, so that the footnotes go to the foot.  Each note starts with a
+% word of its own (NOTEx); most end with ONCE and a counter it steps, which reads
+% 1 if the text ran once (or, for the notes that aren't plain, if its counter
+% was set back), and RUNS with a count of TeX's stepped globally, which no one
+% sets back: 1 if the text ran once, 2 for the notes that aren't plain, whose
+% version at the foot is the second of three runs.  Cases, by \def\testcase{...}:
+%   plain     a sentence, whole at the foot;
+%   cite      a citation (biblatex, verbose, autocite=footnote) with NOTEA as its
+%             prenote and a long postnote, whole at the foot (it has no ONCE);
+%   url       a citation of a work with a URL, with hyperref's coloured links;
+%   prepost   a citation with a pre- and a postnote;
+%   reuse     the same work cited twice on the page: the second reuses the note;
+%   twopar    two paragraphs;
+%   mixed     \emph, inline math, \\ and \linebreak;
+%   color     \textcolor;
+%   linewidth a box of .01\linewidth, which is measured where \linewidth is half
+%             as wide as TeX allows: LWA and LWB far apart (a limit, pinned);
+%   list      an itemize: not plain, the fallback;
+%   display   a displayed equation: not plain;
+%   parbox    a \parbox{\linewidth}: not plain;
+%   vspace    \vspace between two paragraphs: not plain;
+%   huge      a paragraph too long for one line: not plain;
+%   longsix   six \lipsum[1] in one paragraph (lipsum makes none in a footnote),
+%             longer than the measure's line, whose broken line fits only by
+%             shrinking, wider than TeX allows: not plain, no error, its last
+%             word ENDLAST printed;
+%   rigid     the same by two boxes of 8000pt and 8500pt with shrink between,
+%             each on a line of its own at the foot: no error, ENDLAST printed,
+%             and an overfull line each, by as much as TeX says of the same
+%             footnote set at the foot by LaTeX (\testref);
+%   oneline   the two boxes on one line (no break between), wider than TeX
+%             allows unless shrunk: as rigid, one overfull line;
+%   beyond    two boxes of 9000pt on one line, wider than TeX allows: no
+%             error, ENDLAST printed, an overfull line by more than the most
+%             that can be said, and no more than TeX says;
+%   longthree three \lipsum[1]: between half the measure's line and all of it;
+%   bs        a footnote with \\ that stays in the margin (no tall note): the
+%             line after \\ starts at the margin's edge, as in a margin note
+%             without didactic (review P4);
+%   fnmark    a footnote with a \footnotemark in it, in the margin: its own
+%             mark, 1, before NOTEA (review P5);
+%   lang      a footnote of long German compounds called out in
+%             \foreignlanguage{ngerman} in English text, at the foot: broken as
+%             the same footnote set at the foot by LaTeX (\testref) is
+%             (review P3);
+% \testhyper loads hyperref.  test-footwide.py checks the outcome from the PDF and
+% the log.
+\documentclass[a4paper]{memoir}
+\ifdefined\testcase\else\def\testcase{plain}\fi
+\def\testcite{cite}\def\testurl{url}\def\testprepost{prepost}\def\testreuse{reuse}
+\begin{filecontents*}[overwrite]{test-footwide.bib}
+@online{U, author={Ursula Writer}, title={A Page on the Web About Notes},
+  url={https://example.org/a/rather/long/path/to/a/page/about/notes.html},
+  urldate={2026-11-01}, year={2026}}
+\end{filecontents*}
+\newif\iftestbib
+\ifx\testcase\testcite\testbibtrue\fi
+\ifx\testcase\testurl\testbibtrue\fi
+\ifx\testcase\testprepost\testbibtrue\fi
+\ifx\testcase\testreuse\testbibtrue\fi
+\iftestbib
+  \usepackage[style=verbose,autocite=footnote]{biblatex}
+  \addbibresource{test-footcite.bib}
+  \addbibresource{test-footwide.bib}
+\fi
+\def\testlang{lang}
+\ifx\testcase\testlang\usepackage[ngerman,english]{babel}\fi
+\usepackage{xcolor}
+\usepackage{lipsum}
+\usepackage{didactic}
+\ifdefined\testref\footnotesatfoot\fi
+\ifdefined\testhyper\usepackage{hyperref}\else
+  \ifx\testcase\testurl\usepackage[colorlinks]{hyperref}\fi\fi
+\newcounter{once}
+\newcount\runs
+\newcommand\once{\stepcounter{once}\global\advance\runs1 ONCE\arabic{once} RUNS\the\runs}
+\newcommand\filler{Some words to fill up the rest of this line of the text and
+  also quite a few of the next one, as the words of a paragraph do.}
+\newcommand\longnote{\filler\ \filler\ \filler\ \filler\ \filler\ \filler\ ENDA}
+\def\testplain{plain}\def\testtwopar{twopar}\def\testlist{list}
+\def\testdisplay{display}
+\def\testmixed{mixed}\def\testcolor{color}\def\testlinewidth{linewidth}
+\def\testparbox{parbox}\def\testvspace{vspace}\def\testhuge{huge}
+\def\testlongsix{longsix}\def\testrigid{rigid}\def\testlongthree{longthree}
+\def\testoneline{oneline}\def\testbeyond{beyond}
+\def\testbs{bs}\def\testfnmark{fnmark}
+\ifx\testcase\testbs\def\testnotall{}\fi
+\ifx\testcase\testfnmark\def\testnotall{}\fi
+\begin{document}
+\noindent x\ifdefined\testnotall\else\marginpar{TALL\par\rule{1pt}{.97\textheight}}\fi
+  \filler\ \filler
+  \par\filler\ CALLA%
+  \ifx\testcase\testplain\footnote{NOTEA \filler\ \once}\fi
+  \ifx\testcase\testcite\autocite[NOTEA][\filler\ \filler]{A}\fi
+  \ifx\testcase\testurl\autocite[NOTEA][\filler]{U}\fi
+  \ifx\testcase\testprepost\autocite[NOTEA see also][pp.~12--14, and \filler]{B}\fi
+  \ifx\testcase\testreuse\autocite[NOTEA][\filler]{A} and again
+    CALLR\autocite[NOTEA][\filler]{A}\fi
+  \ifx\testcase\testtwopar\footnote{NOTEA \filler\par NOTEP the second paragraph,
+    \filler\ \once}\fi
+  \ifx\testcase\testmixed\footnote{NOTEA \emph{\filler} with $a^2+b^2=c^2$ in it\\
+    broken there, \filler\linebreak and here \once}\fi
+  \ifx\testcase\testcolor\footnote{NOTEA \textcolor{red}{\filler} \once}\fi
+  \ifx\testcase\testlinewidth\footnote{NOTEA LWA\makebox[.01\linewidth]{}LWB
+    \filler\ \once}\fi
+  \ifx\testcase\testlist\footnote{NOTEA a list:
+    \begin{itemize}\item one \filler\item two \once\end{itemize}}\fi
+  \ifx\testcase\testdisplay\footnote{NOTEA a display \[ a^2+b^2=c^2 \] and
+    \filler\ \once}\fi
+  \ifx\testcase\testparbox\footnote{NOTEA \parbox{\linewidth}{\filler} \once}\fi
+  \ifx\testcase\testvspace\footnote{NOTEA \filler\par\vspace{1ex}NOTEP \once}\fi
+  \ifx\testcase\testbs\footnote{NOTEA with a forced break here\\ BSLINE and
+    more words to wrap in the margin \once}\fi
+  \ifx\testcase\testfnmark\footnote{NOTEA with a mark\footnotemark{} inside
+    \once}\fi
+  \ifx\testcase\testlang\foreignlanguage{ngerman}{Ein Satz\footnote{NOTEA
+    Donaudampfschifffahrtsgesellschaftskapitän
+    Rindfleischetikettierungsüberwachungsaufgabenübertragungsgesetz
+    Grundstücksverkehrsgenehmigungszuständigkeitsübertragungsverordnung
+    Kraftfahrzeughaftpflichtversicherung Unabhängigkeitserklärungen
+    Geschwindigkeitsbegrenzungen Wahrscheinlichkeitsrechnung
+    Verantwortungsbewusstsein Rechtsschutzversicherungsgesellschaften
+    Arbeiterunfallversicherungsgesetz Bundesverfassungsgericht \once}}\fi
+  \ifx\testcase\testhuge\footnote{NOTEA \longnote\ \longnote\ \longnote\ \longnote\
+    \longnote\ \longnote\ \longnote\ \longnote\ \longnote\ \longnote\ \longnote\
+    \longnote\ \longnote\ \longnote\ \longnote\ \longnote\ \once}\fi
+  \ifx\testcase\testlongsix\footnote{NOTEA \lipsum[1]\lipsum[1]\lipsum[1]\lipsum[1]%
+    \lipsum[1]\lipsum[1] ENDLAST}\fi
+  \ifx\testcase\testrigid\footnote{NOTEA \hbox to 8000pt{}\hskip 0pt minus 500pt
+    \hbox to 8500pt{} ENDLAST}\fi
+  \ifx\testcase\testlongthree\footnote{NOTEA \lipsum[1]\lipsum[1]\lipsum[1] ENDLAST}\fi
+  \ifx\testcase\testoneline\footnote{NOTEA \hbox to 8000pt{}\nobreak\hskip 0pt minus 500pt
+    \hbox to 8500pt{} ENDLAST}\fi
+  \ifx\testcase\testbeyond\footnote{NOTEA \hbox to 9000pt{}\hbox to 9000pt{} ENDLAST}\fi
+  \ \filler\ \filler\par
+  \filler\ \filler\ \filler\par
+\iftestbib\printbibliography\fi
+\end{document}

@@ -1,3 +1,10 @@
+% The contents of the test-noteoverflow* documents.  Each \footnote gets a label
+% at its mark (fm-N) and one in its note (fn-N), for test-noteoverflow.py, which
+% checks from them on which page each note is set against its mark.
+\newcounter{testfn}
+\let\testfootnote\footnote
+\renewcommand\footnote[1]{\stepcounter{testfn}\label{fm-\arabic{testfn}}%
+  \testfootnote{\label{fn-\arabic{testfn}}#1}}
 \begin{document}
 Sentence 0.0 of a paragraph that has some words in it to fill up the line a bit more. \footnote{Note 0.0 with some words of a reference} Sentence 0.1 of a paragraph that has some words in it to fill up the line a bit more. \footnote{Note 0.1 with some words of a reference with some words of a reference with some words of a reference with some words of a reference} Sentence 0.2 of a paragraph that has some words in it to fill up the line a bit more. \footnote{Note 0.2 with some words of a reference with some words of a reference with some words of a reference with some words of a reference}
 

@@ -21,8 +21,9 @@
 %       with a warning.  With a long paragraph, the same: it isn't moved past the limit.
 %   AS  a listing after a listing: the lead-in of the first doesn't count in
 %       what moving the second leaves empty, so it moves whole.
-%   AG  first paragraphs with a footnote, a list, a float before them and a page
-%       after them: only the first paragraph keeps its lines.
+%   AG  first paragraphs with a footnote, a footnote with a display, a list, a
+%       float before them and a page after them: only the first paragraph keeps
+%       its lines.
 %   AH  a heading in a \loop: all iterations run, and scratch registers set
 %       after a heading survive the start of its first paragraph.
 %   AI  a heading, a lead-in and a listing, with more room than keepmaxgap when
@@ -191,6 +192,13 @@ Text after AS.
 Second.\testclubs{AG second paragraph after a footnote}{0}
 
 Third.\testclubs{AG third paragraph after a footnote}{0}
+
+\roomfor{30}
+\section*{AG, a footnote with a display}
+\threelines\footnote{A note that ends in a display: \[x=1\]}%
+\testclubs{AG first paragraph with a footnote with a display}{\testk}
+
+Second.\testclubs{AG second paragraph after a footnote with a display}{0}
 
 \section*{AG, a list}
 \threelines\testclubs{AG first paragraph before a list}{\testk}

@@ -13,6 +13,7 @@ Exit status: 0 every mutant did what test-mutants.txt says it does, 1 otherwise.
 """
 import argparse
 import concurrent.futures
+import hashlib
 import os
 import re
 import shutil
@@ -49,12 +50,31 @@ GROUPS = {
     "parted": (["test-keep-parted"], ["test-keep-parted"], []),
     "rules": (RULES, ["test-keep-once", "test-keep-enumitem"], ["m", "s", "k", "m3", "c", "k3", "a"]),
     "biburl": (["test-biburl"], [], []),
+    "footcite": (["test-noteoverflow-foot"], [], []),
+    "noteplace": (["test-noteplace"], [], []),
+    "hbox": (["test-noteoverflow-foot"], [], []),
+    "footwide": (["test-footwide"], [], []),
+    "fuzz": (["test-fuzz"], [], []),
+    "notefoot": (["test-notefoot"], [], []),
+    "noteplace12": (["test-noteplace-tl12"], [], []),
+    "matrix": (["test-noteplace"], [], []),
 }
 # targets that are no PDF of their own; they choose their engines themselves
-PHONY = {"test-biburl"}
-# All with pdflatex, for speed, but the frame titles with the Makefile's xelatex:
-# test-frametitle-boxes reads a letter inside a picture, whose box in pdftotext's output
-# depends on the engine.
+PHONY = {"test-biburl", "test-noteoverflow-foot", "test-noteplace", "test-footwide",
+         "test-fuzz", "test-notefoot",
+         "test-noteplace-tl12"}
+# the job of a phony target that the group runs ($CASES of its script)
+CASES = {"footcite": "default", "hbox": "hbox", "footwide": "rigid oneline beyond",
+         "fuzz": "inrun:16 tl12:16 xe:9 backlog:17", "noteplace": "rsvsidecap rsvblock mcolblock rsvsidebefore heldtop heldsecond overmoved"
+         " footback overlimit overtwo aftercarry carrymode notplainm notplainf"
+         " nestfn nestmp fsoverstay trailm samelinehead leftorder leftheld leftfloat"
+         " nofiles mcolfn bfnover bfnsec",
+         "notefoot": "waitover warnclaim defercarry-warn defercarry",
+         "noteplace12": "nestfn nestmp mcolnote",
+         "matrix": "mvlaterfull fspullback omtlaterfn mvcarriedover mvdeferclaim heldover"}
+# All with pdflatex, for speed; the frame titles with the Makefile's default engine,
+# pdflatex too since #72 (test-frametitle-boxes reads a letter inside a picture by its
+# vertical centre, which doesn't depend on the engine as its box does).
 BROKEN = re.compile(r"No space left|Disk quota|I can't write on file")
 
 
@@ -150,7 +170,8 @@ def tests(group, d, timeout):
     for t in docs:
         engine = "" if group == "title" or t in PHONY else "PDFLATEX=pdflatex"
         target = t if t in PHONY else f"{t}.pdf"
-        status, out = sh(f'make -o didactic.sty {target} "{FLAGS}" {engine}', d, timeout)
+        cases = f"CASES='{CASES[group]}' " if group in CASES else ""
+        status, out = sh(f'{cases}make -o didactic.sty {target} "{FLAGS}" {engine}', d, timeout)
         if BROKEN.search(out):
             return ["ERROR: disk"]
         if status != 0:
@@ -196,6 +217,27 @@ def run(m, top, files, refs, timeout):
         shutil.rmtree(d, ignore_errors=True)
 
 
+def marginfix_found():
+    """Which marginfix the groups run against: $MARGINFIX's (the tests put it first on
+    TEXINPUTS) or the one found, its path and its \\ProvidesPackage line; a baseline
+    that is red with another marginfix then says why (the one in a texmf tree can be
+    older than margin-inrun)."""
+    env = dict(os.environ)
+    if env.get("MARGINFIX"):
+        env["TEXINPUTS"] = os.path.abspath(env["MARGINFIX"]) + "//:" + env.get("TEXINPUTS", "")
+    path = subprocess.run(["kpsewhich", "marginfix.sty"], env=env, capture_output=True,
+                          text=True).stdout.strip()
+    line = "?"
+    if path:
+        text = open(path, "rb").read()
+        m = re.search(r"\\ProvidesPackage\{marginfix\}%?\s*\[([^\]]*)\]",
+                      text.decode(errors="replace"))
+        # the line alone doesn't tell builds apart (margin-inrun says v1.5 too)
+        line = (m[1] if m else "no \\ProvidesPackage line") + \
+            ", sha256 " + hashlib.sha256(text).hexdigest()[:12]
+    return f"marginfix: {path or 'not found'} [{line}]"
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--jobs", type=int, default=2)
@@ -218,6 +260,7 @@ def main():
         for m in mutants:
             print(m["label"], m["group"], m["expected"])
         return 0
+    print(marginfix_found(), flush=True)
     files = tracked()
     top = tempfile.mkdtemp(prefix="didactic-mutants-", dir=a.dir)
     ok = True

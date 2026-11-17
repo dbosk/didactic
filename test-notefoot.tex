@@ -1,0 +1,196 @@
+% Test of noteoverflow=foot (didactic) in the situations of marginfix's footcheck
+% (the margin-foot branch): footnotes that don't fit in the margin go to the foot
+% of their page, beside floats, \clearpage, ordinary footnotes and deferrable
+% notes, in two columns, multicol, without room at the foot.  Each footnote made
+% with \fn has a label and a saved position at its mark (m-N) and in its note
+% (n-N); test-notefoot.py reads from them on which page and in which column each
+% note is set, and the outcome from the PDF and the warnings, never a log line of
+% the mechanism's.  The cases, by \def\testcase{...}:
+%   dense     many long notes, more than the margins hold (24);
+%   article   the same under article;
+%   twocol    the same in two columns, where nothing goes to the foot;
+%   multi     the same in multicols;
+%   hyper     the same with hyperref;
+%   counter   the same, with a counter stepped and labelled in each note;
+%   nofeet    the same with \dimen\footins=0pt: no foot to go to;
+%   drift     long notes on lines that can't break, then a blank of
+%             \testdriftskip lines: no note lands away from its mark;
+%   lastline  notes called out on the last lines of a page;
+%   botfloat, topfloat, clear   with floats at the bottom or top, or \clearpage;
+%   deferr    deferrable notes (\marginnotedeferrable) beside the footnotes,
+%             with \marginnotepriority{\testprio};
+%   order     long notes and a short one among them: at the foot in the order of
+%             their marks;
+%   minroom   a footnote that would leave less than 1.5 lines of text: not moved
+%             to the foot, where the page would hold only floats;
+%   fnrule    an ordinary footnote at the foot and a margin footnote going there:
+%             one rule above them;
+%   fnedge    a footnote that misses the foot by less than a point;
+%   tall      long footnotes, some on one line (test-notefoot-tall.tex);
+%   gen       generated: long notes, tall lines, floats, headings
+%             (test-notefoot-dense.tex, labels only);
+%   ownout    a document with an output routine of its own;
+%   twotall   two margin notes, each taller than the room left beside its line,
+%             and a footnote after them (they never settled under XeLaTeX in the
+%             fork, review B-1): settled, each placed or warned about.
+% With \testN set, the cases of test-notefoot-reins.tex instead (reins, reinsmix,
+% wait, mcol3x, mcol3, mcol3n, waitsec, waitsh, local, defercarry,
+% warnclaim, queue, cant, overmove), on letter paper.
+% See test-notefoot.sh, which runs the cases and checks them.
+\ifdefined\testclass\else\def\testclass{memoir}\fi
+\ifdefined\testclassopt\else\def\testclassopt{}\fi
+\ifdefined\testoptions\else\def\testoptions{}\fi
+\documentclass[a4paper,\testclassopt]{\testclass}
+\usepackage{lipsum}
+\usepackage{zref-savepos,zref-abspage}
+\makeatletter
+\zref@addprop{savepos}{abspage}
+\makeatother
+\def\testhyper{hyper}\def\testmulti{multi}
+\ifx\testcase\testmulti\usepackage{multicol}\fi
+\ifdefined\testN\usepackage{multicol}\fi
+\expandafter\PassOptionsToPackage\expandafter{\testoptions}{didactic}
+% \testfloor: the same document with noteoverflow=carry, for the runs LaTeX needs
+% without moving any note (the floor of the runs to settle).
+\ifdefined\testfloor\PassOptionsToPackage{noteoverflow=carry}{didactic}\fi
+\usepackage{didactic}
+\ifx\testcase\testhyper\usepackage{hyperref}\fi
+\ifdefined\testprio\marginnotepriority{\testprio}\fi
+\extrafloats{200}
+% Where the text block is, in sp from the page's left edge, for
+% test-notefoot.py: the saved positions are in sp too.
+\makeatletter
+\AtBeginDocument{\typeout{notefoot geometry:
+  odd=\number\dimexpr1in+\hoffset+\oddsidemargin\relax\space
+  even=\number\dimexpr1in+\hoffset+\evensidemargin\relax\space
+  width=\number\textwidth}}
+% The page of each \footnoterule, for "one rule above them".
+\AtBeginDocument{\let\testrule\footnoterule
+  \def\footnoterule{\wlog{notefoot-rule: page=\the\c@page}\testrule}}
+\makeatother
+\newcounter{mk}
+\newcounter{inside}
+\let\fninside\relax
+\def\testcounter{counter}
+\ifx\testcase\testcounter
+  \def\fninside{\refstepcounter{inside}\label{c-\arabic{inside}}C\arabic{inside}. }
+  \AtEndDocument{\typeout{INSIDE=\arabic{inside} MK=\arabic{mk}}}
+\fi
+\newcommand\fn[2][1-5]{%
+  \stepcounter{mk}\edef\mkv{\arabic{mk}}%
+  \label{m-\mkv}\zsavepos{m-\mkv}%
+  \footnote{\label{n-\mkv}\zsavepos{n-\mkv}\fninside #2 \lipsum[1][#1]}}
+\newcommand\dense{%
+  \lipsum[2][1-3]\fn{A} \lipsum[3][1-3]\fn{B} \lipsum[4][1-3]\fn{C}
+  \lipsum[5][1-3]\fn{D} \lipsum[6][1-3]\fn{E} \lipsum[7][1-3]\fn{F}
+  \lipsum[8][1-3]\fn{G} \lipsum[9][1-3]\fn{H}\par}
+\def\testnofeet{nofeet}\def\testminroom{minroom}\def\testownout{ownout}
+\ifx\testcase\testnofeet\AtBeginDocument{\dimen\footins=0pt}\fi
+\ifx\testcase\testminroom\AtBeginDocument{\dimen\footins=\maxdimen}\fi
+\ifdefined\testfootroom\else\def\testfootroom{1.7}\fi
+\ifdefined\testdriftskip\else\def\testdriftskip{8}\fi
+\ifx\testcase\testownout
+  \makeatletter
+  \AtBeginDocument{\output{\let\par\@@par
+    \ifnum\outputpenalty<-\@M\@specialoutput\else
+      \@makecol\@opcol\@startcolumn\@whilesw\if@fcolmade\fi{\@opcol\@startcolumn}%
+    \fi
+    \ifnum\outputpenalty>-\@Miv\global\vsize\@colroom\else\global\vsize\maxdimen\fi}}
+  \makeatother
+\fi
+\def\testdrift{drift}\def\testlastline{lastline}\def\testbotfloat{botfloat}
+\def\testtopfloat{topfloat}\def\testclear{clear}\def\testdeferr{deferr}
+\def\testorder{order}\def\testfnrule{fnrule}\def\testfnedge{fnedge}
+\def\testtall{tall}\def\testgen{gen}\def\testtwotall{twotall}
+% A margin note with labels, as \fn's, for the cases that check plain notes too.
+% The label and position go after the note's first word (a word or a rule), in its
+% first line, so that the note's box begins with that line, as a real note's does.
+\def\testmpfirst#1 {#1\label{n-\mkv}\zsavepos{n-\mkv} }
+\let\testmpend\relax
+\newcommand\testmp[1]{\stepcounter{mk}\edef\mkv{\arabic{mk}}%
+  \label{m-\mkv}\zsavepos{m-\mkv}\marginpar{\testmpfirst#1 \testmpend}}
+\begin{document}
+\ifdefined\testN\input{test-notefoot-reins}\else
+\ifx\testcase\testdrift
+  \widowpenalty=10000
+  \lipsum[1-3]\par
+  {\interlinepenalty=10000
+  \lipsum[2][1-2]\fn[1-14]{A} \lipsum[3][1-2]\fn[1-14]{B} \lipsum[3][1-2]\fn[1-14]{C}
+  \lipsum[5][1-3]\par}
+  \vspace*{\testdriftskip\baselineskip}
+  \lipsum[6][1-3] \lipsum[7][1-3] \lipsum[8][1-2]\fn[1-3]{K}
+  \lipsum[9][1-1] end.\par
+  \lipsum[10-14]
+\else\ifx\testcase\testlastline
+  \noindent\rule{1pt}{\dimexpr\textheight-3\baselineskip\relax}\fn[1-14]{A}\fn[1-14]{B}\par
+  \noindent One line.\par\noindent Two lines\fn[1-14]{K} of text.\par
+  \lipsum[6-8]
+\else\ifx\testcase\testbotfloat
+  \lipsum[1]\par
+  \dense
+  \begin{figure}[b]\centering\rule{4cm}{8\baselineskip}\caption{Bottom}\end{figure}
+  \lipsum[2][1-3]\fn{I} \lipsum[3][1-3]\fn{J}\par
+  \lipsum[6-8]
+\else\ifx\testcase\testtopfloat
+  \lipsum[1]\par
+  \begin{figure}[t]\centering\rule{4cm}{8\baselineskip}\caption{Top}\end{figure}
+  \clearpage
+  \begin{figure}[t]\centering\rule{4cm}{8\baselineskip}\caption{Top}\end{figure}
+  \lipsum[1]\par
+  \dense
+  \lipsum[6-8]
+\else\ifx\testcase\testclear
+  \lipsum[1]\par
+  \dense
+  \lipsum[2][1-3]\fn{I}\par
+  \clearpage
+  \lipsum[6-8]
+\else\ifx\testcase\testdeferr
+  \newcommand\testlt[1]{\marginpar{\footnotesize\marginnotedeferrable #1}}
+  \lipsum[1]\par
+  \lipsum[2][1-3]\testlt{LT \lipsum[1][1-14]}\fn[1-2]{A} \lipsum[3][1-3]\testlt{LT \lipsum[1][1-14]}\fn[1-2]{B}
+  \lipsum[4][1-3]\testlt{LT \lipsum[1][1-14]}\fn[1-2]{C} \lipsum[5][1-3]\fn[1-2]{D}\par
+  \lipsum[6-8]
+\else\ifx\testcase\testorder
+  \lipsum[1]\par
+  \lipsum[2][1-3]\fn[1-14]{A} \lipsum[3][1-3]\fn[1-14]{B} \lipsum[4][1-3]\fn[1-14]{C}
+  \lipsum[5][1-3]\fn[1-14]{D} \lipsum[6][1-3]\fn[1-1]{E} \lipsum[7][1-3]\fn[1-14]{F}
+  \lipsum[8][1-3]\fn[1-14]{G}\par
+  \lipsum[6-8]
+\else\ifx\testcase\testmulti
+  \begin{multicols}{2}
+  \lipsum[1-2]\dense\dense\dense
+  \end{multicols}
+\else\ifx\testcase\testminroom
+  \lipsum[1-2]\clearpage
+  \noindent\marginpar{\rule{1pt}{.9\textheight}}x\stepcounter{mk}\label{m-1}%
+  \footnote{\label{n-1}\rule{1pt}{\dimexpr\textheight-\testfootroom\baselineskip-\skip\footins\relax}}
+  \lipsum[3-6]
+\else\ifx\testcase\testtall
+  \flushbottom
+  \def\fn#1#2#3{\stepcounter{mk}\edef\mkv{\arabic{mk}}\label{m-\mkv}\zsavepos{m-\mkv}%
+    \footnote{\label{n-\mkv}\zsavepos{n-\mkv}#1 \lipsum[1][#2]}}%
+  \input{test-notefoot-tall}
+\else\ifx\testcase\testgen
+  \input{test-notefoot-dense}
+\else\ifx\testcase\testtwotall
+  \lipsum[1-2] x\testmp{P1 \rule{1pt}{.6\textheight}}%
+  \testmp{P2 \rule{1pt}{.6\textheight}} \lipsum[2-3]\fn[1-3]{A} \lipsum[4-9]
+\else\ifx\testcase\testfnrule
+  \lipsum[1][1-6]\footnote{ORDINARY \lipsum[2-3]}
+  \lipsum[2-3] \marginpar{\rule{1pt}{.95\textheight}}\lipsum[4]
+  \ifdefined\testfnrulelines\else\def\testfnrulelines{12}\fi
+  \lipsum[5][1-\testfnrulelines]\fn[1-2]{A} \lipsum[6][1-3]
+  \lipsum[9-12]
+\else\ifx\testcase\testfnedge
+  \lipsum[1][1-6]\footnote{ORDINARY \lipsum[2-3]}
+  \lipsum[2-3] \marginpar{\rule{1pt}{.95\textheight}}\lipsum[4]
+  \lipsum[5][1-12] \lipsum[7][1-3]\fn[1-2]{A} \lipsum[6][1-3]
+  \lipsum[9-12]
+\else
+  \lipsum[1-2]\par
+  \dense\dense\dense
+  \lipsum[6-8]
+\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi
+\fi
+\end{document}

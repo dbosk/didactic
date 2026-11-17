@@ -142,7 +142,7 @@ def main():
     if mode != "default":
         expected.add("margin m40")
     if mode == "memoir":
-        expected = {"text m40", "list m40", "margin m40", "mbib m40"}
+        expected = {"text m40", "list m40", "margin m40", "foot m40", "mbib m40"}
     if mode != "memoir":
         expected |= {f"{k} 0pt" for k in ZERO} | {f"para {w}cm" for w in PARA}
     seen, failed, zero = set(), False, {}
@@ -167,7 +167,7 @@ def main():
                 fails.append("lines end short: " + ", ".join(short))
         if name == "para":
             todo = [("fits", False)]
-        elif name in ("text", "list", "mbib"):
+        elif name in ("text", "list", "mbib", "foot"):
             todo = [("m40", False)]
         elif name == "bib":
             todo = list(BIB.items())

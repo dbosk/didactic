@@ -1,0 +1,164 @@
+% Cases of test-notefoot.tex (\testN set) where footnotes at the foot meet the
+% kernel's special output (review B1, B3), on letter paper, with \testN lines
+% before the place it is about; \fnt{text} is a footnote with labels, as \fn's:
+%   reins     a footnote goes to the foot (the margin is full); later on the
+%             page a margin note's line goes to the next page (widow): the
+%             kernel puts the foot back after that line;
+%   reinsmix  the same with a footnote of LaTeX's own at the foot first;
+%   wait      a footnote too long for the foot whole (carried) and a second one
+%             in the same line, which goes to the foot with its line;
+%   mcol3x    a footnote too long for the foot whole and one that goes there,
+%             then a paragraph: the foot is counted, the text doesn't run over it;
+%   mcol3     the same with multicols after them, with two footnotes in them: no
+%             line of the columns over the foot;
+%   mcol3n    the same as mcol3x with the two footnotes later on, in the margin
+%             (in multicols with \testmulticols);
+%   waitsec   the wait case after a heading and a line (shrinkable glue in the
+%             page so far, review P2): the second footnote of the line stays
+%             beside its line;
+%   waitsh    the same with a \vspace{0pt minus 2pt} instead of the heading;
+%             with \testshortA the first footnote is short enough for the foot
+%             whole, and the second goes there too (a footnote too long for the
+%             foot whole is carried, and the second with it, in order);
+%   local     a footnote in a passage with \marginnoteoverflow{carry}, ending
+%             before the paragraph does, where the margin is full: carried, as
+%             the passage asks, though the mode is foot where the paragraph ends
+%             (review S3); with \testlocalfoot, the other way round: the passage
+%             asks for foot in a document with carry, and the note goes to the
+%             foot;
+%   defercarry  with \marginnotepriority{defer}: a deferrable note carried from
+%             page 1 (its margin is full) gives way again on page 2 to a tall
+%             note there, and a short footnote after it has room in the margin
+%             of page 2 (review S5: counted at full height, the deferrable note
+%             sent the footnote to the foot); with warn, the deferrable note
+%             stays (as with off) and the footnote goes to the foot of page 2;
+%   warnclaim with \marginnotepriority{warn}: a deferrable note, then a tall
+%             note that doesn't fit with it, then a short footnote, on one page:
+%             the deferrable note stays, so the footnote goes to the foot (it
+%             was counted at nothing there, and the footnote went on with the
+%             tall note);
+%   queue     a tall margin note at the top of page 1, then \testQ floats for
+%             the bottom: the first waits for the notes (said in the log), the
+%             others wait behind it, as \LaTeX\ keeps floats in order; with
+%             many, at the end on pages of floats;
+%   cant      a chapter whose page comes out empty before it (as without
+%             didactic): no warning that the callouts of a page can't be read,
+%             as an empty column has none;
+%   overmove  a short note after a tall one carried from the page: marginfix
+%             keeps the notes in order, so it goes with the tall one, and it isn't
+%             warned as running past the foot of the margin of a page it isn't on
+%             (both are carried, each with its reason).
+% (The footnotes' texts, \enquote{waits} among them, are those of the rows' first
+% version, when such notes waited; the lines the rows count depend on them.)
+\makeatletter
+\newcommand\fnt[1]{%
+  \stepcounter{mk}\edef\mkv{\arabic{mk}}%
+  \label{m-\mkv}\zsavepos{m-\mkv}%
+  \footnote{\label{n-\mkv}\zsavepos{n-\mkv}#1}}
+\newcommand\filler{Some words to fill up the rest of this line of the text and
+  also quite a few of the next one, as the words of a paragraph do.}
+\newcount\testli
+\newcommand\testlines{\testli\z@
+  \loop\ifnum\testli<\testN \noindent line \the\testli\par\advance\testli\@ne\repeat}
+\def\testreins{reins}\def\testreinsmix{reinsmix}\def\testwait{wait}
+\def\testmcolx{mcol3x}\def\testmcol{mcol3}\def\testmcoln{mcol3n}
+\def\testwaitsec{waitsec}\def\testwaitsh{waitsh}
+\def\testlocal{local}\def\testdefercarry{defercarry}\def\testwarnclaim{warnclaim}
+\def\testqueue{queue}\def\testcant{cant}\def\testovermove{overmove}
+\ifx\testcase\testmcolx\def\testfm#1{}\else\def\testfm#1{\fnt{#1}}\fi
+\ifx\testcase\testwaitsh\def\testwaitsec{waitsh}\fi
+\ifx\testcase\testwaitsec
+  \noindent x\marginpar{\rule{1pt}{\dimexpr\textheight-8pt}} text.\par
+  \testlines
+  \ifx\testcase\testwaitsh\vspace{0pt minus 2pt}\else\section{SECX}\fi
+  SECLINE one.\par
+  CALLA\fnt{FOOTA \filler\ \filler\ \ifdefined\testshortA\else\filler\ \filler\ \filler\ \filler\ \fi ENDA}
+  CALLW\fnt{FOOTW a second note, which waits for the next page.}
+  \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ ENDTEXT\par
+\else\ifx\testcase\testlocal
+  \noindent x\marginpar{\rule{1pt}{\dimexpr\textheight-8pt}} text.\par
+  \testlines
+  \edef\testlocalmode{\ifdefined\testlocalfoot foot\else carry\fi}%
+  {\expandafter\marginnoteoverflow\expandafter{\testlocalmode}%
+  CALLL\fnt{FOOTL a footnote in a passage that asks for a mode of its own, with
+  three lines or more of text, so that it can't run past the foot of the margin
+  at all.}} more words.\par
+  \filler\par
+\else\ifx\testcase\testdefercarry
+  \noindent FIRST\marginpar{\rule{1pt}{.5\textheight}} text.\par
+  \testlines
+  \noindent LTCALL\marginpar{\marginnotedeferrable LTNOTE\par
+    \rule{1pt}{.6\textheight}} text.\par
+  \testli=0
+  \loop\ifnum\testli<18 \noindent more \the\testli\par\advance\testli\@ne\repeat
+  \noindent PLAINCALL\marginpar{PNOTE\par\rule{1pt}{.6\textheight}} text.\par
+  \noindent FNCALL\fnt{FOOTX a short footnote.} text.\par
+  \filler\par
+\else\ifx\testcase\testwarnclaim
+  \noindent LTCALL\marginpar{\marginnotedeferrable LTNOTE\par
+    \rule{1pt}{.6\textheight}} text.\par
+  \testlines
+  \noindent PLAINCALL\marginpar{PNOTE\par\rule{1pt}{.6\textheight}} text.\par
+  \testlines
+  \noindent FNCALL\fnt{FOOTX a short footnote.} text.\par
+  \filler\par
+\else\ifx\testcase\testqueue
+  \noindent x\testmp{\rule{1pt}{.9\textheight}} text.\par
+  \testlines
+  \testli=0
+  \loop\ifnum\testli<\testQ \advance\testli\@ne
+    Words \the\testli.
+    \begin{figure}[b]\centering\rule{4cm}{3\baselineskip}\caption{QF}\end{figure}%
+  \repeat
+  \par\filler\ \filler\ \filler\par
+\else\ifx\testcase\testcant
+  \chapter{Two}
+  \noindent x\marginpar{\rule{1pt}{\dimexpr\textheight-8pt}} text.\par
+  \vspace*{\dimexpr\textheight-6\baselineskip}
+  \filler\ LOWCALL\fnt{FOOTLOW \filler\ \filler\ \filler\ \filler\ \filler\
+  \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler}
+  \filler\par
+\else\ifx\testcase\testovermove
+  \noindent x\testmp{\rule{1pt}{.5\textheight}} text.\par
+  \noindent y\testmp{\rule{1pt}{.9\textheight}} text.\par
+  \testlines
+  \widowpenalty=10000
+  LINEONE\\ LINETWO\testmp{OVNOTE}\\ LINETHREE\par
+  \filler\par
+\else\ifx\testcase\testwait
+  \noindent x\marginpar{\rule{1pt}{\dimexpr\textheight-8pt}} text.\par
+  \testlines
+  CALLA\fnt{FOOTA \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ ENDA}
+  CALLW\fnt{FOOTW a second note, which waits for the next page.}
+  \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ ENDTEXT\par
+\else\ifx\testcase\testreins\def\testkern{}\else\ifx\testcase\testreinsmix
+  \def\testkern{{\footnotesatfoot KERN\footnote{KERNFN a footnote of LaTeX's own
+    at the foot.}}}\fi\fi
+\ifdefined\testkern
+  \widowpenalty=10000
+  \noindent x\marginpar{TALL\par\rule{1pt}{.97\textheight}} \testkern CALLA\fnt{FOOTA
+  text of the footnote which is long enough to take several lines in the margin,
+  more than two lines of text, so it cannot run past.} more text.\par
+  \testlines
+  LINEONE\\ LINETWO\\ LINETHREE\testmp{NOTEB}\\ LINEFOUR\par
+  After.
+\else
+  \noindent x\marginpar{\rule{1pt}{\dimexpr\textheight-8pt}} text.\par
+  \testlines
+  \noindent CALLA\fnt{FOOTA \filler\ \filler\ \filler\ \filler\ \filler\ \filler\
+  \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ ENDA}CALLW\fnt{FOOTW the
+  waiting note, with three lines or more of text so that it cannot run past the
+  foot of the margin at all.}\par
+  \ifx\testcase\testmcolx\else\ifdefined\testmulticols\begin{multicols}{2}\fi\fi
+  \ifx\testcase\testmcol\begin{multicols}{2}\fi
+  COLSTART\testfm{FOOTM in multicols.}\ \filler\ \filler\
+  \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\
+  \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\
+  \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\ \filler\
+  \filler\ COLLATE\testfm{FOOTM2 later in multicols.}\
+  \filler\ \filler\ \filler\ \filler\ COLEND
+  \ifx\testcase\testmcol\end{multicols}\fi
+  \ifx\testcase\testmcolx\else\ifdefined\testmulticols\end{multicols}\fi\fi
+  AFTER.
+\fi\fi\fi\fi\fi\fi\fi\fi\fi
+\makeatother

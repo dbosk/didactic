@@ -4,7 +4,11 @@
 \documentclass[a4paper]{memoir}
 \usepackage[british]{babel}
 \usepackage{amsmath,amssymb,amsthm}
-\usepackage[noteoverflow=carry]{didactic}
+\PassOptionsToPackage{noteoverflow=carry}{didactic}
+% \testfloor: the same document with noteoverflow=carry, for the runs LaTeX needs
+% without moving any note (the floor of the runs to settle).
+\ifdefined\testfloor\PassOptionsToPackage{noteoverflow=carry}{didactic}\fi
+\usepackage{didactic}
 \usepackage[noamsthm,notheorems]{beamerarticle}
 \extrafloats{500}
 \input{test-noteoverflow-contents}

@@ -3,9 +3,11 @@
 % 10pt, so Palatino from didactic, under pdflatex, with a URL whose piece of
 % 40 letters fits in the text but not after what comes before it on a line.
 % Each case is a page, "CASE <name> m40": in the text, in a list, in a
-% margin citation and in the bibliography.  test-biburl-breaks.py memoir
-% checks that the URL never breaks after a letter or a digit but in the
-% margin (where the piece is wider than the line), never inside https://,
+% margin citation, in a citation whose note goes to the foot (the margin is
+% full), and in the bibliography.  test-biburl-breaks.py memoir checks that
+% the URL never breaks after a letter or a digit but in the margin (where the
+% piece is wider than the line; the note's version for the foot is made from
+% the same lists, and there the piece fits), never inside https://,
 % and that the log has no Overfull \hbox: the line before the piece ends
 % short instead.
 %
@@ -36,6 +38,9 @@ In the text: \fullcite{m40}.
 \clearpage
 \noindent CASE margin m40\par
 A margin citation\autocite{m40}.
+\clearpage
+\noindent CASE foot m40\par
+\noindent x\marginpar{\rule{1pt}{.95\textheight}} A citation at the foot.\footnote{\fullcite{m40}.}
 \clearpage
 \noindent CASE mbib m40\par
 \printbibliography[heading=none]

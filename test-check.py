@@ -17,6 +17,8 @@ import re
 import subprocess
 import sys
 
+import testlog
+
 
 class Check:
     """One test: its PDF, its log and the checks that have run on them."""
@@ -36,9 +38,8 @@ class Check:
                 for a, b, c, d, t in re.findall(
                     r'<word xMin="([\d.]+)" yMin="([\d.]+)" '
                     r'xMax="([\d.]+)" yMax="([\d.]+)">(.*?)</word>', page)])
-        with open(name + ".log", encoding="latin-1") as log:
-            # TeX folds log lines at 79 columns; unfold them for greps.
-            self.log = re.sub(r"(?m)^(.{79})\n", r"\1", log.read())
+        # TeX breaks the log's lines; joined for the greps (testlog.py)
+        self.log = testlog.lines(name + ".log")
 
     def ok(self, condition, what):
         self.checks += 1
@@ -416,6 +417,7 @@ def keep_noweb(c, overfull=True):
 
     With the limit of keepmaxgap, in -break, no page is overfull: the tie is released.
     """
+    tl_multicol(c)
     lines = keep_results(c, "noweb")
     c.ok(len(lines) == 16, f"16 cases, has {len(lines)}")
     apart, full = {}, {}
@@ -525,8 +527,16 @@ def keep_parted(c):
     c.ok(not others, f"no warning elsewhere: {others}")
 
 
+def tl_multicol(c):
+    """multicol.sty from TeX Live's tools, not an older copy in a texmf tree."""
+    other = [m for m in re.findall(r"\(([^ ()]*multicol\.sty)", c.log.replace("\n", ""))
+             if "texmf-dist/tex/latex/tools/" not in m]
+    c.ok(not other, "multicol.sty from TeX Live's tools" + (f", not {other[0]}" if other else ""))
+
+
 def keep_multicol(c):
     """test-keep-multicol.tex; see its header."""
+    tl_multicol(c)
     lines = keep_results(c, "multicol")
     c.ok(not re.search(r"Overfull \\vbox", c.log), "no Overfull \\vbox")
     w = [x for x in warnings(c) if "multicols" in x]
@@ -662,7 +672,10 @@ def frametitle_boxes(c):
         title_word = c.one(title)
         below = [w for w in c.pages[title_word["page"] - 1]
                  if w["text"].split("(")[0] == first]
-        c.ok(any(w["ymin"] >= title_word["ymax"] - 1 for w in below),
+        # below the title by the word's vertical centre: the letters A and B are in
+        # included pictures, whose text boxes pdftotext gives by how the engine
+        # includes them (under pdfTeX the box starts above the glyph)
+        c.ok(any((w["ymin"] + w["ymax"]) / 2 >= title_word["ymax"] for w in below),
              f"{title} is on a line of its own, above {first}")
     heading = max(c.words("Contents"), key=lambda w: w["ymax"] - w["ymin"])
     toc_title = c.one("TTOC")
