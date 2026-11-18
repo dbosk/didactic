@@ -712,9 +712,11 @@ test-fuzz: test-fuzz.py testlog.py didactic.sty
 .PHONY: test-settle
 # a note carried from a page whose number isn't printed in digits (memoir's
 # \frontmatter, a prefixed number): no error, and the warning said in the run with
-# the pages as they are printed; see the document.
+# the pages as they are printed; see the document.  The logs are removed first: a
+# run that makes none must fail the checks, not pass on an older log.
 test-carry-roman.pdf: test-carry-roman.tex testlog.py didactic.sty
-	for n in roman prefix; do ${RM} test-carry-$$n.aux; for i in 1 2 3; do \
+	for n in roman prefix; do \
+	  ${RM} test-carry-$$n.aux test-carry-$$n.log test-carry-$$n.pdf; for i in 1 2 3; do \
 	  ${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode -jobname=test-carry-$$n \
 	    "\def\testnumbering{$$n}\input{$<}" >/dev/null; done; done; true
 	! grep '^!' test-carry-roman.log

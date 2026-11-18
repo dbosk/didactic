@@ -169,7 +169,9 @@
 %   (\textsf{memoir}'s \cs{frontmatter}, a prefixed number) no longer stops
 %   the build with ``Missing number'': the page it is carried from is compared
 %   by its number, and printed in the warning as the page shows it.  The
-%   warning is again said in the run.
+%   warning is said in the run, but for a note carried across a restart of the
+%   page numbers to a page of the same number (from page i to page 1), which
+%   is still named a run later.
 % }
 % \changes{v2.19}{2026/11/15}{%
 %   With \cs{nofiles}, a warning says once that a margin note set on another
@@ -6866,6 +6868,9 @@
 % They differ wherever a page's number isn't printed in digits: in
 % \textsf{memoir}'s |\frontmatter| the page is ``ii'', which \TeX{} can't
 % compare as a number.
+% The numbers are equal for two different pages where the numbering starts
+% again (|\mainmatter|): a note carried from page i to page 1 is not found
+% here, and is named a run later, from the records.
 %    \begin{macrocode}
 \let\@didactic@carried\@empty
 \let\@didactic@cwhy\@empty
