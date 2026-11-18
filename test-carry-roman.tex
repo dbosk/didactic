@@ -1,0 +1,31 @@
+% A margin note carried from a page whose number isn't printed in digits.
+%
+% The margin of the first page takes notes A to E; F and G don't fit beside
+% their lines and, not being footnotes, can't go to the foot: they are carried
+% to later pages, each with a warning that names both pages as they are
+% printed.  Up to v2.19 the page a note was carried from was kept as it is
+% printed and then compared as a number, so with memoir's \frontmatter (roman
+% numbers) or a prefixed number the build stopped at "Missing number, treated
+% as zero", and the warning came a run late.
+%
+% \testnumbering says how the pages are numbered: roman (\frontmatter) or
+% prefix (A-1, A-2).  The Makefile runs both and checks that there is no error
+% and that the warning is said in the run, with the pages as printed.
+\documentclass[a4paper,oneside]{memoir}
+\usepackage{lipsum}
+\usepackage{didactic}
+\pagestyle{plain}
+\newcommand\mn[1]{\marginpar{\textbf{#1.} \lipsum[1][1-9]}}
+\providecommand\testnumbering{roman}
+\def\testroman{roman}
+\begin{document}
+\ifx\testnumbering\testroman
+  \frontmatter
+\else
+  \renewcommand\thepage{A-\arabic{page}}
+\fi
+\lipsum[2][1-3]\mn{A} \lipsum[3][1-3]\mn{B} \lipsum[4][1-3]\mn{C}
+\lipsum[5][1-3]\mn{D} \lipsum[6][1-3]\mn{E} \lipsum[7][1-3]\mn{F}
+\lipsum[8][1-3]\mn{G}\par
+\lipsum[9-16]
+\end{document}

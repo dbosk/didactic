@@ -64,6 +64,7 @@ tests: didactic.sty test.pdf test-marginfix-interface test-footcite.pdf \
 	test-noteplace test-noteplace-tl12 test-footreuse-spread \
 	test-noteoverflow-foot test-notefoot test-notefoot-tl12 test-footwide \
 	test-testlog test-sync check-bilingual test-fuzz test-settle test-patches \
+	test-carry-roman.pdf \
 	test-runjobs.d/passed test-runpaths.d/passed
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
@@ -709,6 +710,22 @@ test-fuzz: test-fuzz.py testlog.py didactic.sty
 # the note suites' settle starts from no .aux and no .aux.old of its own job: a stale
 # .aux.old must not end it after one run (test-settle.sh).
 .PHONY: test-settle
+# a note carried from a page whose number isn't printed in digits (memoir's
+# \frontmatter, a prefixed number): no error, and the warning said in the run with
+# the pages as they are printed; see the document.  The logs are removed first: a
+# run that makes none must fail the checks, not pass on an older log.
+test-carry-roman.pdf: test-carry-roman.tex testlog.py didactic.sty
+	for n in roman prefix; do \
+	  ${RM} test-carry-$$n.aux test-carry-$$n.log test-carry-$$n.pdf; for i in 1 2 3; do \
+	  ${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode -jobname=test-carry-$$n \
+	    "\def\testnumbering{$$n}\input{$<}" >/dev/null; done; done; true
+	! grep '^!' test-carry-roman.log
+	! grep '^!' test-carry-prefix.log
+	${TESTLOG} grep 'Margin note called out at test-carry-roman.tex:[0-9]+ on page i is set on page ii: it doesn.t fit beside its line' test-carry-roman.log
+	${TESTLOG} grep 'Margin note called out at test-carry-roman.tex:[0-9]+ on page A-1 is set on page A-2: it doesn.t fit beside its line' test-carry-prefix.log
+	! ${TESTLOG} grep 'found from the last run' test-carry-roman.log
+	! ${TESTLOG} grep 'found from the last run' test-carry-prefix.log
+
 test-settle: test-settle.sh test-noteplace.tex test-noteplace.sh test-noteplace.py \
 		testlog.py didactic.sty
 	./test-settle.sh

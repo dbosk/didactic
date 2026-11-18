@@ -430,3 +430,5 @@ test-noteoverflow-foot-*.bib
 test-footreuse-spread-*.pdf
 test-footreuse-spread-*.unq
 test-fuzz.d
+test-carry-*.pdf
+test-carry-*.unq
