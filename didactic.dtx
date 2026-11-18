@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}[2021/06/01]
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/11/17 v2.19 didactic]
+  [2026/11/18 v2.19.1 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -163,6 +163,13 @@
 %   when it's loaded.
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
+% }
+% \changes{v2.19.1}{2026/11/18}{%
+%   A margin note carried from a page whose number isn't printed in digits
+%   (\textsf{memoir}'s \cs{frontmatter}, a prefixed number) no longer stops
+%   the build with ``Missing number'': the page it is carried from is compared
+%   by its number, and printed in the warning as the page shows it.  The
+%   warning is again said in the run.
 % }
 % \changes{v2.19}{2026/11/15}{%
 %   With \cs{nofiles}, a warning says once that a margin note set on another
@@ -6852,6 +6859,13 @@
 % for it; it has no reason of its own, as it wasn't carried where it was
 % decided, so the warning says that (|\@didactic@dn@|, kept by
 % |\@didactic@decide|).
+% The page a note is carried from is kept twice, as |\@didactic@decide| keeps
+% the page a note was decided for: its number (|\@didactic@cn@|), to compare
+% with the page a later column is built for, and the page as it is printed
+% (|\@didactic@cp@|), for the warning.
+% They differ wherever a page's number isn't printed in digits: in
+% \textsf{memoir}'s |\frontmatter| the page is ``ii'', which \TeX{} can't
+% compare as a number.
 %    \begin{macrocode}
 \let\@didactic@carried\@empty
 \let\@didactic@cwhy\@empty
@@ -6865,6 +6879,8 @@
         \ifcsname @didactic@cp@\the\@didactic@noteof##1\endcsname\else
           \expandafter\xdef
             \csname @didactic@cp@\the\@didactic@noteof##1\endcsname{\thepage}%
+          \expandafter\xdef
+            \csname @didactic@cn@\the\@didactic@noteof##1\endcsname{\the\c@page}%
           \edef\@didactic@cwhy{\@didactic@whyof##1}%
           \ifx\@didactic@cwhy\@empty
             \ifcsname @didactic@dn@\the\@didactic@noteof##1\endcsname
@@ -6896,7 +6912,7 @@
   \IfSubStr{\@didactic@left}{,#1,}{%
     \xdef\@didactic@still{\unexpanded\expandafter{\@didactic@still}%
       \noexpand\@didactic@set{#1}}}{%
-    \ifnum\csname @didactic@cp@#1\endcsname=\c@page\else
+    \ifnum\csname @didactic@cn@#1\endcsname=\c@page\else
       \@didactic@warned{#1}%
       \PackageWarningNoLine{didactic}{Margin note called out at
         \csname @didactic@ln@#1\endcsname\MessageBreak
