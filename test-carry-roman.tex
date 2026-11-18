@@ -16,7 +16,7 @@
 \usepackage{didactic}
 \pagestyle{plain}
 \newcommand\mn[1]{\marginpar{\textbf{#1.} \lipsum[1][1-9]}}
-\providecommand\testnumbering{roman}
+\ifdefined\testnumbering\else\def\testnumbering{roman}\fi
 \def\testroman{roman}
 \begin{document}
 \ifx\testnumbering\testroman
