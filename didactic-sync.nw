@@ -3072,8 +3072,8 @@ hashes are checked.
 One search for all of them, an alternation in the expression, would be one
 run of git instead of several; but git counts the matches of the expression
 in a file, and a sum can stay the same while its terms change.
-A commit that stamps one more hash into this pair and takes one of the other
-hash out of another pair in the file wouldn't be listed.
+A commit that writes one of the hashes into this pair's stamp and removes an
+occurrence of another from another pair in the file wouldn't be listed.
 In turn, a second run is only made for a stamp that the first hash doesn't
 find.
 A file at an old commit is read as [[--migrate]] would rewrite it, which
@@ -3126,7 +3126,7 @@ def text_at_stamp(path, pair):
 
 
 def stamp_in_history(root, side, stamp):
-    """Return the newest commit that wrote the hash `side` and has `stamp`."""
+    """Return the newest commit that changed the number of `side` and has `stamp`."""
     log = git(
         root,
         "log",
@@ -3425,7 +3425,7 @@ def test_an_uncommitted_stamp_still_reports_without_the_diff(repo):
   assert "[-" not in result.stdout
 @
 
-A stamp that only one side was stamped into is the case that needs every
+A stamp that changed the hash of one side only is the case that needs every
 hash: a typo fixed on one side and accepted with [[--stamp]] changes that
 side's hash and keeps the others.
 The next change to the pair must still get its diff, against the commit of
