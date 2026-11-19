@@ -3052,11 +3052,30 @@ key.
 If the pair was behind at the rename, that commit doesn't have the stamped
 texts, and searching the spelling of today would lose the diff of exactly the
 pairs with work waiting.
-What doesn't change is the hashes, so we search one of them, as the value of
-any key: [[git log --pickaxe-regex -S]] with a key of any name.
+What doesn't change is the hashes, so we search a hash, as the value of any
+key: [[git log --pickaxe-regex -S]] with a key of any name.
 A rewrite of the keys keeps the number of occurrences, so it isn't listed at
 all, and the commit that wrote the hash is; the hashes of the other sides are
 checked when the pair is found there, as before.
+
+One hash isn't enough, though.
+A stamp written for a change to one side, a typo fixed and accepted, has a new
+hash for that side only, and its commit left the number of every other hash as
+it was.
+Searching one of those lists the commit of the stamp before, where the pair
+doesn't have this stamp, and the next change to the pair would be reported
+without its diff.
+So the hashes are searched one after the other, in the stamp's order, until a
+commit has the pair.
+Whichever hash finds it, the pair there has the stamped texts, since all its
+hashes are checked.
+One search for all of them, an alternation in the expression, would be one
+run of git instead of several; but git counts the matches of the expression
+in a file, and a sum can stay the same while its terms change.
+A commit that stamps one more hash into this pair and takes one of the other
+hash out of another pair in the file wouldn't be listed.
+In turn, a second run is only made for a stamp that the first hash doesn't
+find.
 A file at an old commit is read as [[--migrate]] would rewrite it, which
 turns its blocks of version 2.17 into blocks again; a file that needs nothing
 is read as it is.
@@ -3099,7 +3118,15 @@ def text_at_stamp(path, pair):
     root = top_of(Path(path).resolve().parent)
     if root is None:
         return None
-    side = pair.stamp[0][1]
+    for side in dict.fromkeys(value for _, value in pair.stamp):
+        found = stamp_in_history(root, side, pair.stamp)
+        if found:
+            return found
+    return None
+
+
+def stamp_in_history(root, side, stamp):
+    """Return the newest commit that wrote the hash `side` and has `stamp`."""
     log = git(
         root,
         "log",
@@ -3119,7 +3146,7 @@ def text_at_stamp(path, pair):
             commit = name[1:]
         elif name:
             pairs = pairs_in_commit(root, commit, name)
-            found = stamped_pair(pairs, pair.stamp)
+            found = stamped_pair(pairs, stamp)
             if found:
                 return commit, found
     return None
@@ -3396,6 +3423,82 @@ def test_an_uncommitted_stamp_still_reports_without_the_diff(repo):
   result = run(repo, "contents.nw")
   assert "swedish is behind" in result.stdout
   assert "[-" not in result.stdout
+@
+
+A stamp that only one side was stamped into is the case that needs every
+hash: a typo fixed on one side and accepted with [[--stamp]] changes that
+side's hash and keeps the others.
+The next change to the pair must still get its diff, against the commit of
+that stamp and not the one before it, whichever side it was.
+With three languages each of the three has its turn, since the stamp keeps
+its sides in the order of their tags and not as they're written.
+
+<<test functions>>=
+@pytest.mark.parametrize(
+  "old, new, newer, behind",
+  [("cat", "dog", "cow", "swedish"), ("Katten", "Hunden", "Kon", "english")],
+)
+def test_the_diff_is_against_a_stamp_of_one_side(repo, old, new, newer, behind):
+  path = stamped_file(repo, ("en", "sv"))
+  first = git(repo, "log", "--format=%h", "-1").strip()
+  path.write_text(path.read_text().replace(old, new))
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  commit(repo, "one side changed, and the pair stamped")
+  written = git(repo, "log", "--format=%h", "-1").strip()
+  path.write_text(path.read_text().replace(new, newer))
+  result = run(repo, "contents.nw")
+  assert result.returncode == 1
+  assert f"{behind} is behind" in result.stdout
+  assert "no commit found" not in result.stdout
+  assert f"[-{new}-]{{+{newer}+}}" in result.stdout
+  assert written in result.stdout
+  assert first not in result.stdout
+
+
+@pytest.mark.parametrize(
+  "old, new, newer",
+  [("One", "Uno", "Una"), ("Ett", "Etta", "Ettan"), ("Eins", "Einz", "Eine")],
+)
+def test_the_diff_is_against_a_stamp_of_one_side_of_three(repo, old, new, newer):
+  path = repo / "contents.nw"
+  path.write_text("\\didactictr[english,swedish,ngerman]{One}{Ett}{Eins}\n")
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  commit(repo, "stamp")
+  path.write_text(path.read_text().replace("{" + old + "}", "{" + new + "}"))
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  commit(repo, "one side changed, and the pair stamped")
+  written = git(repo, "log", "--format=%h", "-1").strip()
+  path.write_text(path.read_text().replace("{" + new + "}", "{" + newer + "}"))
+  result = run(repo, "contents.nw")
+  assert result.returncode == 1
+  assert "no commit found" not in result.stdout
+  assert f"[-{new}-]{{+{newer}+}}" in result.stdout
+  assert written in result.stdout
+
+
+def test_the_diff_survives_a_hash_that_left_another_pair(repo):
+  path = repo / "contents.nw"
+  path.write_text(
+    blocks("en", "sv", en="A task.", sv="En uppgift.") + "Between.\n"
+    + blocks("en", "sv", en="An exercise.", sv="En uppgift.")
+  )
+  for name in ("1", "8"):
+    assert run(repo, "--stamp", f"contents.nw:{name}").returncode == 0
+  commit(repo, "two pairs with the same Swedish")
+  text = path.read_text().replace("A task.", "The task.")
+  path.write_text(
+    text.replace("An exercise.\n", "X\n").replace("En uppgift.\n", "Y\n")
+    .replace("Y\n", "En uppgift.\n", 1)
+  )
+  for name in ("1", "8"):
+    assert run(repo, "--stamp", f"contents.nw:{name}").returncode == 0
+  commit(repo, "one hash more of the first pair, one less of the second")
+  written = git(repo, "log", "--format=%h", "-1").strip()
+  path.write_text(path.read_text().replace("The task.", "That task."))
+  result = run(repo, "contents.nw")
+  assert "contents.nw:1: swedish is behind" in result.stdout
+  assert "[-The-]{+That+}" in result.stdout
+  assert written in result.stdout
 @
 
 \subsection{Stamping one pair}\label{sec:sync-stamp}
