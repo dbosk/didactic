@@ -3030,8 +3030,8 @@ the same thing.
 [[git log -S]] gives the commits that changed the number of occurrences of a
 string, which for a stamp means those that wrote or removed it, and with
 [[--name-only]] it says in which files.
-We don't limit it to the file at hand, since the pair may have been moved to
-another one since.
+We can't limit it to the file at hand, since the pair may have been moved
+from another one; but that's where we look first, as explained below.
 File names come back separated by NUL with [[-z]], since git would otherwise
 quote the ones with unusual characters, a Swedish letter being one, and we
 would look for a file by its quoted name; a mark that no file name starts with
@@ -3076,6 +3076,30 @@ A commit that writes one of the hashes into this pair's stamp and removes an
 occurrence of another from another pair in the file wouldn't be listed.
 In turn, a second run is only made for a stamp that the first hash doesn't
 find.
+
+A search of the whole history is slow where the history is large, whatever
+the size of the file we check.
+For every commit git runs the expression over both versions of every file
+that the commit changed, and a course repository has data files of several
+megabytes that change often; on such a repository one search took 17 seconds,
+and a report of 69 pairs behind, each with its own search, was stopped after
+20 minutes.
+Limited to the file, the same search took half a second, since git then only
+reads that file's versions.
+And that's where the stamp nearly always is: a pair is seldom moved to
+another file, and its stamp is written where it stands.
+So all the hashes are first searched in the history of the file itself, and
+the whole history is only searched for a stamp that isn't found there, which
+is a pair that has been moved, a file that has been renamed, or a stamp that
+no commit has.
+What is found in the file's own history is found as before: the pair is
+checked there in the same way, and a search that finds nothing costs little
+before the search that was made until now.
+The stamp that no commit has still pays for the whole history, once for each
+of its hashes.
+The file is given to git by its name in its own directory and taken
+literally, since git would otherwise read a name such as [[a[b].nw]] as a
+pattern, which that file doesn't match.
 A file at an old commit is read as [[--migrate]] would rewrite it, which
 turns its blocks of version 2.17 into blocks again; a file that needs nothing
 is read as it is.
@@ -3115,20 +3139,26 @@ def git(directory, *args):
 
 def text_at_stamp(path, pair):
     """Return the commit that wrote a pair's stamp, and the pair there."""
-    root = top_of(Path(path).resolve().parent)
+    file = Path(path).resolve()
+    root = top_of(file.parent)
     if root is None:
         return None
-    for side in dict.fromkeys(value for _, value in pair.stamp):
-        found = stamp_in_history(root, side, pair.stamp)
-        if found:
-            return found
+    sides = list(dict.fromkeys(value for _, value in pair.stamp))
+    for only in (file, None):
+        for side in sides:
+            found = stamp_in_history(root, side, pair.stamp, only)
+            if found:
+                return found
     return None
 
 
-def stamp_in_history(root, side, stamp):
-    """Return the newest commit that changed the number of `side` and has `stamp`."""
+def stamp_in_history(root, side, stamp, only=None):
+    """Return the newest commit that changed the number of `side` and has `stamp`.
+
+    With `only`, a file, it's the newest one in the history of that file.
+    """
     log = git(
-        root,
+        only.parent if only else root,
         "log",
         "--pickaxe-regex",
         f"-S[A-Za-z][A-Za-z0-9_-]*={side}([^0-9a-f]|$)",
@@ -3136,6 +3166,7 @@ def stamp_in_history(root, side, stamp):
         "--name-only",
         "-z",
         "HEAD",
+        *(["--", f":(literal){only.name}"] if only else []),
     )
     if log is None:
         return None
@@ -3499,6 +3530,66 @@ def test_the_diff_survives_a_hash_that_left_another_pair(repo):
   assert "contents.nw:1: swedish is behind" in result.stdout
   assert "[-The-]{+That+}" in result.stdout
   assert written in result.stdout
+@
+
+That the file's own history is searched first has no effect on the report,
+only on how long it takes, so it can't be seen in what the script prints.
+What can be seen is which searches git was asked for.
+The test puts a [[git]] first on the path that notes its arguments and runs
+the real one, which stays the program that answers: with the stamp in the
+file's own history, every search has to be limited to the file.
+A name that git would read as a pattern is among the cases, since a limit
+that isn't taken literally finds nothing, and the script would go on to the
+whole history without anything showing.
+The other half, that the whole history is searched when the file's own
+doesn't have the stamp, is what
+[[test_the_diff_follows_a_pair_into_another_file]] shows above.
+
+<<test helpers>>=
+@pytest.fixture
+def searches(tmp_path_factory, monkeypatch):
+  """Return a function giving the history searches that the script asked for."""
+  shim = tmp_path_factory.mktemp("shim")
+  noted = shim / "noted"
+  real = subprocess.run(
+    ["sh", "-c", "command -v git"], check=True, capture_output=True, text=True
+  ).stdout.strip()
+  (shim / "git").write_text(
+    f"#!/bin/sh\nprintf '%s\\n' \"$*\" >> '{noted}'\nexec '{real}' \"$@\"\n"
+  )
+  (shim / "git").chmod(0o755)
+  monkeypatch.setenv("PATH", f"{shim}{os.pathsep}{os.environ['PATH']}")
+
+  def asked():
+    lines = noted.read_text().splitlines() if noted.exists() else []
+    return [line for line in lines if "--pickaxe-regex" in line]
+
+  return asked
+<<test functions>>=
+@pytest.mark.parametrize("name", ["contents.nw", "a[b].nw", "deck/contents.nw"])
+def test_a_stamp_in_the_files_own_history_is_found_there(repo, searches, name):
+  (repo / name).parent.mkdir(exist_ok=True)
+  path = stamped_file(repo, ("en", "sv"), name)
+  path.write_text(path.read_text().replace("cat", "dog"))
+  result = run(repo, name)
+  assert "[-cat-]{+dog+}" in result.stdout
+  asked = searches()
+  assert asked
+  assert all(search.endswith(f"-- :(literal){path.name}") for search in asked)
+
+
+def test_a_stamp_in_no_history_is_looked_for_everywhere(repo, searches):
+  path = repo / "contents.nw"
+  path.write_text(blocks("en", "sv"))
+  commit(repo)
+  assert run(repo, "--stamp", "contents.nw:1").returncode == 0
+  path.write_text(path.read_text().replace("cat", "dog"))
+  result = run(repo, "contents.nw")
+  assert "no commit found" in result.stdout
+  asked = searches()
+  limited = [search for search in asked if "-- :(literal)" in search]
+  assert limited and len(asked) == 2 * len(limited)
+  assert asked[: len(limited)] == limited
 @
 
 \subsection{Stamping one pair}\label{sec:sync-stamp}
