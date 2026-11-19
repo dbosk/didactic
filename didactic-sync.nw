@@ -3108,9 +3108,11 @@ We say it in the command, since git otherwise takes it from the setting
 that.
 Following also finds a pair that was moved into a new file, when git takes
 the new file to be made from the old one.
-What is left for the whole history is a pair that was moved into a file with
-a history of its own, a move or a new name that isn't committed yet, and a
-stamp that no commit has.
+What is left for the whole history is a pair that was changed on its way from
+another file, where git doesn't take this file to be made from that one; a
+move or a new name that isn't committed yet; and a stamp that no commit has.
+A pair that was moved unchanged into a file with a history of its own is
+found at the commit that moved it, here as in the whole history.
 
 The pair that is found in the file's own history has the stamped texts, since
 it's checked there in the same way, so the diff is the one that the whole
@@ -3578,8 +3580,8 @@ A file that got a new name after the stamp names the commit of the stamp, not
 the one that renamed it.
 A file whose name is a pattern too, [[a[b].nw]], is searched alone: a newer
 copy of the pair in [[ab.nw]] isn't the commit named.
-And a pair that was moved into a file with a history of its own still has its
-diff, from the whole history.
+And a pair that was moved, and changed on its way, into a file with a history
+of its own still has its diff, from the whole history.
 The test [[test_the_diff_follows_a_pair_into_another_file]] above doesn't
 show that any longer, since the file there is new, and git follows it into
 the one it was made from.
