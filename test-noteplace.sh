@@ -369,6 +369,95 @@ check overtall x 9 '' "warned,nocontinued" '\def\testtall{1.01}\def\testbody{FIR
 check tallsplit x 3 '' "${NOT12:+kept,continued,recordless=1}${M12:+error=lost some margin notes,lostwarn=test-noteplace.tex,reason=this marginfix loses a note taller than the margin,foundlast=1,recordless=1}" '\def\testtall{.1}\def\testbody{FIRSTLINE\yieldnote[\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler\par\filler] \filler\ \filler\par}'
 # In two columns a note runs past the foot of its column's margin the same way.
 check overtwocol x 9 '' kept,overwarn '\def\testclass{article}\def\testclassopt{a4paper,twocolumn}\def\testtall{.95}\def\testbody{FIRSTLINE end\yieldnote[\par TWO\par THREE] \filler\par}'
+# The gaps between the notes of a margin are a reserve for a note that would be
+# carried: a footnote that fits neither beside its line as the margin is nor at the
+# foot whole stays beside its line where the gaps above the margin's footnotes can
+# give what it lacks, each shrinking no further than where its footnote's first
+# baseline is one line of the footnotes (9.5pt here) below the last baseline above.
+# Four footnotes under the tall note, then NOTEY, a footnote two lines further down,
+# where the foot has half a line left.  The numbers are those of the engine's fonts.
+# With pdfLaTeX and LuaLaTeX a gap as it is: FNA to FNB 10.98pt (FNA's last line is
+# 0.17pt deep, the push 5pt, a footnote's first line 5.81pt high), FNB to FNC 13.07pt
+# (FNB's ends 2.26pt deep); together the gaps can give 11.4pt, and at the tall note's
+# height SQT NOTEY lacks 8pt.  With XeLaTeX (other fonts): 12.34pt and 14.44pt, the
+# gaps can give 18.3pt, and NOTEY lacks 5pt.
+case "$ENGINE" in
+  xelatex) SQT=.8891 SQT1=.8738 SQT2=.8586 SQTS=.8827 SQOV=1 SQPO=
+    SQU1=12.2:12.5 SQU2=14.3:14.6 SQU3=19.3:19.6 SQP1=11.2:12.0 SQP2=12.7:13.5 SQP3=9.5:12.0;;
+  *) SQT=.905 SQT1=.8897 SQT2=.8745 SQTS=.8938 SQOV=2 SQPO=,over=1
+    SQU1=10.9:11.1 SQU2=13.0:13.2 SQU3=18.0:18.2 SQP1=9.7:10.3 SQP2=10.3:10.9 SQP3=9.5:10.3;;
+esac
+SQF='\footnote{FNA}\footnote{FNB gy}\footnote{FNC gy}\footnote{FND}'
+sq() { # sq <tall> <lines after NOTEY's first> [<what follows FIRSTLINE>]
+  printf '\\def\\testyieldfoot{}\\def\\testtall{%s}\\def\\testbody{FIRSTLINE%s \\filler\\ end\\yieldnote%s \\filler\\ \\filler\\par}' "$1" "${3:-$SQF}" "$2"
+}
+SQI='The gaps above the margin footnotes of page 1'
+SQN="noinfo=The gaps,basedist=FNA:FNB:$SQU1,basedist=FNB:FNC:$SQU2"
+# NOTEY lacks less than the gaps can give: they give it, each the same part of what it
+# can (seven tenths with pdfLaTeX), and NOTEY stays in the margin; nothing runs past
+# the margin's foot (sqfits).
+check sqfits x 4.5 '' "kept,noover,nowarns=past the foot,inmargin=NOTEY,info=$SQI,basedist=FNA:FNB:$SQP1,basedist=FNB:FNC:$SQP2" "$(sq $SQT '{}')"
+# The gaps give what the notes that stay on the page need, not what those after them
+# would: two footnotes more on NOTEY's line, the first of five lines, which fits nowhere
+# and is carried, and so is the one after it.  The gaps above NOTEY give as in sqfits,
+# and the two stand on the next page as far apart as ever (sqbehind; what waits for the
+# next page is in marginfix's list behind the page's notes when its margin is built).
+check sqbehind x 4.5 '' "kept,noover,nowarns=past the foot,info=$SQI,basedist=FNA:FNB:$SQP1,basedist=FNB:FNC:$SQP2,at=FNE:2/FNF:2,basedist=FNEZ:FNF:$SQU1" "$(sq $SQT '{}\footnote{FNE\newline x\newline x\newline x\newline FNEZ}\footnote{FNF}')"
+# A footnote's first line is read whatever its paragraph allows: with \clubpenalty at
+# 10000 no page may break after the first line of a footnote of two lines, and a gap
+# above one still gives (sqlines: FNB and FNC of two lines each, the tall note two lines
+# of the footnotes shorter; the first line was once split off the note's box, which
+# takes both lines where the break between them is forbidden, and such a gap gave
+# nothing: NOTEY then ran past the foot of the margin here, and a document of the
+# measure with such penalties kept all its carried notes).
+check sqlines x 4.5 '' "kept,noover,nowarns=past the foot,inmargin=NOTEY,info=$SQI,basedist=FNA:FNB:$SQP1,basedist=FNBZ:FNC:$SQP2" '\def\testpre{\AtBeginDocument{\clubpenalty=10000 \csname @clubpenalty\endcsname=10000 }}'"$(sq $SQT2 '{}' '\footnote{FNA}\footnote{FNB gy\newline FNBZ gy}\footnote{FNC gy\newline FNCZ gy}\footnote{FND}')"
+# What can't be read counts in the gap's favour: FNB has a \write between its two
+# lines, which can't be taken off the note's list, so its first line isn't reached,
+# and the gap above FNB stays as it is while the others give (sqwrite; such a footnote
+# isn't plain, which the log says).
+check sqwrite x 4.5 '' "kept,noover,notplain=1,nowarns=past the foot,info=$SQI,basedist=FNA:FNB:$SQU1" "$(sq $SQT1 '{}' '\footnote{FNA}\footnote{FNB gy\vadjust{\write-1{}}\newline FNBZ gy}\footnote{FNC gy}\footnote{FND}')"
+# NOTEY, three lines, lacks more: the gaps give all they can, every footnote's first
+# baseline one line below the last above (the floor), and NOTEY runs past the foot of
+# the margin by the rest, with its warning (sqover).
+check sqover x 4.5 '' "kept,over=$SQOV,info=$SQI,basedist=FNA:FNB:9.5:9.5,basedist=FNB:FNC:9.5:9.5,basedist=FNC:FND:9.5:9.5,basedist=FND:NOTEY:9.5:9.5" "$(sq $SQT '[\par TWO\par THREE]')"
+# Six lines lack more than the gaps and two lines past the foot can take: carried, with
+# the foot's reason as before, and no gap is changed (sqcarried).
+check sqcarried x 4.5 '' "carried,reason=where it doesn't fit whole,noover,$SQN" "$(sq $SQT '[\par TWO\par THREE\par FOUR\par FIVE\par SIX]')"
+# Where every note fits, no gap is changed (sqnone).
+check sqnone x 4.5 '' "kept,noover,nowarns=past the foot,$SQN" "$(sq .85 '{}')"
+# NOTEY's line goes to the next page after the squeeze was decided for it (a paragraph
+# that can't break, whose last lines don't fit): the gaps of page 1, whose notes fit
+# without it, stay as they are, and nothing is said (sqmoved).
+SQM='\def\testyieldfoot{}\def\testtall{'"$SQT"'}\def\testbody{START'"$SQF"' words.\par{\interlinepenalty=10000 \noindent FIRSTLINE\newline SECOND end\yieldnote{}\newline THIRD\newline FOURTH\newline FIFTH\par}}'
+check sqmoved x 4.5 '' "kept,label=callout-y:2,noinfo=The gaps,basedist=FNA:FNB:$SQU1" "$SQM"
+# Space the author put into the margin (marginfix's \marginskip, here before FND) is
+# not squeezed, nor the push before it: FND stays as far below FNC as the push, the
+# 5pt and the two lines make it (18.07pt with pdfLaTeX), while the other gaps give
+# what NOTEY lacks.  The tally at the callouts doesn't see the \marginskip, so NOTEY
+# lacks 5pt more than was decided.
+check sqskip x 5.5 '' "kept,noover,nowarns=past the foot,info=$SQI,basedist=FNC:FND:$SQU3,basedist=FNA:FNB:$SQP3" '\def\testyieldfoot{}\def\testtall{'"$SQTS"'}\def\testbody{FIRSTLINE\footnote{FNA}\footnote{FNB gy}\footnote{FNC gy} words.\par\marginskip{5pt}SECOND\footnote{FND} \filler\ end\yieldnote{} \filler\ \filler\par}'
+# The gap above a note that isn't a footnote of ours (PLM, a \marginpar) stays, while
+# the gaps above the footnotes give all they can and NOTEY runs past the margin's foot
+# by the rest (sqplain; with XeLaTeX's fonts by less than the check for a note past
+# the foot counts).
+check sqplain x 4.5 '' "kept$SQPO,info=$SQI,basedist=FNA:FNB:9.5:9.5,basedist=FNB:PLM:14.6:14.9" "$(sq $SQT '[\par TWO]' '\footnote{FNA}\footnote{FNB gy}\marginpar{PLM}\footnote{FND}')"
+# A deferrable note above the footnotes (an \ltnote): the gap under it is squeezed as
+# under any note, its last line counting as without depth (sqdefer).
+check sqdefer x 4.5 '' "kept,noover,nowarns=past the foot,info=$SQI,at=LTNX:1" "$(sq .88 '{}' '\ltnote{LTNX}'"$SQF")"
+# A float at the foot of the page, called out after the squeeze was decided, waits as
+# it does for any notes already decided: it would take margin room that the notes need
+# even with their gaps at the smallest, and six of them would go to the next page
+# (sqfloat; NOTEY is a plain note of three lines, so that it has no foot to go to, and
+# the text has room for the float).
+SQ8='\footnote{FNA gy}\footnote{FNB gy}\footnote{FNC gy}\footnote{FND gy}\footnote{FNE gy}\footnote{FNF gy}\footnote{FNG gy}\footnote{FNH gy}'
+check sqfloat x 20 '' "kept,noover,info=$SQI,info=waits,at=FNA:1/FNH:1/FIGX:2" '\def\testtall{.8}\def\testbody{FIRSTLINE'"$SQ8"' \filler\ end\yieldnote[\par TWO\par THREE] more.\begin{figure}[b]\rule{1cm}{3\baselineskip}\caption{FIGX}\end{figure} \filler\ \filler\par}'
+# In two columns the gaps of a column's margin give the same way (FND, the fourth
+# footnote of the first column, lacks 5pt there).
+check sqtwocol x 4.5 '' "kept,noover,nowarns=past the foot,info=$SQI,at=FND:1" "\\def\\testclassopt{a4paper,twocolumn}$(sq .8873 '{}')"
+# In the mode carry, and with draft, which makes it the default, no gap is changed: the
+# note is carried.
+check sqcarrymode x 4.5 'noteoverflow=carry' "carried,reason=noteoverflow is carry,noover,$SQN" "$(sq $SQT '{}')"
+check sqdraft x 4.5 'draft' "carried,reason=noteoverflow is carry,noover,$SQN" "$(sq $SQT '{}')"
 # A footnote that fits neither beside its line nor past the foot of the margin
 # (the tall note runs over and fills it) goes to the foot of the page whole, or
 # whole and one line past the foot; else it is carried, with a warning that

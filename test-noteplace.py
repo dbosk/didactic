@@ -79,6 +79,7 @@ called out somewhere names a place, not an internal name; no footnote found not 
   hasnot=W    W is not in the text.
   warns=T     a warning of didactic's says T (spaces as in one line).
   warns1=T    exactly one warning of didactic's says T.
+  nowarns=T   no warning of didactic's says T.
   once=W      W is in the text exactly once.
   label=N:P   the label N is on page P.
   align=A:B   the positions A and B (zsavepos) are on one page and one baseline,
@@ -102,6 +103,12 @@ called out somewhere names a place, not an internal name; no footnote found not 
   apart=A:B   on every page, the words starting with A and those starting with B
               share no height (a note doesn't overlap a side caption or text
               that reaches into the margin).
+  info=T      an information line of didactic's in the log says T (spaces as in
+              one line); noinfo=T, none does.
+  basedist=A:B:LO:HI  the word that starts with B stands LO to HI pt below the
+              word that starts with A, on one page, by the feet of their boxes
+              (two words of one font: the distance of their baselines; LO and
+              HI with a tolerance of 0.05pt).
 Prints one line, "PASS" or "FAIL" with what failed, and the facts.
 """
 import html
@@ -292,6 +299,24 @@ for e in expect:
         if n != int(e[10:]):
             fails.append("%d warnings that a footnote is set before one still waiting, "
                          "not %s" % (n, e[10:]))
+    elif e.startswith("info=") and e[5:] not in " ".join(
+            re.findall(r"Package didactic Info: (.*?)(?=Package |\Z)", re.sub(r"\s+", " ", joined))):
+        fails.append("no information line with '%s'" % e[5:])
+    elif e.startswith("noinfo=") and e[7:] in " ".join(
+            re.findall(r"Package didactic Info: (.*?)(?=Package |\Z)", re.sub(r"\s+", " ", joined))):
+        fails.append("an information line says '%s'" % e[7:])
+    elif e.startswith("basedist="):
+        a, b, lo, hi = e[9:].split(":")
+        n = page_of(a)
+        ya = [y for w, x, y in bottoms[n - 1] if w.startswith(a)] if n else []
+        yb = [y for w, x, y in bottoms[n - 1] if w.startswith(b)] if n else []
+        if not ya or not yb:
+            fails.append("%s and %s not on one page (%s)" % (a, b, n))
+        else:
+            d = (yb[0] - ya[0]) * 72.27 / 72
+            facts["basedist %s:%s" % (a, b)] = "%.2f" % d
+            if not float(lo) - .05 <= d <= float(hi) + .05:
+                fails.append("%s is %.2fpt below %s, not %s to %s" % (b, d, a, lo, hi))
     elif e == "nobelow":
         for n in range(1, len(pages) + 1):
             left = geo["odd"] if n % 2 else geo["even"]
@@ -319,6 +344,10 @@ for e in expect:
             fails.append("no warning that TeX ended a page before a footnote's line")
     elif e.startswith("has=") and e[4:] not in out:
         fails.append("%s is not in the text" % e[4:])
+    elif e.startswith("nowarns=") and re.search(
+            r"Package didactic Warning: [^\n]*" + re.escape(e[8:]), joined.replace(
+                "Package didactic Warning:", "\nPackage didactic Warning:")):
+        fails.append("a warning of didactic's says '%s'" % e[8:])
     elif e.startswith("warns1=") and len(re.findall(
             r"Package didactic Warning: [^\n]*" + re.escape(e[7:]), joined.replace(
                 "Package didactic Warning:", "\nPackage didactic Warning:"))) != 1:

@@ -40,6 +40,10 @@ says what it needs and how to run the tests; this file is for working on it.
   joins TeX's line breaks as each engine makes them (`make test-testlog`).
 - After a change to how notes are set, run the whole `make -k tests`, not only
   the note suites.
+- The rows `sq...` of `test-noteplace.sh` (the gaps between a margin's notes,
+  v2.20) take their heights and distances by the engine, since XeLaTeX sets the
+  notes in other fonts; `make test-noteplace-engines` runs them under XeLaTeX
+  and LuaLaTeX.
 - `test-keep-parted.tex`: lead-ins and what they lead into, parted only with a
   warning. `test-keep-sweep.py`: page breaks room by room against plain LaTeX.
 - `make test-fuzz` (`test-fuzz.py`): random documents with fixed seeds, built

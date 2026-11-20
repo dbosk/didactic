@@ -61,7 +61,7 @@ tests: didactic.sty test.pdf test-marginfix-interface test-footcite.pdf \
 	test-marginfloat-inorder.pdf test-marginfloat-hidden.pdf \
 	${TEST_FLOATORDER:=.pdf} test-marginfloat-include.pdf \
 	test-format.pdf test-oldkernel-title.pdf test-biburl check \
-	test-noteplace test-noteplace-tl12 test-footreuse-spread \
+	test-noteplace test-noteplace-tl12 test-noteplace-engines test-footreuse-spread \
 	test-noteoverflow-foot test-notefoot test-notefoot-tl12 test-footwide \
 	test-testlog test-sync check-bilingual test-fuzz test-settle test-patches \
 	test-carry-roman.pdf \
@@ -558,15 +558,17 @@ test-noteoverflow.pdf test-noteoverflow-lua.pdf test-noteoverflow-draftfoot.pdf:
 		${NOTEOVERFLOW_SRC}
 	@${settle_many}
 	! grep '^!' $*.log
-	python3 test-noteoverflow.py $* beside ${NOTEOVERFLOW_AWAY}
-# The foot goes to the first footnote that fits it whole (before a margin note
-# runs past the margin's foot): on page 1, dense with notes, that leaves no foot
-# for note 30 (contents line 25), which is carried, warned; a declared note.  Note
-# 63 (contents line 37) doesn't fit page 2's foot whole and is carried, warned (it
-# ran a line past the foot before that outcome was dropped).
-test-noteoverflow.pdf test-noteoverflow-lua.pdf test-noteoverflow-draftfoot.pdf: \
-	NOTEOVERFLOW_AWAY=away=30,63 \
-	awayat=test-noteoverflow-contents.tex:25,test-noteoverflow-contents.tex:37
+	python3 test-noteoverflow.py $* beside
+	test "$$(${TESTLOG} count 'The gaps above the margin footnotes of page 1 ' $*.log)" -eq 1
+	test "$$(${TESTLOG} count 'test-noteoverflow-contents.tex:25 on page 1 runs' $*.log)" -eq 1
+# No note leaves its mark's page.  The foot goes to the first footnote that fits
+# it whole (before a margin note runs past the margin's foot): on page 1, dense
+# with notes, that leaves no foot for note 30 (contents line 25).  Until v2.20 it
+# was carried, warned, and so was note 63 (line 37), which didn't fit page 2's
+# foot whole behind it.  Now the gaps above page 1's margin footnotes give what
+# they can (the log says so) and note 30 runs past the foot of the margin by the
+# point and a half still missing, warned; page 2, without a note carried to it,
+# holds note 63.
 test-noteoverflow-carry.pdf test-noteoverflow-draft.pdf: %.pdf: %.tex ${NOTEOVERFLOW_SRC}
 	@${settle_many}
 	! grep '^!' $*.log
@@ -641,6 +643,17 @@ TL12=$(shell kpsewhich -var-value TEXMFDIST)/tex/latex/marginfix
 test-noteplace-tl12: test-noteplace.tex test-noteplace-slides.tex test-noteplace.sh \
 		test-noteplace.py testlog.py didactic.sty
 	MARGINFIX=$(TL12) ./test-noteplace.sh
+
+# the rows of the gaps between the margin's notes (sq...) under the other two
+# engines too: XeLaTeX sets the notes in other fonts, so those rows take their
+# numbers by the engine (see the script)
+SQROWS=sqfits sqbehind sqlines sqwrite sqover sqcarried sqnone sqmoved sqskip sqplain sqdefer sqfloat \
+	sqtwocol sqcarrymode sqdraft
+.PHONY: test-noteplace-engines
+test-noteplace-engines: test-noteplace.tex test-noteplace.sh test-noteplace.py \
+		testlog.py didactic.sty
+	ENGINE=xelatex CASES="${SQROWS}" ./test-noteplace.sh
+	ENGINE=lualatex CASES="${SQROWS}" ./test-noteplace.sh
 
 # footnote reuse across the pages of a spread, at the foot and in the margin,
 # checked by the outcome (test-footreuse-spread.py).

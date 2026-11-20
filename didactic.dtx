@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}[2021/06/01]
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/11/18 v2.19.1 didactic]
+  [2026/11/20 v2.20 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -163,6 +163,15 @@
 %   when it's loaded.
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
+% }
+% \changes{v2.20}{2026/11/20}{%
+%   A margin note that fits neither beside its line nor at the foot whole stays
+%   beside its line where the gaps above the margin's footnotes can give what it
+%   lacks: each may shrink until the footnote's first line is a footnote's line
+%   below the last line above, as footnotes stand at the foot of the page.  Only
+%   on such a page, only as much as its notes need, and with a line of
+%   information in the log.  A note may still run past the foot of the margin by
+%   up to two lines, after the gaps have given what they can.
 % }
 % \changes{v2.19.1}{2026/11/18}{%
 %   A margin note carried from a page whose number isn't printed in digits
@@ -851,12 +860,37 @@
 % out, in the same run.
 % With |noteoverflow=foot|, the default, a footnote that doesn't fit in the
 % margin goes to the foot of its page if it fits there whole, without a word.
-% A note that misses the foot of the margin by no more than two lines of the
-% text, and doesn't go to the foot whole, stays beside its line and runs past the
+% A note that fits neither way stays beside its line where the gaps between the
+% notes of the margin can give what it lacks.
+% \textsf{marginfix} sets the notes |\marginparpush| apart (5\,pt here); the gap
+% above a margin footnote may shrink until the footnote's first line is as far
+% below the last line of the note above as a footnote's own lines are from each
+% other, which is how footnotes follow each other at the foot of the page, and
+% no further.
+% No other gap changes: not the gap above a note that isn't a footnote, nor
+% space you put into the margin yourself (\textsf{marginfix}'s |\marginskip|).
+% The gaps give only what the notes of the page need, each in proportion to
+% what it can, and only on a page where a note would otherwise leave its line:
+% where the notes fit, they stand as far apart as ever.
+% The log says where it was done, as information: the page, how much smaller
+% its gaps are in all, the smallest of them, and the note it was done for.
+% A note that then still misses the foot of the margin by no more than two
+% lines of the text stays beside its line and runs past the
 % foot of the margin, with a warning that says by how much and what took the
 % margin (the notes above it, the floats on the page); a margin note that isn't a
-% footnote has no place at the foot, so for it that comes first (deferrable notes
-% are \textsf{marginfix}'s to place, as ever).
+% footnote has no place at the foot, so for it these two come first (deferrable
+% notes are \textsf{marginfix}'s to place, as ever, and a margin figure or
+% table moves on as ever).
+% What a note lacks is counted at its callout, from the notes before it, and
+% that count doesn't see space of yours in the margin: where such space takes
+% more than the gaps can give, they give what they can, the note is carried
+% after all, with the warning for a carried note, and the line in the log still
+% names it as the note the gaps were made smaller for.
+% Of a note only its first and its last line are looked at, and what can't be
+% read there counts in the gap's favour: a note that ends with something else
+% than a line of text, a picture say, counts as ending without depth, so the gap
+% under it gives less, and the gap above a footnote that starts with something
+% else than a line of text stays as it is.
 % Nothing is under the margin at the foot of a page as \LaTeX\ and
 % \textsf{memoir} set it, since the folio is under the text; a running foot as
 % wide as the text and the margin (\textsf{memoir}'s |\headwidth| widened into
@@ -1916,10 +1950,23 @@
 %   The order is the maintainer's: a footnote goes to the foot whole before a note
 %   runs past the foot of the margin, so the foot goes to the first footnote that
 %   fits it; on a page dense with notes that can cost a later note its page, with a
-%   warning (one note in \texttt{test-noteoverflow}).
+%   warning (one note in \texttt{test-noteoverflow}, until the gaps below kept it).
 %   A footnote goes to the foot only whole; one too long for that is carried with a
 %   warning that says so (a note let run a line past the foot couldn't be kept
 %   right when \TeX\ took its line on or a footnote of \LaTeX's own followed it).
+%   Before a note runs past the foot of the margin or is carried, the gaps above the
+%   margin's footnotes give what they can, down to the distance of a footnote's own
+%   lines, as footnotes stand at the foot (v2.20): they are a reserve that the notes
+%   higher up on a page can't use, where setting all notes closer only moves the
+%   page breaks; \LaTeX's \cs{marginparpush} is left only on a page where a note
+%   would otherwise leave its line.
+%   \emph{Measured} for the gaps, on one real document dense with citations in
+%   margin footnotes, in two editions of 80 pages each, from clean: 1 and 2 notes
+%   carried, against 3 and 6 without the gaps, and 1 and 2 notes past the foot of
+%   the margin (by 14.3\,pt at most), against 2 and 2 (19.8\,pt); the gaps are
+%   smaller on 4 and 5 of the pages, and the pages are as many.
+%   With no gap between the notes anywhere in that document, 6 and 13 notes were
+%   carried, on other pages.
 %   Splitting it over two pages, as \LaTeX\ splits a footnote at the foot, is
 %   deferred (issue \#104): a rest at the head of the next page's foot needs an
 %   insertion class of our own to stay correct, a rest put after a later line
@@ -1928,7 +1975,10 @@
 %   \emph{Reopens:} on these builds, a page more than \texttt{carry}, or more than 136
 %   pages with three lines or more empty (\texttt{carry}'s count; \texttt{foot} now has
 %   134).
-%   \emph{Measured} (\texttt{foot} against \texttt{carry}, from clean; eight documents,
+%   For the gaps: a reader's report that the notes of a page whose gaps are smaller
+%   are hard to tell apart, or real documents in which they keep no note beside its
+%   line that is carried without them.
+%   \emph{Measured}, before the gaps (\texttt{foot} against \texttt{carry}, from clean; eight documents,
 %   seven under pdf\LaTeX\ and one under Xe\LaTeX, and two of the seven again under
 %   Xe\LaTeX: 1058 pages, 913 text pages): the same pages; 43 runs against 44; notes off
 %   their marks 0 against 7, in three of the builds (\texttt{carry} moves them to the next
@@ -5621,9 +5671,10 @@
 % \subsection{Notes that don't fit}\label{NotesThatDontFit}
 %
 % A margin note that doesn't fit beside its line is \textsf{didactic}'s to 
-% place, by the option |noteoverflow|: beside its line, running past the foot
-% of the margin by up to two lines; at the foot of its page, whole, if it is a
-% footnote; or carried to a later page, with a warning.
+% place, by the option |noteoverflow|: at the foot of its page, whole, if it is a
+% footnote; beside its line, with the gaps above the margin's footnotes made
+% smaller, or running past the foot of the margin by up to two lines; or carried
+% to a later page, with a warning.
 % No page ends early for a note.
 % The decision is taken where the note is called out, in the kernel's special 
 % output for the note, and once only: it reads nothing from the |.aux| file,
@@ -6588,12 +6639,15 @@
       {\@didactic@carry{noteoverflow is carry}}
       {\@didactic@footplace\@ne
        \if@tempswa\else
-         \@didactic@ifover
-           {\@didactic@over}
-           {\@didactic@footplace\z@
-            \if@tempswa\else
-              \expandafter\@didactic@carry\expandafter{\@didactic@footwhy}%
-            \fi}%
+         \@didactic@sqroom
+         \@didactic@ifsqueeze
+           {\@didactic@squeeze}
+           {\@didactic@ifover
+              {\@didactic@over}
+              {\@didactic@footplace\z@
+               \if@tempswa\else
+                 \expandafter\@didactic@carry\expandafter{\@didactic@footwhy}%
+               \fi}}%
        \fi}%
   \fi}
 \newcommand\@didactic@carry[1]{%
@@ -6632,8 +6686,10 @@
 %
 % \begin{macro}{\@didactic@ifover,\@didactic@over}
 % A note that misses the foot of the margin by no more than two lines of the
-% text stays beside its line and runs past the foot of the margin, with a
-% warning, unless it is a footnote the foot holds whole, which goes there first
+% text, once the gaps of the margin have given what they can
+% (|\@didactic@sqroom|, below), stays beside its line and runs past the foot of
+% the margin, with a warning, unless it is a footnote the foot holds whole, which
+% goes there first
 % (|\@didactic@footplace|\,|1|, in |\@didactic@decide@|): there it is still
 % where the reader looks for it, and nothing is under
 % the margin at the foot of the page (the folio is under the text; a running
@@ -6678,7 +6734,7 @@
     \expandafter\@didactic@ifover@@\fi}
 \newcommand\@didactic@ifover@@{%
   \ifdefined\marginheightadjustment
-    \ifdim\dimexpr\@didactic@stay+\@didactic@noteht\relax
+    \ifdim\dimexpr\@didactic@stay-\@didactic@sqgive+\@didactic@noteht\relax
         <\dimexpr\@didactic@room+\@didactic@overmax\relax
       \expandafter\expandafter\expandafter\@firstoftwo
     \else
@@ -6689,12 +6745,15 @@
   \fi}
 \newcommand\@didactic@over{%
   \global\@didactic@ovid\@didactic@noteof\@didactic@head
-  \global\@didactic@ovd
-    \dimexpr\@didactic@stay+\@didactic@noteht-\@didactic@room+1sp\relax
-  \xdef\@didactic@ovwhy{the notes above it take \the\@didactic@stay\space of
+  \global\@didactic@ovd\dimexpr
+    \@didactic@stay-\@didactic@sqgive+\@didactic@noteht-\@didactic@room+1sp\relax
+  \xdef\@didactic@ovwhy{the notes above it take
+    \the\dimexpr\@didactic@stay-\@didactic@sqgive\relax\space of
     the margin's \the\@didactic@room
+    \ifdim\@didactic@sqgive>\z@\space with their gaps at the smallest\fi
     \ifdim\@colroom<\textheight\space(floats on the page take
       \the\dimexpr\textheight-\@colroom\relax)\fi}%
+  \ifdim\@didactic@sqgive>\z@ \@didactic@sqmark \fi
   \@didactic@setwhy{}%
   \global\advance\@didactic@stay
     \dimexpr\@didactic@noteht+\marginparpush\relax
@@ -6756,6 +6815,360 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% \begin{macro}{\@didactic@sqwalk,\@didactic@sqgap,\@didactic@sqedges,
+%   \@didactic@sqstrip,\@didactic@sqflush,\@didactic@ifbehind,\@didactic@sqrest}
+% The gaps between the notes of a margin are a reserve for a note that would
+% otherwise be carried.
+% \textsf{marginfix} puts |\marginparpush| after every note, as an entry of
+% its list of waiting notes (|\mfx@build@skip|), and sets the notes of a
+% column at least that far apart.
+% Such a gap can be made smaller where we know what stands below it: a margin
+% footnote of ours, whose lines are those of the footnotes' font.
+% It may shrink until that first line's baseline is one line of a footnote
+% (|\@didactic@fl|) below the last baseline of the note above, and no further:
+% that is how footnotes follow each other at the foot of a page (there by the
+% strut that ends one and the |\footnotesep| that starts the next), so a margin
+% squeezed to the full reads as the foot does, and the first line of a note is
+% never closer to the note above than the lines of one note are to each other.
+% A fixed smallest gap wouldn't do: a margin footnote's box has no strut, its
+% first line is as high as its mark (5.8\,pt at 10\,pt) and the box above ends
+% as deep as its last line happens to be, between nothing and 3.5\,pt, so
+% 2.85\,pt, the depth of a strut, leaves 8.7 to 12.2\,pt between the two
+% baselines where a note's own lines are 9.5\,pt apart.
+%
+% So the gap that can be squeezed is the push directly after a note's entry and
+% directly before the entry of a footnote of ours (|\@didactic@ifours| and
+% |\@didactic@fn@|\meta{note}: not a deferrable note, nor the rest of a split
+% one).
+% The gap above any other note stays: a note in another font, a margin figure.
+% So does space the author put into the margin with \textsf{marginfix}'s
+% |\marginskip|, which is an entry of its own, and the push before it.
+% What such a gap can give is its size less what the two baselines need,
+% |\@didactic@fl| less the depth of the last line above less the height of the
+% footnote's first line, and nothing if that is more than the gap.
+% Both are read from a copy of the note's box (|\@didactic@sqedges|), not from
+% the box's own height and depth: \textsf{memoir}'s |\vtop| for a footnote
+% starts with a |\write| in a two-sided document (its |\checkoddpage|), and
+% then has no height at all.
+% The copy is opened as far as its last item is a vertical box (the |\vtop|
+% inside the box that holds our record, inside colour's); where the last item
+% is a line, its depth is the last line's, and the list it ends is taken apart
+% from that end, box by box with the glue, kerns and penalties between them
+% (|\@didactic@sqstrip|), as far as it goes: the last box taken off is the
+% first line, if nothing with a height is left above it (the |\write| has
+% none) and it is lower than a line of the footnotes.
+% (The first line was split off with |\vsplit| before, which reads it only
+% where a page may break after it: with |\clubpenalty| at 10000 a footnote of
+% two lines came off whole, and the gap above it gave nothing; the row
+% |sqlines|.)
+% Whatever can't be read so counts as nothing, which only makes the gap
+% larger: a note that ends with something else than a line, something between
+% its lines that can't be taken off (a |\write|, a |\special|), a first box as
+% tall as a line of the footnotes or taller.
+% So does the last line of a deferrable note above, which
+% \textsf{marginfix} chooses when it splits the note.
+%
+% |\@didactic@sqwalk| goes through the list once.
+% It adds up what the gaps can give (|\@didactic@sqgive|) and what the notes
+% and the space between them take up to the last note
+% (|\@didactic@sqtotal|; a deferrable note at what it keeps, as in
+% |\@didactic@newpage|), and hands every entry to |\@didactic@sqemit|, a push
+% that can be squeezed less |\dimen@|, which |\@didactic@sqshare| sets from what
+% the gap can give.
+% A push is held back (|\@didactic@sqpend|, negative when none is) until the
+% next entry says whether it is one that can be squeezed.
+% |\@didactic@sqend| runs at the list's end, where a push may still be held.
+%
+% The walk ends at the first note that was decided for this page as carried
+% (|\@didactic@ifbehind|: it has a reason, |\@didactic@why@|\meta{box}, and its
+% page of decision, |\@didactic@dn@|\meta{number}, is this one).
+% The margin is closed after it, so what follows in the list waits for the next
+% page: those entries are neither counted nor changed (|\@didactic@sqrest|
+% hands them on as they are).
+% Without that the notes behind would count as the page's, the gaps would give
+% all they can where the page's notes need less, and the gaps between the notes
+% behind would be smaller on the next page, where nothing says so (the row
+% |sqbehind|; found by |test-fuzz|, its seed 125).
+% A note carried here from an earlier page has a reason too, from the page it
+% was decided for, and counts.
+%    \begin{macrocode}
+\newdimen\@didactic@sqgive
+\newdimen\@didactic@sqtotal
+\newdimen\@didactic@sqpend
+\newdimen\@didactic@sqld
+\newdimen\@didactic@sqfh
+\newbox\@didactic@sqbox
+\let\@didactic@sqemit\@gobble
+\let\@didactic@sqshare\relax
+\let\@didactic@sqend\relax
+\newcommand\@didactic@sqwalk{%
+  \global\@didactic@sqgive\z@
+  \global\@didactic@sqtotal\z@
+  \global\@didactic@sqpend-\p@
+  \begingroup
+    \let\@didactic@sqlast\relax
+    \@tempdimb\z@
+    \def\mfx@build@note##1##2##3{%
+     \@didactic@ifbehind##1%
+      {\@didactic@sqflush
+       \@didactic@sqrest
+       \mfx@build@note##1##2{##3}}%
+      {\ifdim\@didactic@sqpend<\z@\else
+        \expandafter\@didactic@sqgap\@didactic@sqlast##1%
+        \global\advance\@didactic@sqgive\dimen@
+        \@didactic@sqshare
+        \dimen@\dimexpr\@didactic@sqpend-\dimen@\relax
+        \advance\@tempdimb\dimen@
+        \@didactic@sqemit{\noexpand\mfx@build@skip{\the\dimen@}}%
+        \global\@didactic@sqpend-\p@
+      \fi
+      \@didactic@noteht\dimexpr\ht##1+\dp##1\relax
+      \@didactic@ifdeferrable##1
+        {\global\advance\@didactic@sqtotal\@didactic@deferclaim}
+        {\global\advance\@didactic@sqtotal\@didactic@noteht}%
+      \global\advance\@didactic@sqtotal\@tempdimb
+      \@tempdimb\z@
+      \def\@didactic@sqlast{##1}%
+      \@didactic@sqemit{\noexpand\mfx@build@note\noexpand##1\noexpand##2{##3}}}}%
+    \def\mfx@build@skip##1{%
+      \@tempswafalse
+      \ifdim\@didactic@sqpend<\z@
+        \ifx\@didactic@sqlast\relax\else
+          \ifdim\dimexpr##1\relax<\z@\else\@tempswatrue\fi
+        \fi
+      \fi
+      \if@tempswa
+        \global\@didactic@sqpend\dimexpr##1\relax
+      \else
+        \@didactic@sqflush
+        \advance\@tempdimb\dimexpr##1\relax
+        \@didactic@sqemit{\noexpand\mfx@build@skip{##1}}%
+        \let\@didactic@sqlast\relax
+      \fi}%
+    \def\mfx@build@clear{%
+      \@didactic@sqflush
+      \let\@didactic@sqlast\relax
+      \@didactic@sqemit{\noexpand\mfx@build@clear}}%
+    \mfx@marginlist
+    \@didactic@sqend
+  \endgroup}
+\newcommand\@didactic@ifbehind[1]{%
+  \@tempswafalse
+  \ifcsname @didactic@why@\number#1\endcsname
+    \ifcsname @didactic@dn@\the\@didactic@noteof#1\endcsname
+      \ifnum\csname @didactic@dn@\the\@didactic@noteof#1\endcsname=\c@page
+        \@tempswatrue
+      \fi
+    \fi
+  \fi
+  \if@tempswa
+    \expandafter\@firstoftwo
+  \else
+    \expandafter\@secondoftwo
+  \fi}
+\newcommand\@didactic@sqrest{%
+  \let\@didactic@sqlast\relax
+  \def\mfx@build@note##1##2##3{%
+    \@didactic@sqemit{\noexpand\mfx@build@note\noexpand##1\noexpand##2{##3}}}%
+  \def\mfx@build@skip##1{\@didactic@sqemit{\noexpand\mfx@build@skip{##1}}}%
+  \def\mfx@build@clear{\@didactic@sqemit{\noexpand\mfx@build@clear}}}
+\newcommand\@didactic@sqflush{%
+  \ifdim\@didactic@sqpend<\z@\else
+    \advance\@tempdimb\@didactic@sqpend
+    \@didactic@sqemit{\noexpand\mfx@build@skip{\the\@didactic@sqpend}}%
+    \global\@didactic@sqpend-\p@
+  \fi}
+\newcommand\@didactic@sqgap[2]{%
+  \dimen@\z@
+  \@didactic@ifours#2{%
+    \ifcsname @didactic@fn@\the\@didactic@noteof#2\endcsname
+      \@didactic@ifdeferrable#1%
+        {\@tempdima\z@}{\@didactic@sqedges#1\@tempdima\@didactic@sqld}%
+      \@didactic@sqedges#2%
+      \dimen@\dimexpr\@didactic@fl-\@tempdima-\@didactic@sqfh\relax
+      \ifdim\dimen@<\z@ \dimen@\z@ \fi
+      \dimen@\dimexpr\@didactic@sqpend-\dimen@\relax
+      \ifdim\dimen@<\z@ \dimen@\z@ \fi
+    \fi}{}}
+\newcommand\@didactic@sqedges[1]{%
+  \global\@didactic@sqld\z@
+  \global\@didactic@sqfh\z@
+  \begingroup
+    \setbox\z@\copy#1%
+    \@didactic@sqopen
+  \endgroup
+  \global\setbox\@didactic@sqbox\box\voidb@x}
+\newcommand\@didactic@sqopen{%
+  \let\@didactic@next\relax
+  \ifvbox\z@
+    \setbox\tw@\copy\z@
+    \setbox\z@\vbox{\unvbox\z@\@didactic@untail
+      \global\setbox\@didactic@sqbox\lastbox}%
+    \ifhbox\@didactic@sqbox
+      \global\@didactic@sqld\dp\@didactic@sqbox
+      \setbox\z@\vbox{\unvbox\tw@\@didactic@sqstrip}%
+      \ifdim\dimexpr\ht\z@+\dp\z@\relax>\z@ \global\@didactic@sqfh\z@ \fi
+      \ifdim\@didactic@sqfh<\@didactic@fl\else \global\@didactic@sqfh\z@ \fi
+    \else
+      \setbox\z@\copy\@didactic@sqbox
+      \let\@didactic@next\@didactic@sqopen
+    \fi
+  \fi
+  \@didactic@next}
+\newcommand\@didactic@sqstrip{%
+  \@didactic@untail
+  \setbox\tw@\lastbox
+  \ifvoid\tw@\else
+    \global\@didactic@sqfh\ht\tw@
+    \expandafter\@didactic@sqstrip
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@sqroom,\@didactic@ifsqueeze,\@didactic@squeeze,
+%   \@didactic@sqmark}
+% At the callout, a note that fits neither beside its line as the margin is
+% nor at the foot whole stays beside its line if it fits once the gaps of the
+% margin have given what they can: those between the notes that wait for the
+% column, and the one above the note itself if it is a footnote
+% (|\@didactic@sqroom|, which pairs the note at the head of |\@currlist| with
+% the list's last note, the entry \textsf{marginfix} is about to add).
+% It comes after the foot, so that the notes higher up on the page can't use
+% it: they went to the foot while it had room, and the gaps are left for the
+% note that the last lines of a full page call out.
+% Nothing for a margin float, which moves on as ever, nor after the margin is
+% closed; and in the mode |carry| the decision doesn't come this far.
+% If the gaps don't give enough, a note may still run past the foot of the
+% margin by what is then missing (|\@didactic@over|, above).
+% The decision keeps only that a squeeze was asked for, by the first such
+% note of the column (|\@didactic@sqfirst|), and for which notes
+% (|\@didactic@sqnotes|, for the log): how much the gaps give is found when the
+% column is built, from the notes that are in it then.
+%    \begin{macrocode}
+\newcount\@didactic@sqfirst
+\let\@didactic@sqnotes\@empty
+\newcommand\@didactic@sqroom{%
+  \global\@didactic@sqgive\z@
+  \@tempswatrue
+  \if@didactic@closed\@tempswafalse\fi
+  \ifcsname @didactic@mf@\the\@didactic@noteof\@didactic@head\endcsname
+    \@tempswafalse
+  \fi
+  \if@tempswa
+    \let\@didactic@sqemit\@gobble
+    \def\@didactic@sqshare{\dimen@\z@}%
+    \def\@didactic@sqend{%
+      \ifdim\@didactic@sqpend<\z@\else
+        \edef\@didactic@tmp{\noexpand\@didactic@sqgap
+          \@didactic@sqlast\@didactic@head}%
+        \@didactic@tmp
+        \global\advance\@didactic@sqgive\dimen@
+      \fi}%
+    \@didactic@sqwalk
+  \fi}
+\newcommand\@didactic@ifsqueeze{%
+  \ifdim\@didactic@sqgive>\z@
+    \ifdim\dimexpr\@didactic@stay+\@didactic@noteht-\@didactic@room\relax
+        <\@didactic@sqgive
+      \expandafter\expandafter\expandafter\@firstoftwo
+    \else
+      \expandafter\expandafter\expandafter\@secondoftwo
+    \fi
+  \else
+    \expandafter\@secondoftwo
+  \fi}
+\newcommand\@didactic@squeeze{%
+  \@didactic@sqmark
+  \@didactic@setwhy{}%
+  \global\advance\@didactic@stay
+    \dimexpr\@didactic@noteht+\marginparpush\relax}
+\newcommand\@didactic@sqmark{%
+  \ifnum\@didactic@sqfirst=\z@
+    \global\@didactic@sqfirst\@didactic@noteof\@didactic@head
+  \fi
+  \xdef\@didactic@sqnotes{\@didactic@sqnotes
+    \the\@didactic@noteof\@didactic@head,}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@sqapply,\@didactic@sqtake,\@didactic@sqinfo}
+% When the column is built, the gaps give what its notes need, and no more.
+% The notes whose lines \TeX\ took to the next column are out of the list by
+% then (|\@didactic@sift|), and a note that runs past the foot of the margin
+% has its room (|\@didactic@overapply|); so the list is what the column holds.
+% If the first note that a squeeze was decided for isn't among them, nothing is
+% done: the gaps of a page whose notes fit are never changed, whatever was
+% decided before \TeX\ chose the break.
+% Otherwise what the notes take beyond the room is taken from the gaps that can
+% be squeezed, from each in proportion to what it can give (|\@didactic@sqtake|,
+% rounded up, so that the sum is enough), and the list is written again with
+% the smaller skips; \textsf{marginfix} then sets the notes as it does.
+% If the gaps can't give all that is missing (the tally at the callouts and the
+% list can differ, by an author's |\marginskip| say), they give what they can,
+% \textsf{marginfix} carries what still doesn't fit, and the warning for a
+% carried note names it.
+% An information line in the log says that the gaps of the page are smaller,
+% by how much in all and what the smallest gap is, and for which notes.
+%    \begin{macrocode}
+\newdimen\@didactic@sqneed
+\newdimen\@didactic@sqavail
+\newdimen\@didactic@sqleast
+\let\@didactic@sqout\@empty
+\newcommand\@didactic@sqapply{%
+  \ifnum\@didactic@sqfirst>\z@
+    \ifnum\@didactic@sqfirst>\@didactic@pagelast\else
+      \let\@didactic@sqemit\@gobble
+      \def\@didactic@sqshare{\dimen@\z@}%
+      \let\@didactic@sqend\@didactic@sqflush
+      \@didactic@sqwalk
+      \global\@didactic@sqneed
+        \dimexpr\@didactic@sqtotal-\@didactic@room+1sp\relax
+      \global\@didactic@sqavail\@didactic@sqgive
+      \ifdim\@didactic@sqneed>\z@ \ifdim\@didactic@sqavail>\z@
+        \ifdim\@didactic@sqneed>\@didactic@sqavail
+          \global\@didactic@sqneed\@didactic@sqavail
+        \fi
+        \global\let\@didactic@sqout\@empty
+        \global\@didactic@sqleast\maxdimen
+        \def\@didactic@sqemit##1{\@didactic@append\@didactic@sqout{##1}}%
+        \let\@didactic@sqshare\@didactic@sqtake
+        \@didactic@sqwalk
+        \global\let\mfx@marginlist\@didactic@sqout
+        \global\let\@didactic@sqout\@empty
+        \@didactic@sqinfo
+      \fi\fi
+    \fi
+  \fi}
+\newcommand\@didactic@sqtake{%
+  \ifdim\dimen@>\z@
+    \@tempdima\dimen@
+    \dimen@\dimexpr
+      \numexpr\dimen@*\@didactic@sqneed/\@didactic@sqavail\relax sp+1sp\relax
+    \ifdim\dimen@>\@tempdima \dimen@\@tempdima \fi
+    \ifdim\dimexpr\@didactic@sqpend-\dimen@\relax<\@didactic@sqleast
+      \global\@didactic@sqleast\dimexpr\@didactic@sqpend-\dimen@\relax
+    \fi
+  \fi}
+\newcommand\@didactic@sqinfo{%
+  \begingroup
+    \let\@didactic@tmp\@empty
+    \def\@didactic@sqelt##1,{\ifx\relax##1\relax\else
+      \ifnum##1>\@didactic@pagelast\else
+        \edef\@didactic@tmp{\@didactic@tmp
+          \ifx\@didactic@tmp\@empty\else,\space\fi
+          \csname @didactic@ln@##1\endcsname}%
+      \fi
+      \expandafter\@didactic@sqelt\fi}%
+    \expandafter\@didactic@sqelt\@didactic@sqnotes\relax,%
+    \PackageInfo{didactic}{The gaps above the margin footnotes of page
+      \thepage\MessageBreak are \the\@didactic@sqneed\space smaller in all (the
+      smallest is \the\@didactic@sqleast,\MessageBreak not
+      \the\marginparpush), which keeps beside its line\MessageBreak what is
+      called out at \@didactic@tmp\@gobble}%
+  \endgroup}
+%    \end{macrocode}
+% \end{macro}
+%
 % \begin{macro}{\@didactic@setwhy,\@didactic@whyof}
 % The reason is kept for both boxes of the note, since which of them is set 
 % depends on the side of the page, and cleared for a note that fits, since 
@@ -6803,6 +7216,8 @@
   \global\let\@didactic@leftfns\@empty
   \global\@didactic@closedfalse
   \global\@didactic@fncarriedfalse
+  \global\@didactic@sqfirst\z@
+  \global\let\@didactic@sqnotes\@empty
   \begingroup
     \def\mfx@build@note##1##2##3{%
       \@didactic@noteht\dimexpr\ht##1+\dp##1\relax
@@ -7992,7 +8407,15 @@
   \@didactic@floatclaimfalse
   \if@twocolumn\else\ifdim\@didactic@stay>\z@
   \@didactic@claim\@didactic@stay
-  \ifdim\@didactic@stay>\dimexpr\@didactic@room+\@didactic@overmax\relax
+  \global\@didactic@sqgive\z@
+  \ifnum\@didactic@sqfirst>\z@
+    \let\@didactic@sqemit\@gobble
+    \def\@didactic@sqshare{\dimen@\z@}%
+    \let\@didactic@sqend\@didactic@sqflush
+    \@didactic@sqwalk
+  \fi
+  \ifdim\dimexpr\@didactic@stay-\@didactic@sqgive\relax
+      >\dimexpr\@didactic@room+\@didactic@overmax\relax
     \@didactic@claim\@didactic@fnleft
     \ifdim\@didactic@fnleft<\@didactic@room\else\@didactic@claim\z@\fi
   \fi
@@ -8216,6 +8639,7 @@
   \def\MFX@combinefloats@before{%
     \@didactic@readcol\@didactic@sift
     \@didactic@overapply
+    \@didactic@sqapply
     \@didactic@mfxbuild
     \@didactic@overdone
     \@didactic@carrywarn

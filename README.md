@@ -154,7 +154,9 @@ make tests LATEXFLAGS="-shell-escape -interaction=nonstopmode"
   PASS/FAIL lines), `make check`, the sweep, and the rows of where margin notes
   go (`test-noteplace`, `test-notefoot`, `test-noteoverflow-foot`,
   `test-footreuse-spread`, `test-footwide`; `test-noteplace-tl12` and
-  `test-notefoot-tl12` again with TeX Live's marginfix 1.2), `test-testlog`,
+  `test-notefoot-tl12` again with TeX Live's marginfix 1.2;
+  `test-noteplace-engines`, the rows of the gaps between a margin's notes
+  under XeLaTeX and LuaLaTeX), `test-testlog`,
   of `testlog.py`, which the checks read the logs with, and the bilingual
   checks below. A test fails `make tests`; `make -k tests` runs them all and
   lists what failed. About two hours on one job, a third of it the documents
