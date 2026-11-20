@@ -276,7 +276,7 @@ A24fullnote didactic.dtx
 #= killed check-test-keep-noweb check-test-keep-noweb-break
 A25chunknote didactic.dtx
 -         \patchcmd{\nwbegincode}{\topsep}
--           {\@didactic@keep@notelist\topsep}{}{}%
+-           {\@didactic@keep@notelist\topsep}{}{\@didactic@nwkeepwarning}%
 
 #: keep
 #= killed check-test-keep-multicol
