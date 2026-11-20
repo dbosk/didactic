@@ -55,6 +55,10 @@
 #            mvdeferclaim and heldover only (the line-moves matrix; heldtopfn and heldtopmn
 #            are killed by Mheldtop with the rest of heldtop's), against the marginfix found
 #            or $MARGINFIX (46 to 63 s; 51 s)
+#   squeeze  test-noteplace, its rows sqfits, sqbehind, sqlines, sqwrite, sqover, sqcarried, sqnone, sqmoved, sqskip,
+#            sqplain, sqdefer, sqfloat, sqtwocol, sqcarrymode and sqdraft only (the gaps between
+#            a margin's notes as a reserve), against the marginfix found or $MARGINFIX
+#            (2.5 to 4 minutes a mutant, one at a time; 252 s; run on 2026-11-20)
 #   noteplace12 test-noteplace-tl12, its rows nestfn, nestmp and mcolnote only, with TeX
 #            Live's 1.2 whatever $MARGINFIX is (24 s; 44 s)
 #   footwide test-footwide, its cases rigid, oneline and beyond only (CASES), under its
@@ -2170,3 +2174,168 @@ Sleftours didactic.dtx
 +       \@firstofone{%
 +         \ifcsname @didactic@fn@\the\@didactic@noteof##1\endcsname
 
+# ===== The gaps between a margin's notes as a reserve (v2.20) =====
+
+# The trigger: a note stays beside its line by the gaps only where they can give what it
+# lacks.  Never: the note of sqfits goes on to the test for running past the foot of the
+# margin.
+#: squeeze
+#= killed test-noteplace
+Qtrigger didactic.dtx
+-     \ifdim\dimexpr\@didactic@stay+\@didactic@noteht-\@didactic@room\relax
+-         <\@didactic@sqgive
++     \ifdim\dimexpr\@didactic@stay+\@didactic@noteht-\@didactic@room\relax
++         <\z@
+
+# ... and always, where there is a gap to squeeze: the notes of sqover and sqcarried, which
+# lack more than the gaps give, stay too, and marginfix carries what doesn't fit.
+#: squeeze
+#= killed test-noteplace
+Qtrigmore didactic.dtx
+-     \ifdim\dimexpr\@didactic@stay+\@didactic@noteht-\@didactic@room\relax
+-         <\@didactic@sqgive
++     \ifdim\dimexpr\@didactic@stay+\@didactic@noteht-\@didactic@room\relax
++         <\maxdimen
+
+# The floor: a gap gives no more than leaves the footnote's first baseline a line of the
+# footnotes below the last baseline above.  Without it a gap goes down to nothing (sqover's
+# distances).
+#: squeeze
+#= killed test-noteplace
+Qfloor didactic.dtx
+-       \dimen@\dimexpr\@didactic@fl-\@tempdima-\@didactic@sqfh\relax
++       \dimen@\z@
+
+# ... and the floor is by the pair: the depth of the last line above counts (without it
+# every gap stops at the same 3.69pt, and FNB to FNC of sqover is 11.76pt, not 9.5pt).
+#: squeeze
+#= killed test-noteplace
+Qfloordepth didactic.dtx
+-         {\@tempdima\z@}{\@didactic@sqedges#1\@tempdima\@didactic@sqld}%
++         {\@tempdima\z@}{\@tempdima\z@}%
+
+# Only the gap above a margin footnote of ours gives (sqplain: the gap above a \marginpar).
+#: squeeze
+#= killed test-noteplace
+Qplain didactic.dtx
+-     \ifcsname @didactic@fn@\the\@didactic@noteof#2\endcsname
+-       \@didactic@ifdeferrable#1%
++     \iftrue
++       \@didactic@ifdeferrable#1%
+
+# The push before space that the author put into the margin stays (sqskip).
+#: squeeze
+#= killed test-noteplace
+Qskip didactic.dtx
+-         \@didactic@sqflush
+-         \advance\@tempdimb\dimexpr##1\relax
++         \advance\@tempdimb\dimexpr##1\relax
+
+# The gaps give what the column's notes need and no more (sqfits: seven tenths of what
+# they can; with all of it the distances are the floor's).
+#: squeeze
+#= killed test-noteplace
+Qneed didactic.dtx
+-       \global\@didactic@sqneed
+-         \dimexpr\@didactic@sqtotal-\@didactic@room+1sp\relax
++       \global\@didactic@sqneed\maxdimen
+
+# A note that runs past the foot of the margin after the gaps have given all asks for the
+# squeeze too (sqover, sqplain): without, its room is counted with the smaller gaps and the
+# gaps stay.
+#: squeeze
+#= killed test-noteplace
+Qovermark didactic.dtx
+-   \ifdim\@didactic@sqgive>\z@ \@didactic@sqmark \fi
++   \relax
+
+# The squeeze is said in the log.
+#: squeeze
+#= killed test-noteplace
+Qinfo didactic.dtx
+-         \global\let\@didactic@sqout\@empty
+-         \@didactic@sqinfo
++         \global\let\@didactic@sqout\@empty
+
+# In the mode carry (and so with draft) nothing is squeezed: the squeeze asked before the
+# mode is.
+#: squeeze
+#= killed test-noteplace
+Qcarrymode didactic.dtx
+-     \@didactic@ifcarry
+-       {\@didactic@carry{noteoverflow is carry}}
++     \@didactic@sqroom
++     \@didactic@ifsqueeze{\@didactic@squeeze\@gobble}{\@didactic@ifcarry
++       {\@didactic@carry{noteoverflow is carry}}}%
+
+# A float gives way to the notes already decided where they can stay with their gaps at the
+# smallest (sqfloat): by the tally with the gaps as they are, the notes are more than the
+# margin holds and the float is let through.
+#: squeeze
+#= killed test-noteplace
+Qfloat didactic.dtx
+-   \ifdim\dimexpr\@didactic@stay-\@didactic@sqgive\relax
+-       >\dimexpr\@didactic@room+\@didactic@overmax\relax
++   \ifdim\@didactic@stay
++       >\dimexpr\@didactic@room+\@didactic@overmax\relax
+
+# The first note a squeeze was decided for is not in the column (TeX took its line on):
+# nothing is done.  Without the test the amount is still computed from the notes in the
+# column, which fit, so it is nothing either way (sqmoved); the test is what keeps a column
+# for which no squeeze was decided from being squeezed where the tally was wrong (an
+# author's \marginskip above notes that then don't fit), which no row has.
+#: squeeze
+#= survived
+Qfirst didactic.dtx
+-     \ifnum\@didactic@sqfirst>\@didactic@pagelast\else
++     \iffalse\else
+
+
+# The walk ends at the first note decided carried for this page: the notes behind it wait
+# for the next page, and are neither counted in what the page's notes need nor changed
+# (sqbehind: the gaps above NOTEY give as in sqfits, and the two carried footnotes stand
+# as far apart as ever on the next page).
+#: squeeze
+#= killed test-noteplace
+Qbehind didactic.dtx
+-       \ifnum\csname @didactic@dn@\the\@didactic@noteof#1\endcsname=\c@page
+-         \@tempswatrue
+-       \fi
++       \relax
+
+# The same two by the random documents: without the floor, footnotes of a squeezed margin
+# stand closer than a footnote's lines (the checker's rule for the margin's footnotes);
+# without the line in the log, a page has its footnotes closer than the gap leaves them and
+# nothing says so.
+#: fuzz
+#= killed test-fuzz
+Qfloorfz didactic.dtx
+-       \dimen@\dimexpr\@didactic@fl-\@tempdima-\@didactic@sqfh\relax
++       \dimen@\z@
+
+#: fuzz
+#= killed test-fuzz
+Qinfofz didactic.dtx
+-         \global\let\@didactic@sqout\@empty
+-         \@didactic@sqinfo
++         \global\let\@didactic@sqout\@empty
+
+# A footnote's first line is the last box taken off its list only if nothing with a height
+# is left above it: where the list can't be taken apart to its top (sqwrite: a \write
+# between the lines), the gap above stays as it is.  Without the test the second line
+# counts as the first.
+#: squeeze
+#= killed test-noteplace
+Qabove didactic.dtx
+-       \ifdim\dimexpr\ht\z@+\dp\z@\relax>\z@ \global\@didactic@sqfh\z@ \fi
++       \relax
+
+# ... and every box is taken off, down to the first: stopping after the last line, a
+# footnote of two lines counts its second line's height as its first's (sqlines, where the
+# first line is higher by its mark, so the distances come out larger).
+#: squeeze
+#= killed test-noteplace
+Qstrip didactic.dtx
+-     \global\@didactic@sqfh\ht\tw@
+-     \expandafter\@didactic@sqstrip
++     \global\@didactic@sqfh\ht\tw@
