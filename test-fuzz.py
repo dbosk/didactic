@@ -28,7 +28,10 @@ The check (each item a problem): an error in the log; a note on another page
 than its callout that no warning names by its line (deferrable notes apart); a
 warning whose pages aren't the labels'; a note whose label is missing; two words
 that overlap; a margin or a foot out of order on a page; footnotes out of order
-across pages; a note printed twice or not at all; a document that doesn't settle.
+across pages; a note printed twice or not at all; a margin footnote of didactic's
+closer to the note above it than a footnote's lines are to each other; a page whose
+margin footnotes are closer than they stand unsqueezed with no information line
+that says its gaps are smaller; a document that doesn't settle.
 
 EXPECTED lists the cases that fail for a known reason, each with it; the run
 fails if one of them passes (the list can't go stale) or if any other fails.
@@ -72,6 +75,7 @@ EXPECTED = {
                    " it to page 4, after 39, 40 and 42; named found from the last run",
 }
 TOL = 0.5  # pt: pdftotext's word boxes against TeX's widths
+FL = 9.5   # pt: the lines of a footnote in the generated documents (memoir at 10pt)
 
 W = ("alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi "
      "omicron pi rho sigma tau upsilon").split()
@@ -259,7 +263,17 @@ def judge(name, tex, aux, rawlog, log, bbox):
     log's page marks) and the overlap on page k + 1 or k + 2; TeX warns of that
     line, and didactic places no note there.  (xe seed 2 has one: "Overfull \\hbox (9.93341pt too wide) in paragraph
     at lines 154--158", into a margin note; didactic v2.17 on master gives the same
-    line for that document.)  The exceptions are lines starting INFO, counted by
+    line for that document.)  A margin footnote of didactic's is never closer to the
+    note above it in the margin than a footnote's lines are to each other (FL): by
+    the feet of the word boxes, the note's first word (NOTEKx) is at least that far
+    below the lowest word of the note above (the notes' marks, raised numbers, left
+    out), less 0.15pt when the note above is a footnote of didactic's too (the
+    same font, so the feet's distance is the baselines'), less 0.75pt otherwise
+    (another font's boxes reach lower).  Where two such footnotes are closer than the
+    closest that the unsqueezed gap leaves them (5pt and the first line's height:
+    10.81pt with pdfTeX and LuaTeX, a little over 12pt with XeTeX's fonts), the
+    page's gaps were made smaller, and the log must have the information line that
+    says so for that page.  The exceptions are lines starting INFO, counted by
     kind."""
     src = tex.split("\n")
     lineof, kind = {}, {}
@@ -426,6 +440,18 @@ def judge(name, tex, aux, rawlog, log, bbox):
         else:
             overfull.append((float(m[1]), shipped))
     seen = {}
+
+    def ours_fn(K):
+        """K is a footnote of didactic's: a \\footnote or a \\footnotetext, not in
+        \\footnotesatfoot or multicol's columns."""
+        return kind.get(K) == "ours" and ("\\footnote" in src[lineof[K] - 1]
+                                          or bool(pg.get("t-" + K)))
+
+    # the pages whose gaps the log says are smaller, and how close two footnotes stand
+    # with the gap as it is, at the least (the push and the first line; by the engine's
+    # fonts)
+    squeezed = set(re.findall(r"The gaps above the margin footnotes of page (\d+) are", log))
+    unsq = 12.0 if "XeTeX" in rawlog[:200] else 10.81
     for n, page in enumerate(re.findall(r"<page[^>]*>(.*?)</page>", bbox, re.S), 1):
         ws = [(float(a), float(b), float(c), float(d), t) for a, b, c, d, t in
               re.findall(r'<word xMin="([-\d.]+)" yMin="([-\d.]+)" xMax="([-\d.]+)" '
@@ -441,6 +467,28 @@ def judge(name, tex, aux, rawlog, log, bbox):
                   if "\\ltnote" not in src[lineof.get(str(t), 1) - 1]]
             if ks != sorted(ks):
                 probs.append(f"p{n} {where} order {ks}")
+        # the notes of the margin from the top, by the foot of each note's first word;
+        # the words of the margin, without the notes' marks (raised numbers; the
+        # generated words have no digits but in NOTEKx)
+        mnotes = sorted((w[3], int(t)) for w in ws if mx - 5 <= w[0] <= mx + mw
+                        for t in re.findall(r"NOTE(\d+)x", w[4]))
+        mfeet = sorted(w[3] for w in ws if mx - 5 <= w[0] <= mx + mw
+                       and not w[4].strip().isdigit())
+        for (ya, ka), (yb, kb) in zip(mnotes, mnotes[1:]):
+            if not ours_fn(str(kb)):
+                continue
+            above = [y for y in mfeet if ya - .5 <= y < yb - 2]
+            if not above:
+                continue
+            dist = (yb - max(above)) * 72.27 / 72
+            both = ours_fn(str(ka))
+            if dist < FL - (.15 if both else .75):
+                probs.append(f"p{n} margin footnote {kb} is {dist:.2f}pt below note {ka}, "
+                             f"closer than a footnote's lines ({FL}pt)")
+            elif both and dist < unsq - .2 and str(n) not in squeezed:
+                probs.append(f"p{n} margin footnotes {ka} and {kb} are {dist:.2f}pt apart, "
+                             f"closer than unsqueezed ({unsq}pt), and no information line "
+                             f"says that the page's gaps are smaller")
         pairs = [(a, b) for i, a in enumerate(ws) for b in ws[i + 1:]
                  if min(a[2], b[2]) - max(a[0], b[0]) > 1
                  and min(a[3], b[3]) - max(a[1], b[1]) > 1]
@@ -546,7 +594,7 @@ MOVERS = [("unbreakable", "\\interlinepenalty=10000"), ("display", "\\begin{matr
           ("long carry", "% long carry")]
 
 
-def synthetic(notes, warn=(), extra=(), raw="", margin=305):
+def synthetic(notes, warn=(), extra=(), raw="", margin=305, at=None, info=()):
     """A small made-up document for judge(): notes are (K, kind, mark page, note
     page[, \footnotetext page]), kind ours, latex or multicol; warn are (K, how,
     from page, to page), how set (didactic's, "is set on page"), TeX or multicol
@@ -556,7 +604,9 @@ def synthetic(notes, warn=(), extra=(), raw="", margin=305):
     ("TeX ended page" from page, to page unused) or lost ("wasn't printed");
     extra are words (page, x0, y0, x1, y1, text) beside the notes' (each note's
     word spans the text, x 50 to 300, so the text's edge is at 300; the margin
-    starts at x margin); raw is put in the log as written."""
+    starts at x margin); raw is put in the log as written; at gives a note's word
+    another box, K: (x0, y0, x1, y1), say in the margin; info are pages whose gaps
+    the log says are smaller."""
     tex, line = ["% synthetic"], {}
     for K, kind, c, n, *t in notes:
         if kind == "latex":
@@ -595,7 +645,11 @@ def synthetic(notes, warn=(), extra=(), raw="", margin=305):
             mc = " in multicols" if how == "multicol" else ""
             log.append(f"Package didactic Warning: Footnote called out at fz.tex:{line[K]}{mc}"
                        f" on page {p} is set at the foot of page {q}, where LaTeX puts it")
-    words = [(n, 50, 600 + 10 * i, 300, 608 + 10 * i, f"NOTE{K}x")
+    for p in info:
+        log.append(f"Package didactic Info: The gaps above the margin footnotes of page {p}"
+                   " are 3.0pt smaller in all (the smallest is 2.0pt, not 5.0pt), which keeps"
+                   " beside its line what is called out at fz.tex:1.")
+    words = [(n, *(at or {}).get(K, (50, 600 + 10 * i, 300, 608 + 10 * i)), f"NOTE{K}x")
              for i, (K, kind, c, n, *t) in enumerate(notes)] + list(extra)
     pages = max([w[0] for w in words] + [1])
     bbox = "".join("<page>" + "".join(
@@ -716,6 +770,49 @@ def selftest():
          synthetic([(1, "ours", 1, 1)], extra=over + [(1, 290, 101, 311, 109, "BODY2")],
                    raw="Overfull \\hbox (11.0pt too wide) in paragraph at lines 1--2\n"),
          lambda r: has(r, "p1 overlap")),
+        # margin footnotes and the gap between them: the feet of the words' boxes, in
+        # bp (9.5pt is 9.464bp, 10.81pt is 10.77bp)
+        ("two margin footnotes a footnote's line apart, the log saying the gaps are "
+         "smaller, pass",
+         synthetic([(1, "ours", 1, 1), (2, "ours", 1, 1)], info=[1],
+                   at={1: (306, 100, 340, 108), 2: (306, 109.47, 340, 117.47)}),
+         lambda r: not r),
+        ("... closer than that fail",
+         synthetic([(1, "ours", 1, 1), (2, "ours", 1, 1)], info=[1],
+                   at={1: (306, 100, 340, 108), 2: (306, 109.2, 340, 117.2)}),
+         lambda r: has(r, "p1 margin footnote 2 is 9.23pt below note 1, closer than")),
+        ("... a line apart with no information line for the page fail",
+         synthetic([(1, "ours", 1, 1), (2, "ours", 1, 1)],
+                   at={1: (306, 100, 340, 108), 2: (306, 109.47, 340, 117.47)}),
+         lambda r: has(r, "closer than unsqueezed") and has(r, "no information line")),
+        ("... the information line for another page doesn't count",
+         synthetic([(1, "ours", 1, 1), (2, "ours", 1, 1)], info=[2],
+                   at={1: (306, 100, 340, 108), 2: (306, 109.47, 340, 117.47)}),
+         lambda r: has(r, "no information line")),
+        ("... as far apart as the gap leaves them, with no information line, pass",
+         synthetic([(1, "ours", 1, 1), (2, "ours", 1, 1)],
+                   at={1: (306, 100, 340, 108), 2: (306, 110.8, 340, 118.8)}),
+         lambda r: not r),
+        ("the distance is from the upper note's last line, not its first",
+         synthetic([(1, "ours", 1, 1), (2, "ours", 1, 1)], info=[1],
+                   at={1: (306, 100, 340, 108), 2: (306, 118.5, 340, 126.5)},
+                   extra=[(1, 306, 109.5, 340, 117.5, "last")]),
+         lambda r: has(r, "p1 margin footnote 2 is 9.03pt below note 1")),
+        ("the lower note's mark, a raised number, is not the upper note's last line "
+         "(as high as XeTeX's fonts make its box)",
+         synthetic([(1, "ours", 1, 1), (2, "ours", 1, 1)],
+                   at={1: (306, 100, 340, 108), 2: (312, 111, 340, 119)},
+                   extra=[(1, 306, 109.4, 310, 115.6, "2")]),
+         lambda r: not r),
+        ("... a word there that is no number is the upper note's last line",
+         synthetic([(1, "ours", 1, 1), (2, "ours", 1, 1)],
+                   at={1: (306, 100, 340, 108), 2: (312, 111, 340, 119)},
+                   extra=[(1, 306, 109.4, 310, 115.6, "nu")]),
+         lambda r: has(r, "p1 margin footnote 2 is 3.41pt below note 1")),
+        ("a footnote of LaTeX's own under a note in the margin is not held to the line",
+         synthetic([(1, "ours", 1, 1), (2, "latex", 1, 1)],
+                   at={1: (306, 100, 340, 108), 2: (306, 108.5, 340, 116.5)}),
+         lambda r: not has(r, "closer than")),
     ]
     bad = 0
     for what, probs, ok in cases:
