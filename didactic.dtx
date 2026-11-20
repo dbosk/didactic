@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}[2021/06/01]
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/11/18 v2.19.1 didactic]
+  [2026/11/19 v2.20 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -163,6 +163,15 @@
 %   when it's loaded.
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
+% }
+% \changes{v2.20}{2026/11/19}{%
+%   A margin note that fits neither beside its line, nor at the foot whole, nor
+%   within the two lines past the margin's foot ends its page before its line,
+%   so that the line and the note start the next page together, where the rules
+%   for headings, lists and listings let a page end and within
+%   \texttt{keepmaxgap}; else it is carried as before, and the warning says
+%   why the page couldn't end.  The log says each page that ends early, and
+%   warns if that leaves a line of a paragraph alone.
 % }
 % \changes{v2.19.1}{2026/11/18}{%
 %   A margin note carried from a page whose number isn't printed in digits
@@ -862,9 +871,9 @@
 % wide as the text and the margin (\textsf{memoir}'s |\headwidth| widened into
 % the margin, as in its |companion| style) would be in its way.
 % A footnote is never split over two pages (issue \#104 has why that waits):
-% one too long for the foot whole is carried to the next page, as any note that
-% fits nowhere, and the warning says that it doesn't fit the foot whole and how
-% many lines the foot had left.
+% one too long for the foot whole fits nowhere on its page, and ends the page
+% before its line or is carried to the next (below); the log says that it
+% doesn't fit the foot whole and how many lines the foot had left.
 % At the foot a footnote is set as \textsf{memoir} sets one there, in the width
 % of the text.
 % Its text runs once, where it is called out, as without \textsf{didactic}: it
@@ -902,21 +911,53 @@
 % boxes for floats (``Too many unprocessed floats''), and notes are lost, where
 % carried notes pile up: seen under Xe\LaTeX, and under pdf\LaTeX\ with
 % \TeX~Live's \textsf{marginfix} 1.2 (issue \#103).
-% A footnote called out after a footnote carried from the page is carried too,
-% even where it would fit at the foot: on a page the footnotes keep their order.
+% A footnote called out after a footnote carried from the page doesn't go to
+% the foot either, even where it would fit there: on a page the footnotes keep
+% their order.
 % Across pages a footnote stays at its own page's foot: where footnotes carried
 % from the pages before are more than this page's margin holds, one called out
 % here can be set at the foot before one still waiting in the margin, and a
 % warning names both.
 % None runs past the foot of the page: a footnote that would run past it, even by
-% a line, is carried (no other place keeps it whole and its page right when \TeX\
-% takes its line on, or a footnote of \LaTeX's own follows it at the foot).
+% a line, fits nowhere on its page (no other place keeps it whole and its page
+% right when \TeX\ takes its line on, or a footnote of \LaTeX's own follows it at
+% the foot).
 % The room at the foot is counted at the natural size of the page, so that
 % \TeX's own page break agrees; where it still takes a footnote's line to the
 % next page (lines that must stay together with it), the note goes with the
 % line and a warning says so.
-% Any other note is carried to a later page, with a warning that names it and
-% says why.
+% A note that fits nowhere on its page ends the page before its line, so that
+% the line and the note start the next page together, as \TeX\ does with a
+% footnote's line when the foot is full.
+% The page is then short by that line and by what must go with it: at most
+% |keepmaxgap| lines, the limit for everything that moves to the next page to
+% stay together, counted with the room that the footnotes of those lines leave
+% at the foot.
+% It ends only where the rules of \cref{KeepListingsUsage} let a page end by
+% choice: not between a heading and the lines it keeps (the heading goes along,
+% if the limit allows), not between a list, a listing or a code chunk and what
+% leads into it, not inside what a listing keeps together, and not above the
+% callout of a float.
+% The log says which page ends early, before which note and how much it is
+% short, as information; where that leaves the first or the last line of a
+% paragraph alone, as the class's penalties allow, it is a warning.
+% A note called out between two paragraphs ends the page where it stands.
+% Where the note's line is on its page only because the page can shrink, the
+% break is left to \TeX, which often takes such a line to the next page itself,
+% the note with it; if it doesn't, the note is carried.
+% Where the page can't end so, the note is carried to the next page, with a
+% warning that names it and says why: the limit, a heading or a list, a float,
+% or a footnote of \LaTeX's own at the foot (the footnotes of the lines so far
+% are at the foot already, and a line taken back could leave its own behind).
+% No page ends early in two columns, with |noteoverflow=carry|, for a
+% deferrable note, a margin float or a note taller than the margin; nor twice
+% for one note: if the next page has no place for it either, its margin taken
+% by notes carried there, it is carried from that page, and the warning says
+% that a page ended for it.
+% The notes are decided one after the other: of several in one line the first
+% may have gone to the foot when one of them fits nowhere, and the page then
+% ends before the line only if the limit allows what the line and those notes
+% leave empty.
 % A note whose line \TeX\ takes to the next page after the note was called out
 % goes with its line and waits at the top of that page's margin, its first
 % line on the text's first line: beside its line when that line opens the
@@ -956,7 +997,8 @@
 % and names none that \TeX\ or \textsf{multicol} moves.
 % Deferrable notes (|\ltnote| and the like) are left out: \textsf{marginfix}
 % moves them on by design, as its mode says.
-% |noteoverflow=break| is gone: no page ends early for a note.
+% |noteoverflow=break| of version~2.15 is gone: a page ends early for a note
+% only as above, in the mode |foot|.
 % In two columns a note runs past the foot of its column's margin the same way,
 % but there is no foot beside a column for a footnote, so it is carried.
 % Inside \textsf{multicol}'s |multicols|, where no margin note can be set, a
@@ -1940,7 +1982,29 @@
 %   with \texttt{carry}, at a hyphen or a dash, on 14 pages of the three Xe\LaTeX\ builds
 %   (see the option \texttt{noteoverflow}).
 %   (v2.15's \texttt{break}, which ended a page before the line of a note that didn't
-%   fit, is gone, with its measure; \cref{app:pb-measure}.)} \\
+%   fit, is gone, with its measure, \cref{app:pb-measure}; from v2.20 a page ends so
+%   only for a note that would be carried, the next row.)} \\
+% \midrule
+% A page ends before the line of a note that fits nowhere on it & Yes, within the limit &
+%   \TeX\ does it for a footnote that the foot can't hold; \textsf{marginfix} moves
+%   the note to the next page. \\*
+% \multicolumn{3}{@{}p{.96\linewidth}@{}}{\emph{Basis:} correct or warn: a note with
+%   its line, where the other choice is a note on another page than its line.
+%   It comes last: beside the line, the foot whole, two lines past the margin's foot,
+%   then this, then carried; the order is the maintainer's.
+%   So is the limit, \texttt{keepmaxgap} as for every page left short, counted with
+%   the room that the footnotes of the lines taken back leave at the foot, and the
+%   rule that such a page ends only where the keep rules would let a page end by
+%   choice (not where they only tolerate a break of \TeX's).
+%   Where the note's line is on the page only by what the page can shrink, the break
+%   is left to \TeX.
+%   \emph{Strength:} no outside support beyond what \TeX\ does with a footnote; the
+%   maintainer's choice.
+%   \emph{Reopens:} real documents in which it costs a page more than carrying, or in
+%   which notes refused by the limit on a line with several notes are more than the
+%   notes it keeps with their lines (the log names each: \enquote{ends early},
+%   \enquote{keepmaxgap allows}); a reader study on short pages.
+%   \emph{Measured:} see \cref{app:pb-measure}.} \\
 % \midrule
 % A citation's footnote is reused on its spread, \texttt{footnotereuse} & \texttt{compact} &
 %   \textsf{biblatex}: every citation in a footnote makes a footnote of its own. \\*
@@ -5623,8 +5687,8 @@
 % A margin note that doesn't fit beside its line is \textsf{didactic}'s to 
 % place, by the option |noteoverflow|: beside its line, running past the foot
 % of the margin by up to two lines; at the foot of its page, whole, if it is a
-% footnote; or carried to a later page, with a warning.
-% No page ends early for a note.
+% footnote; at the start of the next page with its line, the page ending
+% before that line; or carried to a later page, with a warning.
 % The decision is taken where the note is called out, in the kernel's special 
 % output for the note, and once only: it reads nothing from the |.aux| file,
 % so the notes are in place in the run that sets them (the records written
@@ -6143,25 +6207,34 @@
 \newcommand\@didactic@callout{%
   \let\@didactic@after\relax
   \let\@didactic@skip\relax
+  \@didactic@endedfalse
   \expandafter\@didactic@peek\@currlist\@elt\relax\@elt\relax\@nil
   \ifnum\@didactic@noteof\@didactic@head>\z@
     \@didactic@decide
-    \@didactic@freenote{\the\@didactic@noteof\@didactic@head}%
+    \if@didactic@ended\else
+      \@didactic@freenote{\the\@didactic@noteof\@didactic@head}%
+    \fi
+  \else
+    \@didactic@ee@float
   \fi
   \@didactic@footback
-  \ifnum\@didactic@noteof\@didactic@head>\z@
-    \@didactic@sameline
+  \if@didactic@ended
+    \@didactic@endemit
+  \else
+    \ifnum\@didactic@noteof\@didactic@head>\z@
+      \@didactic@sameline
+    \fi
+    \unvbox\@holdpg
+    \ifx\@didactic@skip\@didactic@skipnext
+      \@didactic@attach{\@didactic@reinserts}%
+    \fi
+    \@didactic@after
+    \ifnum\@didactic@noteof\@didactic@head>\z@
+      \@didactic@attach{%
+        \marks\@didactic@notemarks{\the\@didactic@noteof\@didactic@head}}%
+    \fi
+    \if@didactic@samelined\penalty\interlinepenalty\fi
   \fi
-  \unvbox\@holdpg
-  \ifx\@didactic@skip\@didactic@skipnext
-    \@didactic@attach{\@didactic@reinserts}%
-  \fi
-  \@didactic@after
-  \ifnum\@didactic@noteof\@didactic@head>\z@
-    \@didactic@attach{%
-      \marks\@didactic@notemarks{\the\@didactic@noteof\@didactic@head}}%
-  \fi
-  \if@didactic@samelined\penalty\interlinepenalty\fi
   \@didactic@skip}
 \def\@didactic@peek\@elt#1\@elt#2#3\@nil{%
   \def\@didactic@head{#1}\def\@didactic@pair{#2}}
@@ -6592,7 +6665,10 @@
            {\@didactic@over}
            {\@didactic@footplace\z@
             \if@tempswa\else
-              \expandafter\@didactic@carry\expandafter{\@didactic@footwhy}%
+              \@didactic@ifcanend
+                {\@didactic@endpage}
+                {\edef\@didactic@footwhy{\@didactic@footwhy\@didactic@endwhy}%
+                 \expandafter\@didactic@carry\expandafter{\@didactic@footwhy}}%
             \fi}%
        \fi}%
   \fi}
@@ -7893,7 +7969,7 @@
     \advance\dimen@-\dimexpr\ht\footins+\dp\footins+\skip\footins\relax
   \fi
   \def\@didactic@welt##1,{\ifx\relax##1\relax\else
-    \ifnum##1>\@didactic@colast
+    \ifnum\if@didactic@endedcol\z@\else##1\fi>\@didactic@colast
     \@didactic@warned{##1}%
     \PackageWarningNoLine{didactic}{TeX ended page \thepage\space before the
       line of the footnote\MessageBreak called out at
@@ -7905,7 +7981,614 @@
       \space lines short}%
     \fi
     \expandafter\@didactic@welt\fi}%
-  \expandafter\@didactic@welt\@didactic@footids\relax,}
+  \expandafter\@didactic@welt\@didactic@footids\relax,%
+  \global\@didactic@endedcolfalse}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{A page that ends before a note's line}
+%
+% A note that fits neither beside its line, nor at the foot whole, nor within
+% the two lines it may run past the foot of the margin would be carried to the
+% next page, away from its line.  Before that, we try to end the page before
+% the line, so that the line and its note start the next page together: what
+% \TeX\ does with the line of a footnote that the foot can't hold.  The page so
+% far ends with the callout's line, since \TeX\ fires the special output right
+% after it; so we split the page so far at a place above that line, put the
+% upper part back with a forced break after it, then the lower part, and then
+% ask for the special output again.  The note's boxes stay where they are, at
+% the head of |\@currlist|, and when the line has started the next page the
+% note is decided there as any note: beside its line, where the margin is now
+% free, or at the foot.
+% Nothing is kept from this in the |.aux| file, and no page is set twice.
+%
+% Where may the page end?  \TeX\ can end it at any place to break whose
+% penalty is below 10000, and those are the places we look at, from the
+% callout's line upwards (|\@didactic@ee@last|).  That keeps what the list
+% itself forbids: the first lines under a heading, a lead-in that the keep code
+% tied to its list or listing, a listing kept whole, the two lines at each of
+% its ends, a class that forbids lone lines.  But the keep code
+% (\cref{KeepListings}) decides for a page that \TeX\ ends because it is full:
+% where it can't hold a tie within |keepmaxgap| it lets go, and where a place
+% to break comes in between (a note, a list after a paragraph of one line) it
+% can only warn afterwards.  For a page that we end by choice, those places are
+% wrong.  A first attempt to tell them apart by marks in the page list changed
+% pages of documents without any note (issue \#101), so here nothing goes into
+% any list: the keep code's own hooks record, by assignments, the
+% \emph{zones} of the column in which no page may end by choice.
+% \begin{description}
+% \item[A heading's zone] runs from the start of a heading to where it has
+%   its lines, |keepafterheading| of them: the start of the paragraph in which
+%   the count reaches zero, and as many lines further down as were still
+%   missing there (lines of the text, |\@didactic@keep@L|; the heading's chain
+%   of penalties forbids the places before that in this paragraph anyway, and
+%   by height a display or a tall box counts as the keep code counts it).  The
+%   place right before the heading is not in its zone: the heading goes to the
+%   next page with its lines and the note; but it is in the zone of the heading
+%   before, if that one hasn't had its lines.
+% \item[A lead-in's zone] runs from the end of the paragraph that leads into a
+%   list, a listing, a chunk or code side by side to where that starts, for
+%   every tie the keep code considers (|\@didactic@keep@tie|), held or let go.
+% \item[Floats] A float called out in the lines that would go on has been
+%   given a place on this page already, perhaps at its top or bottom; above
+%   its callout no page ends.
+% \end{description}
+% A place in a zone is passed over, and the search goes on upwards, until the
+% page would be left with more than |keepmaxgap| empty lines: the same limit as
+% for everything else that moves to the next page to stay together.  Then the
+% note is carried, and its warning says why the page couldn't end.
+%
+% Positions are |\pagetotal| plus |\pagedepth| where something is recorded, and
+% height plus depth of the upper part where a place is tried; the two are the
+% same number for the same place, to the scaled point, whatever |\maxdepth| is
+% (|\@didactic@keep@outrec| compares them the same way).  \TeX\ reads ahead of
+% the page it breaks: a heading that goes to the next page was recorded with
+% the old page's numbers.  When a column is built (|\@didactic@ee@rebase|) the
+% zones that ended in it are dropped, and those that go on are counted from the
+% top of the next column down to the most they can reach there: the old
+% position less the height of the column built, plus |\topskip|.  That is never
+% too little, as long as what \TeX\ discards at the break isn't negative in
+% sum (a |\vspace| of a negative length exactly at a page break would be), and
+% too much by the space discarded there, a few lines from the top of a page,
+% where no page ends for a note.
+%
+% \begin{macro}{\@didactic@ee@head,\@didactic@ee@titled,\@didactic@ee@close,
+%   \@didactic@ee@para,\@didactic@ee@parend,\@didactic@ee@lead,\@didactic@ee@float}
+% The records.  |\@didactic@ee@hy| is where the last heading starts,
+% |\@didactic@ee@hz| where its zone ends (|\maxdimen| until a paragraph has
+% started under it, $-$|\maxdimen| for none), |\@didactic@ee@hf| where the
+% first paragraph under it started, for |\@didactic@ee@rebase|, and
+% |\@didactic@ee@need| the lines it still needs: negative while its title is
+% being set, which is an outer paragraph too for a heading on a line of its
+% own, until |\@afterheading| (or at once for a run-in title, which is part of
+% its first line).  A heading right after another stands or falls with it, as
+% for the keep code, and goes on with its zone.  An earlier heading's zone is
+% kept in the list |\@didactic@ee@zones|, as
+% |\@didactic@ee@z{|\meta{from}|}{|\meta{to}|}{|\meta{first paragraph}|}|: a
+% place $y$ is in it if \meta{from}${}+1\,\mathrm{pt}<y<{}$\meta{to}; it ends at
+% the next heading's start at the latest, a little past it if it hasn't its
+% lines by then, so that the place before the next heading counts as inside.
+% The lines of a paragraph are counted as the keep code counts them,
+% |\prevgraf| or the height if that is more; a title that was waiting and got
+% a line of its own (|\if@didactic@keep@titleonly|) is no line.
+% |\@didactic@ee@trace| does nothing; the tests and the measurements define it
+% to write the positions to the log.
+%    \begin{macrocode}
+\newif\if@didactic@ended
+\newif\if@didactic@endedcol
+\newif\if@didactic@ee@try
+\newif\if@didactic@ee@cut
+\newif\if@didactic@ee@in
+\newif\if@didactic@ee@blocked
+\newif\if@didactic@ee@stepped
+\newif\if@didactic@ee@ok
+\newbox\@didactic@top
+\newbox\@didactic@rest
+\newbox\@didactic@disc
+\newbox\@didactic@pdisc
+\newbox\@didactic@cut
+\newdimen\@didactic@eey
+\newdimen\@didactic@gap
+\newdimen\@didactic@ee@hy
+\newdimen\@didactic@ee@hz
+\newdimen\@didactic@ee@hf
+\newdimen\@didactic@ee@ps
+\newdimen\@didactic@ee@pend
+\newdimen\@didactic@ee@fl
+\newdimen\@didactic@ee@d
+\newcount\@didactic@ee@need
+\newcount\@didactic@ee@c
+\newcount\@didactic@bpen
+\@didactic@ee@hy-\maxdimen
+\@didactic@ee@hz-\maxdimen
+\@didactic@ee@hf\maxdimen
+\@didactic@ee@pend-\maxdimen
+\@didactic@ee@fl-\maxdimen
+\let\@didactic@ee@zones\@empty
+\let\@didactic@endwhy\@empty
+\newcommand\@didactic@ee@trace[1]{}
+\newcommand\@didactic@ee@pos{\dimexpr\pagetotal+\pagedepth\relax}
+\newcommand\@didactic@ee@head{%
+  \if@didactic@noteplace\ifvmode\ifinner\else
+    \if@nobreak\else\if@noskipsec\else
+      \@didactic@ee@close
+      \global\@didactic@ee@hy\@didactic@ee@pos
+    \fi\fi
+    \global\@didactic@ee@need-\@didactic@keepafterheading\relax
+    \global\@didactic@ee@hz\maxdimen
+    \global\@didactic@ee@hf\maxdimen
+    \@didactic@ee@trace{didactic-ee: head \the\@didactic@ee@hy}%
+  \fi\fi\fi}
+\newcommand\@didactic@ee@titled{%
+  \ifnum\@didactic@ee@need<\z@
+    \global\@didactic@ee@need-\@didactic@ee@need
+  \fi}
+\newcommand\@didactic@ee@close{%
+  \ifdim\@didactic@ee@hz>\@didactic@ee@hy
+    \xdef\@didactic@ee@zones{\unexpanded\expandafter{\@didactic@ee@zones}%
+      \noexpand\@didactic@ee@z{\the\@didactic@ee@hy}%
+        {\the\dimexpr\ifdim\@didactic@ee@hz>\dimexpr\@didactic@ee@pos+2\p@\relax
+           \@didactic@ee@pos+2\p@\else\@didactic@ee@hz\fi\relax}%
+        {\the\@didactic@ee@hf}}%
+  \fi}
+\newcommand\@didactic@ee@para{%
+  \ifnum\@didactic@ee@need>\z@
+    \global\@didactic@ee@ps\@didactic@ee@pos
+    \ifdim\@didactic@ee@hf=\maxdimen
+      \global\@didactic@ee@hf\@didactic@ee@ps
+    \fi
+    \global\@didactic@ee@hz\dimexpr\@didactic@ee@ps
+      +\@didactic@ee@need\@didactic@keep@L-.25\@didactic@keep@L\relax
+    \@didactic@ee@trace{didactic-ee: para \the\@didactic@ee@ps\space
+      need \the\@didactic@ee@need}%
+  \fi}
+\newcommand\@didactic@ee@parend{%
+  \if@didactic@noteplace
+    \ifnum\@didactic@ee@need>\z@\if@didactic@keep@titleonly\else
+      \@didactic@ee@c\prevgraf
+      \@didactic@ee@d\dimexpr\@didactic@ee@pos-\@didactic@ee@ps\relax
+      \ifdim\@didactic@ee@d>\z@
+        \divide\@didactic@ee@d\@didactic@keep@L
+        \ifnum\number\@didactic@ee@d>\@didactic@ee@c
+          \@didactic@ee@c\number\@didactic@ee@d\relax
+        \fi
+      \fi
+      \global\advance\@didactic@ee@need-\@didactic@ee@c
+      \ifnum\@didactic@ee@need>\z@\else
+        \global\@didactic@ee@need\z@
+        \ifdim\@didactic@ee@hz>\dimexpr\@didactic@ee@pos-\p@\relax
+          \global\@didactic@ee@hz\dimexpr\@didactic@ee@pos-\p@\relax
+        \fi
+      \fi
+    \fi\fi
+    \global\@didactic@ee@pend\@didactic@ee@pos
+    \@didactic@ee@trace{didactic-ee: parend \the\@didactic@ee@pend}%
+  \fi}
+\newcommand\@didactic@ee@lead{%
+  \if@didactic@noteplace\ifvmode\ifinner\else
+    \if@didactic@keepleadin\if@didactic@keep@afterlisting\else
+      \xdef\@didactic@ee@zones{\unexpanded\expandafter{\@didactic@ee@zones}%
+        \noexpand\@didactic@ee@z
+          {\ifdim\@didactic@ee@pend>-\maxdimen
+             \the\dimexpr\@didactic@ee@pend-2\p@\relax\else-\the\maxdimen\fi}%
+          {\the\dimexpr\@didactic@ee@pos+\p@\relax}{\the\maxdimen}}%
+      \@didactic@ee@trace{didactic-ee: lead \the\@didactic@ee@pend\space
+        \the\@didactic@ee@pos}%
+    \fi\fi
+  \fi\fi\fi}
+\newcommand\@didactic@ee@float{%
+  \ifnum\count\@didactic@head>\z@
+    \global\@didactic@ee@fl\dimexpr\ht\@holdpg+\dp\@holdpg\relax
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@ee@rebase}
+% When a column is built, before its footnotes are attached, where
+% |\@didactic@colfeet| runs too (also in two columns, where no page ends early,
+% so that the list doesn't grow): a zone of the list goes on only if it reaches
+% past the column's end, and, for a heading's, if its first paragraph started
+% past it too; else the heading stayed in this column, and what it still needs
+% is nobody's business on the next.  What goes on starts at the top of the next
+% column ($-$|\maxdimen|).  The end of the last paragraph and the last float's
+% callout are of this column.
+%    \begin{macrocode}
+\newcommand\@didactic@ee@rebase{%
+  \begingroup
+    \setbox\z@\vbox{\unvcopy\@cclv}%
+    \dimen@\dimexpr\ht\z@+\dp\z@+\p@\relax
+    \dimen@ii\dimexpr\ht\z@+\dp\z@-\topskip\relax
+    \@didactic@ee@trace{didactic-ee: column \the\dimexpr\ht\z@+\dp\z@\relax}%
+    \def\@didactic@ee@z##1##2##3{%
+      \ifdim##2>\dimen@
+        \ifdim##3>\dimen@
+          \noexpand\@didactic@ee@z{-\the\maxdimen}%
+            {\ifdim##2=\maxdimen ##2\else\the\dimexpr##2-\dimen@ii\relax\fi}%
+            {\the\maxdimen}%
+        \fi
+      \fi}%
+    \xdef\@didactic@ee@zones{\@didactic@ee@zones}%
+    \@tempswafalse
+    \ifdim\@didactic@ee@hz>\dimen@\ifdim\@didactic@ee@hf>\dimen@
+      \@tempswatrue
+    \fi\fi
+    \global\@didactic@ee@hy-\maxdimen
+    \if@tempswa
+      \ifdim\@didactic@ee@hz<\maxdimen
+        \global\advance\@didactic@ee@hz-\dimen@ii
+      \fi
+      \ifdim\@didactic@ee@hf<\maxdimen
+        \global\advance\@didactic@ee@hf-\dimen@ii
+      \fi
+      \global\advance\@didactic@ee@ps-\dimen@ii
+    \else
+      \global\@didactic@ee@hz-\maxdimen
+      \global\@didactic@ee@need\z@
+    \fi
+    \global\@didactic@ee@pend-\maxdimen
+    \global\@didactic@ee@fl-\maxdimen
+  \endgroup}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@ee@last}
+% |\@didactic@ee@last|\meta{box} splits the box at its last place to break, as
+% |\@didactic@sameline| does (the reasoning is there): the box keeps what is
+% above it, |\@didactic@cut| gets what is below, and |\@didactic@disc| what
+% \TeX\ discards at the top of that, the place to break itself and the glue
+% after it (e-\TeX's |\splitdiscards|).  |\if@didactic@ee@cut| says whether
+% there was such a place.  The kern that makes the last place the best one is
+% taken off again wherever it ended up: \TeX\ discards it too when nothing but
+% marks and the like follows the place to break (the mark of an earlier note in
+% the same line).  The first deck this ran on showed that: a line with eight
+% callouts stayed on its page and six of its notes went on.
+%    \begin{macrocode}
+\newcommand\@didactic@ee@last[1]{%
+  \global\@didactic@ee@cutfalse
+  \begingroup
+    \vbadness\@M \vfuzz\maxdimen
+    \splitmaxdepth\maxdimen \splittopskip\z@skip
+    \savingvdiscards\@ne
+    \setbox\z@\vbox{\unvcopy#1\kern12000\p@}%
+    \setbox\tw@\vsplit\z@ to\dimexpr\ht\z@+\dp\z@-4000\p@\relax
+    \global\setbox\@didactic@disc\vbox{\splitdiscards
+      \ifdim\lastkern=12000\p@
+        \unkern
+        \global\@didactic@ee@cuttrue
+      \fi}%
+    \global\setbox\@didactic@cut\vbox{%
+      \ifvoid\z@\else
+        \unvbox\z@
+        \ifdim\lastkern=12000\p@
+          \unkern
+          \global\@didactic@ee@cuttrue
+        \fi
+      \fi}%
+    \if@didactic@ee@cut
+      \global\setbox#1\vbox{\unvbox\tw@}%
+    \fi
+  \endgroup}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@ifcanend,\@didactic@ee@step,\@didactic@ee@judge,
+%   \@didactic@ee@ifzone,\@didactic@ee@foot,\@didactic@ee@vwalk}
+% |\@didactic@ifcanend|\marg{yes}\marg{no}, for the note at the head of
+% |\@currlist|, which |\@didactic@decide@| was about to carry.
+% Not in two columns nor in \textsf{multicol}'s (as the foot), not for a margin
+% float (floats float), not for a note taller than a whole margin (the next
+% page can't hold it either), and not twice for a note: if it fits nowhere on
+% the page it was taken to, it is carried from there, and the warning says that
+% a page ended for it already.  Not where the page so far, with the callout's
+% line, is taller than the column at its natural size (its height without
+% the last line's depth, as \TeX\ reckons a page, with the foot), the line
+% being on it only by what the page can shrink: there \TeX\ may well end the page before
+% the line by itself, at the place it finds best and as it ends any page, and
+% the note then goes with its line as ever (|\@didactic@sift|); if \TeX\ keeps
+% the line after all, the note is carried, and the warning says that the break
+% was left to \TeX.  Not where the foot holds a footnote of
+% \LaTeX's own: \TeX\ took the footnotes of the lines so far to the foot, and
+% which line such a one belongs to can't be read any more; ending the page
+% above its line would leave it behind.
+% For a note called out in a paragraph, |\@didactic@ee@step| takes one more
+% piece off the upper part (|\@didactic@top|) and puts it before the lower
+% (|\@didactic@rest|), with what \TeX\ discarded between them at the step
+% before (|\@didactic@pdisc|), so that the lower part is the page so far from
+% that place on, but for the discarded items at its very top, which the next
+% page would discard too.  (The split leaves a glue of no height before the
+% first line of each piece, |\splittopskip|, between a glue and a box.)  A
+% place is judged only if the piece just taken off has height: one without
+% (marks, a |\write|) is what follows the line above it, an earlier note's
+% mark say, and a page ending between them would send that note on without
+% its line.  (The kernel's and our own penalties after the notes of one line
+% leave such places, the last of them after an earlier note in the callout's
+% own line; \TeX\ never takes the others, since of places that cost the same
+% it takes the last.  They go on with the line as they are, and
+% |\@didactic@sameline| deals with the last when the note is decided on the
+% next page.)
+% For a note called out between paragraphs there is no line: the only place is
+% where the note is, if the list doesn't end with a penalty that forbids it
+% (|\@didactic@ee@vwalk|).
+%
+% |\@didactic@ee@judge|: the page must keep something
+% above the place; it may be left with no more than |keepmaxgap| lines empty,
+% the room of the column less the upper part and less the footnotes that stay
+% at the foot (|\@didactic@ee@foot|: those whose lines are in the upper part,
+% by its last mark, as |\@didactic@colfeet| will read it; the footnotes of the
+% lines that go on go with them, and the room they leave counts as empty); no
+% float's callout below it; and not in a zone, which alone lets the search go
+% on (|\if@didactic@ee@blocked|).
+%    \begin{macrocode}
+\newcommand\@didactic@ifcanend{%
+  \let\@didactic@endwhy\@empty
+  \@didactic@ee@trytrue
+  \if@twocolumn\@didactic@ee@tryfalse\fi
+  \ifdefined\col@number\ifnum\col@number>\@ne\@didactic@ee@tryfalse\fi\fi
+  \ifcsname @didactic@mf@\the\@didactic@noteof\@didactic@head\endcsname
+    \@didactic@ee@tryfalse\fi
+  \ifcsname @didactic@tl@\the\@didactic@noteof\@didactic@head\endcsname
+    \@didactic@ee@tryfalse\fi
+  \if@didactic@ee@try
+    \ifcsname @didactic@ee@\the\@didactic@noteof\@didactic@head\endcsname
+      \@didactic@ee@tryfalse
+      \edef\@didactic@endwhy{; page \csname @didactic@ee@\the\@didactic@noteof
+        \@didactic@head\endcsname\space ended before its line for it already}%
+    \fi
+  \fi
+  \if@didactic@ee@try
+    \dimen@\dimexpr\@colroom-\@pageht\relax
+    \ifvoid\footins\else
+      \advance\dimen@-\dimexpr\ht\footins+\dp\footins+\skip\footins\relax
+    \fi
+    \ifdim\dimen@<\z@
+      \@didactic@ee@tryfalse
+      \def\@didactic@endwhy{; its line is on the page only by what the page
+        can shrink, and where the page ends is left to TeX}%
+    \fi
+  \fi
+  \if@didactic@ee@try
+    \ifvoid\footins\else
+      \@didactic@scan\footins
+      \if@didactic@allours\else
+        \@didactic@ee@tryfalse
+        \def\@didactic@endwhy{; its page can't end before its line, since the
+          foot holds a footnote of LaTeX's own, which may be that line's}%
+      \fi
+    \fi
+  \fi
+  \@didactic@ee@okfalse
+  \if@didactic@ee@try
+    \@didactic@ee@blockedfalse
+    \@didactic@ee@steppedfalse
+    \global\setbox\@didactic@rest\box\voidb@x
+    \global\setbox\@didactic@pdisc\box\voidb@x
+    \ifnum\outputpenalty=-\@Mii
+      \global\setbox\@didactic@top\copy\@holdpg
+      \@didactic@ee@c\z@
+      \@didactic@ee@step
+    \else
+      \global\setbox\@didactic@top\copy\@holdpg
+      \@didactic@ee@infalse
+      \setbox\z@\vbox{\unvcopy\@holdpg\@didactic@ee@vwalk}%
+      \if@didactic@ee@in
+        \@didactic@ee@judge
+        \if@didactic@ee@blocked
+          \def\@didactic@endwhy{; a heading or a list keeps the lines above it}%
+        \fi
+      \else
+        \def\@didactic@endwhy{; its page has no place to break where it is}%
+      \fi
+    \fi
+  \fi
+  \if@didactic@ee@ok\expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
+\newcommand\@didactic@ee@vwalk{%
+  \ifcase\numexpr\lastnodetype-11\relax
+    \unskip\expandafter\@didactic@ee@vwalk
+  \or
+    \unkern\expandafter\@didactic@ee@vwalk
+  \or
+    \ifnum\lastpenalty<\@M\aftergroup\@didactic@ee@intrue\fi
+  \else
+    \aftergroup\@didactic@ee@intrue
+  \fi}
+\newcommand\@didactic@ee@step{%
+  \advance\@didactic@ee@c\@ne
+  \let\@didactic@next\relax
+  \@didactic@ee@last\@didactic@top
+  \if@didactic@ee@cut
+    \@didactic@ee@d\dimexpr\ht\@didactic@cut+\dp\@didactic@cut\relax
+    \global\setbox\@didactic@rest\vbox{\unvbox\@didactic@cut
+      \ifvoid\@didactic@pdisc\else\unvbox\@didactic@pdisc\fi
+      \ifvoid\@didactic@rest\else\unvbox\@didactic@rest\fi}%
+    \global\setbox\@didactic@pdisc\box\@didactic@disc
+    \ifdim\@didactic@ee@d>\z@
+      \@didactic@ee@blockedfalse
+      \@didactic@ee@judge
+      \if@didactic@ee@blocked
+        \@didactic@ee@steppedtrue
+        \let\@didactic@next\@didactic@ee@step
+      \fi
+    \else
+      \let\@didactic@next\@didactic@ee@step
+    \fi
+  \else
+    \def\@didactic@endwhy{; its page has no place to break before its line}%
+  \fi
+  \ifnum\@didactic@ee@c>50
+    \let\@didactic@next\relax
+    \def\@didactic@endwhy{; its page has no place to break near its line}%
+  \fi
+  \@didactic@next}
+\newcommand\@didactic@ee@judge{%
+  \@didactic@eey\dimexpr\ht\@didactic@top+\dp\@didactic@top\relax
+  \@didactic@ee@foot
+  \@didactic@ee@trace{didactic-ee: candidate \the\@didactic@eey\space
+    gap \the\@didactic@gap}%
+  \@didactic@ee@infalse
+  \ifnum\@didactic@keepmaxgap>\z@
+    \ifdim\@didactic@gap>\@didactic@keepmaxgap\@didactic@keep@L
+      \@didactic@ee@intrue
+    \fi
+  \fi
+  \ifdim\@didactic@eey<\topskip
+    \def\@didactic@endwhy{; its line is among the first of its page}%
+  \else\if@didactic@ee@in
+    \edef\@didactic@endwhy{; \if@didactic@ee@stepped a heading or a list
+      keeps the lines above it, and ending the page before them
+      \else ending the page before its line \fi
+      would leave \the\@didactic@gap\space empty (keepmaxgap allows
+      \the\dimexpr\@didactic@keepmaxgap\@didactic@keep@L\relax)}%
+  \else\ifdim\dimexpr\@didactic@eey+\p@\relax<\@didactic@ee@fl
+    \def\@didactic@endwhy{; a float is called out in the lines that would go
+      with it}%
+  \else
+    \@didactic@ee@ifzone
+    \if@didactic@ee@in
+      \@didactic@ee@blockedtrue
+    \else
+      \@didactic@ee@oktrue
+    \fi
+  \fi\fi\fi}
+\newcommand\@didactic@ee@ifzone{%
+  \@didactic@ee@infalse
+  \begingroup
+    \def\@didactic@ee@z##1##2##3{%
+      \ifdim\@didactic@eey>\dimexpr##1+\p@\relax
+        \ifdim\@didactic@eey<##2\relax\aftergroup\@didactic@ee@intrue\fi
+      \fi}%
+    \@didactic@ee@zones
+    \@didactic@ee@z{\the\@didactic@ee@hy}{\the\@didactic@ee@hz}{}%
+  \endgroup}
+\newcommand\@didactic@ee@foot{%
+  \global\@didactic@gap\dimexpr\@colroom-\ht\@didactic@top-\dp\@didactic@top\relax
+  \ifvoid\footins\else
+    \begingroup
+      \vbadness\@M \vfuzz\maxdimen
+      \splittopskip\z@skip \splitmaxdepth\maxdimen
+      \setbox\z@\copy\@didactic@top
+      \let\@didactic@last\@empty
+      \@didactic@splitall
+      \count@\@didactic@colast
+      \global\@didactic@colast
+        \ifx\@didactic@last\@empty\@didactic@pagelast\else\@didactic@last\relax\fi
+      \global\setbox\@didactic@pullbox\box\voidb@x
+      \setbox\z@\vbox{\unvcopy\footins\@didactic@pull}%
+      \global\setbox\@didactic@pullbox\box\voidb@x
+      \global\@didactic@colast\count@
+      \ifdim\dimexpr\ht\z@+\dp\z@\relax>\z@
+        \global\advance\@didactic@gap-\dimexpr\ht\z@+\dp\z@+\skip\footins\relax
+      \fi
+    \endgroup
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@didactic@endpage,\@didactic@endemit,\@didactic@lonecheck,
+%   \@didactic@footunset}
+% The page ends.  The note is marked as one a page ended for
+% (|\@didactic@ee@|\meta{number}, with the page), and its copy for the foot,
+% if it is a single box (a footnote that isn't plain), goes back to where the
+% second decision will take it from (|\@didactic@footunset|; without that the
+% second try would send an empty box to the foot).
+% The log says that the page ends early, before which note and by how much, as
+% information: the page is short within the limit, as when a heading moves.
+% If the place has a penalty that marks a lone line (the largest penalty
+% discarded there reaches the club, widow or display widow penalty: a first or
+% last line that the class allows to be left alone), it is a warning that says
+% so, as the document's author may want to change that paragraph.
+% The keep code's warning that what leads into a list moved along past the
+% limit (|\@didactic@keep@pm|) goes by estimates, as it must for a page \TeX\
+% ends; a list that starts the page after this one moved by our doing, with
+% the empty lines counted, so that page is noted in the |.aux| file as one that
+% warning says nothing about (|\@didactic@keep@em|, as for a page a heading
+% moved to): a record for a warning, as the others.
+%
+% |\@didactic@endemit| takes the place of the page so far in
+% |\@didactic@callout|: the upper part, the footnotes \LaTeX\ puts back
+% (|\@didactic@footback| has put ours back before it, and those whose lines
+% go on are taken to the next column when this one is built,
+% |\@didactic@colfeet|; \TeX's message for them is left out for a column we
+% ended, |\if@didactic@endedcol|), |\vfil| and the break as in |\newpage|, the
+% lower part, and the two penalties and the empty box by which the kernel asks
+% for the special output of a note (|\@xympar|).  The first of them is dropped
+% by \TeX\ if nothing has started the next page, and the box then starts it,
+% as the kernel intends.  A note called out between paragraphs has its
+% callout's record in the upper part, on the page that ends; it is written
+% again for the next page, and the later one counts when the |.aux| file is
+% read.
+%    \begin{macrocode}
+\newcommand\@didactic@lonecheck{%
+  \global\@didactic@bpen\z@
+  \ifvoid\@didactic@pdisc\else
+    \setbox\z@\vbox{\unvcopy\@didactic@pdisc\@didactic@discwalk}%
+  \fi
+  \count@\numexpr\@didactic@bpen-\interlinepenalty\relax
+  \@didactic@ee@infalse
+  \@didactic@iflone\clubpenalty
+  \@didactic@iflone\widowpenalty
+  \@didactic@iflone\displaywidowpenalty}
+\newcommand\@didactic@iflone[1]{%
+  \ifnum#1>\z@\ifnum\count@<#1\else\@didactic@ee@intrue\fi\fi}
+\newcommand\@didactic@discwalk{%
+  \ifcase\numexpr\lastnodetype-11\relax
+    \unskip\expandafter\@didactic@discwalk
+  \or
+    \unkern\expandafter\@didactic@discwalk
+  \or
+    \ifnum\lastpenalty>\@didactic@bpen\global\@didactic@bpen\lastpenalty\fi
+    \unpenalty\expandafter\@didactic@discwalk
+  \fi}
+\newcommand\@didactic@footunset{%
+  \ifcsname @didactic@pcs@\the\@didactic@noteof\@didactic@head\endcsname
+    \begingroup
+      \def\@didactic@fromlines##1##2##3{}%
+      \def\@didactic@fromcopy##1{%
+        \ifvoid\@didactic@footbox\else
+          \global\setbox##1\box\@didactic@footbox
+        \fi}%
+      \csname @didactic@pcs@\the\@didactic@noteof\@didactic@head\endcsname
+    \endgroup
+  \fi}
+\newcommand\@didactic@endpage{%
+  \expandafter\xdef\csname @didactic@ee@\the\@didactic@noteof
+    \@didactic@head\endcsname{\thepage}%
+  \@didactic@footunset
+  \@didactic@lonecheck
+  \edef\@didactic@endsay{Page \thepage\space ends early, before
+    the \ifvoid\@didactic@rest\else line of the \fi margin note\MessageBreak
+    called out at
+    \csname @didactic@ln@\the\@didactic@noteof\@didactic@head\endcsname,
+    \the\@didactic@gap\space short%
+    \if@didactic@ee@in, and leaves\MessageBreak a line of a paragraph alone at
+      the page break\fi:\MessageBreak\@didactic@footwhy}%
+  \if@didactic@ee@in
+    \PackageWarningNoLine{didactic}{\@didactic@endsay}%
+  \else
+    \PackageInfo{didactic}{\@didactic@endsay\@gobble}%
+  \fi
+  \if@filesw
+    \immediate\write\@auxout{\string\@didactic@keep@em
+      {\the\numexpr\ReadonlyShipoutCounter+\tw@\relax}}%
+  \fi
+  \global\setbox\@holdpg\box\voidb@x
+  \@didactic@endedtrue
+  \global\@didactic@endedcoltrue
+  \let\@didactic@skip\@didactic@skipnext}
+\newcommand\@didactic@endemit{%
+  \unvbox\@didactic@top
+  \@didactic@reinserts
+  \vfil\penalty-\@M
+  \ifvoid\@didactic@rest
+    \if@filesw
+      \@didactic@writepage{\string\@didactic@rc
+        {\the\@didactic@noteof\@didactic@head}{\thepage}%
+        {\csname @didactic@ln@\the\@didactic@noteof\@didactic@head\endcsname}%
+        {\noexpand\@didactic@tallflag{\the\@didactic@noteof\@didactic@head}}}%
+    \fi
+  \else
+    \unvbox\@didactic@rest
+  \fi
+  \penalty-\@Miv\vbox{}\penalty\outputpenalty}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -8209,8 +8892,10 @@
     {\@didactic@reinserts\@addmarginpar}{}%
     {\@didactic@patchwarn\@specialoutput}%
   \ifpatchable{\@makecol}{\UseHook{build/column/before}}%
-    {\AddToHook{build/column/before}{\if@twocolumn\else\@didactic@colfeet\fi}}%
-    {\pretocmd\@makecol{\if@twocolumn\else\@didactic@colfeet\fi}{}%
+    {\AddToHook{build/column/before}{\@didactic@ee@rebase
+       \if@twocolumn\else\@didactic@colfeet\fi}}%
+    {\pretocmd\@makecol{\@didactic@ee@rebase
+       \if@twocolumn\else\@didactic@colfeet\fi}{}%
       {\@didactic@patchwarn\@makecol}}%
   \let\@didactic@MFX@combinefloats@before\MFX@combinefloats@before
   \def\MFX@combinefloats@before{%
@@ -10525,6 +11210,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \newcommand\@didactic@keep@tp[4]{}
 \newcommand\@didactic@keep@hb[2]{}
 \newcommand\@didactic@keep@hm[3]{}
+\newcommand\@didactic@keep@em[1]{}
 \newcommand\@didactic@keep@after[3]{}
 \newcommand\@didactic@keep@pa[1]{}
 \newcommand\@didactic@keep@pm[3]{}
@@ -10772,6 +11458,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \AtBeginDocument{\@didactic@keep@L\baselineskip}
 \def\@didactic@keep@tie{%
   \global\@didactic@keep@movabletrue
+  \@didactic@ee@lead
   \ifnum\@didactic@keepmaxgap>\z@
     \ifvmode\ifinner\else
     \ifdim\pagegoal<\maxdimen
@@ -12257,6 +12944,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
       \string\providecommand\string\@didactic@keep@tp[4]{}%
       \string\providecommand\string\@didactic@keep@hb[2]{}%
       \string\providecommand\string\@didactic@keep@hm[3]{}%
+      \string\providecommand\string\@didactic@keep@em[1]{}%
       \string\providecommand\string\@didactic@keep@after[3]{}%
       \string\providecommand\string\@didactic@keep@pa[1]{}%
       \string\providecommand\string\@didactic@keep@pm[3]{}%
@@ -12298,6 +12986,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \@didactic@keep@tellhead{#1}{it moves to the next page, which leaves
       more\MessageBreak than keepmaxgap lines empty}%
   \fi}
+\def\@didactic@keep@em#1{\gdef\@didactic@keep@lastmoved{#1}}
 \def\@didactic@keep@movecheck{%
   \if@didactic@keep@hmdue
     \global\@didactic@keep@hmduefalse
@@ -12339,6 +13028,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \def\@didactic@keep@headrecord{%
   \global\@didactic@keep@chapheadfalse
   \ifnum\@didactic@keepafterheading>\z@
+    \@didactic@ee@head
     \global\@didactic@keep@afterlistingfalse
     \ifx\@didactic@keep@headkey\@empty
       \@didactic@keep@newhead
@@ -12443,6 +13133,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \if@didactic@keep@inbox\else\ifinner\else
     \if@didactic@keep@ownline
       \global\@didactic@keep@ownlinefalse
+      \@didactic@ee@titled
       \ifnum\@didactic@keepafterheading>\z@
         \global\@didactic@keep@headstate\@ne
       \fi
@@ -12599,6 +13290,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
 \let\@didactic@keep@owedkey\@empty
 \def\@didactic@keep@headwaits{%
   \ifnum\@didactic@keepafterheading>\z@
+    \@didactic@ee@titled
     \global\@didactic@keep@ownlinefalse
     \if@noskipsec
       \global\@didactic@keep@headstate4
@@ -12691,6 +13383,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
     \@didactic@keep@inboxtrue
   \fi
   \if@didactic@keep@inbox\else
+    \@didactic@ee@para
     \global\let\@didactic@keep@adjust\@empty
     \global\@didactic@keep@floatat-\maxdimen
     \gdef\@didactic@keep@floatship{-1}%
@@ -12762,6 +13455,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
   \fi}
 \def\@didactic@keep@paraafter{%
   \if@didactic@keep@inbox\else
+    \@didactic@ee@parend
     \global\@didactic@keep@pend\dimexpr\pagetotal+\pagedepth\relax
     \global\@didactic@keep@pendout\outputpenalty
     \global\@didactic@keep@pendstretch\@didactic@keep@stretch

@@ -58,6 +58,8 @@ GROUPS = {
     "notefoot": (["test-notefoot"], [], []),
     "noteplace12": (["test-noteplace-tl12"], [], []),
     "matrix": (["test-noteplace"], [], []),
+    "earlyend": (["test-noteplace"], [], []),
+    "earlyend12": (["test-noteplace-tl12"], [], []),
 }
 # targets that are no PDF of their own; they choose their engines themselves
 PHONY = {"test-biburl", "test-noteoverflow-foot", "test-noteplace", "test-footwide",
@@ -71,7 +73,10 @@ CASES = {"footcite": "default", "hbox": "hbox", "footwide": "rigid oneline beyon
          " nofiles mcolfn bfnover bfnsec",
          "notefoot": "waitover warnclaim defercarry-warn defercarry",
          "noteplace12": "nestfn nestmp mcolnote",
-         "matrix": "mvlaterfull fspullback omtlaterfn mvcarriedover mvdeferclaim heldover"}
+         "matrix": "mvlaterfull fspullback omtlaterfn mvcarriedover mvdeferclaim heldover",
+         "earlyend": "eelast eeheadlimit eeheadshort eelistrel eeleadmove eegap eefn eenotplain"
+         " eesame eesameroom eevert eevain eewidow eeclub eefootgap eefloat eestale eeshrink",
+         "earlyend12": "eehole"}
 # All with pdflatex, for speed; the frame titles with the Makefile's default engine,
 # pdflatex too since #72 (test-frametitle-boxes reads a letter inside a picture by its
 # vertical centre, which doesn't depend on the engine as its box does).

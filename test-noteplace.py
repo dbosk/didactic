@@ -39,7 +39,9 @@ called out somewhere names a place, not an internal name; no footnote found not 
               as notes set on another page than their callout, NOTEY and the
               notes labelled c-X/n-X; notes labelled c-dX (deferrable) apart.
   pairs       every other note with labels c-X at its callout and n-X in it is
-              on its callout's page, or a warning names a note off its page.
+              on its callout's page, or a warning names a note off its page;
+              notes labelled c-dX (deferrable, which marginfix moves on by
+              design) need only be set.
   gap=N       page 1 leaves at most N lines empty under its last line of text
               (the limit on empty space, keepmaxgap, honoured).
   over=N      NOTEY is on its callout's page and runs past the foot of the text
@@ -102,6 +104,13 @@ called out somewhere names a place, not an internal name; no footnote found not 
   apart=A:B   on every page, the words starting with A and those starting with B
               share no height (a note doesn't overlap a side caption or text
               that reaches into the margin).
+  early=P     the log says that page P ends early, before a margin note called
+              out in test-noteplace.tex, of that page only and once, and the
+              callout of NOTEY is on page P+1 (with kept: the line and its note
+              start the next page together).
+  noearly     the log says of no page that it ends early.
+  lone        a warning says that a page ending early leaves a line of a
+              paragraph alone; nolone, no such warning.
 Prints one line, "PASS" or "FAIL" with what failed, and the facts.
 """
 import html
@@ -412,6 +421,21 @@ for e in expect:
         elif not float(m[1]) <= past < float(m[1]) + 6:
             fails.append("NOTEY's margin ends %.2fpt past the foot, the warning says %spt"
                          % (past, m[1]))
+    elif e.startswith("early="):
+        ends = re.findall(r"Package didactic (?:Info|Warning): Page (\S+) ends early, before "
+                          r"the (?:line of the )?margin note called out at test-noteplace\.tex:\d+",
+                          joined)
+        if ends != [e[6:]]:
+            fails.append("pages that end early: %s, not [%s]" % (ends, e[6:]))
+        if facts["callout"] != str(int(e[6:]) + 1):
+            fails.append("after an early end of page %s: callout-y on page %s"
+                         % (e[6:], facts["callout"]))
+    elif e == "noearly" and "ends early" in joined:
+        fails.append("a page ends early")
+    elif e == "lone" and not re.search(r"ends early.{0,200}?alone at the page break", joined):
+        fails.append("no warning that a page ending early leaves a line alone")
+    elif e == "nolone" and re.search(r"ends early.{0,200}?alone at the page break", joined):
+        fails.append("a warning that a page ending early leaves a line alone")
     elif e == "nocontinued" and "(continued)" in out:
         fails.append("a note was split (continued)")
     elif e.startswith("gap=") and pages:
@@ -428,7 +452,7 @@ for e in expect:
             pn = label("n-" + x)
             if pn is None:
                 fails.append("note %s not set" % x)
-            elif pn != pc and not warned:
+            elif pn != pc and not warned and not x.startswith("d"):
                 fails.append("note %s on page %s, its callout on %s, without a warning" % (x, pn, pc))
     elif e == "callwarn" and len(set(re.findall(
             r"didactic Warning: Can't read the callouts of page (\d+)", joined))) \

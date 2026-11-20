@@ -64,11 +64,16 @@ job overreuse '\def\testcase{overreuse}\def\testclass{memoir}'
 # A note carried to the next page is reused by a second citation on its mark's
 # page: both marks before the note, in order.  (splitreuse, splitrest and
 # waitreuse, a note split over two pages or waiting for the next foot, are gone
-# with the split, #104.)
-job carryreuse '\def\testcase{carryreuse}\def\testclass{memoir}' 'next shared warned reusenamed'
+# with the split, #104.)  The page would now end before the citing line (the
+# rows ee* of test-noteplace, and earlyreuse below); with keepmaxgap=1, which
+# that line and the room left at the foot exceed, the note is carried as before.
+job carryreuse '\def\testcase{carryreuse}\def\testclass{memoir}\def\testoptions{keepmaxgap=1}' 'next shared warned reusenamed'
+# The same without that limit: the page ends before the citing line, which
+# starts page 4 with both marks and the one note, the second mark reusing it.
+job earlyreuse '\def\testcase{carryreuse}\def\testclass{memoir}' 'shared early nowarned last=4'
 # Numbers restart in each chapter: a carried note names no mark of another
 # chapter's note with its number (review S2).
-job chapreuse '\def\testcase{chapreuse}\def\testclass{memoir}' 'next warned noreusenamed'
+job chapreuse '\def\testcase{chapreuse}\def\testclass{memoir}\def\testoptions{keepmaxgap=1}' 'next warned noreusenamed'
 # Warm: each job built again from the .aux (and .bbl) of another case, as after
 # an edit, must settle on the same PDF as from clean, in at most two runs more
 # than its floor (#93: a settled result that depends on an old .aux).
@@ -97,5 +102,5 @@ warm() { # warm <from> <name> <definitions>
 warm parted same '\def\testcase{same}'
 warm same parted '\def\testcase{parted}'
 warm carryreuse overreuse '\def\testcase{overreuse}\def\testclass{memoir}'
-warm overreuse carryreuse '\def\testcase{carryreuse}\def\testclass{memoir}'
+warm overreuse carryreuse '\def\testcase{carryreuse}\def\testclass{memoir}\def\testoptions{keepmaxgap=1}'
 exit $status

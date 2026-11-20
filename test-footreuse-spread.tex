@@ -35,6 +35,11 @@
 % \testfloor: the same document with noteoverflow=carry, for the runs LaTeX needs
 % without moving any note (the floor of the runs to settle).
 \ifdefined\testfloor\PassOptionsToPackage{noteoverflow=carry}{didactic}\fi
+% \testoptions: options of didactic for a case (carryreuse and chapreuse set
+% keepmaxgap=1, so that their page doesn't end before the note's line and the
+% note is carried, which is what they are about).
+\ifdefined\testoptions
+  \expandafter\PassOptionsToPackage\expandafter{\testoptions}{didactic}\fi
 \usepackage{didactic}
 \addbibresource{test-footcite.bib}
 \def\same{same}\def\cross{cross}\def\parted{parted}

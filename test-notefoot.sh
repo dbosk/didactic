@@ -104,11 +104,14 @@ job fnedge 4 "$C{fnedge}" rules beside
 job tall 8 "$C{tall}" foot nofalse reasons
 # gen: notes off their pages, each said with its reason (with the floats' rule;
 # before it, three more that a float took the room of, without one): four plain
-# margin notes on full margins (15, 18, 68, 70), three footnotes too long for the
-# foot whole (48, split before #104; 74 and 93, which ran a line past the foot
+# margin notes on full margins (15, 18, 68, 70), for which no page ends early
+# either, since it would be left 8 to 15 lines short (the reason says so).  Before
+# a page could end for a note there were four more: three footnotes too long for
+# the foot whole (48, split before #104; 74 and 93, which ran a line past the foot
 # before the one-line-past outcome was dropped), and one called out after 93, carried
-# after it, the footnotes keeping their order (94).
-job gen 4 "$C{gen}" away=8 reasons nofalse \
+# after it, the footnotes keeping their order (94).  Now pages 3 and 6 end early
+# (the log names the lines), and those four are on their marks' pages.
+job gen 4 "$C{gen}" away=4 reasons nofalse \
   'works=only a footnote can go to the foot'
 job ownout 8 "$C{ownout}"
 # Two notes taller than the room left, and a footnote: settled within the floor

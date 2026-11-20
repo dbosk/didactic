@@ -42,7 +42,7 @@ export TEXINPUTS="$TOOLS:$TEXINPUTS"
 # line with a margin note end a page (see overguard): M12 is set there.
 M12=; case "$MARGINFIX" in *texmf-dist/tex/latex/marginfix*) M12=yes;; esac
 NOT12=yes; [ -n "$M12" ] && NOT12=
-NEEDS15='tallcut deferrable split mvdefer mvdeferfn mvdefermn mvdeferclaim'
+NEEDS15='tallcut deferrable split mvdefer mvdeferfn mvdefermn mvdeferclaim eedefer'
 ENGINE=${ENGINE:-pdflatex}
 MAXRUNS=${MAXRUNS:-8}
 TEXTIMEOUT=${TEXTIMEOUT:-120}
@@ -389,24 +389,30 @@ fsbody() { # fsbody <footnote> [<after>]: the callout on the third line
   printf '\\def\\testtall{.99}\\def\\testbody{FIRSTLINE \\filler\\ end\\label{callout-y}%s \\filler\\ \\filler\\par}' "$1"
 }
 WH="reason=where it doesn't fit whole"
+# These rows are about the foot and the note that is carried from it; a page
+# would now end before the callout's line (the rows ee*, below), so they set
+# keepmaxgap=1, which the line and the room left at the foot exceed: the page
+# doesn't end early, and the note is carried as before, its warning naming the
+# limit after the foot's reason.  The same in fstwo, fsoverstay, fsoverlatex and
+# trailedgef.
 check fsk4n3 x 8 '' "kept,at=LINEA:1/LINEC:1,nobelow" "$(fsbody "$(fn 3)")"
-check fsk3n5 x 7 '' "carried,$WH,nobelow,nocontinued" "$(fsbody "$(fn 5)")"
-check fsk3n4 x 7 '' "carried,$WH,nobelow" "$(fsbody "$(fn 4)")"
-check fsk2n4 x 6 '' "carried,$WH,nobelow" "$(fsbody "$(fn 4)")"
-check fsk2n3 x 6 '' "carried,$WH,nobelow" "$(fsbody "$(fn 3)")"
-check fsk1n2 x 5 '' "carried,$WH,nobelow" "$(fsbody "$(fn 2)")"
-check fsk1n3 x 5 '' "carried,$WH,nobelow" "$(fsbody "$(fn 3)")"
-check fsk1n4 x 5 '' "carried,$WH,nobelow" "$(fsbody "$(fn 4)")"
+check fsk3n5 x 7 'keepmaxgap=1' "carried,$WH,nobelow,nocontinued" "$(fsbody "$(fn 5)")"
+check fsk3n4 x 7 'keepmaxgap=1' "carried,$WH,nobelow" "$(fsbody "$(fn 4)")"
+check fsk2n4 x 6 'keepmaxgap=1' "carried,$WH,nobelow" "$(fsbody "$(fn 4)")"
+check fsk2n3 x 6 'keepmaxgap=1' "carried,$WH,nobelow" "$(fsbody "$(fn 3)")"
+check fsk1n2 x 5 'keepmaxgap=1' "carried,$WH,nobelow" "$(fsbody "$(fn 2)")"
+check fsk1n3 x 5 'keepmaxgap=1' "carried,$WH,nobelow" "$(fsbody "$(fn 3)")"
+check fsk1n4 x 5 'keepmaxgap=1' "carried,$WH,nobelow" "$(fsbody "$(fn 4)")"
 # Five lines in 1.6 lines of room: carried, the reason counting the lines left.
-check fsk1n5 x 5.6 '' "carried,$WH,reason=lines left there,nobelow" "$(fsbody '\footnote{\label{note-y}LINEA gy\hfil\break LINEB gy\hfil\break LINEC gy\hfil\break LINED gy\hfil\break LINEE gy}')"
-check fsk0n1 x 4.5 '' "carried,$WH,nobelow" "$(fsbody "$(fn 1)")"
-check fsk0n2 x 4.5 '' "carried,$WH,nobelow" "$(fsbody "$(fn 2)")"
+check fsk1n5 x 5.6 'keepmaxgap=1' "carried,$WH,reason=lines left there,nobelow" "$(fsbody '\footnote{\label{note-y}LINEA gy\hfil\break LINEB gy\hfil\break LINEC gy\hfil\break LINED gy\hfil\break LINEE gy}')"
+check fsk0n1 x 4.5 'keepmaxgap=1' "carried,$WH,nobelow" "$(fsbody "$(fn 1)")"
+check fsk0n2 x 4.5 'keepmaxgap=1' "carried,$WH,nobelow" "$(fsbody "$(fn 2)")"
 # A later footnote on the page of one that was carried is carried too, after it,
 # though it would fit at the foot: the footnotes keep their order (fstwo: called
 # out on the same line); one after a footnote that runs past the foot is carried,
 # the foot being full (fsspare: five lines in four lines of room, then a
 # footnote of one line on the same line).
-check fstwo x 6 '' "carried,$WH,reason=the footnotes keep their order,at=LINEA:2/SECA:2,order=LINED<SECA,nobelow" "$(fsbody "$(fn 4)$(fn 2 n-s SEC)")"
+check fstwo x 6 'keepmaxgap=1' "carried,$WH,reason=the footnotes keep their order,at=LINEA:2/SECA:2,order=LINED<SECA,nobelow" "$(fsbody "$(fn 4)$(fn 2 n-s SEC)")"
 # A footnote carried because its passage is in the mode carry closes the foot to the
 # footnotes after it on the page as one carried for want of room does: the later one,
 # in the mode foot, is carried too, after it (review 3, S1).
@@ -552,8 +558,8 @@ LFNF=' AFTER\marginpar{FILLB\par\rule{1pt}{.97\textheight}} words\label{c-f}\foo
 check fsoverpull x 5 '' "carried,$WH,nobelow,noreason=past the foot of the page" "$FSO"
 check fsoverpullfn x 5 '' "carried,$WH,nobelow,noreason=past the foot of the page,incol=LATERFN,apart=LINEB:LATERFN,apart=LINEA:LATERFN,order=LINEB<LATERFN" "${FSO%\}}$LFNF}"
 check fsoverpullmn x 5 '' "carried,$WH,nobelow,noreason=past the foot of the page,pairs" "${FSO%\}}$LMN}"
-check fsoverstay x 5 '' "carried,$WH,nobelow,noreason=past the foot of the page" '\def\testtall{.99}\def\testbody{FIRSTLINE \filler\ end\label{callout-y}'"$(fn 2)"' \filler\ \filler\par}'
-check fsoverlatex x 5 '' "carried,$WH,nobelow,noreason=past the foot of the page" '\def\testtall{.99}\def\testbody{FIRSTLINE \filler\ end\label{callout-y}'"$(fn 2)"' and {\footnotesatfoot\footnote{LATEXFN a footnote of LaTeX'"'"'s own.}} \filler\par}'
+check fsoverstay x 5 'keepmaxgap=1' "carried,$WH,nobelow,noreason=past the foot of the page" '\def\testtall{.99}\def\testbody{FIRSTLINE \filler\ end\label{callout-y}'"$(fn 2)"' \filler\ \filler\par}'
+check fsoverlatex x 5 'keepmaxgap=1' "carried,$WH,nobelow,noreason=past the foot of the page" '\def\testtall{.99}\def\testbody{FIRSTLINE \filler\ end\label{callout-y}'"$(fn 2)"' and {\footnotesatfoot\footnote{LATEXFN a footnote of LaTeX'"'"'s own.}} \filler\par}'
 # A footnote whose only departure from paragraphs is space of its own at its end
 # (\par\vspace) is plain: measured without it, set with it, in the margin (trailm) and
 # at the foot (trailf), so that the note after it starts where LaTeX puts it (its
@@ -570,7 +576,7 @@ check trailf x 20 '' "kept,notplain=0,incol=NOTEY,ypos=nb:137.69" "$TRP"'\def\te
 TRSP='with space of its own at its end.\par\vspace{12pt}'
 check trailedgem x 20 '' "kept,incol=NOTEY,nobelow" '\def\testyieldfoot{}\def\testtall{.944}\def\testbody{FIRSTLINE words\yieldnote[ '"$TRSP"'] and more \filler\par}'
 check trailedgemno x 20 '' "kept,inmargin=NOTEY" '\def\testyieldfoot{}\def\testtall{.944}\def\testbody{FIRSTLINE words\yieldnote[ with space of its own at its end.] and more \filler\par}'
-check trailedgef x 5 '' "carried,$WH,nobelow" '\def\testyieldfoot{}\def\testtall{.99}\def\testbody{FIRSTLINE \filler\ end\yieldnote[ '"$TRSP"'] \filler\ \filler\par}'
+check trailedgef x 5 'keepmaxgap=1' "carried,$WH,nobelow" '\def\testyieldfoot{}\def\testtall{.99}\def\testbody{FIRSTLINE \filler\ end\yieldnote[ '"$TRSP"'] \filler\ \filler\par}'
 check trailedgefno x 5 '' "kept,incol=NOTEY,nobelow" '\def\testyieldfoot{}\def\testtall{.99}\def\testbody{FIRSTLINE \filler\ end\yieldnote[ with space of its own at its end.] \filler\ \filler\par}'
 # A second note in a line, after a first that went to the foot, on the first line after a
 # heading and the last of its page (the fuzz test's seed 1, cut: test-samelinehead.tex): the
@@ -773,6 +779,134 @@ check bfnlt x 20 '' "error=Float(s) lost${M12:+,foundlast=1}" "$BF"'\def\testbod
 # Under \nofiles no .aux is written, so nothing can be named a run later; mixfoot's
 # document (a mixed foot taken on to the next page, named only a run later) says so,
 # once (review 4, S5-3), and has no error.
+# A page that ends before a note's line (#101): a note that fits neither beside
+# its line, nor at the foot whole, nor within the two lines a note may run past
+# the margin's foot ends its page before its line, so that line and note start
+# the next page together, where the keep rules allow a page to end and within
+# keepmaxgap; else it is carried, and the warning says why the page couldn't end.
+# NOTEY is a footnote of three fillers ($NY), the tall note fills the margin, and
+# the text fills the page to its foot.
+EE='\def\testyieldfoot{}\def\testtall{.99}'
+NY='\yieldnote[ \filler\ \filler\ \filler]'
+# The callout on the page's last line, nothing protected above it: the page ends
+# one line early.  In the middle of a paragraph, no line is left alone.
+check eelast x 4 '' "kept,early=1,gap=1,nolone" "$EE"'\def\testbody{\noindent FIRSTLINE\newline SECOND\newline THIRD\newline FOURTH'"$NY"'\newline FIFTH \filler\par}'
+# A heading with its lines above the callout's line: the page ends under them,
+# the heading stays (eehead).  The callout in the heading's first line: the page
+# can only end before the heading, which goes on with its line and the note
+# (eeheadstart), within keepmaxgap; past it the note is carried (eeheadlimit: TeX
+# then moves the heading itself, so the note is beside its line all the same),
+# and with a larger limit the page ends early again (eeheadroom).
+check eehead x 7 '' "kept,early=1,together,at=HEADINGX:1,at=THIRD:2" "$EE"'\def\testbody{\section{HEADINGX}FIRSTLINE \oneline\ \oneline\ \oneline\ THIRD'"$NY"' \filler\ \filler\par}'
+check eeheadstart x 5 '' "kept,early=1,together,at=HEADINGX:2" "$EE"'\def\testbody{\vspace{.5\baselineskip}\section{HEADINGX}FIRSTLINE'"$NY"' \filler\ \filler\par}'
+check eeheadlimit x 5 '' "warned,noearly,together" "$EE"'\def\testbody{\section{HEADINGX}FIRSTLINE'"$NY"' \filler\ \filler\par}'
+check eeheadroom x 5 'keepmaxgap=6' "kept,early=1,together,at=HEADINGX:2" "$EE"'\def\testbody{\section{HEADINGX}FIRSTLINE'"$NY"' \filler\ \filler\par}'
+# A heading that doesn't have its lines yet: one line under HEADINGX, then a
+# subsection whose first line has the callout.  LaTeX offers a break before the
+# subsection, but ending the page there by choice would leave HEADINGX with one
+# line: the page may end only before HEADINGX, which the limit forbids here
+# (eeheadshort: carried, SUBX stays on page 1) and allows with a larger one
+# (eeheadshortroom: all goes on).
+HS='\def\testbody{\section{HEADINGX}FIRSTLINE.\par\subsection{SUBX}SECONDPARA'"$NY"' \filler\par}'
+check eeheadshort x 9 '' "carried,together,at=SUBX:1,reason=a heading or a list keeps the lines above it" "$EE$HS"
+check eeheadshortroom x 9 'keepmaxgap=10' "kept,early=1,together,at=HEADINGX:2,at=SUBX:2" "$EE$HS"
+# A list: the callout in the first line of its first item, under a lead-in of one
+# line, which goes on with the list (eelist).  Under a lead-in whose tie the keep
+# code released (moving it would leave more than keepmaxgap), the place before
+# the list is one LaTeX may break at, but not one to end a page at by choice: the
+# note is carried, the first item stays with its lead-in (eelistrel: the place
+# before the list is within the limit by a point and a half, the place a line
+# further up is not).
+check eelist x 3 '' "kept,early=1,tied" "$EE"'\def\testbody{LEADIN leads into:\begin{itemize}\item FIRSTLINE'"$NY"' \filler\item more\end{itemize}}'
+check eelistrel x 11 '' "carried,at=FIRSTLINE:1,reason=a heading or a list keeps the lines above it" "$EE"'\def\testbody{\vspace{2pt}LEADIN \filler\ \filler\ leads into:\begin{itemize}\item FIRSTLINE'"$NY"' \filler\item more\end{itemize}}'
+# Under such a lead-in, with room to take its last line along within the limit:
+# the page ends inside the lead-in, and the keep code's warning that a lead-in
+# moved along past the limit ("can leave more than keepmaxgap lines empty") isn't
+# given: this page's empty lines are counted.
+check eeleadmove x 9 '' "kept,early=1,at=FIRSTLINE:2,noreason=moves along to the next page" "$EE"'\def\testbody{LEADIN \filler\ \filler\ leads into:\begin{itemize}\item FIRSTLINE'"$NY"' \filler\item more\end{itemize}}'
+# Beyond keepmaxgap: seven lines that can't part, the callout in the last.
+# Ending the page before them would leave seven lines empty: carried, with the
+# reason (eegap; with TeX Live's marginfix TeX takes the seven lines to the next
+# page itself, the note with them); with keepmaxgap=8 the page ends early
+# (eegaproom).
+GP='\def\testbody{{\interlinepenalty=10000 \clubpenalty=10000 \widowpenalty=10000 \noindent FIRSTLINE\newline LA\newline LB\newline LC\newline LD\newline LE\newline LF'"$NY"'\par}}'
+check eegap x 7 '' "${NOT12:+carried,reason=ending the page before its line would leave,reason=keepmaxgap allows,}noearly,warned" "$EE$GP"
+check eegaproom x 7 'keepmaxgap=8' "kept,early=1,at=FIRSTLINE:2" "$EE$GP"
+# A footnote of LaTeX's own at the foot (\footnotesatfoot), called out in NOTEY's
+# line: TeX has it at the foot already, and a page ending before the line would
+# leave it there, away from its mark.  The page doesn't end early.
+check eefn x 6 '' "carried,noearly,reason=the foot holds a footnote of LaTeX's own" "$EE"'\def\testbody{\noindent FIRSTLINE\newline SECOND\newline THIRD{\footnotesatfoot\footnote{LATEXFN at the foot.}} and'"$NY"'\newline FOURTH \filler\par}'
+# A footnote carried before it on the page (FNA, in seven lines that can't part,
+# which the limit keeps on the page; not in the last of them, where the kernel's
+# penalty after its special output, the group's 10000, would tie the next
+# paragraph to the seven with TeX Live's marginfix): NOTEY, in the next line,
+# couldn't go to the foot after it (the footnotes keep their order); now its page
+# ends before its line, and on the next page FNA comes first in the margin, then
+# NOTEY.
+check eeorder x 8 '' "kept,early=1,pairs,exactwarn" "$EE"'\def\testbody{{\interlinepenalty=10000 \clubpenalty=10000 \widowpenalty=10000 \noindent FIRSTLINE\newline LA\newline LB\newline LC\newline LD\newline LE\label{c-a}\footnote{\label{n-a}FNA \filler\ \filler\ \filler}\newline LF\par}\noindent NEXT'"$NY"' \filler\par}'
+# A deferrable note (\ltnote) is marginfix's to move: no page ends early for it.
+check eedefer x 4 '' "noearly" '\def\testtall{.99}\def\testbody{\noindent FIRSTLINE\newline SECOND\newline THIRD\newline FOURTH\label{callout-y}\ltnote{NOTEY\label{note-y} \filler\ \filler\ \filler}\newline FIFTH \filler\par}'
+# A footnote that isn't plain (a list in it): its copy for the foot is one box,
+# used up when the foot is tried on page 1; it is put back for the second
+# decision on page 2, and the note is printed once.
+check eenotplain x 4 '' "kept,early=1,notplain=1,once=ITEMW" "$EE"'\def\testbody{\noindent FIRSTLINE\newline SECOND\newline THIRD\newline FOURTH\yieldnote[ \filler\begin{itemize}\item ITEMW \filler\end{itemize}\filler]\newline FIFTH \filler\par}'
+# Several notes in one line: FNA and FNB go to the foot, NOTEY fits nowhere.
+# Ending the page before the line takes FNA and FNB back from the foot, and
+# their room there counts as empty: more than keepmaxgap, so NOTEY is carried
+# and the line stays (eesame); with a larger limit the line and its three notes
+# go on together (eesameroom).
+SM='\def\testbody{\noindent FIRSTLINE\newline SECOND\newline THIRD\label{c-a}\footnote{\label{n-a}FNA \filler}\label{c-b}\footnote{\label{n-b}FNB \filler}'"$NY"'\newline FOURTH \filler\par}'
+check eesame x 9 '' "carried,noearly,pairs,at=THIRD:1,reason=keepmaxgap allows" "$EE$SM"
+check eesameroom x 9 'keepmaxgap=8' "kept,early=1,pairs,at=THIRD:2,label=c-a:2,label=n-a:2,label=c-b:2,label=n-b:2,noreason=TeX ended page" "$EE$SM"
+# A note called out between two paragraphs (vertical mode) has no line: the page
+# ends where the note is, and the note opens the next page's margin.
+check eevert x 4 '' "kept,early=1,at=THIRD:1,at=FOURTH:2" '\def\testtall{.99}\def\testbody{\noindent FIRSTLINE\newline SECOND\newline THIRD\par\marginpar{NOTEY\label{note-y}\par\filler\par\filler}\label{callout-y}FOURTH \filler\par}'
+# An early end that doesn't help: the margin of the next page is taken by a note
+# carried from this one (CARRIEDA, called out in the first line, which no page can
+# end before), and NOTEY, not a footnote, has no other place there.  It is
+# carried from the next page, and the warning says that page 1 ended for it.
+check eevain x 4 '' "early=1,carried,reason=page 1 ended before its line for it already" '\def\testtall{.3}\def\testfirst{\noindent x\marginpar{TALL\par\rule{1pt}{.3\textheight}}\marginpar{CARRIEDA\par\rule{1pt}{.9\textheight}} text\par\noindent\rule{1cm}{\dimexpr\textheight-5\baselineskip\relax}\par}\def\testbody{\noindent FIRSTLINE\newline SECOND\newline THIRD\newline FOURTH\yieldnote[\par\rule{1pt}{.5\textheight}]\newline FIFTH \filler\par}'
+
+# The callout in a paragraph's last line: the page ends before it, and that line
+# starts the next page alone, which memoir's penalties allow (1000): the log's
+# line is a warning that says so.
+check eewidow x 4 '' "kept,early=1,lone" "$EE"'\def\testbody{\noindent FIRSTLINE\newline SECOND\newline THIRD\newline FOURTH'"$NY"'\par}'
+# The callout in a paragraph's second line: the page ends after the first, which
+# stays alone at its foot, as memoir's penalties allow: a warning too.
+check eeclub x 2 '' "kept,early=1,lone" "$EE"'\def\testbody{FIRSTLINE \oneline\ more words'"$NY"' \filler\ \filler\par}'
+# The callout's line is on its page only because the page can shrink (eight
+# points of shrink, the line six points too many): TeX may end the page before
+# it by itself, so no page is ended for the note; here TeX keeps the line, and
+# the note is carried, with that reason.
+check eeshrink x 3.5 '' "carried,noearly,reason=where the page ends is left to TeX" "$EE"'\def\testbody{\vspace{0pt minus 8pt}\noindent FIRSTLINE\newline SECOND\newline THIRD\newline FOURTH'"$NY"'\newline FIFTH \filler\par}'
+# A heading that went to the next page with what TeX had read ahead keeps its
+# zone there: HEADINGX, moved to page 2 by the keep code's break, has one line
+# when the subsection starts, whose first line calls out a note that fits nowhere
+# (the margin taken by TALLB; no limit on empty lines, so that only the zone
+# decides).  The page doesn't end before the subsection.
+check eestale x 3 'keepmaxgap=0' "carried,together,at=HEADINGX:2,at=SUBX:2" '\def\testtall{.5}\def\testbody{\section{HEADINGX}FIRSTLINE\marginpar{TALLB\par\rule{1pt}{.97\textheight}}.\par\subsection{SUBX}SECONDPARA\yieldnote[\par\rule{1pt}{5\baselineskip}] \filler\par}'
+# Notes already at the foot whose lines stay: FNA and FNB, called out in the first
+# two lines, take the foot; NOTEY, in the last line, no longer fits there.  The
+# page is left one line short: the foot that stays isn't empty space.
+check eefootgap x 13 '' "kept,early=1,pairs,at=THIRD:1,at=FOURTH:2,label=n-a:1,label=n-b:1" "$EE"'\def\testbody{\noindent FIRSTLINE\label{c-a}\footnote{\label{n-a}FNA \filler\ \filler}\newline SECOND\label{c-b}\footnote{\label{n-b}FNB \filler\ \filler}\newline THIRD\newline FOURTH'"$NY"'\newline FIFTH \filler\par}'
+# A float called out in the lines that would go on: three lines that can't part,
+# a figure for the bottom of the page called out in the second, the note in the
+# third (a margin note too tall for what the margin has left; the limit is set
+# so that it isn't the reason).  The figure has its place on this page; the page
+# doesn't end above its callout, and the note is carried.
+check eefloat x 12 'keepmaxgap=9' "carried,noearly,has=FIGX,reason=a float is called out in the lines that would go with it" '\def\testtall{.5}\def\testbody{{\interlinepenalty=10000 \clubpenalty=10000 \widowpenalty=10000 \noindent FIRSTLINE\newline SECOND\begin{figure}[b]\centering\rule{1cm}{1cm}\caption{FIGX}\end{figure}\newline THIRD\yieldnote[\par\rule{1pt}{.6\textheight}]\par}}'
+# With TeX Live's marginfix 1.2 every line with a margin note may end a page: the
+# note N1 in the heading's first line makes a place to break under that line,
+# which the heading's penalties forbade.  NOTEY, in the second line, must not
+# end the page there, leaving the heading with one line: the page ends before
+# the heading (the limit set to allow it), with either marginfix.
+check eehole x 6 'keepmaxgap=7' "kept,early=1,together,at=HEADINGX:2" '\def\testyieldfoot{}\def\testtall{.93}\def\testbody{\vspace{.5\baselineskip}\section{HEADINGX}FIRSTLINE\marginpar{NONE} \oneline\ SECOND'"$NY"' \filler\ \filler\par}'
+# The engines: the callout on the last line, and several notes in one line.
+ENGINE=xelatex check eelastxe x 4 '' "kept,early=1,nolone" "$EE"'\def\testbody{\noindent FIRSTLINE\newline SECOND\newline THIRD\newline FOURTH'"$NY"'\newline FIFTH \filler\par}'
+ENGINE=lualatex check eelastlua x 4 '' "kept,early=1,nolone" "$EE"'\def\testbody{\noindent FIRSTLINE\newline SECOND\newline THIRD\newline FOURTH'"$NY"'\newline FIFTH \filler\par}'
+ENGINE=xelatex check eesameroomxe x 9 'keepmaxgap=8' "kept,early=1,pairs,at=THIRD:2" "$EE$SM"
+ENGINE=lualatex check eeheadstartlua x 5 '' "kept,early=1,together,at=HEADINGX:2" "$EE"'\def\testbody{\vspace{.5\baselineskip}\section{HEADINGX}FIRSTLINE'"$NY"' \filler\ \filler\par}'
+
 if [ -z "$CASES" ] || case " $CASES " in *" nofiles "*) true;; *) false;; esac; then
   j=$job-nofiles
   if [ -z "$RECHECK" ]; then

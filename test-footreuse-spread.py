@@ -3,7 +3,7 @@
 
 Usage: test-footreuse-spread.py JOB [oneside] [reused] [last=N] [next] [shared]
                                 [warned] [reusenamed] [noreusenamed]
-                                [notplain=N] [fnrecords=N]
+                                [early] [nowarned] [notplain=N] [fnrecords=N]
 
 Always: no footnote found not plain (didactic's information) but N declared,
 and no warning that LaTeX set a footnote on another page ("where LaTeX puts it").
@@ -27,6 +27,8 @@ Checks:
 - reusenamed: such a warning names a mark that reuses the note's number;
 - noreusenamed: no warning names one (nothing reuses the note: numbers that
   restart in each chapter are other notes').
+- early: the log says that a page ends early, before the line of a note;
+- nowarned: no warning says that a note is set on a later page.
 - fnrecords=N: N footnotes have didactic's records (negative ids in the .aux),
   those whose mark and text \footnote makes together at the foot as LaTeX sets
   them; a reusing mark is a \footnotemark and has none.
@@ -98,6 +100,13 @@ if "warned" in sys.argv[2:]:
     log = re.sub(r"\n\(didactic\) *", " ", open(f"{job}.log", errors="replace").read())
     if not re.search(r"is set on page \d+", log.replace("\n", "")):
         fails.append("no warning that a note is set on a later page")
+if "early" in sys.argv[2:]:
+    if not re.search(r"Page \d+ ends early, before the line of the margin note",
+                     testlog.joined(f"{job}.log")):
+        fails.append("the log doesn't say that a page ends early")
+if "nowarned" in sys.argv[2:]:
+    if re.search(r"is set on page \d+", testlog.joined(f"{job}.log")):
+        fails.append("a warning that a note is set on a later page")
 if "reusenamed" in sys.argv[2:]:
     log = re.sub(r"\n\(didactic\) *", " ", open(f"{job}.log", errors="replace").read())
     if "its number is reused at" not in log.replace("\n", ""):

@@ -2170,3 +2170,183 @@ Sleftours didactic.dtx
 +       \@firstofone{%
 +         \ifcsname @didactic@fn@\the\@didactic@noteof##1\endcsname
 
+
+# ===== A page that ends before a note's line (#101) =====
+# The rows ee* of test-noteplace (group earlyend) and, for the place to break that
+# TeX Live's marginfix 1.2 leaves under a line with a note, eehole of
+# test-noteplace-tl12 (group earlyend12).
+
+# No page ends early: a note that fits nowhere is carried, as before (eelast and
+# most rows).
+#: earlyend
+#= killed test-noteplace
+Eoff didactic.dtx
+-   \if@didactic@ee@ok\expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
++   \@didactic@ee@okfalse
++   \if@didactic@ee@ok\expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
+
+# No zone holds a place back: the page ends before a subsection, leaving the
+# heading before it with one line (eeheadshort), and between a lead-in and its
+# list (eelistrel).
+#: earlyend
+#= killed test-noteplace
+Ezone didactic.dtx
+-         \ifdim\@didactic@eey<##2\relax\aftergroup\@didactic@ee@intrue\fi
++         \ifdim\@didactic@eey<##2\relax\fi
+
+# A heading's zone ends where its first paragraph starts, whatever lines it
+# needs (eeheadshort).
+#: earlyend
+#= killed test-noteplace
+Eneed didactic.dtx
+-       +\@didactic@ee@need\@didactic@keep@L-.25\@didactic@keep@L\relax
++       +0\@didactic@keep@L\relax
+
+# A heading's title counts as one of its lines (eeheadshort: the title and one
+# line would do).
+#: earlyend
+#= killed test-noteplace
+Etitle didactic.dtx
+-     \global\@didactic@ee@need-\@didactic@keepafterheading\relax
++     \global\@didactic@ee@need\@didactic@keepafterheading\relax
+
+# No zone between a lead-in and what it leads into (eelistrel).
+#: earlyend
+#= killed test-noteplace
+Elead didactic.dtx
+-     \if@didactic@keepleadin\if@didactic@keep@afterlisting\else
++     \if@didactic@keepleadin\iftrue\else
+
+# No limit on the empty lines (eegap, eeheadlimit).
+#: earlyend
+#= killed test-noteplace
+Egap didactic.dtx
+-     \ifdim\@didactic@gap>\@didactic@keepmaxgap\@didactic@keep@L
++     \ifdim\@didactic@gap>\maxdimen
+
+# The footnotes that stay at the foot count as empty space (eefootgap: the page
+# doesn't end, though it would be one line short).
+#: earlyend
+#= killed test-noteplace
+Efoot didactic.dtx
+-         \global\advance\@didactic@gap-\dimexpr\ht\z@+\dp\z@+\skip\footins\relax
++         \relax
+
+# The room that the footnotes of the lines taken back leave at the foot doesn't
+# count as empty (eesame: the page ends where the limit forbids it).
+#: earlyend
+#= killed test-noteplace
+Epull didactic.dtx
+-       \setbox\z@\vbox{\unvcopy\footins\@didactic@pull}%
++       \setbox\z@\vbox{\unvcopy\footins}%
+
+# A page ends above a float's callout (eefloat).
+#: earlyend
+#= killed test-noteplace
+Efloat didactic.dtx
+-   \else\ifdim\dimexpr\@didactic@eey+\p@\relax<\@didactic@ee@fl
++   \else\ifdim\dimexpr\@didactic@eey+\p@\relax<-\maxdimen
+
+# A page ends before a line that may hold a footnote of LaTeX's own (eefn).
+#: earlyend
+#= killed test-noteplace
+Elatex didactic.dtx
+-       \@didactic@scan\footins
+-       \if@didactic@allours\else
+-         \@didactic@ee@tryfalse
++       \@didactic@scan\footins
++       \iftrue\else
++         \@didactic@ee@tryfalse
+
+# A page ends for the same note again and again (eevain: two pages end early).
+#: earlyend
+#= killed test-noteplace
+Eonce didactic.dtx
+-   \if@didactic@ee@try
+-     \ifcsname @didactic@ee@\the\@didactic@noteof\@didactic@head\endcsname
++   \if@didactic@ee@try
++     \iffalse
+
+# The copy for the foot of a footnote that isn't plain isn't put back for the
+# second decision (eenotplain).
+#: earlyend
+#= killed test-noteplace
+Eunset didactic.dtx
+-           \global\setbox##1\box\@didactic@footbox
++           \relax
+
+# The kern of the split, discarded by TeX after an earlier note's mark, isn't
+# found there: a line with several notes can't be taken back (eesameroom).
+#: earlyend
+#= killed test-noteplace
+Ekern didactic.dtx
+-     \global\setbox\@didactic@disc\vbox{\splitdiscards
+-       \ifdim\lastkern=12000\p@
++     \global\setbox\@didactic@disc\vbox{\splitdiscards
++       \ifdim\lastkern=-12000\p@
+
+# The callout's record of a note between paragraphs stays on the page that ended
+# (eevert: named a run later as set on another page).
+#: earlyend
+#= killed test-noteplace
+Evrecord didactic.dtx
+-   \ifvoid\@didactic@rest
+-     \if@filesw
++   \ifvoid\@didactic@rest
++     \iffalse
+
+# The keep code warns that a lead-in moved along past the limit, for a page we
+# ended within it (eeleadmove).
+#: earlyend
+#= killed test-noteplace
+Eem didactic.dtx
+- \def\@didactic@keep@em#1{\gdef\@didactic@keep@lastmoved{#1}}
++ \def\@didactic@keep@em#1{}
+
+# A lone last line left by an early end isn't warned about (eewidow), nor a
+# lone first line (eeclub).
+#: earlyend
+#= killed test-noteplace
+Ewidow didactic.dtx
+-   \@didactic@iflone\widowpenalty
++   \relax
+
+#: earlyend
+#= killed test-noteplace
+Eclub didactic.dtx
+-   \@didactic@iflone\clubpenalty
++   \relax
+
+# TeX's message, that it ended the page before a footnote's line, for a page we
+# ended ourselves (eesameroom).
+#: earlyend
+#= killed test-noteplace
+Emoved didactic.dtx
+-     \ifnum\if@didactic@endedcol\z@\else##1\fi>\@didactic@colast
++     \ifnum##1>\@didactic@colast
+
+# A page is ended for a note whose line is on it only by what the page can
+# shrink (eeshrink).
+#: earlyend
+#= killed test-noteplace
+Eshrink didactic.dtx
+-     \dimen@\dimexpr\@colroom-\@pageht\relax
++     \dimen@\maxdimen
+
+# A heading that TeX took to the next page stops holding places back there
+# (eestale: the page ends before a subsection, leaving that heading one line).
+#: earlyend
+#= killed test-noteplace
+Erebase didactic.dtx
+-     \ifdim\@didactic@ee@hz>\dimen@\ifdim\@didactic@ee@hf>\dimen@
++     \ifdim\@didactic@ee@hz>\dimen@\ifdim\@didactic@ee@hf>\maxdimen
+
+# With TeX Live's marginfix 1.2 a note in a heading's first line leaves a place
+# to break under it; without the zones the page ends there (eehole).
+#: earlyend12
+#= killed test-noteplace-tl12
+Ezone12 didactic.dtx
+-       \ifdim\@didactic@eey>\dimexpr##1+\p@\relax
+-         \ifdim\@didactic@eey<##2\relax\aftergroup\@didactic@ee@intrue\fi
++       \ifdim\@didactic@eey>\dimexpr##1+\p@\relax
++         \ifdim\@didactic@eey<##2\relax\relax\fi

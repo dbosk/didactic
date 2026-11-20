@@ -5,7 +5,9 @@
 % special output for the first leaves a place to break after the line, before our mark of the
 % second; didactic's split of the page so far took the cheaper place before the heading (the
 % page shrinks there), so that place stayed, the page ended there, and 16 waited for page 2,
-% unwarned.  Generated text (test-fuzz.py gen 1), no meaning.
+% unwarned.  Generated text (test-fuzz.py gen 1), no meaning.  The two \ltnote's are
+% labelled c-d10 and c-d19: deferrable notes, which marginfix moves on by design (the
+% first goes to page 2 when page 1 keeps the heading's second line and its note).
 eta delta pi alpha nu xi upsilon alpha omicron iota theta tau delta lambda alpha alpha alpha sigma alpha nu.
 \section{Heading 0.0}
 \label{c-1}\footnote{\label{n-1}NOTE1x alpha rho theta omicron pi sigma theta mu theta theta omicron kappa alpha xi sigma delta zeta kappa}
@@ -35,7 +37,7 @@ zeta epsilon epsilon lambda kappa delta rho upsilon kappa epsilon eta epsilon si
 lambda upsilon sigma eta zeta kappa xi sigma zeta.
 \label{c-9}\footnote{\label{n-9}NOTE9x theta iota gamma omicron xi sigma iota sigma omicron sigma omicron alpha nu lambda zeta iota pi alpha xi tau alpha beta mu tau epsilon tau epsilon epsilon iota iota nu tau nu zeta upsilon gamma theta pi alpha zeta rho lambda rho omicron theta}
 lambda pi pi theta xi lambda sigma upsilon iota theta beta gamma rho mu zeta.
-\label{c-10}\ltnote{\label{n-10}NOTE10x LT eta kappa kappa kappa sigma mu zeta omicron upsilon gamma delta upsilon rho tau nu zeta epsilon iota xi eta tau beta pi nu mu nu rho zeta sigma beta rho gamma iota delta iota}
+\label{c-d10}\ltnote{\label{n-d10}NOTE10x LT eta kappa kappa kappa sigma mu zeta omicron upsilon gamma delta upsilon rho tau nu zeta epsilon iota xi eta tau beta pi nu mu nu rho zeta sigma beta rho gamma iota delta iota}
 epsilon upsilon gamma omicron theta nu xi nu zeta lambda.
 \label{c-11}\footnote{\label{n-11}NOTE11x pi eta delta xi upsilon sigma xi delta kappa iota theta nu sigma alpha eta rho omicron tau alpha alpha upsilon theta iota eta zeta kappa epsilon sigma eta iota}
 tau iota omicron zeta sigma mu pi xi delta eta tau nu eta kappa delta alpha delta.
@@ -61,7 +63,7 @@ nu lambda iota iota theta
 \label{c-18}\footnote{\label{n-18}NOTE18x beta tau tau zeta mu xi}
 \[ x^2 + y^2 = z^2 \]
 rho beta mu sigma xi sigma eta sigma xi gamma iota upsilon gamma iota zeta delta epsilon beta eta xi beta beta gamma rho pi.
-\label{c-19}\ltnote{\label{n-19}NOTE19x LT lambda beta epsilon sigma beta omicron epsilon nu omicron alpha rho iota gamma}
+\label{c-d19}\ltnote{\label{n-d19}NOTE19x LT lambda beta epsilon sigma beta omicron epsilon nu omicron alpha rho iota gamma}
 
 gamma kappa beta nu beta iota lambda epsilon iota nu delta kappa delta xi theta rho sigma eta.
 \label{c-20}\footnote{\label{n-20}NOTE20x rho nu tau pi delta epsilon omicron rho sigma tau}

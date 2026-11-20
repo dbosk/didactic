@@ -364,6 +364,18 @@ def judge(name, tex, aux, rawlog, log, bbox):
                 elif (p, q) != (anchor(K), pg.get("n-" + K)):
                     probs.append(f"the warning for line {ln} says {p}->{q}, the labels "
                                  f"{anchor(K)}->{pg.get('n-' + K)}")
+    # "Page P ends early, before the line of the margin note called out at F:L": the
+    # line was taken to page P + 1, so that note's anchor is there; where the note
+    # itself is, the rules above judge as for any note
+    for m in re.finditer(r"Page (\d+) ends early, before the (?:line of the )?margin note "
+                         r"called out at [^\s:,]+:(\d+)", log):
+        Ks = [K for K in lineof if int(m[2]) in lines_of(K)]
+        wrong = [(K, anchor(K)) for K in Ks if anchor(K) != str(int(m[1]) + 1)]
+        if wrong or not Ks:
+            probs.append(f"page {m[1]} ended early before the note of line {m[2]}, but its "
+                         f"callout isn't on the next page: {wrong}")
+        else:
+            probs.append(f"INFO early end: page {m[1]}, before the note of line {m[2]}")
     if lost:
         probs.append(f"notes without their label (lost?): {lost}")
     printed = [K for K in lineof if pg.get("n-" + K)
@@ -553,7 +565,8 @@ def synthetic(notes, warn=(), extra=(), raw="", margin=305):
     (LaTeX's "where LaTeX puts it", with "in multicols" for multicol);
     how may also be ahead (set at the foot of page p before q, still waiting:
     q is a note's K), last ("is set on page" found from the last run), moved
-    ("TeX ended page" from page, to page unused) or lost ("wasn't printed");
+    ("TeX ended page" from page, to page unused), lost ("wasn't printed") or early
+    ("Page p ends early, before the line of the margin note", to page unused);
     extra are words (page, x0, y0, x1, y1, text) beside the notes' (each note's
     word spans the text, x 50 to 300, so the text's edge is at 300; the margin
     starts at x margin); raw is put in the log as written."""
@@ -591,6 +604,9 @@ def synthetic(notes, warn=(), extra=(), raw="", margin=305):
         elif how == "lost":
             log.append(f"Package didactic Warning: Margin note called out at fz.tex:{line[K]}"
                        f" on page {p} wasn't printed (found from the last run)")
+        elif how == "early":
+            log.append(f"Package didactic Info: Page {p} ends early, before the line of the"
+                       f" margin note called out at fz.tex:{line[K]}, 12.0pt short: why")
         else:
             mc = " in multicols" if how == "multicol" else ""
             log.append(f"Package didactic Warning: Footnote called out at fz.tex:{line[K]}{mc}"
@@ -678,6 +694,19 @@ def selftest():
          lambda r: has(r, "warned as not printed, but printed: ['1']")),
         ("... and printed on its page without the warning passes",
          synthetic([(1, "ours", 1, 1)]), lambda r: not r),
+        # a page that ends early before a note's line
+        ("page 1 ends early before a note's line, line and note on page 2: INFO",
+         synthetic([(1, "ours", 2, 2)], [(1, "early", 1, None)]),
+         lambda r: not fails(r) and has(r, "INFO early end: page 1")),
+        ("... the callout still on page 1 fails, the note carried and named or not",
+         synthetic([(1, "ours", 1, 2)], [(1, "early", 1, None), (1, "set", 1, 2)]),
+         lambda r: has(r, "page 1 ended early before the note of line")),
+        ("... the callout on page 2 and the note carried on, unnamed, fails as any note",
+         synthetic([(1, "ours", 2, 3)], [(1, "early", 1, None)]),
+         lambda r: has(r, "away") and not has(r, "ended early before")),
+        ("... and named with its pages passes",
+         synthetic([(1, "ours", 2, 3)], [(1, "early", 1, None), (1, "set", 2, 3)]),
+         lambda r: not fails(r)),
         # words over words
         ("a line past the edge over a margin note, the log's Overfull as wide, is INFO",
          synthetic([(1, "ours", 1, 1)], extra=over + marg,
