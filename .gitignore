@@ -314,6 +314,8 @@ test-pair.pdf
 test-pair.unq
 test-pair-slides.pdf
 test-pair-slides.unq
+test-inputminted-deprecated.pdf
+test-inputminted-deprecated.unq
 test-sidecap.pdf
 test-sidecap.unq
 test-sidecap-off.pdf

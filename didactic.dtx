@@ -22,7 +22,7 @@
 %<package>\NeedsTeXFormat{LaTeX2e}[2021/06/01]
 %<package>\ProvidesPackage{didactic}
 %<*package>
-  [2026/11/18 v2.19.1 didactic]
+  [2026/11/25 v2.19.2 didactic]
 %</package>
 %<package>\RequirePackage{xparse}
 %<package>\RequirePackage{xkeyval}
@@ -163,6 +163,14 @@
 %   when it's loaded.
 %   Only makes |csquotes| use |autocite| when |biblatex| is loaded, and 
 %   regardless of load order.
+% }
+% \changes{v2.19.2}{2026/11/25}{%
+%   The command that typesets didactic's own files in runs and pairs is 
+%   internal, |\@didactic@inputminted|: it empties the import path, so 
+%   written by hand in a part bound with |\subimport| it couldn't find a 
+%   document's file (\#133).
+%   |\didacticinputminted| still works, with a warning to use 
+%   |\inputminted|.
 % }
 % \changes{v2.19.1}{2026/11/18}{%
 %   A margin note carried from a page whose number isn't printed in digits
@@ -1396,6 +1404,11 @@
 % from left to right, and from top to bottom within a column.
 % |\didacticpairlabel| sets a label above a column, in a first row ended by 
 % |\\|.
+% A column of code from a file is |\inputminted|, which, with the 
+% \textsf{import} package, finds the file relative to the imported part.
+% (The command that didactic prints in its own pairs, which version~2.19.1 
+% and earlier called |\didacticinputminted|, is not for a document's files; 
+% see its description below.)
 % The option |runs| keeps the document's |minted| settings for the output, 
 % as |\runbyrun| does; without it, the columns are code, in the size of 
 % |\codebycodesetup|.
@@ -8415,25 +8428,51 @@ except ImportError:
 % Code that we write to run it, by |didactic_run_code| below, is still 
 % written to the working directory, since the command line shows its name.
 %
-% \begin{macro}{\didacticinputminted}
+% \begin{macro}{\@didactic@inputminted}
 % The file must also be found by |minted| where the output is typeset.
 % With the \textsf{import} package loaded, |minted| (from version~3) reads
 % |\inputminted{text}{file}| as a file relative to the directory being
 % imported, so that |\lstexample| in an imported part finds its programs.
 % But our files are in PythonTeX's output directory, whatever is being
 % imported.
-% So we print |\didacticinputminted|, which takes the same arguments as
+% So we print |\@didactic@inputminted|, which takes the same arguments as
 % |\inputminted| but empties the import path while reading the file.
 % It reads the file name verbatim, so that a |#| or a |~| in the name of 
 % the output directory is a character of the path.
 % This works since PythonTeX inputs our output from its file when the 
 % command is used, and not as the argument of another command.
+%
+% Since it empties the import path, it is not for a document's own files: 
+% written by hand in a part imported from another directory, it would look 
+% for the file from the directory LaTeX runs in, and minted wouldn't find 
+% it.
+% So its name has an |@|, which a document can't write without 
+% |\makeatletter|.
+% PythonTeX's output is read where |@| is not a letter either, so we print 
+% the name as |\csname @didactic@inputminted\endcsname|; the arguments are 
+% read after it, when the command is the one token |\csname| made.
 %    \begin{macrocode}
-\NewDocumentCommand{\didacticinputminted}{O{} m v}{%
+\NewDocumentCommand{\@didactic@inputminted}{O{} m v}{%
   \begingroup
     \let\import@path\@empty
     \inputminted[#1]{#2}{#3}%
   \endgroup
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\didacticinputminted}
+% Before version~2.19.2 the command had a public name, |\didacticinputminted|, 
+% which documents wrote by hand in their pairs.
+% Such a document still builds, but says where it should use |\inputminted| 
+% instead.
+%    \begin{macrocode}
+\NewDocumentCommand{\didacticinputminted}{}{%
+  \PackageWarning{didactic}{%
+    \string\didacticinputminted\space is deprecated: it is\MessageBreak
+    for didactic's own files; use \string\inputminted\MessageBreak
+    for a file of the document}%
+  \@didactic@inputminted
 }
 %    \end{macrocode}
 % \end{macro}
@@ -8537,9 +8576,11 @@ def didactic_mint(output, /, lang="text",
                                    "didactic_output_", ".txt")
 
   if minted_opts:
-    print(r"\didacticinputminted[%s]{%s}{%s}" % (minted_opts, lang, filename))
+    print(r"\csname @didactic@inputminted\endcsname[%s]{%s}{%s}"
+          % (minted_opts, lang, filename))
   else:
-    print(r"\didacticinputminted{%s}{%s}" % (lang, filename))
+    print(r"\csname @didactic@inputminted\endcsname{%s}{%s}"
+          % (lang, filename))
 
   if fullwidth:
     print(r"\csname @didactic@endfullcode\endcsname")
@@ -9183,7 +9224,7 @@ def didactic_extract(path, /, name=None, *, lines=None, between=None,
 % width, margin included (see the |didacticpair| environment below), on the 
 % slides the frame.
 % Each piece is written to a file, as in |didactic_mint|, and typeset with 
-% |\didacticinputminted|; |labels| puts a label, usually the file name, 
+% |\@didactic@inputminted|; |labels| puts a label, usually the file name, 
 % above each column.
 %    \begin{macrocode}
 \begin{pycode}
@@ -9244,7 +9285,7 @@ def didactic_pair(*sides, lang="python", langs=None, widths=None,
         options = ",".join(opt for opt in (options,
           "highlightlines={%s}" % ",".join(map(str, lines))) if opt)
     filename = didactic_write_output(side, "didactic_pair_", ".txt")
-    cells.append(r"\didacticinputminted[%s]{%s}{%s}"
+    cells.append(r"\csname @didactic@inputminted\endcsname[%s]{%s}{%s}"
                  % (options, side_lang, filename))
   print("\n&\n".join(cells))
   print(r"\end{didacticpair}")
