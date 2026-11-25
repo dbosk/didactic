@@ -5,7 +5,11 @@
 # typesets again without a PythonTeX run, as after an edit of the prose, must
 # still find every transcript it inputs: none may be deleted by the other job.
 #
-# Three layouts, each in its own directory under test-runjobs.d:
+# The builds are outside the checkout, and the programs print a word unique to
+# the run, so that their transcripts' names are too (test-outside.sh, issue
+# #136): a transcript that minted can't find where it looks is missing.
+#
+# Three layouts, each in its own directory of that build:
 #   shared  both jobs in the document's directory, with PythonTeX's defaults
 #           (its output in pythontex-files-<job>);
 #   outdir  both jobs in one build directory, -output-directory=ltxobj, with
@@ -25,6 +29,7 @@ LATEX="$1"
 PYTHONTEX="$2"
 top=$(pwd)
 fails=0
+. "$top/test-outside.sh"
 
 check() { # what: succeeds or not
 	if [ "$2" = yes ]; then
@@ -34,7 +39,9 @@ check() { # what: succeeds or not
 	fi
 }
 # The program's source, shown by the pair, differs from its output.
-version() { printf 'print("version", %s)\n' "$1" > runjobs-prog.py; }
+version() {
+	printf '%s\n' "print(\"version\", $1)" "print(\"$token\")" > runjobs-prog.py
+}
 build() { # job: its build directory
 	case $layout in
 	shared) echo . ;;
@@ -56,26 +63,28 @@ pytex() { # job
 }
 # A last pass, since minted leaves a placeholder where its cache lacks the code.
 full() { tex $1; pytex $1; tex $1; tex $1; }
-# The job typesets without an error from minted (a missing transcript or side
-# of a pair) and shows the text.
+# The job typesets with this checkout's didactic.sty, without an error from
+# minted (a missing transcript or side of a pair), and shows the text.
 shows() { # job text
+	own_sty $(log $1) &&
 	! grep -q 'Package minted Error' $(log $1) &&
 		pdftotext $(pdf $1) - | grep -qF "$2" && echo yes
 }
 
+outside runjobs
 for layout in shared outdir dirs; do
-	rm -rf test-runjobs.d/$layout
-	mkdir -p test-runjobs.d/$layout
-	cd test-runjobs.d/$layout
-	cp "$top"/didactic.sty "$top"/test-runjobs-*.tex .
-	mkdir -p _minted $(build notes)/_minted $(build slides)/_minted
+	document "$outside/$layout"
+	cd "$outside/$layout"
+	cp "$top"/test-runjobs-*.tex .
+	mkdir -p $(build notes)/_minted $(build slides)/_minted
 	case $layout in
 	shared) : ;;
 	outdir) echo '\setpythontexworkingdir{..}' ;;
 	dirs) printf '%s\n' '\setpythontexoutputdir{.}' \
 		'\setpythontexworkingdir{..}' ;;
 	esac > test-runjobs-layout.tex
-	echo 'print("only in the notes")' > runjobs-only.py
+	printf '%s\n' 'print("only in the notes")' "print(\"$token\")" \
+		> runjobs-only.py
 
 	version 1; full notes; full slides
 	check "notes built: version 1" "$(shows notes 'version 1')"
@@ -117,4 +126,5 @@ for layout in shared outdir dirs; do
 	cd "$top"
 done
 
+leave
 [ $fails -eq 0 ] || { echo "$fails failed"; exit 1; }

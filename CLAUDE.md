@@ -52,7 +52,20 @@ says what it needs and how to run the tests; this file is for working on it.
   document, in three build layouts, each rebuilt alone in either order while a
   program's output changes. didactic's transcripts are in PythonTeX's output
   directory, per job (#118); `test-runpaths.sh` checks the path minted gets
-  (odd directory names, a moved build).
+  (odd directory names, a moved build); `test-pair-import.sh` a pair written
+  by hand in a part bound with `\subimport` (#133).
+- A test of where a file is looked for builds outside the checkout (#136):
+  kpathsea searches TEXMFHOME recursively, and the README installs the
+  checkout there, so a relative path like `examples/x.py` is found in any
+  directory of the checkout that ends in it, wherever LaTeX looks. Such a test
+  sources `test-outside.sh`, as the three scripts above do: a fresh directory
+  under `$TMPDIR` or `/tmp` (it stops if kpathsea searches there), the
+  checkout's `didactic.sty` copied beside the document (`own_sty` checks the
+  log loaded it), and a word unique to the run in the names, of transcripts
+  too, by printing it. Give it a control that must fail when the file is
+  looked for in the wrong place (`test-pair-import.sh`'s
+  `\didacticinputminted` case). Emptying TEXMFHOME is no way out: the
+  README's minted, fvextra, latex2pydata and marginfix are there.
 - Bilingual documents: `didactic-sync.py` is a literate program,
   `didactic-sync.nw` (tangled and woven by the Makefile, never edited as
   `.py`); `make test-sync` runs its pytest tests, and `make check-bilingual`
