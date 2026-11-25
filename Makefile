@@ -854,7 +854,8 @@ clean:
 	${RM} test-sidecap-off.unq
 	${RM} test-pair.pdf test-pair.aux test-pair.log test-pair.unq
 	${RM} test-inputminted-deprecated.pdf test-inputminted-deprecated.aux
-	${RM} test-inputminted-deprecated.log
+	${RM} test-inputminted-deprecated.log test-inputminted-deprecated.unq
+	${RM} test-inputminted-deprecated.pytxcode
 	${RM} test-pair.pytxcode test-pair.pytxmcr test-pair.pytxpyg
 	${RM} test-pair-slides.pdf test-pair-slides.aux test-pair-slides.log
 	${RM} test-pair-slides.nav test-pair-slides.snm test-pair-slides.toc
