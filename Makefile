@@ -66,7 +66,7 @@ tests: didactic.sty test.pdf test-marginfix-interface test-footcite.pdf \
 	test-noteoverflow-foot test-notefoot test-notefoot-tl12 test-footwide \
 	test-testlog test-sync check-bilingual test-fuzz test-settle test-patches \
 	test-carry-roman.pdf \
-	test-runjobs.d/passed test-runpaths.d/passed
+	test-runjobs.passed test-runpaths.passed test-pair-import.passed
 
 SRC+=	didactic.dtx idea.tex lightblock.tex ProvideSemanticEnv.tex pairruns.tex
 SRC+=	marginfloats.tex
@@ -176,22 +176,35 @@ test-run.pdf: test-run.tex didactic.sty ${TEST_RUN_EXAMPLES}
 	${PYTHONTEX} test-run
 	${PDFLATEX} ${LATEXFLAGS} $<
 
+# The tests of the path by which a file is found build outside the checkout, in
+# a fresh directory under $TMPDIR or /tmp, which they remove when they pass
+# (test-outside.sh, issue #136): in the checkout, which the README installs in
+# TEXMFHOME, kpathsea would find the files wherever LaTeX looked.  Their stamps
+# say that they passed.
+TEST_OUTSIDE=	test-outside.sh testlog.py didactic.sty
+
 # Two jobs of one document, the notes and the slides, each rebuilt alone in
 # either order while a program's output changes: neither loses a transcript to
 # the other (issue #118); see the script.  Under pdflatex, as the decks are
 # built, not the default engine above, so make all doesn't run it under xelatex.
-# The stamp says that it passed.
-test-runjobs.d/passed: test-runjobs.sh test-runjobs-contents.tex \
-		test-runjobs-notes.tex test-runjobs-slides.tex didactic.sty
+test-runjobs.passed: test-runjobs.sh test-runjobs-contents.tex \
+		test-runjobs-notes.tex test-runjobs-slides.tex ${TEST_OUTSIDE}
 	sh test-runjobs.sh "pdflatex ${LATEXFLAGS}" "${PYTHONTEX}"
 	touch $@
 
 # The path by which minted finds a transcript: directories named with % # ~,
 # a space and a non-ASCII letter, and a build that is moved; see the script.
 # Under pdflatex too, as the decks.
-test-runpaths.d/passed: test-runpaths.sh test-runjobs-contents.tex \
-		test-runjobs-notes.tex didactic.sty
+test-runpaths.passed: test-runpaths.sh test-runjobs-contents.tex \
+		test-runjobs-notes.tex ${TEST_OUTSIDE}
 	sh test-runpaths.sh "pdflatex ${LATEXFLAGS}" "${PYTHONTEX}"
+	touch $@
+
+# A pair written by hand in a part bound with \subimport from another directory:
+# its code column, \inputminted, finds the file relative to the part (issue #133);
+# see the script.
+test-pair-import.passed: test-pair-import.sh ${TEST_OUTSIDE}
+	sh test-pair-import.sh "pdflatex ${LATEXFLAGS}" "${PYTHONTEX}"
 	touch $@
 
 test-note-heading.pdf: test-note-heading.tex didactic.sty
@@ -846,6 +859,7 @@ clean:
 	${RM} test-run.pdf test-run.aux test-run.log test-run.unq
 	${RM} test-run.pytxcode test-run.pytxmcr test-run.pytxpyg
 	${RM} -R pythontex-files-test-run _minted-test-run
+	${RM} test-runjobs.passed test-runpaths.passed test-pair-import.passed
 	${RM} -R test-runjobs.d test-runpaths.d
 	${RM} test-note-heading.pdf test-note-heading.aux test-note-heading.log
 	${RM} test-note-heading.unq
