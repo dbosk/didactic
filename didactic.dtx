@@ -1396,6 +1396,11 @@
 % from left to right, and from top to bottom within a column.
 % |\didacticpairlabel| sets a label above a column, in a first row ended by 
 % |\\|.
+% A column of code from a file is |\inputminted|, which, with the 
+% \textsf{import} package, finds the file relative to the imported part; 
+% not |\didacticinputminted|, which is for didactic's own files and looks 
+% for the file only from the directory LaTeX runs in (see below), so a pair 
+% in a part bound with |\subimport| from another directory fails there.
 % The option |runs| keeps the document's |minted| settings for the output, 
 % as |\runbyrun| does; without it, the columns are code, in the size of 
 % |\codebycodesetup|.
@@ -8428,6 +8433,11 @@ except ImportError:
 % the output directory is a character of the path.
 % This works since PythonTeX inputs our output from its file when the 
 % command is used, and not as the argument of another command.
+% Since it empties the import path, it is not for a document's own files: 
+% written by hand in a part imported from another directory, it looks for 
+% the file from the directory LaTeX runs in, and minted can't find it.
+% A pair written in the document uses |\inputminted| (see the 
+% |didacticpair| environment above).
 %    \begin{macrocode}
 \NewDocumentCommand{\didacticinputminted}{O{} m v}{%
   \begingroup
