@@ -74,7 +74,7 @@ shows() { # job text
 outside runjobs
 for layout in shared outdir dirs; do
 	document "$outside/$layout"
-	cd "$outside/$layout"
+	cd "$outside/$layout" || exit 2
 	cp "$top"/test-runjobs-*.tex .
 	mkdir -p $(build notes)/_minted $(build slides)/_minted
 	case $layout in

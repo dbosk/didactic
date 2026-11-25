@@ -65,7 +65,8 @@ check "the other column shows its output" \
 d="$outside/control"; setup "$d" '\didacticinputminted'
 full "$d"
 check "control: with the import path emptied, minted doesn't find the program" \
-	"$(python3 "$top/testlog.py" grep \
+	"$(own_sty "$d/pairimport.log" &&
+		python3 "$top/testlog.py" grep \
 		"Cannot locate file \"$prog\"" "$d/pairimport.log" >/dev/null &&
 		echo yes)"
 

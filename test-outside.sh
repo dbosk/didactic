@@ -38,13 +38,13 @@ document() {
 	mkdir -p "$1/_minted" && cp "$top/didactic.sty" "$1"
 }
 own_sty() {
-	grep -q '(\./didactic\.sty' "$1"
+	python3 "$top/testlog.py" grep '\(\./didactic\.sty' "$1" >/dev/null
 }
 unseen() {
 	for p in "$@"; do
 		found=$(kpsewhich "$p")
 		if [ -n "$found" ]; then
-			echo "kpathsea finds $p at $found"
+			echo "kpathsea finds $p at $found" >&2
 			return 1
 		fi
 	done
