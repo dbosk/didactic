@@ -45,6 +45,7 @@ all: didactic.sty didactic-sync.py didactic.pdf
 tests: didactic.sty test.pdf test-marginfix-interface test-footcite.pdf \
 	test-footcite-twoside.pdf test-footcite-memoir.pdf test-run.pdf \
 	test-note-heading.pdf test-pair.pdf test-pair-slides.pdf \
+	test-inputminted-deprecated.pdf \
 	test-sidecap.pdf test-sidecap-off.pdf \
 	test-marginfloat.pdf test-marginfloat-slides.pdf \
 	test-frametitle.pdf test-frametitle-slides.pdf \
@@ -270,11 +271,20 @@ test-block-nested.pdf ${TEST_FRAMETITLE_CASES:=.pdf} test-oldkernel-title.pdf: %
 # -shell-escape and a run after pythontex to insert the highlighted code.
 TEST_PAIR_EXAMPLES=	pairgreet1.py pairgreet2.py hello.py pairtabs.py \
 			pairwrite.py pairread.py pairruns.tex
+# didactic prints its internal command, so the deprecated one never warns.
 test-pair.pdf test-pair-slides.pdf: %.pdf: %.tex didactic.sty ${TEST_PAIR_EXAMPLES}
 	-${PDFLATEX} ${LATEXFLAGS} -interaction=nonstopmode $<
 	${PYTHONTEX} $*
 	${PDFLATEX} ${LATEXFLAGS} $<
 	${PDFLATEX} ${LATEXFLAGS} $<
+	! ${TESTLOG} grep 'didacticinputminted is deprecated' $*.log
+
+# \didacticinputminted written by hand still typesets its file, and warns.
+test-inputminted-deprecated.pdf: %.pdf: %.tex didactic.sty pairread.py
+	@mkdir -p _minted
+	${PDFLATEX} ${LATEXFLAGS} $<
+	${TESTLOG} grep 'didacticinputminted is deprecated' $*.log
+	pdftotext $@ - | grep -q 'open'
 
 # bilingual documents: one contents file, both editions, as notes and slides.
 # The first pass fails on the missing pythontex output; check-bilingual reads
@@ -843,6 +853,8 @@ clean:
 	${RM} test-sidecap-off.pdf test-sidecap-off.aux test-sidecap-off.log
 	${RM} test-sidecap-off.unq
 	${RM} test-pair.pdf test-pair.aux test-pair.log test-pair.unq
+	${RM} test-inputminted-deprecated.pdf test-inputminted-deprecated.aux
+	${RM} test-inputminted-deprecated.log
 	${RM} test-pair.pytxcode test-pair.pytxmcr test-pair.pytxpyg
 	${RM} test-pair-slides.pdf test-pair-slides.aux test-pair-slides.log
 	${RM} test-pair-slides.nav test-pair-slides.snm test-pair-slides.toc

@@ -1,0 +1,12 @@
+% Test of the deprecated \didacticinputminted (didactic v2.19.2, #133).
+%
+% Build: see the Makefile (pdflatex -shell-escape, once; no PythonTeX output
+% is needed, since the command is written by hand).
+%
+% Expected: pairread.py is typeset, and the log warns that
+% \didacticinputminted is deprecated and names \inputminted.
+\documentclass[a4paper]{memoir}
+\usepackage{didactic}
+\begin{document}
+\didacticinputminted{python}{pairread.py}
+\end{document}
